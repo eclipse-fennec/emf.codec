@@ -1,0 +1,16 @@
+Bundle-Name: Fennec Codec API
+Bundle-Description: EMF Codec API 
+
+-library: enable-emf
+
+-buildpath: \
+	org.osgi.service.condition;version=latest,\
+	org.eclipse.fennec.model.metadata;version=snapshot,\
+	org.eclipse.fennec.codec.metadata;version=snapshot,\
+	tools.jackson.core.jackson-core;version=latest,\
+	tools.jackson.core.jackson-databind;version=latest,\
+	com.fasterxml.jackson.core.jackson-annotations;version=latest
+	
+-fixupmessages: \
+	jpms.jarname;is:=ignore,\
+	The .classpath;is:=ignore

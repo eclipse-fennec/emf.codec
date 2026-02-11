@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testmappedext" nsURI="http://test.example.org/mapped/ext/1.0" nsPrefix="mappedext">
+
+  <!--
+    Extension package for cross-package MAPPED TypeStrategy testing.
+
+    This package extends the base Device class from test-mapped-type.ecore
+    and registers additional discriminators in the same "iot-sensors" mapId
+    using the dedicated typeMapping/iot-sensors annotation source.
+
+    Tests verify that:
+    - Discriminators from this package work when it's registered
+    - Discriminators stop working when this package is unregistered
+    - Re-registration restores functionality
+  -->
+
+  <!-- PressureSensor - extends Device from base package, discriminator: "pressure-sensor" -->
+  <eClassifiers xsi:type="ecore:EClass" name="PressureSensor"
+      eSuperTypes="http://test.example.org/mapped/1.0#//Device">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/iot-sensors">
+      <details key="typeDiscriminator" value="pressure-sensor"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pressure" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pressureUnit" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- LightSensor - extends Device from base package, discriminator: "light-sensor" -->
+  <eClassifiers xsi:type="ecore:EClass" name="LightSensor"
+      eSuperTypes="http://test.example.org/mapped/1.0#//Device">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/iot-sensors">
+      <details key="typeDiscriminator" value="light-sensor"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lux" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+</ecore:EPackage>

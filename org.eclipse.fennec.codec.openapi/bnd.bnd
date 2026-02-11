@@ -1,0 +1,21 @@
+Bundle-Name: Fennec Codec OpenAPI
+Bundle-Description: EMF / Codec extension to handle OpenAPI
+
+-library: enable-emf
+
+-buildpath: \
+	org.osgi.service.condition;version=latest,\
+	org.eclipse.fennec.openapi.model;version=snapshot,\
+	org.eclipse.fennec.model.metadata;version=snapshot,\
+	org.eclipse.fennec.codec.api;version=snapshot,\
+	org.eclipse.fennec.codec;version=snapshot,\
+	org.eclipse.fennec.codec.jsonschema;version=snapshot,\
+	org.eclipse.fennec.codec.metadata;version=snapshot,\
+	tools.jackson.core.jackson-core;version=latest,\
+	tools.jackson.core.jackson-databind;version=latest,\
+	com.fasterxml.jackson.core.jackson-annotations;version=latest
+	
+-fixupmessages: \
+	jpms.jarname;is:=ignore,\
+	The .classpath;is:=ignore
+	

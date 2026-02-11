@@ -1,0 +1,21 @@
+Bundle-Name: Codec Java
+Bundle-Description: Codec Plain Java Extension
+
+-library: \
+	enable-emf
+
+-buildpath: \
+	org.osgi.util.promise;version=latest,\
+	org.osgi.util.function;version=latest,\
+	org.osgi.util.converter;version=latest,\
+	org.osgi.service.component;version=latest,\
+	com.fasterxml.jackson.core.jackson-annotations;version=latest,\
+	tools.jackson.core.jackson-core;version=latest,\
+	tools.jackson.core.jackson-databind;version=latest,\
+	org.gecko.emf.util.model;version=latest,\
+	org.eclipse.fennec.codec;version=snapshot,\
+	org.eclipse.fennec.codec.constants;version=snapshot,\
+	org.eclipse.fennec.codec.info;version=snapshot,\
+	org.eclipse.fennec.codec.info.model;version=snapshot,\
+	org.eclipse.fennec.codec.json;version=snapshot,\
+	org.eclipse.fennec.codec.demo.model;version=snapshot,\

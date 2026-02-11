@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="bikeraw" nsURI="https://api.eco-counter.com/api/v2/rawtraffic" nsPrefix="bikeraw">
+
+  <!-- DateTime as a simple string attribute wrapper -->
+  <eClassifiers xsi:type="ecore:EClass" name="DateTime">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Count as a simple double wrapper -->
+  <eClassifiers xsi:type="ecore:EClass" name="Count">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDoubleObject"/>
+  </eClassifiers>
+
+  <!-- DataStatus as a simple string wrapper -->
+  <eClassifiers xsi:type="ecore:EClass" name="DataStatus">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- BaseSerie with travelMode and direction as STRING ATTRIBUTES (not references!) -->
+  <!-- This matches the JSON structure where these are primitive strings like "bike", "in" -->
+  <eClassifiers xsi:type="ecore:EClass" name="BaseSerie">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="travelMode"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="direction"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- HistoricalRawTraffic_data: nested data items with timestamp, granularity, counts, status -->
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalRawTraffic_data">
+    <!-- timestamp is a string in JSON like "2026-01-08T00:00:00+01:00" -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="timestamp"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="granularity"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- counts is a double in JSON like 0.0 or 1.0 -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="counts"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDoubleObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="status" eType="#//DataStatus"
+        containment="true"/>
+  </eClassifiers>
+
+  <!-- HistoricalRawTraffic extends BaseSerie, adding flowID, flowName, and data array -->
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalRawTraffic" eSuperTypes="#//BaseSerie">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="flowID"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="flowName"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="data" upperBound="-1"
+        eType="#//HistoricalRawTraffic_data" containment="true"/>
+  </eClassifiers>
+
+</ecore:EPackage>

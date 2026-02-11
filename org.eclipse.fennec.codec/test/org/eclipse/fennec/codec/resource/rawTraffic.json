@@ -1,0 +1,61 @@
+[
+    {
+        "travelMode": "bike",
+        "direction": "in",
+        "flowID": 101046725,
+        "flowName": "Jena-Goldbergrampe Fahrräder Ri. Zentrum",
+        "data": [
+            {
+                "timestamp": "2026-01-08T00:00:00+01:00",
+                "granularity": "PT15M",
+                "counts": 0.0
+            },
+            {
+                "timestamp": "2026-01-08T00:15:00+01:00",
+                "granularity": "PT15M",
+                "counts": 0.0
+            },
+            {
+                "timestamp": "2026-01-08T00:30:00+01:00",
+                "granularity": "PT15M",
+                "counts": 1.0
+            },
+            {
+                "timestamp": "2026-01-08T06:00:00+01:00",
+                "granularity": "PT15M",
+                "counts": 2.0
+            }
+        ]
+    },
+    {
+        "travelMode": "bike",
+        "direction": "out",
+        "flowID": 101046726,
+        "flowName": "Jena-Goldbergrampe Fahrräder Ri. Norden",
+        "data": [
+            {
+                "timestamp": "2026-01-08T00:00:00+01:00",
+                "granularity": "PT15M",
+                "counts": 0.0
+            },
+            {
+                "timestamp": "2026-01-08T07:30:00+01:00",
+                "granularity": "PT15M",
+                "counts": 3.0
+            }
+        ]
+    },
+    {
+        "travelMode": "pedestrian",
+        "direction": "in",
+        "flowID": 101046727,
+        "flowName": "Jena-Goldbergrampe Fußgänger Ri. Zentrum",
+        "data": [
+            {
+                "timestamp": "2026-01-08T08:00:00+01:00",
+                "granularity": "PT15M",
+                "counts": 5.0
+            }
+        ]
+    }
+]

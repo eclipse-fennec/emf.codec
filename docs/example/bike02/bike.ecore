@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="bike" nsURI="https://api.eco-counter.com/api/v2/sites" nsPrefix="bike">
+  <eClassifiers xsi:type="ecore:EClass" name="Location">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lat" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDoubleObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lon" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDoubleObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Geometry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Position"/>
+  <eClassifiers xsi:type="ecore:EClass" name="LineStringCoordinates"/>
+  <eClassifiers xsi:type="ecore:EClass" name="LineString" eSuperTypes="bike.ecore#//Geometry">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="coordinates" eType="ecore:EClass bike.ecore#//LineStringCoordinates"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="GeoJsonObject"/>
+  <eClassifiers xsi:type="ecore:EClass" name="TravelModeLabel"/>
+  <eClassifiers xsi:type="ecore:EClass" name="siteCounter">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="serial" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="installationDate" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="detachmentDate" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Domain">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="siteTag">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Image">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="url" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="site">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="customId" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="location" eType="ecore:EClass bike.ecore#//Location"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="segments" eType="ecore:EClass bike.ecore#//GeoJsonObject"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstData" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastData" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="granularity" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="travelModes" upperBound="-1"
+        eType="ecore:EClass bike.ecore#//TravelModeLabel" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="directional" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="counters" upperBound="-1"
+        eType="ecore:EClass bike.ecore#//siteCounter" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="domain" eType="ecore:EClass bike.ecore#//Domain"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tags" upperBound="-1" eType="ecore:EClass bike.ecore#//siteTag"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="images" upperBound="-1"
+        eType="ecore:EClass bike.ecore#//Image" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="attributes" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="hasTimestampedData" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="hasWeather" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BadRequest">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="code" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="message" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Unauthorized">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="code" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="message" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Forbidden">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="code" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="message" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TooManyRequests">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="code" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="message" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="tag">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="color" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="domain" eType="ecore:EClass bike.ecore#//Domain"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExportCreation">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="startDate" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="endDate" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="startTime" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="endTime" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="schema" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="siteIds" unique="false"
+        upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="granularity" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="validatedDataOnly" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="gapFilling" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="validateSchema" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Export">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="url" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="errorMessage" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="endProcessingDateTime"
+        unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NotFound">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="code" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="message" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DateRange"/>
+  <eClassifiers xsi:type="ecore:EClass" name="StatisticalAverageGroupBy"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Direction"/>
+  <eClassifiers xsi:type="ecore:EClass" name="DirectionName"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Value"/>
+  <eClassifiers xsi:type="ecore:EClass" name="StatisticalTraffic">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="siteId" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="date" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="travelMode" eType="ecore:EClass bike.ecore#//TravelModeLabel"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="direction" eType="ecore:EClass bike.ecore#//Direction"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="directionName" eType="ecore:EClass bike.ecore#//DirectionName"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="ecore:EClass bike.ecore#//Value"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="StatisticalTotalGroupBy"/>
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalRawTrafficInclude"/>
+  <eClassifiers xsi:type="ecore:EClass" name="BaseSerie">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="travelMode" eType="ecore:EClass bike.ecore#//TravelModeLabel"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="direction" eType="ecore:EClass bike.ecore#//Direction"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DateTime"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Count"/>
+  <eClassifiers xsi:type="ecore:EClass" name="DataStatus"/>
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalRawTraffic" eSuperTypes="bike.ecore#//BaseSerie">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="flowID" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="flowName" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="data" upperBound="-1" eType="ecore:EClass bike.ecore#//HistoricalRawTraffic_data"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalAggregatedTrafficInclude"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Granularity"/>
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalAggregatedTrafficGroupBy"/>
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalAggregatedTraffic" eSuperTypes="bike.ecore#//BaseSerie">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="data" upperBound="-1" eType="ecore:EClass bike.ecore#//HistoricalAggregatedTraffic_data"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="directionName" eType="ecore:EClass bike.ecore#//DirectionName"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="flowID" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="flowName" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Lane"/>
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalTimestampTraffic" eSuperTypes="bike.ecore#//BaseSerie">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="timestamp" eType="ecore:EClass bike.ecore#//DateTime"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="lane" eType="ecore:EClass bike.ecore#//Lane"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="speed" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="validationJobStatus"/>
+  <eClassifiers xsi:type="ecore:EClass" name="validationJob">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="status" eType="ecore:EClass bike.ecore#//validationJobStatus"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="siteIds" unique="false"
+        upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="startDate" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="endDate" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="errorMessage" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="endProcessingDateTime"
+        unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="createdAt" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="validationJobCreated">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="status" eType="ecore:EClass bike.ecore#//validationJobStatus"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="siteIds" unique="false"
+        upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="startDate" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="endDate" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Conflict">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="code" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="message" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalRawTraffic_data">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="timestamp" eType="ecore:EClass bike.ecore#//DateTime"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="granularity" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="counts" eType="ecore:EClass bike.ecore#//Count"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="status" eType="ecore:EClass bike.ecore#//DataStatus"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalAggregatedTraffic_data">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="timestamp" eType="ecore:EClass bike.ecore#//DateTime"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="traffic" eType="ecore:EClass bike.ecore#//HistoricalAggregatedTraffic_data_traffic"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="weather" eType="ecore:EClass bike.ecore#//HistoricalAggregatedTraffic_data_weather"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalAggregatedTraffic_data_traffic">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="counts" eType="ecore:EClass bike.ecore#//Count"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="HistoricalAggregatedTraffic_data_weather">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="temperature" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rainAccumulation" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="snowAccumulation" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Response">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="code" unique="false" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="response" unique="false"
+        eType="ecore:EDataType bike.ecore#//JResponse"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="result" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EDataType" name="JResponse" instanceClassName="jakarta.ws.rs.core.Response"/>
+  <eClassifiers xsi:type="ecore:EClass" name="OpenApiClient" abstract="true" interface="true">
+    <eOperations name="toQueryString" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Converts an object to a query parameter compatible string"/>
+        <details key="body" value="if(in instanceof java.util.Collection&lt;?> c) {&#xA;&#x9;return c.stream().map(String::valueOf).map(s -> java.net.URLEncoder.encode(s, java.nio.charset.StandardCharsets.UTF_8)).collect(java.util.stream.Collectors.joining(&quot;&amp;&quot;+name+&quot;=&quot;));&#xA;}&#xA;return java.net.URLEncoder.encode(String.valueOf(in), java.nio.charset.StandardCharsets.UTF_8);&#xA;"/>
+      </eAnnotations>
+      <eParameters name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="in" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>
+    </eOperations>
+    <eOperations name="_get" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value=" _get it "/>
+      </eAnnotations>
+      <eParameters name="endpoint" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="result" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EClass"/>
+      <eParameters name="pathParameter" upperBound="-1" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EStringToStringMapEntry"/>
+      <eParameters name="queryParameter" upperBound="-1" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EStringToStringMapEntry"/>
+    </eOperations>
+    <eOperations name="_delete" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value=" _delete it "/>
+      </eAnnotations>
+      <eParameters name="endpoint" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="result" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EClass"/>
+      <eParameters name="pathParameter" upperBound="-1" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EStringToStringMapEntry"/>
+      <eParameters name="queryParameter" upperBound="-1" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EStringToStringMapEntry"/>
+    </eOperations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BikeOpenApiClient" abstract="true" eSuperTypes="bike.ecore#//OpenApiClient">
+    <eOperations name="GetSites" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Returns a list of your counting sites.&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/sites&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.getsite();&#xA;if ( null != page ) queryParameter.put(&quot;page&quot;, toQueryString(&quot;page&quot;,page));&#xA;if ( null != pageSize ) queryParameter.put(&quot;pageSize&quot;, toQueryString(&quot;pageSize&quot;,pageSize));&#xA;if ( null != sortBy ) queryParameter.put(&quot;sortBy&quot;, toQueryString(&quot;sortBy&quot;,sortBy));&#xA;if ( null != orderBy ) queryParameter.put(&quot;orderBy&quot;, toQueryString(&quot;orderBy&quot;,orderBy));&#xA;if ( null != include ) queryParameter.put(&quot;include&quot;, toQueryString(&quot;include&quot;,include));&#xA;if ( null != ids ) queryParameter.put(&quot;ids&quot;, toQueryString(&quot;ids&quot;,ids));&#xA;if ( null != domainIds ) queryParameter.put(&quot;domainIds&quot;, toQueryString(&quot;domainIds&quot;,domainIds));&#xA;if ( null != tagIds ) queryParameter.put(&quot;tagIds&quot;, toQueryString(&quot;tagIds&quot;,tagIds));&#xA;if ( null != customIds ) queryParameter.put(&quot;customIds&quot;, toQueryString(&quot;customIds&quot;,customIds));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="page" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="pageSize" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="sortBy" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="orderBy" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="include" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="ids" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="domainIds" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="tagIds" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="customIds" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eOperations>
+    <eOperations name="GetTags" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Returns a list of your tags.&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/tags&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.gettag();&#xA;if ( null != page ) queryParameter.put(&quot;page&quot;, toQueryString(&quot;page&quot;,page));&#xA;if ( null != pageSize ) queryParameter.put(&quot;pageSize&quot;, toQueryString(&quot;pageSize&quot;,pageSize));&#xA;if ( null != sortBy ) queryParameter.put(&quot;sortBy&quot;, toQueryString(&quot;sortBy&quot;,sortBy));&#xA;if ( null != orderBy ) queryParameter.put(&quot;orderBy&quot;, toQueryString(&quot;orderBy&quot;,orderBy));&#xA;if ( null != include ) queryParameter.put(&quot;include&quot;, toQueryString(&quot;include&quot;,include));&#xA;if ( null != ids ) queryParameter.put(&quot;ids&quot;, toQueryString(&quot;ids&quot;,ids));&#xA;if ( null != domainIds ) queryParameter.put(&quot;domainIds&quot;, toQueryString(&quot;domainIds&quot;,domainIds));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="page" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="pageSize" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="sortBy" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="orderBy" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="include" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="ids" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="domainIds" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    </eOperations>
+    <eOperations name="CreateExport" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Create a new asynchronous export job to retrieve large volumes of traffic data efficiently.&#xA;&#xA;This endpoint allows you to:&#xA;- Export data from multiple sites simultaneously (up to 10,000 sites)&#xA;- Choose from various time granularities (15 minutes to 1 year)&#xA;- Apply filters for validated data only&#xA;- Enable gap filling for contiguous time series&#xA;- Select from available export schema formats&#xA;&#xA;**Important**: Export files are available for download for 30 days after completion, then automatically deleted.&#xA; endpoint: /exports"/>
+      </eAnnotations>
+      <eParameters name="request" eType="ecore:EClass bike.ecore#//ExportCreation"/>
+    </eOperations>
+    <eOperations name="GetExportStatus" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Monitor the progress and status of your export job.&#xA;&#xA;Possible statuses:&#xA;- **queued**: Job is waiting to be processed&#xA;- **in_progress**: Data is being processed and prepared&#xA;- **success**: Export completed successfully, data ready for download&#xA;- **failure**: Export failed (see errorMessage for details)&#xA;- **cleaned**: Export file has been automatically deleted (after 30 days)&#xA;&#xA;Once the status is 'success', you can download the data using the provided URL. Remember that export files are only available for 30 days before being automatically deleted.&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/exports/{jobId}&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.getExport();&#xA;pathParameter.put(&quot;jobId&quot;, toQueryString(&quot;jobId&quot;,jobId));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="jobId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    </eOperations>
+    <eOperations name="DownloadExportData" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Download the completed export data as a compressed archive. The format and structure depend on the export schema selected during job creation.&#xA;&#xA;The archive typically includes:&#xA;- Traffic counting data organized according to the selected schema&#xA;- Metadata files with site information and export parameters&#xA;- Documentation files explaining the data structure and format&#xA;&#xA;**Important**: Export files are only available for 30 days after job completion. After this period, files are automatically deleted and cannot be recovered.&#xA;&#xA;**Note**: This endpoint only works when the export status is 'success' otherwise it returns a HTTP 404 error.&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/exports/{jobId}/data&quot;;&#xA;EClass resultEClass = org.eclipse.emf.ecore.EcorePackage.eINSTANCE.getEObject();&#xA;pathParameter.put(&quot;jobId&quot;, toQueryString(&quot;jobId&quot;,jobId));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="jobId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    </eOperations>
+    <eOperations name="GetADT" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Total traffic volume during the selected time period, divided by the number of days having data in that period.&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/statistical/adt&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.getStatisticalTraffic();&#xA;if ( null != domainId ) queryParameter.put(&quot;domainId&quot;, toQueryString(&quot;domainId&quot;,domainId));&#xA;if ( null != siteId ) queryParameter.put(&quot;siteId&quot;, toQueryString(&quot;siteId&quot;,siteId));&#xA;if ( null != dateRange ) queryParameter.put(&quot;dateRange&quot;, toQueryString(&quot;dateRange&quot;,dateRange));&#xA;if ( null != month ) queryParameter.put(&quot;month&quot;, toQueryString(&quot;month&quot;,month));&#xA;if ( null != year ) queryParameter.put(&quot;year&quot;, toQueryString(&quot;year&quot;,year));&#xA;if ( null != groupBy ) queryParameter.put(&quot;groupBy&quot;, toQueryString(&quot;groupBy&quot;,groupBy));&#xA;if ( null != travelModes ) queryParameter.put(&quot;travelModes&quot;, toQueryString(&quot;travelModes&quot;,travelModes));&#xA;if ( null != validatedDataOnly ) queryParameter.put(&quot;validatedDataOnly&quot;, toQueryString(&quot;validatedDataOnly&quot;,validatedDataOnly));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="domainId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="siteId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="dateRange" eType="ecore:EClass bike.ecore#//DateRange"/>
+      <eParameters name="month" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="year" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="groupBy" eType="ecore:EClass bike.ecore#//StatisticalAverageGroupBy"/>
+      <eParameters name="travelModes" upperBound="-1" eType="ecore:EClass bike.ecore#//TravelModeLabel"/>
+      <eParameters name="validatedDataOnly" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+    </eOperations>
+    <eOperations name="GetADTBySite" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Total traffic volume during the selected time period, divided by the number of days having data in that period and by the number of counting sites.&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/statistical/adt/by/site&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.getStatisticalTraffic();&#xA;if ( null != domainId ) queryParameter.put(&quot;domainId&quot;, toQueryString(&quot;domainId&quot;,domainId));&#xA;if ( null != siteId ) queryParameter.put(&quot;siteId&quot;, toQueryString(&quot;siteId&quot;,siteId));&#xA;if ( null != dateRange ) queryParameter.put(&quot;dateRange&quot;, toQueryString(&quot;dateRange&quot;,dateRange));&#xA;if ( null != month ) queryParameter.put(&quot;month&quot;, toQueryString(&quot;month&quot;,month));&#xA;if ( null != year ) queryParameter.put(&quot;year&quot;, toQueryString(&quot;year&quot;,year));&#xA;if ( null != groupBy ) queryParameter.put(&quot;groupBy&quot;, toQueryString(&quot;groupBy&quot;,groupBy));&#xA;if ( null != travelModes ) queryParameter.put(&quot;travelModes&quot;, toQueryString(&quot;travelModes&quot;,travelModes));&#xA;if ( null != validatedDataOnly ) queryParameter.put(&quot;validatedDataOnly&quot;, toQueryString(&quot;validatedDataOnly&quot;,validatedDataOnly));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="domainId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="siteId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="dateRange" eType="ecore:EClass bike.ecore#//DateRange"/>
+      <eParameters name="month" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="year" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="groupBy" eType="ecore:EClass bike.ecore#//StatisticalAverageGroupBy"/>
+      <eParameters name="travelModes" upperBound="-1" eType="ecore:EClass bike.ecore#//TravelModeLabel"/>
+      <eParameters name="validatedDataOnly" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+    </eOperations>
+    <eOperations name="GetTotalTraffic" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Get total traffic&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/statistical/total&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.getStatisticalTraffic();&#xA;if ( null != domainId ) queryParameter.put(&quot;domainId&quot;, toQueryString(&quot;domainId&quot;,domainId));&#xA;if ( null != siteId ) queryParameter.put(&quot;siteId&quot;, toQueryString(&quot;siteId&quot;,siteId));&#xA;if ( null != dateRange ) queryParameter.put(&quot;dateRange&quot;, toQueryString(&quot;dateRange&quot;,dateRange));&#xA;if ( null != month ) queryParameter.put(&quot;month&quot;, toQueryString(&quot;month&quot;,month));&#xA;if ( null != year ) queryParameter.put(&quot;year&quot;, toQueryString(&quot;year&quot;,year));&#xA;if ( null != groupBy ) queryParameter.put(&quot;groupBy&quot;, toQueryString(&quot;groupBy&quot;,groupBy));&#xA;if ( null != travelModes ) queryParameter.put(&quot;travelModes&quot;, toQueryString(&quot;travelModes&quot;,travelModes));&#xA;if ( null != validatedDataOnly ) queryParameter.put(&quot;validatedDataOnly&quot;, toQueryString(&quot;validatedDataOnly&quot;,validatedDataOnly));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="domainId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="siteId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="dateRange" eType="ecore:EClass bike.ecore#//DateRange"/>
+      <eParameters name="month" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="year" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="groupBy" eType="ecore:EClass bike.ecore#//StatisticalTotalGroupBy"/>
+      <eParameters name="travelModes" upperBound="-1" eType="ecore:EClass bike.ecore#//TravelModeLabel"/>
+      <eParameters name="validatedDataOnly" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+    </eOperations>
+    <eOperations name="GetRawTraffic" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Maximum timeframe of 31 days&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/history/traffic/raw&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.getHistoricalRawTraffic();&#xA;if ( null != siteId ) queryParameter.put(&quot;siteId&quot;, toQueryString(&quot;siteId&quot;,siteId));&#xA;if ( null != include ) queryParameter.put(&quot;include&quot;, toQueryString(&quot;include&quot;,include));&#xA;if ( null != startDate ) queryParameter.put(&quot;startDate&quot;, toQueryString(&quot;startDate&quot;,startDate));&#xA;if ( null != endDate ) queryParameter.put(&quot;endDate&quot;, toQueryString(&quot;endDate&quot;,endDate));&#xA;if ( null != startTime ) queryParameter.put(&quot;startTime&quot;, toQueryString(&quot;startTime&quot;,startTime));&#xA;if ( null != endTime ) queryParameter.put(&quot;endTime&quot;, toQueryString(&quot;endTime&quot;,endTime));&#xA;if ( null != gapFilling ) queryParameter.put(&quot;gapFilling&quot;, toQueryString(&quot;gapFilling&quot;,gapFilling));&#xA;if ( null != travelModes ) queryParameter.put(&quot;travelModes&quot;, toQueryString(&quot;travelModes&quot;,travelModes));&#xA;if ( null != validatedDataOnly ) queryParameter.put(&quot;validatedDataOnly&quot;, toQueryString(&quot;validatedDataOnly&quot;,validatedDataOnly));&#xA;if ( null != rawDataOnly ) queryParameter.put(&quot;rawDataOnly&quot;, toQueryString(&quot;rawDataOnly&quot;,rawDataOnly));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="siteId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="include" upperBound="-1" eType="ecore:EClass bike.ecore#//HistoricalRawTrafficInclude"/>
+      <eParameters name="startDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="endDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="startTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="endTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="gapFilling" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+      <eParameters name="travelModes" upperBound="-1" eType="ecore:EClass bike.ecore#//TravelModeLabel"/>
+      <eParameters name="validatedDataOnly" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+      <eParameters name="rawDataOnly" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+    </eOperations>
+    <eOperations name="GetAggregatedTraffic" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Maximum timeframe of : &#xA;&#xA;  | Aggregation interval | Maximum timeframe |&#xA;  |----------------------|-------------------|&#xA;  | 15 minutes           | 31 days           |&#xA;  | 1 hour               | 31 days           |&#xA;  | 1 day                | 1 year            |&#xA;  | 1 week               | 5 years           |&#xA;  | 1 month              | 10 years          |&#xA;  | 1 year               | 30 years          |&#xA;&#xA;Requesting aggregated data by exceeding the limits above will result in a 400 HTTP error.&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/history/traffic/aggregated&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.getHistoricalAggregatedTraffic();&#xA;if ( null != siteId ) queryParameter.put(&quot;siteId&quot;, toQueryString(&quot;siteId&quot;,siteId));&#xA;if ( null != include ) queryParameter.put(&quot;include&quot;, toQueryString(&quot;include&quot;,include));&#xA;if ( null != startDate ) queryParameter.put(&quot;startDate&quot;, toQueryString(&quot;startDate&quot;,startDate));&#xA;if ( null != endDate ) queryParameter.put(&quot;endDate&quot;, toQueryString(&quot;endDate&quot;,endDate));&#xA;if ( null != startTime ) queryParameter.put(&quot;startTime&quot;, toQueryString(&quot;startTime&quot;,startTime));&#xA;if ( null != endTime ) queryParameter.put(&quot;endTime&quot;, toQueryString(&quot;endTime&quot;,endTime));&#xA;if ( null != granularity ) queryParameter.put(&quot;granularity&quot;, toQueryString(&quot;granularity&quot;,granularity));&#xA;if ( null != groupBy ) queryParameter.put(&quot;groupBy&quot;, toQueryString(&quot;groupBy&quot;,groupBy));&#xA;if ( null != gapFilling ) queryParameter.put(&quot;gapFilling&quot;, toQueryString(&quot;gapFilling&quot;,gapFilling));&#xA;if ( null != travelModes ) queryParameter.put(&quot;travelModes&quot;, toQueryString(&quot;travelModes&quot;,travelModes));&#xA;if ( null != validatedDataOnly ) queryParameter.put(&quot;validatedDataOnly&quot;, toQueryString(&quot;validatedDataOnly&quot;,validatedDataOnly));&#xA;if ( null != rawDataOnly ) queryParameter.put(&quot;rawDataOnly&quot;, toQueryString(&quot;rawDataOnly&quot;,rawDataOnly));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="siteId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="include" upperBound="-1" eType="ecore:EClass bike.ecore#//HistoricalAggregatedTrafficInclude"/>
+      <eParameters name="startDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="endDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="startTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="endTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="granularity" eType="ecore:EClass bike.ecore#//Granularity"/>
+      <eParameters name="groupBy" eType="ecore:EClass bike.ecore#//HistoricalAggregatedTrafficGroupBy"/>
+      <eParameters name="gapFilling" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+      <eParameters name="travelModes" upperBound="-1" eType="ecore:EClass bike.ecore#//TravelModeLabel"/>
+      <eParameters name="validatedDataOnly" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+      <eParameters name="rawDataOnly" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+    </eOperations>
+    <eOperations name="GetTimestampTraffic" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Get timestamp traffic data for a specific date range. The maximum allowed duration between start and end date is **7 days** because of the amount of data returned.&#xA;This limitation ensures optimal performance and prevents the server from being overloaded due to excessive data retrieval.&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/history/traffic/timestamp&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.getHistoricalTimestampTraffic();&#xA;if ( null != siteId ) queryParameter.put(&quot;siteId&quot;, toQueryString(&quot;siteId&quot;,siteId));&#xA;if ( null != startDate ) queryParameter.put(&quot;startDate&quot;, toQueryString(&quot;startDate&quot;,startDate));&#xA;if ( null != endDate ) queryParameter.put(&quot;endDate&quot;, toQueryString(&quot;endDate&quot;,endDate));&#xA;if ( null != startTime ) queryParameter.put(&quot;startTime&quot;, toQueryString(&quot;startTime&quot;,startTime));&#xA;if ( null != endTime ) queryParameter.put(&quot;endTime&quot;, toQueryString(&quot;endTime&quot;,endTime));&#xA;if ( null != travelModes ) queryParameter.put(&quot;travelModes&quot;, toQueryString(&quot;travelModes&quot;,travelModes));&#xA;if ( null != directions ) queryParameter.put(&quot;directions&quot;, toQueryString(&quot;directions&quot;,directions));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="siteId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+      <eParameters name="startDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="endDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="startTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="endTime" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eParameters name="travelModes" upperBound="-1" eType="ecore:EClass bike.ecore#//TravelModeLabel"/>
+      <eParameters name="directions" upperBound="-1" eType="ecore:EClass bike.ecore#//Direction"/>
+    </eOperations>
+    <eOperations name="ValidationJobsGet" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Get the informations of your validation jobs.&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/validation/data/jobs&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.getvalidationJob();&#xA;if ( null != page ) queryParameter.put(&quot;page&quot;, toQueryString(&quot;page&quot;,page));&#xA;if ( null != pageSize ) queryParameter.put(&quot;pageSize&quot;, toQueryString(&quot;pageSize&quot;,pageSize));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="page" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+      <eParameters name="pageSize" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    </eOperations>
+    <eOperations name="ValidationJobCreate" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Validate the data of the given sites from their ids on a period. The process is asynchronous.&#xA;Restrictions:&#xA;- Only one job can be in progress per API key&#xA;- The validation period cannot exceed 1 year&#xA;- Maximum 10 sites can be validated at once&#xA; endpoint: /validation/data/jobs"/>
+      </eAnnotations>
+      <eParameters name="request" eType="ecore:EClass bike.ecore#//ValidationJobCreate_request"/>
+    </eOperations>
+    <eOperations name="ValidationJobGet" eType="ecore:EClass bike.ecore#//Response">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Get the informations of a validation job from its id.&#xA;"/>
+        <details key="body" value="java.util.HashMap&lt;String, String> queryParameter = new java.util.HashMap&lt;>();&#xA;java.util.HashMap&lt;String, String> pathParameter = new java.util.HashMap&lt;>();&#xA;String endpoint = &quot;/validation/data/jobs/{jobId}&quot;;&#xA;EClass resultEClass = BikePackage.eINSTANCE.getvalidationJob();&#xA;pathParameter.put(&quot;jobId&quot;, toQueryString(&quot;jobId&quot;,jobId));&#xA;return _get(endpoint, resultEClass ,org.eclipse.emf.common.util.ECollections.asEMap(pathParameter), org.eclipse.emf.common.util.ECollections.asEMap(queryParameter));"/>
+      </eAnnotations>
+      <eParameters name="jobId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    </eOperations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ValidationJobCreate_request">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="siteIds" unique="false"
+        upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="startDate" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="endDate" unique="false"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+</ecore:EPackage>

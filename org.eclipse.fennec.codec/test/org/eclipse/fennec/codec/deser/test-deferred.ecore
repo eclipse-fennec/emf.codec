@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="deferred" nsURI="http://test.fennec/deferred" nsPrefix="deferred">
+
+  <!--
+    Test model for deferred properties deserialization.
+    Tests scenarios where properties appear before _type field in JSON.
+  -->
+
+  <!-- Simple nested object for single containment -->
+  <eClassifiers xsi:type="ecore:EClass" name="Address">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="street" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="city" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="zipCode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Nested object with primitive array -->
+  <eClassifiers xsi:type="ecore:EClass" name="Tags">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="values" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Item for array of objects -->
+  <eClassifiers xsi:type="ecore:EClass" name="Item">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="quantity" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="price" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+
+  <!-- Deeply nested: Item with sub-items -->
+  <eClassifiers xsi:type="ecore:EClass" name="Category">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="items" upperBound="-1" eType="#//Item" containment="true"/>
+  </eClassifiers>
+
+  <!-- Matrix: array of arrays (represented as rows containing cells) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Cell">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="Row">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="cells" upperBound="-1" eType="#//Cell" containment="true"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="Matrix">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="rows" upperBound="-1" eType="#//Row" containment="true"/>
+  </eClassifiers>
+
+  <!-- Main container with various deferred property scenarios -->
+  <eClassifiers xsi:type="ecore:EClass" name="Container">
+    <!-- Primitive attributes -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="count" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="active" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+
+    <!-- Primitive array -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="labels" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="scores" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+
+    <!-- Single nested object -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true"/>
+
+    <!-- Object with primitive array -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tags" eType="#//Tags" containment="true"/>
+
+    <!-- Array of objects -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="items" upperBound="-1" eType="#//Item" containment="true"/>
+
+    <!-- Deep nesting: array of objects containing arrays -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="categories" upperBound="-1" eType="#//Category" containment="true"/>
+
+    <!-- Matrix: array of array-like structures -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="matrix" eType="#//Matrix" containment="true"/>
+  </eClassifiers>
+
+</ecore:EPackage>

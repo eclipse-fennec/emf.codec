@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testadvanced" nsURI="http://test.example.org/advanced/1.0" nsPrefix="advanced">
+
+  <!--
+    Test model for advanced serialization scenarios:
+    - Polymorphic lists (inheritance hierarchies)
+    - Bidirectional references
+    - Circular references
+    - Null/default value handling
+  -->
+
+  <!-- ======================= POLYMORPHISM ======================= -->
+
+  <!-- Abstract base class for animals -->
+  <eClassifiers xsi:type="ecore:EClass" name="Animal" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="age" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+  <!-- Concrete subclass: Dog -->
+  <eClassifiers xsi:type="ecore:EClass" name="Dog" eSuperTypes="#//Animal">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="breed" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="trained" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+  </eClassifiers>
+
+  <!-- Concrete subclass: Cat -->
+  <eClassifiers xsi:type="ecore:EClass" name="Cat" eSuperTypes="#//Animal">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="indoor" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="color" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Concrete subclass: Bird -->
+  <eClassifiers xsi:type="ecore:EClass" name="Bird" eSuperTypes="#//Animal">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="canFly" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="wingspan" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+
+  <!-- Zoo - container for polymorphic animals -->
+  <eClassifiers xsi:type="ecore:EClass" name="Zoo">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- Polymorphic containment: can contain Dogs, Cats, or Birds -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="animals" upperBound="-1" eType="#//Animal" containment="true"/>
+    <!-- Non-containment polymorphic reference -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="featuredAnimal" eType="#//Animal"/>
+  </eClassifiers>
+
+  <!-- ======================= BIDIRECTIONAL ======================= -->
+
+  <!-- Person with bidirectional spouse reference -->
+  <eClassifiers xsi:type="ecore:EClass" name="Person">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- Bidirectional 1:1 - spouse -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="spouse" eType="#//Person" eOpposite="#//Person/spouse"/>
+    <!-- Bidirectional 1:N - parent/children -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="parent" eType="#//Person" eOpposite="#//Person/children"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="children" upperBound="-1" eType="#//Person" containment="true" eOpposite="#//Person/parent"/>
+  </eClassifiers>
+
+  <!-- ======================= CIRCULAR REFERENCES ======================= -->
+
+  <!-- Node for testing circular graphs -->
+  <eClassifiers xsi:type="ecore:EClass" name="Node">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <!-- Self-referential: can point to other nodes (circular) -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="next" eType="#//Node"/>
+    <!-- Multi-valued self-reference -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="connections" upperBound="-1" eType="#//Node"/>
+  </eClassifiers>
+
+  <!-- Graph container for nodes -->
+  <eClassifiers xsi:type="ecore:EClass" name="Graph">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nodes" upperBound="-1" eType="#//Node" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="root" eType="#//Node"/>
+  </eClassifiers>
+
+  <!-- ======================= NULL/DEFAULT VALUES ======================= -->
+
+  <!-- Entity with various nullable/defaulted attributes -->
+  <eClassifiers xsi:type="ecore:EClass" name="Entity">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="requiredName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="optionalDescription" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defaultedInt" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="42"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defaultedBoolean" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defaultedString" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" defaultValueLiteral="default"/>
+    <!-- Optional containment -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="optionalChild" eType="#//Entity" containment="true"/>
+  </eClassifiers>
+
+</ecore:EPackage>

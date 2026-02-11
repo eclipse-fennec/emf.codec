@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testenums" nsURI="http://test.example.org/enums/1.0" nsPrefix="enums">
+
+  <!--
+    Test model for enum serialization strategy tests.
+    The enum STATUS has different name vs literal values to test all strategies.
+  -->
+
+  <!-- Enum with different name/literal values to test strategies -->
+  <eClassifiers xsi:type="ecore:EEnum" name="Status">
+    <!-- Value 0: name=PENDING, literal=pending -->
+    <eLiterals name="PENDING" value="0" literal="pending"/>
+    <!-- Value 1: name=ACTIVE, literal=Active (different case!) -->
+    <eLiterals name="ACTIVE" value="1" literal="Active"/>
+    <!-- Value 2: name=COMPLETED, literal=COMPLETED (same) -->
+    <eLiterals name="COMPLETED" value="2" literal="COMPLETED"/>
+  </eClassifiers>
+
+  <!-- Simple class with enum attribute -->
+  <eClassifiers xsi:type="ecore:EClass" name="Task">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" eType="#//Status"/>
+    <!-- Multi-valued enum attribute -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="previousStatuses" upperBound="-1" eType="#//Status"/>
+  </eClassifiers>
+
+</ecore:EPackage>

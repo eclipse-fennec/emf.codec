@@ -1,0 +1,45 @@
+/**
+ * Copyright (c) 2012 - 2026 Data In Motion and others.
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     Data In Motion - initial API and implementation
+ */
+package org.eclipse.fennec.codec.context;
+
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.mock;
+
+import org.eclipse.emf.ecore.EClass;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Tests for {@link CodecReadContext} type hint operations.
+ *
+ * @see <a href="docs/codec-v2-serialization-spec.md#1811-emf-codec-context">Spec 18.11: EMF Codec Context</a>
+ */
+@DisplayName("CodecReadContext type hint operations")
+class CodecReadContextTypeHintTest extends CodecReadContextTestBase {
+
+    @Test
+    @DisplayName("setCurrentTypeHint and getCurrentTypeHint")
+    void setAndGetCurrentTypeHint() {
+        EClass typeHint = mock(EClass.class);
+        context.setCurrentTypeHint(typeHint);
+        assertSame(typeHint, context.getCurrentTypeHint());
+    }
+
+    @Test
+    @DisplayName("getCurrentTypeHint returns null by default")
+    void typeHintNullByDefault() {
+        assertNull(context.getCurrentTypeHint());
+    }
+}

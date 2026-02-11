@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testsmartcompression" nsURI="http://test.example.org/smartcompression/1.0" nsPrefix="smartcomp">
+
+  <!--
+    Test model for smart compression tests.
+
+    Smart compression behavior:
+    - OFF: _type is always written for contained objects
+    - ON: _type is suppressed when instance type == reference type
+    - ON with polymorphism: _type is written when instance type != reference type
+  -->
+
+  <!-- Animal - abstract base class for polymorphic tests -->
+  <eClassifiers xsi:type="ecore:EClass" name="Animal" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Dog - concrete subclass of Animal -->
+  <eClassifiers xsi:type="ecore:EClass" name="Dog" eSuperTypes="#//Animal">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="breed" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Cat - concrete subclass of Animal -->
+  <eClassifiers xsi:type="ecore:EClass" name="Cat" eSuperTypes="#//Animal">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="indoor" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+  </eClassifiers>
+
+  <!-- Owner - has polymorphic pet references (typed as Animal, holds Dog/Cat) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Owner">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- Polymorphic containment: typed as Animal, but holds Dog/Cat -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pet" eType="#//Animal" containment="true"/>
+    <!-- Multi-valued polymorphic containment -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pets" upperBound="-1" eType="#//Animal" containment="true"/>
+  </eClassifiers>
+
+  <!-- Kennel - holds only Dogs (same-type reference) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Kennel">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- Same-type containment: typed as Dog, holds Dog -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dog" eType="#//Dog" containment="true"/>
+    <!-- Multi-valued same-type containment -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dogs" upperBound="-1" eType="#//Dog" containment="true"/>
+  </eClassifiers>
+
+</ecore:EPackage>

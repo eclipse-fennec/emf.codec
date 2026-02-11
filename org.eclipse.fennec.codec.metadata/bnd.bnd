@@ -1,0 +1,24 @@
+Bundle-Name: Fennec Codec Metadata
+Bundle-Description: Codec-specific aspects for the Model Metadata Service
+
+src=${^src},src-gen
+
+-library: enable-emf
+
+-includeresource.model: model=model
+
+-generate:\
+	model/codec.genmodel;\
+		generate=geckoEMF;\
+		genmodel=model/codec.genmodel;\
+		output=src-gen
+# Add this attribute to find some logging information
+#		logfile=test.log;\
+
+-buildpath: \
+	org.osgi.service.condition;version=latest,\
+	org.eclipse.fennec.model.metadata;version=snapshot
+
+-fixupmessages: \
+	jpms.jarname;is:=ignore,\
+	The .classpath;is:=ignore

@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="codecinfo" nsURI="https://org.eclipse/fennec/codec/info/1.0"
+    nsPrefix="ci">
+  <eAnnotations source="Version">
+    <details key="value" value="1.0"/>
+  </eAnnotations>
+  <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+    <details key="complianceLevel" value="17.0"/>
+    <details key="basePackage" value="org.eclipse.fennec.codec.info"/>
+    <details key="fileExtensions" value="codecinfo"/>
+    <details key="oSGiCompatible" value="true"/>
+    <details key="resource" value="XMI"/>
+  </eAnnotations>
+  <eClassifiers xsi:type="ecore:EClass" name="PackageCodecInfo">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"
+        iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="ePackage" eType="ecore:EClass platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EPackage"
+        eKeys="platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EPackage/nsURI"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="subPackageCodecInfo" upperBound="-1"
+        eType="#//PackageCodecInfo" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eClassCodecInfo" upperBound="-1"
+        eType="#//EClassCodecInfo" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EClassCodecInfo" eSuperTypes="#//TypedCodecInfo #//IdentifiableCodecInfo">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"
+        iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="classifier" eType="ecore:EClass platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EClassifier"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="superTypeInfo" eType="#//SuperTypeInfo"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="featureInfo" upperBound="-1"
+        eType="#//FeatureCodecInfo" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="referenceCodecInfo" upperBound="-1"
+        eType="#//FeatureCodecInfo" volatile="true" transient="true" derived="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="get" value="return &lt;%org.eclipse.emf.common.util.ECollections%>.asEList(getFeatureInfo().stream().filter(f->&lt;%org.eclipse.fennec.codec.info.codecinfo.InfoType%>.REFERENCE.equals(f.getType())).collect(&lt;%java.util.stream.Collectors%>.toList()));"/>
+        <details key="suppressedSetVisibility" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attributeCodecInfo" upperBound="-1"
+        eType="#//FeatureCodecInfo" volatile="true" transient="true" derived="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="get" value="return &lt;%org.eclipse.emf.common.util.ECollections%>.asEList(getFeatureInfo().stream().filter(f->&lt;%org.eclipse.fennec.codec.info.codecinfo.InfoType%>.ATTRIBUTE.equals(f.getType())).collect(&lt;%java.util.stream.Collectors%>.toList()));"/>
+        <details key="suppressedSetVisibility" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="operationCodecInfo" upperBound="-1"
+        eType="#//FeatureCodecInfo" volatile="true" transient="true" derived="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="get" value="return &lt;%org.eclipse.emf.common.util.ECollections%>.asEList(getFeatureInfo().stream().filter(f->&lt;%org.eclipse.fennec.codec.info.codecinfo.InfoType%>.OPERATION.equals(f.getType())).collect(&lt;%java.util.stream.Collectors%>.toList()));"/>
+        <details key="suppressedSetVisibility" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="enumeratorCodecInfo" upperBound="-1"
+        eType="#//FeatureCodecInfo" volatile="true" transient="true" derived="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="get" value="return &lt;%org.eclipse.emf.common.util.ECollections%>.asEList(getFeatureInfo().stream().filter(f->&lt;%org.eclipse.fennec.codec.info.codecinfo.InfoType%>.ENUMERATOR.equals(f.getType())).collect(&lt;%java.util.stream.Collectors%>.toList()));"/>
+        <details key="suppressedSetVisibility" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="codecExtraProperties" upperBound="-1"
+        eType="#//StringToStringMap" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="FeatureCodecInfo" eSuperTypes="#//TypedCodecInfo">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="feature" eType="ecore:EClass platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//ETypedElement"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="valueReaderName" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="valueWriterName" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="#//InfoType"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="This is the field name to be used for serialization. Can be set in the model through the http:///org/eclipse/emf/ecore/util/ExtendedMetaData name annotation. If EXTENDED_META_DATA module option is enabled, this will be used, otherwise the field name will be used."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ignore" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="If set to true, the EStructuralFeature marked with that will not be serialized."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="codecExtraProperties" upperBound="-1"
+        eType="#//StringToStringMap" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TypeInfo">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeStrategy" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="This supports the possibility of setting a strategy for type serialization, e.g. if the URI of the class should be used as type, or the class name, or another value."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ignoreType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="If set to false, the type information of the EClassifier with such a TypeInfo object will not be serialized, unless this property is then overwritten at a later point."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="This supports the possibility of specifying a type key, meaning the String that has to be looked for when deserializing the element marked like this."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="typeMap" upperBound="-1"
+        eType="#//StringToStringMap" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="This supports the possibility of specifying a map for matching the type key with a certain type, based on its value. The keys are the value of the type key to be expected to found in the document to deserialize, while the value "/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeValueReaderName" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeValueWriterName" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeMapStrategy" eType="#//TypeMapStrategyType">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="This specifies whether to overwrite or to merge eventual type mapping coming from the load/save options to the ones provided via model annotation."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SuperTypeInfo" eSuperTypes="#//FeatureCodecInfo">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="superTypeStrategy" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="This supports the possibility of setting a strategy for super type serialization, e.g. if the URI of the class should be used as type, or the class name, or another value."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="superTypeSeparator" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="If the superTypeStrategy is set to COMBINED, the supertype info will be serailized as a concatnated String, and this attribute will set the character to use as separator."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ignoreSuperType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="If set to false, the supertype information of the EClassifier with such a SuperTypeInfo object will not be serialized, unless this property is then overwritten at a later point."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IdentityInfo">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="idKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="This is the property name to be used for the id field."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="idStrategy" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="This supports the possibility of setting a strategy for id field determination, based on model annotations. For instance, an id field could be the combination of two model fields, and this should be marked in the model."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="idSeparator" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral=".">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="This supports the possibility of setting an id as a combination of multiple fields. The idSeparator property indicates the separator to be used when building the id field."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="idFeatures" upperBound="-1"
+        eType="ecore:EClass platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EStructuralFeature"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="idValueReaderName" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="idValueWriterName" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="InfoType">
+    <eLiterals name="IDENTITY" literal="IDENTITY"/>
+    <eLiterals name="TYPE" value="1" literal="TYPE"/>
+    <eLiterals name="ATTRIBUTE" value="2"/>
+    <eLiterals name="REFERENCE" value="3" literal="REFERENCE"/>
+    <eLiterals name="OBJECT" value="4"/>
+    <eLiterals name="OPERATION" value="5"/>
+    <eLiterals name="SUPER_TYPE" value="6"/>
+    <eLiterals name="ENUMERATOR" value="7"/>
+    <eLiterals name="OTHER" value="100"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CodecValueReader" abstract="true" interface="true">
+    <eTypeParameters name="V"/>
+    <eTypeParameters name="T"/>
+    <eOperations name="readValue">
+      <eGenericType eTypeParameter="#//CodecValueReader/T"/>
+      <eParameters name="value" lowerBound="1">
+        <eGenericType eTypeParameter="#//CodecValueReader/V"/>
+      </eParameters>
+      <eParameters name="context" lowerBound="1" eType="#//DeserializationContext"/>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"
+        changeable="false" iD="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CodecValueWriter" abstract="true" interface="true">
+    <eTypeParameters name="T"/>
+    <eTypeParameters name="V"/>
+    <eOperations name="writeValue">
+      <eGenericType eTypeParameter="#//CodecValueWriter/V"/>
+      <eParameters name="value" lowerBound="1">
+        <eGenericType eTypeParameter="#//CodecValueWriter/T"/>
+      </eParameters>
+      <eParameters name="context" lowerBound="1" eType="#//SerializationContext"/>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"
+        changeable="false" iD="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EDataType" name="SerializationContext" instanceClassName="tools.jackson.databind.SerializationContext"/>
+  <eClassifiers xsi:type="ecore:EClass" name="CodecInfoHolder">
+    <eOperations name="getReaderByName" eType="#//CodecValueReader">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getReaders().stream().filter(r -> r.getName() == readerName).findFirst().orElse(null);"/>
+      </eAnnotations>
+      <eParameters name="readerName" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"/>
+    </eOperations>
+    <eOperations name="getWriterByName" eType="#//CodecValueWriter">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getWriters().stream().filter(w -> w.getName() == writerName).findFirst().orElse(null);"/>
+      </eAnnotations>
+      <eParameters name="writerName" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"/>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="infoType" lowerBound="1"
+        eType="#//InfoType"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="readers" upperBound="-1"
+        eType="#//CodecValueReader" transient="true" resolveProxies="false" eKeys="#//CodecValueReader/name"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="writers" upperBound="-1"
+        eType="#//CodecValueWriter" transient="true" resolveProxies="false" eKeys="#//CodecValueWriter/name"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SampleValueReader" abstract="true" interface="true">
+    <eTypeParameters name="V"/>
+    <eTypeParameters name="T"/>
+    <eOperations name="readValue">
+      <eGenericType eTypeParameter="#//SampleValueReader/T"/>
+      <eParameters name="value" lowerBound="1">
+        <eGenericType eTypeParameter="#//SampleValueReader/V"/>
+      </eParameters>
+      <eParameters name="context" lowerBound="1" eType="#//DeserializationContext"/>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EString"
+        changeable="false" iD="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EDataType" name="DeserializationContext" instanceClassName="tools.jackson.databind.DeserializationContext"/>
+  <eClassifiers xsi:type="ecore:EClass" name="StringToStringMap" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TypedCodecInfo">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="typeInfo" eType="#//TypeInfo"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IdentifiableCodecInfo">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="identityInfo" eType="#//IdentityInfo"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="TypeMapStrategyType">
+    <eLiterals name="OVERWRITE"/>
+    <eLiterals name="MERGE" value="1"/>
+  </eClassifiers>
+</ecore:EPackage>

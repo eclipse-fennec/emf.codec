@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" copyrightText="Copyright (c) 2012 - 2024 Data In Motion and others.&#xA;All rights reserved.&#xA;&#xA;This program and the accompanying materials are made&#xA;available under the terms of the Eclipse Public License 2.0&#xA;which is available at https://www.eclipse.org/legal/epl-2.0/&#xA;&#xA;SPDX-License-Identifier: EPL-2.0&#xA;&#xA;Contributors:&#xA;    Data In Motion - initial API and implementation&#xA;"
+    modelDirectory="/org.gecko.codec.info.model/src" editDirectory="/org.eclipse.fennec.codec.info.model.edit/src"
+    modelPluginID="org.gecko.codec.info.model" modelName="codec-info" rootExtendsInterface=""
+    rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container" importerID="org.eclipse.emf.importer.ecore"
+    complianceLevel="17.0" suppressGenModelAnnotations="false" copyrightFields="false"
+    editPluginID="org.eclipse.fennec.codec.info.model.edit" usedGenPackages="../../org.eclipse.emf.ecore/model/Ecore.genmodel#//ecore"
+    operationReflection="true" importOrganizing="true" oSGiCompatible="true">
+  <foreignModel>codec-info.ecore</foreignModel>
+  <genPackages prefix="CodecInfo" basePackage="org.eclipse.fennec.codec.info" resource="XMI"
+      disposableProviderFactory="true" fileExtensions="codecinfo" ecorePackage="codec-info.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="codec-info.ecore#//InfoType">
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//InfoType/IDENTITY"/>
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//InfoType/TYPE"/>
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//InfoType/ATTRIBUTE"/>
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//InfoType/REFERENCE"/>
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//InfoType/OBJECT"/>
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//InfoType/OPERATION"/>
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//InfoType/SUPER_TYPE"/>
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//InfoType/ENUMERATOR"/>
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//InfoType/OTHER"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="codec-info.ecore#//TypeMapStrategyType">
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//TypeMapStrategyType/OVERWRITE"/>
+      <genEnumLiterals ecoreEnumLiteral="codec-info.ecore#//TypeMapStrategyType/MERGE"/>
+    </genEnums>
+    <genDataTypes ecoreDataType="codec-info.ecore#//SerializationContext"/>
+    <genDataTypes ecoreDataType="codec-info.ecore#//DeserializationContext"/>
+    <genClasses ecoreClass="codec-info.ecore#//PackageCodecInfo">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//PackageCodecInfo/id"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference codec-info.ecore#//PackageCodecInfo/ePackage"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec-info.ecore#//PackageCodecInfo/subPackageCodecInfo"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec-info.ecore#//PackageCodecInfo/eClassCodecInfo"/>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//EClassCodecInfo">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//EClassCodecInfo/id"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference codec-info.ecore#//EClassCodecInfo/classifier"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec-info.ecore#//EClassCodecInfo/superTypeInfo"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec-info.ecore#//EClassCodecInfo/featureInfo"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference codec-info.ecore#//EClassCodecInfo/referenceCodecInfo"
+          get="return &lt;%org.eclipse.emf.common.util.ECollections%>.asEList(getFeatureInfo().stream().filter(f->&lt;%org.eclipse.fennec.codec.info.codecinfo.InfoType%>.REFERENCE.equals(f.getType())).collect(&lt;%java.util.stream.Collectors%>.toList()));"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference codec-info.ecore#//EClassCodecInfo/attributeCodecInfo"
+          get="return &lt;%org.eclipse.emf.common.util.ECollections%>.asEList(getFeatureInfo().stream().filter(f->&lt;%org.eclipse.fennec.codec.info.codecinfo.InfoType%>.ATTRIBUTE.equals(f.getType())).collect(&lt;%java.util.stream.Collectors%>.toList()));"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference codec-info.ecore#//EClassCodecInfo/operationCodecInfo"
+          get="return &lt;%org.eclipse.emf.common.util.ECollections%>.asEList(getFeatureInfo().stream().filter(f->&lt;%org.eclipse.fennec.codec.info.codecinfo.InfoType%>.OPERATION.equals(f.getType())).collect(&lt;%java.util.stream.Collectors%>.toList()));"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference codec-info.ecore#//EClassCodecInfo/enumeratorCodecInfo"
+          get="return &lt;%org.eclipse.emf.common.util.ECollections%>.asEList(getFeatureInfo().stream().filter(f->&lt;%org.eclipse.fennec.codec.info.codecinfo.InfoType%>.ENUMERATOR.equals(f.getType())).collect(&lt;%java.util.stream.Collectors%>.toList()));"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec-info.ecore#//EClassCodecInfo/codecExtraProperties"/>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//FeatureCodecInfo">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//FeatureCodecInfo/id"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference codec-info.ecore#//FeatureCodecInfo/feature"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//FeatureCodecInfo/valueReaderName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//FeatureCodecInfo/valueWriterName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//FeatureCodecInfo/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//FeatureCodecInfo/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//FeatureCodecInfo/ignore"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec-info.ecore#//FeatureCodecInfo/codecExtraProperties"/>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//TypeInfo">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//TypeInfo/typeStrategy"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//TypeInfo/ignoreType"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//TypeInfo/typeKey"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec-info.ecore#//TypeInfo/typeMap"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//TypeInfo/typeValueReaderName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//TypeInfo/typeValueWriterName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//TypeInfo/typeMapStrategy"/>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//SuperTypeInfo">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//SuperTypeInfo/superTypeStrategy"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//SuperTypeInfo/superTypeSeparator"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//SuperTypeInfo/ignoreSuperType"/>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//IdentityInfo">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//IdentityInfo/idKey"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//IdentityInfo/idStrategy"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//IdentityInfo/idSeparator"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec-info.ecore#//IdentityInfo/idFeatures"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//IdentityInfo/idValueReaderName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//IdentityInfo/idValueWriterName"/>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//CodecValueReader">
+      <genTypeParameters ecoreTypeParameter="codec-info.ecore#//CodecValueReader/V"/>
+      <genTypeParameters ecoreTypeParameter="codec-info.ecore#//CodecValueReader/T"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//CodecValueReader/name"/>
+      <genOperations ecoreOperation="codec-info.ecore#//CodecValueReader/readValue">
+        <genParameters ecoreParameter="codec-info.ecore#//CodecValueReader/readValue/value"/>
+        <genParameters ecoreParameter="codec-info.ecore#//CodecValueReader/readValue/context"/>
+      </genOperations>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//CodecValueWriter">
+      <genTypeParameters ecoreTypeParameter="codec-info.ecore#//CodecValueWriter/T"/>
+      <genTypeParameters ecoreTypeParameter="codec-info.ecore#//CodecValueWriter/V"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//CodecValueWriter/name"/>
+      <genOperations ecoreOperation="codec-info.ecore#//CodecValueWriter/writeValue">
+        <genParameters ecoreParameter="codec-info.ecore#//CodecValueWriter/writeValue/value"/>
+        <genParameters ecoreParameter="codec-info.ecore#//CodecValueWriter/writeValue/context"/>
+      </genOperations>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//CodecInfoHolder">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//CodecInfoHolder/infoType"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference codec-info.ecore#//CodecInfoHolder/readers"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference codec-info.ecore#//CodecInfoHolder/writers"/>
+      <genOperations ecoreOperation="codec-info.ecore#//CodecInfoHolder/getReaderByName"
+          body="return getReaders().stream().filter(r -> r.getName() == readerName).findFirst().orElse(null);">
+        <genParameters ecoreParameter="codec-info.ecore#//CodecInfoHolder/getReaderByName/readerName"/>
+      </genOperations>
+      <genOperations ecoreOperation="codec-info.ecore#//CodecInfoHolder/getWriterByName"
+          body="return getWriters().stream().filter(w -> w.getName() == writerName).findFirst().orElse(null);">
+        <genParameters ecoreParameter="codec-info.ecore#//CodecInfoHolder/getWriterByName/writerName"/>
+      </genOperations>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//SampleValueReader">
+      <genTypeParameters ecoreTypeParameter="codec-info.ecore#//SampleValueReader/V"/>
+      <genTypeParameters ecoreTypeParameter="codec-info.ecore#//SampleValueReader/T"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//SampleValueReader/name"/>
+      <genOperations ecoreOperation="codec-info.ecore#//SampleValueReader/readValue">
+        <genParameters ecoreParameter="codec-info.ecore#//SampleValueReader/readValue/value"/>
+        <genParameters ecoreParameter="codec-info.ecore#//SampleValueReader/readValue/context"/>
+      </genOperations>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//StringToStringMap">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//StringToStringMap/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec-info.ecore#//StringToStringMap/value"/>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//TypedCodecInfo">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec-info.ecore#//TypedCodecInfo/typeInfo"/>
+    </genClasses>
+    <genClasses ecoreClass="codec-info.ecore#//IdentifiableCodecInfo">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec-info.ecore#//IdentifiableCodecInfo/identityInfo"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>

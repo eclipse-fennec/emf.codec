@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="teststrictness" nsURI="http://test.example.org/strictness/1.0" nsPrefix="strictness">
+
+  <!--
+    Test model for strictness configuration tests.
+    Used to verify strictOnUnknown and strictOnMissing behavior.
+  -->
+
+  <!-- Product - has required features -->
+  <eClassifiers xsi:type="ecore:EClass" name="Product">
+    <!-- Required attribute (lowerBound=1) -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <!-- Required attribute (lowerBound=1) -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <!-- Optional attribute (lowerBound=0) -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- Optional attribute with default -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="price" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble" defaultValueLiteral="0.0"/>
+  </eClassifiers>
+
+  <!-- Order - for additional tests -->
+  <eClassifiers xsi:type="ecore:EClass" name="Order">
+    <!-- Required -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="orderId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" lowerBound="1"/>
+    <!-- Optional -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- Required containment reference -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="product" eType="#//Product" containment="true" lowerBound="1"/>
+  </eClassifiers>
+
+</ecore:EPackage>

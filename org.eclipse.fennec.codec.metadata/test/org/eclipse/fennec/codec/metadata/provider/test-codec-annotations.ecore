@@ -1,0 +1,1030 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testcodec" nsURI="http://test.codec.example.org/1.0" nsPrefix="testcodec">
+
+  <!-- @VALID: Simple class without annotations - tests default behavior -->
+  <eClassifiers xsi:type="ecore:EClass" name="SimpleClass">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(09-id.md): ID_FIELD strategy with idKey -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonWithIdField">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idStrategy" value="ID_FIELD"/>
+      <details key="idKey" value="_id"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(09-id.md): COMBINED strategy with features and separator -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonWithCombinedId">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idStrategy" value="COMBINED"/>
+      <details key="idKey" value="_id"/>
+      <details key="idSeparator" value="-"/>
+      <details key="idFeatures" value="firstName,lastName"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(09-id.md): NONE keyMode - no ID serialization (NONE moved from IdStrategy to IdKeyMode per spec) -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithNoId">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idKeyMode" value="NONE"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="data" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(06-type.md): URI type strategy with typeKey -->
+  <eClassifiers xsi:type="ecore:EClass" name="TypedEntityUri">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="URI"/>
+      <details key="typeKey" value="_type"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(06-type.md): NAME type strategy -->
+  <eClassifiers xsi:type="ecore:EClass" name="TypedEntityName">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="NAME"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(08-discriminator-mapping.md): Discriminator path on EClass -->
+  <eClassifiers xsi:type="ecore:EClass" name="TypedEntityWithDiscriminator">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="NAME"/>
+    </eAnnotations>
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/device-types">
+      <details key="typeDiscriminatorPath" value="deviceInfo.profileName"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(06-type.md): TypeStrategy.NONE suppresses type information -->
+  <eClassifiers xsi:type="ecore:EClass" name="TypedEntityNoInclude">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="NONE"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(07-supertype.md): SuperType enabled with ALL strategy -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithSuperTypes">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="superTypeSerialize" value="true"/>
+      <details key="superTypeKey" value="_superTypes"/>
+      <details key="superTypeStrategy" value="ALL"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(07-supertype.md): SINGLE supertype selection -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithSingleSuperType">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="superTypeSerialize" value="true"/>
+      <details key="superTypeStrategy" value="SINGLE"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(07-supertype.md): superTypeAsArray=false -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithSuperTypesNotAsArray">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="superTypeSerialize" value="true"/>
+      <details key="superTypeAsArray" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(07-supertype.md): Custom supertype separator -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithSuperTypesSeparator">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="superTypeSerialize" value="true"/>
+      <details key="superTypeAsArray" value="false"/>
+      <details key="superTypeSeparator" value="|"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID: Inherit annotation for parent config inheritance -->
+  <eClassifiers xsi:type="ecore:EClass" name="InheritingEntity">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="inherit" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Class with discriminator value (using typeMapping/lorawan-dynamic source) -->
+  <eClassifiers xsi:type="ecore:EClass" name="DraginoDevice">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/lorawan-dynamic">
+      <details key="typeDiscriminator" value="Dragino_LSE01"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Class with custom ID reader/writer -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithCustomIdHandlers">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idValueReaderName" value="CustomIdReader"/>
+      <details key="idValueWriterName" value="CustomIdWriter"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" iD="true"/>
+  </eClassifiers>
+
+  <!-- Class with all configs combined in single annotation -->
+  <eClassifiers xsi:type="ecore:EClass" name="FullyConfiguredEntity">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idStrategy" value="ID_FIELD"/>
+      <details key="typeStrategy" value="URI"/>
+      <details key="superTypeSerialize" value="true"/>
+      <details key="inherit" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Class with ignored attribute -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithTransientField">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="publicData" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="secretData" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="ignore" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- Class with value reader/writer on attributes -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithCustomValueHandlers">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="birthDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueWriterName" value="ISO8601DateWriter"/>
+        <details key="valueReaderName" value="FlexibleDateReader"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="onlyWriter" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueWriterName" value="CustomWriter"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="onlyReader" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="CustomReader"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- Address class for reference testing -->
+  <eClassifiers xsi:type="ecore:EClass" name="Address">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="street" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="city" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Class with reference containing type annotation -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonWithTypedReference">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="typeStrategy" value="NAME"/>
+        <details key="typeKey" value="_refType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- Class with ignored reference -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithTransientReference">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="cachedAddress" eType="#//Address">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="ignore" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       NEW ANNOTATION KEY TESTS (ID Format, KeyMode, OnTop, etc.)
+       ======================================================================== -->
+
+  <!-- Class with full ID configuration including format/keyMode/onTop -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonWithStructuredId">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idStrategy" value="COMBINED"/>
+      <details key="idFeatures" value="firstName,lastName"/>
+      <details key="idFormat" value="STRUCTURED"/>
+      <details key="idKeyMode" value="BOTH"/>
+      <details key="idOnTop" value="false"/>
+      <details key="idSerializeSeparator" value="true"/>
+      <details key="idSeparatorKey" value="sep"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Class with idKeyMode=NONE - no ID serialization at all -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonWithIdKeyModeNone">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idStrategy" value="COMBINED"/>
+      <details key="idFeatures" value="firstName,lastName"/>
+      <details key="idKeyMode" value="NONE"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Class with type configuration including format/schemaKey/nameKey -->
+  <eClassifiers xsi:type="ecore:EClass" name="TypedEntityStructured">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="SCHEMA_AND_TYPE"/>
+      <details key="typeFormat" value="STRUCTURED"/>
+      <details key="typeSchemaKey" value="$schema"/>
+      <details key="typeNameKey" value="typeName"/>
+      <details key="typeKey" value="typeInfo"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Class with supertype configuration including format/nameKey (schemaKey inherits from TypeConfig) -->
+  <!-- Note: superTypeNameKey removed - superTypeKey has format-dependent default -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithStructuredSuperType">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="superTypeSerialize" value="true"/>
+      <details key="superTypeFormat" value="STRUCTURED"/>
+      <details key="superTypeKey" value="typeName"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       REFERENCE CONFIGURATION TESTS
+       ======================================================================== -->
+
+  <!-- Class with reference containing full refConfig (refFormat, refKey, refTypeKey) -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonWithRefConfig">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="employer" eType="#//Company">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="refFormat" value="STRUCTURED"/>
+        <details key="refKey" value="$ref"/>
+        <details key="refTypeKey" value="$type"/>
+        <details key="expand" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- Company class for reference testing -->
+  <eClassifiers xsi:type="ecore:EClass" name="Company">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       INLINE TYPE MAPPING TESTS
+       ======================================================================== -->
+
+  <!-- Contact base class for polymorphic testing -->
+  <eClassifiers xsi:type="ecore:EClass" name="Contact">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="contactType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Friend subclass -->
+  <eClassifiers xsi:type="ecore:EClass" name="Friend" eSuperTypes="#//Contact">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="friendSince" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate"/>
+  </eClassifiers>
+
+  <!-- Enemy subclass -->
+  <eClassifiers xsi:type="ecore:EClass" name="Enemy" eSuperTypes="#//Contact">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="grudge" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(08-discriminator-mapping.md): Inline type mappings on EReference -->
+  <!-- @MISCONFIG: typeDiscriminatorPath is class-only per spec section 7 -->
+  <!-- Expected: typeDiscriminatorPath is IGNORED with diagnostic, inlineMappings ARE parsed from dedicated source -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonWithContacts">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contacts" upperBound="-1" eType="#//Contact" containment="true">
+      <!-- @MISCONFIG: typeDiscriminatorPath is class-only, should generate diagnostic -->
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="typeDiscriminatorPath" value="contactType"/>
+      </eAnnotations>
+      <!-- Inline mappings on dedicated inlineMapping source -->
+      <eAnnotations source="http://eclipse.org/fennec/codec/inlineMapping">
+        <details key="friend" value="http://test.codec.example.org/1.0#//Friend"/>
+        <details key="enemy" value="http://test.codec.example.org/1.0#//Enemy"/>
+        <details key="colleague" value="http://test.codec.example.org/1.0#//Contact"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       FEATURE SERIALIZE OPTIONS TESTS
+       ======================================================================== -->
+
+  <!-- Class with various visibility and serialize options on attributes -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithSerializeOptions">
+    <!-- Explicitly ignore=false (not ignored) -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="explicitSerialize" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="ignore" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <!-- ignore=true (skip both read and write) -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="noSerialize" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="ignore" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <!-- ignore=false explicitly set -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="conflictSerializeWins" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="ignore" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <!-- serializeNull=true -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullableField" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="serializeNull" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <!-- serializeEmpty=true -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="emptyListField" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="serializeEmpty" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <!-- serializeDefaults=true -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defaultValueField" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="0">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="serializeDefaults" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       ENUM SERIALIZATION TESTS
+       ======================================================================== -->
+
+  <!-- Status enum for enum serialization testing -->
+  <eClassifiers xsi:type="ecore:EEnum" name="Status">
+    <eLiterals name="ACTIVE" value="1" literal="active"/>
+    <eLiterals name="INACTIVE" value="2" literal="inactive"/>
+    <eLiterals name="PENDING" value="3" literal="pending"/>
+  </eClassifiers>
+
+  <!-- Class with enum attributes using different serialization strategies -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithEnumFields">
+    <!-- Enum with LITERAL strategy -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="statusLiteral" eType="#//Status">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="enumSerialization" value="LITERAL"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <!-- Enum with VALUE strategy -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="statusValue" eType="#//Status">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="enumSerialization" value="VALUE"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <!-- Enum with NAME strategy -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="statusName" eType="#//Status">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="enumSerialization" value="NAME"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       CONFIGURATION HIERARCHY TESTS (EClass → EReference override)
+       ======================================================================== -->
+
+  <!-- Class with type config that references can override -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonWithHierarchyConfig">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <!-- Class-level type config: URI strategy, PLAIN format -->
+      <details key="typeStrategy" value="URI"/>
+      <details key="typeFormat" value="PLAIN"/>
+      <details key="typeKey" value="_type"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- Reference with NO type override - should inherit from class -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="primaryAddress" eType="#//Address" containment="true"/>
+    <!-- Reference that OVERRIDES type config -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="businessAddress" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- Reference-level override: NAME strategy, STRUCTURED format -->
+        <details key="typeStrategy" value="NAME"/>
+        <details key="typeFormat" value="STRUCTURED"/>
+        <details key="typeKey" value="addressType"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <!-- Reference that PARTIALLY overrides (only format) -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="shippingAddress" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- Only override format, strategy should still come from class -->
+        <details key="typeFormat" value="STRUCTURED"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       CUSTOM KEY TESTS
+       ======================================================================== -->
+
+  <!-- Class with explicit key mapping on features -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithCustomKeys">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="first_name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="last_name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="homeAddress" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="home_address"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       TYPE MAP ID TESTS
+       ======================================================================== -->
+
+  <!-- Class with typeMapping/my-custom-registry configuration -->
+  <eClassifiers xsi:type="ecore:EClass" name="TypedEntityWithMapId">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="NAME"/>
+    </eAnnotations>
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/my-custom-registry"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       ID VALUE KEY TESTS
+       ======================================================================== -->
+
+  <!-- Class with idValueKey configuration (inner key in STRUCTURED ID format) -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonWithIdValueKey">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idStrategy" value="COMBINED"/>
+      <details key="idFeatures" value="firstName,lastName"/>
+      <details key="idFormat" value="STRUCTURED"/>
+      <details key="idValueKey" value="identifier"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       FALLBACK STRATEGY TESTS
+       ======================================================================== -->
+
+  <!-- Class with fallback strategy ERROR on typeMapping source -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithFallbackError">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="NAME"/>
+    </eAnnotations>
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/fallback-error-test">
+      <details key="typeDiscriminatorPath" value="deviceType"/>
+      <details key="fallbackStrategy" value="ERROR"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Class with SKIP fallback strategy on typeMapping source -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithFallbackSkip">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="NAME"/>
+    </eAnnotations>
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/fallback-skip-test">
+      <details key="typeDiscriminatorPath" value="deviceType"/>
+      <details key="fallbackStrategy" value="SKIP"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Class with FALLBACK strategy and explicit fallbackEClass on typeMapping source -->
+  <eClassifiers xsi:type="ecore:EClass" name="EntityWithExplicitFallback">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="NAME"/>
+    </eAnnotations>
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/fallback-explicit-test">
+      <details key="typeDiscriminatorPath" value="deviceType"/>
+      <details key="fallbackStrategy" value="FALLBACK"/>
+      <details key="fallbackEClass" value="http://test.codec.example.org/1.0#//SimpleClass"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(08-discriminator-mapping.md): Fallback config on EReference -->
+  <!-- @MISCONFIG: typeDiscriminatorPath is class-only per spec section 7 -->
+  <!-- Expected: typeDiscriminatorPath is IGNORED with diagnostic, fallback config IS parsed from inlineMapping source -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonWithFallbackReference">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contacts" upperBound="-1" eType="#//Contact" containment="true">
+      <!-- @MISCONFIG: typeDiscriminatorPath is class-only, should generate diagnostic -->
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="typeDiscriminatorPath" value="contactType"/>
+      </eAnnotations>
+      <!-- Inline mappings + fallback on dedicated inlineMapping source -->
+      <eAnnotations source="http://eclipse.org/fennec/codec/inlineMapping">
+        <details key="friend" value="http://test.codec.example.org/1.0#//Friend"/>
+        <details key="fallbackStrategy" value="SKIP"/>
+        <details key="fallbackEClass" value="http://test.codec.example.org/1.0#//Contact"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       MISCONFIGURATION TESTS - Keys at wrong levels
+       These tests verify that misplaced annotation keys are IGNORED.
+       All tests here use @MISCONFIG tag and should verify:
+       1. Value is NOT applied
+       2. Diagnostic IS added (where implemented)
+       ======================================================================== -->
+
+  <!-- @MISCONFIG @SPEC(10-reference.md): refFormat/refKey on EClass -->
+  <!-- Expected: Keys are IGNORED - refConfig is reference-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="ClassWithRefConfigMisplaced">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <!-- These should be ignored - refConfig is reference-only -->
+      <details key="refFormat" value="STRUCTURED"/>
+      <details key="refKey" value="$ref"/>
+      <details key="typeStrategy" value="URI"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(09-id.md): idStrategy/idFeatures on EReference -->
+  <!-- Expected: Keys are IGNORED - idConfig is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithIdConfigMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- These should be ignored - idConfig is class-only -->
+        <details key="idStrategy" value="COMBINED"/>
+        <details key="idFeatures" value="street,city"/>
+        <!-- Valid key for reference -->
+        <details key="typeStrategy" value="NAME"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(07-supertype.md): superType* on EReference -->
+  <!-- Expected: Keys are IGNORED - superType is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithSuperTypeMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- These should be ignored - superType is class-only -->
+        <details key="superTypeSerialize" value="true"/>
+        <details key="superTypeStrategy" value="ALL"/>
+        <!-- Valid key for reference -->
+        <details key="key" value="addr"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(11-feature.md): enumSerialization on EReference -->
+  <!-- Expected: Key is IGNORED - enumSerialization is attribute-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithEnumSerializationMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- This should be ignored - enumSerialization is attribute-only -->
+        <details key="enumSerialization" value="VALUE"/>
+        <!-- Valid key for reference -->
+        <details key="key" value="addr"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(08-discriminator-mapping.md): inlineMapping source on EClass -->
+  <!-- Expected: inlineMapping annotation is IGNORED with WARNING - inlineMapping is reference-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="ClassWithInlineMappingMisplaced">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="URI"/>
+    </eAnnotations>
+    <!-- inlineMapping source on EClass is a misconfig - should generate diagnostic -->
+    <eAnnotations source="http://eclipse.org/fennec/codec/inlineMapping">
+      <details key="friend" value="http://test.codec.example.org/1.0#//Friend"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(08-discriminator-mapping.md): typeMapping source on EReference -->
+  <!-- Expected: typeMapping annotation is IGNORED with ERROR - typeMapping is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithDiscriminatorMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- Valid key for reference -->
+        <details key="typeStrategy" value="NAME"/>
+      </eAnnotations>
+      <!-- typeMapping source on EReference is a misconfig - should generate ERROR diagnostic -->
+      <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/misplaced-ref">
+        <details key="typeDiscriminator" value="MyAddress"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       ADDITIONAL MISCONFIGURATION TESTS - More keys at wrong levels
+       ======================================================================== -->
+
+  <!-- @MISCONFIG @SPEC(06-type.md): type* keys on EAttribute -->
+  <!-- Expected: Keys are IGNORED - type* is class/reference-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithTypeConfigMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- These should be ignored - type* is class/reference-only -->
+        <details key="typeStrategy" value="NAME"/>
+        <details key="typeFormat" value="STRUCTURED"/>
+        <details key="typeKey" value="_type"/>
+        <!-- Valid key for attribute -->
+        <details key="key" value="attr_name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(07-supertype.md): superType* keys on EAttribute -->
+  <!-- Expected: Keys are IGNORED - superType* is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithSuperTypeMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- These should be ignored - superType* is class-only -->
+        <details key="superTypeSerialize" value="true"/>
+        <details key="superTypeStrategy" value="ALL"/>
+        <details key="superTypeKey" value="_supertypes"/>
+        <!-- Valid key for attribute -->
+        <details key="key" value="attr_name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(09-id.md): id* keys on EAttribute -->
+  <!-- Expected: Keys are IGNORED - id* is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithIdConfigMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- These should be ignored - id* is class-only -->
+        <details key="idStrategy" value="COMBINED"/>
+        <details key="idFeatures" value="a,b"/>
+        <details key="idFormat" value="STRUCTURED"/>
+        <details key="idKey" value="_id"/>
+        <!-- Valid key for attribute -->
+        <details key="key" value="attr_name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(10-reference.md): ref* keys on EAttribute -->
+  <!-- Expected: Keys are IGNORED - ref* is reference-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithRefConfigMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- These should be ignored - ref* is reference-only -->
+        <details key="refFormat" value="STRUCTURED"/>
+        <details key="refKey" value="$ref"/>
+        <details key="refTypeKey" value="$type"/>
+        <details key="expand" value="true"/>
+        <!-- Valid key for attribute -->
+        <details key="key" value="attr_name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(08-discriminator-mapping.md): inlineMapping source on EAttribute -->
+  <!-- Expected: inlineMapping annotation is IGNORED - inlineMapping is reference-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithInlineMappingMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- Valid key for attribute -->
+        <details key="key" value="attr_name"/>
+      </eAnnotations>
+      <!-- inlineMapping source on EAttribute is a misconfig - should be ignored -->
+      <eAnnotations source="http://eclipse.org/fennec/codec/inlineMapping">
+        <details key="friend" value="http://test.codec.example.org/1.0#//Friend"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(08-discriminator-mapping.md): typeMapping source on EAttribute -->
+  <!-- Expected: typeMapping annotation is IGNORED - typeMapping is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithFallbackMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- Valid key for attribute -->
+        <details key="key" value="attr_name"/>
+      </eAnnotations>
+      <!-- typeMapping source on EAttribute is a misconfig - should be ignored -->
+      <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/attr-misplaced">
+        <details key="fallbackStrategy" value="SKIP"/>
+        <details key="fallbackEClass" value="http://test.codec.example.org/1.0#//SimpleClass"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(08-discriminator-mapping.md): typeMapping source on EReference -->
+  <!-- Expected: typeMapping annotation is IGNORED with ERROR - typeMapping is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithTypeMapIdMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- Valid key for reference -->
+        <details key="typeStrategy" value="NAME"/>
+      </eAnnotations>
+      <!-- typeMapping source on EReference is a misconfig - should generate ERROR diagnostic -->
+      <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/my-registry">
+        <details key="typeDiscriminator" value="address-type"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(09-id.md): Additional id* keys on EReference -->
+  <!-- Expected: All id* keys are IGNORED - class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithMoreIdConfigMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- These should be ignored - id* keys are class-only -->
+        <details key="idSeparator" value="-"/>
+        <details key="idKeyMode" value="BOTH"/>
+        <details key="idOnTop" value="true"/>
+        <details key="idValueKey" value="identifier"/>
+        <details key="idFormat" value="STRUCTURED"/>
+        <!-- Valid key for reference -->
+        <details key="key" value="addr"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       ADDITIONAL MISSING MISCONFIG TESTS
+       ======================================================================== -->
+
+  <!-- @MISCONFIG @SPEC(10-reference.md): expand on EAttribute -->
+  <!-- Expected: Key is IGNORED - expand is reference-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithExpandMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- expand is reference-only, should be ignored on attribute -->
+        <details key="expand" value="true"/>
+        <!-- Valid key for attribute -->
+        <details key="key" value="attr_name"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(14-custom-values.md): typeValueReaderName/WriterName on EReference -->
+  <!-- Expected: Keys are IGNORED with ERROR diagnostic (T-V1, T-V2) - class-intrinsic -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithTypeValueHandlersMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- These are for type value handling on class, not reference -->
+        <details key="typeValueReaderName" value="CustomReader"/>
+        <details key="typeValueWriterName" value="CustomWriter"/>
+        <!-- Valid key for reference -->
+        <details key="key" value="addr"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       LAYER 1 ANNOTATION VALIDATION TESTS
+       Per spec 06-type.md section 7 and 15-error-handling.md section 0
+       ======================================================================== -->
+
+  <!-- @MISCONFIG @SPEC(06-type.md#T-V3, T-V4): Runtime-only keys on EClass -->
+  <!-- Expected: Keys are IGNORED with WARNING - runtime-only properties -->
+  <eClassifiers xsi:type="ecore:EClass" name="ClassWithRuntimeOnlyKeys">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <!-- These are runtime-only properties, not valid in EAnnotations -->
+      <details key="typeScope" value="ROOT_ONLY"/>
+      <details key="typeFormatScope" value="ROOT_CONTAINMENT"/>
+      <!-- Valid key for class -->
+      <details key="typeStrategy" value="URI"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(06-type.md#T-V3, T-V4): Runtime-only keys on EReference -->
+  <!-- Expected: Keys are IGNORED with WARNING - runtime-only properties -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithRuntimeOnlyKeys">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- These are runtime-only properties, not valid in EAnnotations -->
+        <details key="typeScope" value="ROOT_ONLY"/>
+        <details key="typeFormatScope" value="ROOT_CONTAINMENT"/>
+        <!-- Valid key for reference -->
+        <details key="typeStrategy" value="NAME"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(06-type.md#T-V30): Deprecated typeInclude on EClass -->
+  <!-- Expected: WARNING diagnostic for deprecated key -->
+  <eClassifiers xsi:type="ecore:EClass" name="ClassWithDeprecatedTypeInclude">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <!-- DEPRECATED: should use typeStrategy=NONE instead -->
+      <details key="typeInclude" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(06-type.md#T-V31): Both typeInclude and typeStrategy on EClass -->
+  <!-- Expected: WARNING diagnostic, typeStrategy takes precedence -->
+  <eClassifiers xsi:type="ecore:EClass" name="ClassWithBothTypeIncludeAndStrategy">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <!-- DEPRECATED typeInclude + valid typeStrategy = typeStrategy wins -->
+      <details key="typeInclude" value="false"/>
+      <details key="typeStrategy" value="NAME"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(06-type.md#T-V7): typeMapping source on EReference (only) -->
+  <!-- Expected: ERROR diagnostic - typeMapping is class-only -->
+  <!-- Note: Different from RefWithDiscriminatorMisplaced which also has valid typeStrategy -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithTypeDiscriminatorOnly">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- Valid key for reference -->
+        <details key="key" value="addr"/>
+      </eAnnotations>
+      <!-- typeMapping source on EReference is a misconfig - should generate ERROR diagnostic -->
+      <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/misplaced-ref-only">
+        <details key="typeDiscriminator" value="my-address-type"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       ID VALIDATION TESTS (09-id.md section 11)
+       ======================================================================== -->
+
+  <!-- @MISCONFIG @SPEC(09-id.md#ID-V11, ID-V12): Runtime-only ID keys on EClass -->
+  <!-- Expected: Keys are IGNORED with WARNING - runtime-only properties -->
+  <eClassifiers xsi:type="ecore:EClass" name="ClassWithIdRuntimeOnlyKeys">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <!-- These are runtime-only properties, not valid in EAnnotations -->
+      <details key="idScope" value="ROOT_ONLY"/>
+      <details key="idFormatScope" value="ROOT_CONTAINMENT"/>
+      <!-- Valid key for class -->
+      <details key="idStrategy" value="ID_FIELD"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(09-id.md#ID-V11, ID-V12): Runtime-only ID keys on EReference -->
+  <!-- Expected: Keys are IGNORED with WARNING - runtime-only properties -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithIdRuntimeOnlyKeys">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- These are runtime-only properties, not valid in EAnnotations -->
+        <details key="idScope" value="ROOT_ONLY"/>
+        <details key="idFormatScope" value="ROOT_CONTAINMENT"/>
+        <!-- Valid key for reference -->
+        <details key="key" value="addr"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       STRICTNESS TESTS (11-feature.md §11)
+       ======================================================================== -->
+
+  <!-- @VALID @SPEC(11-feature.md §11): Strictness flags on EClass -->
+  <eClassifiers xsi:type="ecore:EClass" name="StrictEntity">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="strictOnUnknown" value="true"/>
+      <details key="strictOnMissing" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(11-feature.md §11): Only strictOnUnknown on EClass -->
+  <eClassifiers xsi:type="ecore:EClass" name="StrictUnknownOnly">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="strictOnUnknown" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(11-feature.md §11): Only strictOnMissing on EClass -->
+  <eClassifiers xsi:type="ecore:EClass" name="StrictMissingOnly">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="strictOnMissing" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(11-feature.md §11): strictOnUnknown on EAttribute -->
+  <!-- Expected: Key is IGNORED with WARNING - strictness is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithStrictOnUnknownMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- strictOnUnknown is class-only, should be ignored on attribute -->
+        <details key="strictOnUnknown" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(11-feature.md §11): strictOnMissing on EReference -->
+  <!-- Expected: Key is IGNORED with WARNING - strictness is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithStrictOnMissingMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- strictOnMissing is class-only, should be ignored on reference -->
+        <details key="strictOnMissing" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(11-feature.md §11): Both strictness keys on EAttribute -->
+  <!-- Expected: Both keys IGNORED with WARNING - strictness is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithBothStrictnessMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="data" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="strictOnUnknown" value="true"/>
+        <details key="strictOnMissing" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ========================================================================
+       METADATA MERGE TESTS (05-global-options.md §5)
+       ======================================================================== -->
+
+  <!-- @VALID @SPEC(05-global-options.md §5): Metadata merge with both flags on EClass -->
+  <eClassifiers xsi:type="ecore:EClass" name="MergedMetadataEntity">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="metadataMerge" value="true"/>
+      <details key="metadataKey" value="_meta"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(05-global-options.md §5): Metadata merge only (default key) on EClass -->
+  <eClassifiers xsi:type="ecore:EClass" name="MergedMetadataDefaultKey">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="metadataMerge" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @VALID @SPEC(05-global-options.md §5): Metadata merge disabled explicitly on EClass -->
+  <eClassifiers xsi:type="ecore:EClass" name="MergedMetadataDisabled">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="metadataMerge" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(05-global-options.md §5.7): metadataMerge on EAttribute -->
+  <!-- Expected: Key is IGNORED with ERROR - metadata merge is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithMetadataMergeMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- metadataMerge is class-only, should be ignored on attribute -->
+        <details key="metadataMerge" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(05-global-options.md §5.7): metadataKey on EReference -->
+  <!-- Expected: Key is IGNORED with ERROR - metadata key is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithMetadataKeyMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- metadataKey is class-only, should be ignored on reference -->
+        <details key="metadataKey" value="_meta"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- @MISCONFIG @SPEC(05-global-options.md §5.7): Both metadata merge keys on EAttribute -->
+  <!-- Expected: Both keys IGNORED with ERROR - metadata merge is class-only -->
+  <eClassifiers xsi:type="ecore:EClass" name="AttrWithBothMetadataMergeMisplaced">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="data" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="metadataMerge" value="true"/>
+        <details key="metadataKey" value="_meta"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+</ecore:EPackage>

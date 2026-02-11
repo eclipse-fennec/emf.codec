@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="geojsonlike" nsURI="http://test.fennec/geojsonlike" nsPrefix="geojsonlike">
+
+  <!--
+    GeoJSON-like test model for multi-dimensional array handling.
+    Tests coordinate arrays, geometry collections, and nested structures
+    similar to actual GeoJSON format.
+  -->
+
+  <!-- Basic coordinate (2D or 3D point) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Coordinate">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="longitude" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="latitude" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="elevation" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDoubleObject"/>
+  </eClassifiers>
+
+  <!-- Properties for features (key-value like) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Properties">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="tags" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="population" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELongObject"/>
+  </eClassifiers>
+
+  <!-- Abstract geometry base -->
+  <eClassifiers xsi:type="ecore:EClass" name="Geometry" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Point: single coordinate -->
+  <eClassifiers xsi:type="ecore:EClass" name="Point" eSuperTypes="#//Geometry">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="coordinates" eType="#//Coordinate" containment="true"/>
+  </eClassifiers>
+
+  <!-- LineString: array of coordinates (1D array of points) -->
+  <eClassifiers xsi:type="ecore:EClass" name="LineString" eSuperTypes="#//Geometry">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="coordinates" upperBound="-1" eType="#//Coordinate" containment="true"/>
+  </eClassifiers>
+
+  <!-- Ring: closed array of coordinates (for polygons) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Ring">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="coordinates" upperBound="-1" eType="#//Coordinate" containment="true"/>
+  </eClassifiers>
+
+  <!-- Polygon: array of rings (2D array - exterior + holes) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Polygon" eSuperTypes="#//Geometry">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exterior" eType="#//Ring" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="holes" upperBound="-1" eType="#//Ring" containment="true"/>
+  </eClassifiers>
+
+  <!-- MultiPoint: array of coordinates -->
+  <eClassifiers xsi:type="ecore:EClass" name="MultiPoint" eSuperTypes="#//Geometry">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="coordinates" upperBound="-1" eType="#//Coordinate" containment="true"/>
+  </eClassifiers>
+
+  <!-- MultiLineString: array of LineStrings (2D array of coordinates) -->
+  <eClassifiers xsi:type="ecore:EClass" name="MultiLineString" eSuperTypes="#//Geometry">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="lines" upperBound="-1" eType="#//LineString" containment="true"/>
+  </eClassifiers>
+
+  <!-- MultiPolygon: array of Polygons (3D array structure) -->
+  <eClassifiers xsi:type="ecore:EClass" name="MultiPolygon" eSuperTypes="#//Geometry">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="polygons" upperBound="-1" eType="#//Polygon" containment="true"/>
+  </eClassifiers>
+
+  <!-- GeometryCollection: heterogeneous array of geometries -->
+  <eClassifiers xsi:type="ecore:EClass" name="GeometryCollection" eSuperTypes="#//Geometry">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="geometries" upperBound="-1" eType="#//Geometry" containment="true"/>
+  </eClassifiers>
+
+  <!-- Feature: geometry + properties -->
+  <eClassifiers xsi:type="ecore:EClass" name="Feature">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="geometry" eType="#//Geometry" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="properties" eType="#//Properties" containment="true"/>
+  </eClassifiers>
+
+  <!-- FeatureCollection: array of features -->
+  <eClassifiers xsi:type="ecore:EClass" name="FeatureCollection">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="features" upperBound="-1" eType="#//Feature" containment="true"/>
+  </eClassifiers>
+
+  <!-- BoundingBox: for spatial extent -->
+  <eClassifiers xsi:type="ecore:EClass" name="BoundingBox">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="southwest" eType="#//Coordinate" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="northeast" eType="#//Coordinate" containment="true"/>
+  </eClassifiers>
+
+  <!-- GeoDocument: root container with all GeoJSON-like elements -->
+  <eClassifiers xsi:type="ecore:EClass" name="GeoDocument">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="bbox" eType="#//BoundingBox" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="featureCollection" eType="#//FeatureCollection" containment="true"/>
+    <!-- Direct geometry for simple cases -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="geometry" eType="#//Geometry" containment="true"/>
+  </eClassifiers>
+
+</ecore:EPackage>

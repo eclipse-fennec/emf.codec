@@ -1,0 +1,10 @@
+{
+	"ref1": {
+		"type": "http://example.de/person/1.0#//Child",
+		"name": "child1"
+	},
+	"ref2": {
+	    "kind": "http://example.de/person/1.0#//Child2"
+	}
+	
+}

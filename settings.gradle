@@ -1,0 +1,31 @@
+pluginManagement {
+  plugins {
+    id 'biz.aQute.bnd.workspace' version bnd_version
+  }
+  repositories {
+    maven {
+      url = uri(bnd_snapshots)
+      content {
+        snapshotsOnly()
+        includeGroup('biz.aQute.bnd')
+        includeGroup('biz.aQute.bnd.workspace')
+      }
+    }
+    mavenCentral()
+    gradlePluginPortal()
+    rootProject.name="fennec-codec"
+  }
+}
+plugins {
+  id 'biz.aQute.bnd.workspace'
+}
+
+// Exclude 'old' and 'docs' folders from Gradle build
+// These are archived projects and documentation, not active build targets
+gradle.beforeProject { project ->
+  if (project.name == 'old' || project.name == 'docs') {
+    project.tasks.configureEach { task ->
+      task.enabled = false
+    }
+  }
+}

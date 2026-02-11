@@ -1,0 +1,1349 @@
+{
+	"schemas": {
+		"Alarm": {
+			"type": "object",
+			"properties": {
+				"flags": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"id": {
+					"$ref": "#/components/schemas/AlarmId"
+				},
+				"name": {
+					"type": "string"
+				},
+				"description": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"consequence": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"cause": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"sl24schedule": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"prioritySummer": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"priorityWinter": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"systemId": {
+					"type": "string"
+				},
+				"flag": {
+					"type": "string",
+					"writeOnly": true,
+					"enum": [
+						"SL24Ready",
+						"SL24Relevant",
+						"SL24RelevantNight",
+						"IsHeating",
+						"IsSanitarian",
+						"IsCooling",
+						"IsVentilation",
+						"IsMSR",
+						"IsElectrical"
+					]
+				}
+			}
+		},
+		"AlarmId": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "string"
+				},
+				"buildingId": {
+					"type": "string"
+				},
+				"alarmId": {
+					"type": "string"
+				}
+			}
+		},
+		"AlarmRequest": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"prioritySummer": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"priorityWinter": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"flags": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"description": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"consequence": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"cause": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"sl24Schedule": {
+					"type": "integer",
+					"format": "int32"
+				}
+			}
+		},
+		"AlarmPojo": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"$ref": "#/components/schemas/AlarmId"
+				},
+				"name": {
+					"type": "string"
+				},
+				"description": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"flags": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"consequence": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"cause": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"sl24schedule": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"prioritySummer": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"priorityWinter": {
+					"type": "integer",
+					"format": "int32"
+				}
+			}
+		},
+		"InstructionsPojo": {
+			"type": "object",
+			"properties": {
+				"alarmId": {
+					"type": "string"
+				},
+				"relations": {
+					"uniqueItems": true,
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/RelationPojo"
+					}
+				}
+			}
+		},
+		"RelationPojo": {
+			"type": "object",
+			"properties": {
+				"condition": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"instructions": {
+					"uniqueItems": true,
+					"type": "array",
+					"items": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			}
+		},
+		"CalendarEventPojo": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"from": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"to": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"note": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string"
+				},
+				"author": {
+					"type": "string"
+				},
+				"alarmId": {
+					"type": "string"
+				},
+				"systemId": {
+					"type": "string"
+				}
+			}
+		},
+		"CalenderEventRequest": {
+			"type": "object",
+			"properties": {
+				"from": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"to": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"note": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string"
+				}
+			}
+		},
+		"CommentPojo": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"author": {
+					"type": "string"
+				},
+				"timestamp": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"content": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string"
+				},
+				"ownerId": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"ownerType": {
+					"type": "string"
+				},
+				"status": {
+					"$ref": "#/components/schemas/StatusPojo"
+				}
+			}
+		},
+		"StatusPojo": {
+			"type": "object",
+			"properties": {
+				"timestamp": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"name": {
+					"type": "string"
+				},
+				"author": {
+					"type": "string"
+				}
+			}
+		},
+		"CommentRequest": {
+			"type": "object",
+			"properties": {
+				"content": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string"
+				}
+			}
+		},
+		"AlarmLogPojo": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "string"
+				},
+				"alarmId": {
+					"type": "string"
+				},
+				"state": {
+					"type": "string"
+				},
+				"timestamp": {
+					"type": "integer",
+					"format": "int64"
+				}
+			}
+		},
+		"ChangeItem": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"timestamp": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"source": {
+					"type": "string"
+				},
+				"operation": {
+					"type": "string"
+				},
+				"target": {
+					"type": "string"
+				},
+				"change": {
+					"type": "string"
+				},
+				"author": {
+					"type": "string"
+				}
+			}
+		},
+		"DatalogContentPojo": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"name": {
+					"type": "string"
+				},
+				"valueType": {
+					"type": "string",
+					"enum": [
+						"ANALOG",
+						"DIGITAL",
+						"UNKNOWN"
+					]
+				},
+				"datalogType": {
+					"type": "string",
+					"enum": [
+						"LEGACY",
+						"ROLLING",
+						"SINGLE_SHOT",
+						"UNKNOWN"
+					]
+				},
+				"pointNumber": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"pointName": {
+					"type": "string"
+				},
+				"pointId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"entriesT": {
+					"type": "array",
+					"items": {
+						"type": "string",
+						"format": "date-time"
+					}
+				},
+				"entriesV": {
+					"type": "array",
+					"items": {
+						"type": "number"
+					}
+				},
+				"time": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"timeController": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"counter": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"value": {
+					"type": "number",
+					"format": "float"
+				},
+				"isUnknown": {
+					"type": "boolean"
+				},
+				"isError": {
+					"type": "boolean"
+				},
+				"comments": {
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/CommentPojo"
+					}
+				}
+			}
+		},
+		"PointValuePojo": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"name": {
+					"type": "string"
+				},
+				"value": {
+					"type": "number",
+					"format": "float"
+				},
+				"valuePrev": {
+					"type": "number",
+					"format": "float"
+				},
+				"time": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"overrideState": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"isUnknown": {
+					"type": "boolean"
+				},
+				"comments": {
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/CommentPojo"
+					}
+				}
+			}
+		},
+		"AlarmLogTimelinePojo": {
+			"type": "object",
+			"properties": {
+				"alarmLogs": {
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/AlarmLogPojo"
+					}
+				},
+				"total": {
+					"type": "integer",
+					"format": "int64"
+				}
+			}
+		},
+		"StatisticEntry": {
+			"type": "object",
+			"properties": {
+				"timeWindow": {
+					"$ref": "#/components/schemas/TimeWindow"
+				},
+				"values": {
+					"type": "object",
+					"additionalProperties": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			}
+		},
+		"TimeWindow": {
+			"type": "object",
+			"properties": {
+				"timestamp": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"identifier": {
+					"type": "string"
+				},
+				"unit": {
+					"type": "string",
+					"enum": [
+						"YEAR",
+						"MONTH",
+						"WEEK",
+						"DAY"
+					]
+				},
+				"zoneId": {
+					"type": "string"
+				}
+			}
+		},
+		"EntityMonitoringSettingsPojo": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"identifier": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"name": {
+					"type": "string"
+				},
+				"included": {
+					"type": "boolean"
+				},
+				"type": {
+					"type": "string",
+					"enum": [
+						"TIMESCHEDULE",
+						"DATALOG",
+						"ALARM",
+						"ANALOG_SETPOINT",
+						"ANALOG_HARDWARE",
+						"ANALOG_VIRTUAL",
+						"DIGITAL_SETPOINT",
+						"DIGITAL_HARDWARE",
+						"DIGITAL_VIRTUAL"
+					]
+				}
+			}
+		},
+		"SyncLogPojo": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "string"
+				},
+				"state": {
+					"type": "string"
+				},
+				"latestRingbufferTimestamp": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"lastAccessTimeMs": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"averageAccessTimeMs": {
+					"type": "number",
+					"format": "double"
+				},
+				"timestamp": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"stateSince": {
+					"type": "integer",
+					"format": "int64"
+				}
+			}
+		},
+		"StatusLogPojo": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"systemId": {
+					"type": "string"
+				},
+				"type": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"severity": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"message": {
+					"type": "string"
+				},
+				"timestamp": {
+					"type": "integer",
+					"format": "int64"
+				}
+			}
+		},
+		"UpdateStateRequest": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "string"
+				},
+				"alarmId": {
+					"type": "string"
+				},
+				"state": {
+					"type": "string"
+				},
+				"severity": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"timestamp": {
+					"type": "integer",
+					"format": "int64"
+				}
+			}
+		},
+		"StatusLogRequest": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"systemId": {
+					"type": "string"
+				},
+				"type": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"severity": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"message": {
+					"type": "string"
+				},
+				"timestamp": {
+					"type": "integer",
+					"format": "int64"
+				}
+			}
+		},
+		"TimeScheduleBlockPojo": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"block": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"exceptionStartDay": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"exceptionStartMonth": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"exceptionEndDay": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"exceptionEndMonth": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"year": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"times": {
+					"type": "object",
+					"additionalProperties": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				},
+				"time": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"isUnknown": {
+					"type": "boolean"
+				},
+				"comments": {
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/CommentPojo"
+					}
+				}
+			}
+		},
+		"TimeScheduleStatePojo": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"name": {
+					"type": "string"
+				},
+				"value": {
+					"type": "number",
+					"format": "float"
+				},
+				"time": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"isUnknown": {
+					"type": "boolean"
+				},
+				"comments": {
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/CommentPojo"
+					}
+				}
+			}
+		},
+		"VersionInfo": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"coordinates": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"type": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"version": {
+					"type": "string"
+				},
+				"serial": {
+					"type": "string"
+				}
+			}
+		},
+		"PointRecord": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"address": {
+					"type": "string"
+				},
+				"newValue": {
+					"type": "number",
+					"format": "float"
+				},
+				"oldValue": {
+					"type": "number",
+					"format": "float"
+				},
+				"overrideStatus": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"note": {
+					"type": "string"
+				},
+				"author": {
+					"type": "string"
+				}
+			}
+		},
+		"TimeScheduleRecord": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"address": {
+					"type": "string"
+				},
+				"oldValue": {
+					"type": "string"
+				},
+				"newValue": {
+					"type": "string"
+				},
+				"note": {
+					"type": "string"
+				},
+				"author": {
+					"type": "string"
+				}
+			}
+		},
+		"JsonNode": {
+			"type": "object"
+		},
+		"AddressPojo": {
+			"type": "object",
+			"properties": {
+				"address": {
+					"type": "string"
+				},
+				"community": {
+					"type": "string"
+				},
+				"county": {
+					"type": "string"
+				},
+				"country": {
+					"type": "string"
+				},
+				"description": {
+					"type": "string"
+				},
+				"district": {
+					"type": "string"
+				},
+				"extended": {
+					"type": "string"
+				},
+				"federalState": {
+					"type": "string"
+				},
+				"location": {
+					"type": "string"
+				},
+				"number": {
+					"type": "string"
+				},
+				"postBox": {
+					"type": "string"
+				},
+				"postCode": {
+					"type": "string"
+				},
+				"street": {
+					"type": "string"
+				},
+				"representation": {
+					"type": "string"
+				}
+			}
+		},
+		"SystemDescriptionPojo": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"prefix": {
+					"type": "string"
+				},
+				"ip": {
+					"type": "string"
+				},
+				"directory": {
+					"type": "string"
+				},
+				"port": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"lon": {
+					"type": "number",
+					"format": "double"
+				},
+				"lat": {
+					"type": "number",
+					"format": "double"
+				},
+				"shallow": {
+					"type": "boolean"
+				},
+				"excluded": {
+					"type": "boolean"
+				},
+				"externalId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"address": {
+					"$ref": "#/components/schemas/AddressPojo"
+				},
+				"source": {
+					"type": "string",
+					"enum": [
+						"INTERNAL",
+						"EXTERNAL"
+					]
+				},
+				"children": {
+					"uniqueItems": true,
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/SystemDescriptionPojo"
+					}
+				},
+				"flags": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"cylonNetwork": {
+					"type": "boolean"
+				}
+			}
+		},
+		"SystemDescriptionRequest": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"name": {
+					"type": "string"
+				},
+				"directory": {
+					"type": "string"
+				},
+				"port": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"externalId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"ip": {
+					"type": "string"
+				},
+				"lon": {
+					"type": "number",
+					"format": "double"
+				},
+				"lat": {
+					"type": "number",
+					"format": "double"
+				},
+				"excluded": {
+					"type": "boolean"
+				},
+				"flags": {
+					"type": "integer",
+					"format": "int32"
+				}
+			}
+		},
+		"ContactPojo": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"task": {
+					"type": "string"
+				},
+				"additional": {
+					"type": "string"
+				},
+				"firstName": {
+					"type": "string"
+				},
+				"lastName": {
+					"type": "string"
+				},
+				"salutation": {
+					"type": "string"
+				},
+				"shortName": {
+					"type": "string"
+				},
+				"title": {
+					"type": "string"
+				},
+				"address": {
+					"$ref": "#/components/schemas/AddressPojo"
+				},
+				"phones": {
+					"uniqueItems": true,
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/PhonePojo"
+					}
+				},
+				"emails": {
+					"uniqueItems": true,
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"comments": {
+					"uniqueItems": true,
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"PhonePojo": {
+			"type": "object",
+			"properties": {
+				"type": {
+					"type": "string"
+				},
+				"number": {
+					"type": "string"
+				}
+			}
+		},
+		"ContractPojo": {
+			"type": "object",
+			"properties": {
+				"art": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"name": {
+					"type": "string"
+				},
+				"displayname": {
+					"type": "string"
+				},
+				"conclusionDate": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"comment": {
+					"type": "string"
+				},
+				"contacts": {
+					"uniqueItems": true,
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/ContactPojo"
+					}
+				},
+				"customerId": {
+					"type": "string"
+				},
+				"end": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"number": {
+					"type": "string"
+				},
+				"partner": {
+					"$ref": "#/components/schemas/ContactPojo"
+				},
+				"referee": {
+					"$ref": "#/components/schemas/ContactPojo"
+				},
+				"start": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"state": {
+					"type": "string"
+				},
+				"subject": {
+					"type": "string"
+				},
+				"termination": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"type": {
+					"type": "integer",
+					"format": "int32"
+				}
+			}
+		},
+		"TechFacilityPojo": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"facilityClass": {
+					"type": "string"
+				},
+				"facilityClassName": {
+					"type": "string"
+				},
+				"room": {
+					"type": "string"
+				},
+				"constructionYear": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"launchDate": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"contracts": {
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/ContractPojo"
+					}
+				}
+			}
+		},
+		"EntityPojo": {
+			"type": "object",
+			"properties": {
+				"entity": {
+					"type": "string"
+				}
+			}
+		},
+		"EntityRequest": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"type": {
+					"type": "string",
+					"enum": [
+						"POINT",
+						"ALARM",
+						"DATALOG",
+						"FIELDCONTROLLER",
+						"COMMSCONTROLLER",
+						"TIMESCHEDULE"
+					]
+				},
+				"identifier": {
+					"type": "integer",
+					"format": "int32"
+				}
+			}
+		},
+		"CylonNetworkPojo": {
+			"type": "object",
+			"properties": {
+				"entity": {
+					"type": "string"
+				},
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"name": {
+					"type": "string"
+				},
+				"systemId": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"directory": {
+					"type": "string"
+				},
+				"ip": {
+					"type": "string"
+				},
+				"port": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"count": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"children": {
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/EntityPojo"
+					}
+				},
+				"summary": {
+					"type": "object",
+					"additionalProperties": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			}
+		},
+		"ImportStatisticPojo": {
+			"type": "object",
+			"properties": {
+				"add": {
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/CylonNetworkPojo"
+					}
+				},
+				"remove": {
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/CylonNetworkPojo"
+					}
+				},
+				"update": {
+					"type": "array",
+					"items": {
+						"$ref": "#/components/schemas/CylonNetworkPojo"
+					}
+				}
+			}
+		},
+		"Text": {
+			"type": "object",
+			"properties": {
+				"type": {
+					"type": "string"
+				},
+				"content": {
+					"type": "string"
+				},
+				"id": {
+					"type": "integer",
+					"format": "int32"
+				}
+			}
+		},
+		"TextRequest": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"content": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string"
+				}
+			}
+		},
+		"RolePojo": {
+			"type": "object",
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string",
+					"enum": [
+						"ROLE",
+						"USER",
+						"GROUP"
+					]
+				},
+				"groups": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"roles": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"members": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"properties": {
+					"type": "object",
+					"additionalProperties": {
+						"type": "object"
+					}
+				}
+			}
+		},
+		"SuspectPojo": {
+			"type": "object",
+			"properties": {
+				"systemId": {
+					"type": "string"
+				},
+				"alarmId": {
+					"type": "string"
+				},
+				"state": {
+					"type": "string"
+				},
+				"timestamp": {
+					"type": "integer",
+					"format": "int64"
+				},
+				"severity": {
+					"type": "integer",
+					"format": "int32"
+				},
+				"recognized": {
+					"type": "string",
+					"format": "date-time"
+				},
+				"by": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}

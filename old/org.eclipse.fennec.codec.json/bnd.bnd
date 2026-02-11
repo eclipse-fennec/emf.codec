@@ -1,0 +1,6 @@
+-library: enable-emf
+-buildpath: \
+	org.eclipse.fennec.codec.info,\
+	org.eclipse.fennec.codec,\
+	tools.jackson.core.jackson-core,\
+	tools.jackson.core.jackson-databind

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testfeaturepath" nsURI="http://test.example.org/featurepath/1.0" nsPrefix="featurepath">
+
+  <!--
+    Test model for featurePath-based MAPPED TypeStrategy.
+
+    Instead of using a dedicated "_type" field, the type discriminator is read
+    from an existing feature in the content (e.g., "messageType" or "info.type").
+
+    Uses dedicated typeMapping/{mapId} annotation sources:
+    - Base class defines typeDiscriminatorPath in the typeMapping annotation
+    - Concrete classes register via typeDiscriminator in the same typeMapping source
+  -->
+
+  <!-- DeviceInfo class - embedded in messages -->
+  <eClassifiers xsi:type="ecore:EClass" name="DeviceInfo">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="deviceId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="profileName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Abstract UplinkMessage - base class for all messages -->
+  <!-- Uses featurePath "info.profileName" to determine concrete type -->
+  <eClassifiers xsi:type="ecore:EClass" name="UplinkMessage" abstract="true">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/lorawan-uplink">
+      <details key="typeDiscriminatorPath" value="info.profileName"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="info" eType="#//DeviceInfo" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="timestamp" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- TemperatureMessage - discriminator: "temperature-profile" -->
+  <eClassifiers xsi:type="ecore:EClass" name="TemperatureMessage" eSuperTypes="#//UplinkMessage">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/lorawan-uplink">
+      <details key="typeDiscriminator" value="temperature-profile"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="temperature" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="unit" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- HumidityMessage - discriminator: "humidity-profile" -->
+  <eClassifiers xsi:type="ecore:EClass" name="HumidityMessage" eSuperTypes="#//UplinkMessage">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/lorawan-uplink">
+      <details key="typeDiscriminator" value="humidity-profile"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="humidity" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+
+  <!-- SimpleMessage - uses single-level path "messageType" -->
+  <eClassifiers xsi:type="ecore:EClass" name="SimpleMessage" abstract="true">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/simple-messages">
+      <details key="typeDiscriminatorPath" value="messageType"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="messageType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="payload" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- TextMessage - discriminator: "text" -->
+  <eClassifiers xsi:type="ecore:EClass" name="TextMessage" eSuperTypes="#//SimpleMessage">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/simple-messages">
+      <details key="typeDiscriminator" value="text"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="text" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- BinaryMessage - discriminator: "binary" -->
+  <eClassifiers xsi:type="ecore:EClass" name="BinaryMessage" eSuperTypes="#//SimpleMessage">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/simple-messages">
+      <details key="typeDiscriminator" value="binary"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="data" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EByteArray"/>
+  </eClassifiers>
+
+</ecore:EPackage>

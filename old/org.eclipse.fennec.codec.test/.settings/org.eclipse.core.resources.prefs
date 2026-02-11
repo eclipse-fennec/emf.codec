@@ -1,0 +1,9 @@
+eclipse.preferences.version=1
+encoding//src/org/gecko/codec/test/CodecFactoryConfiguratorTest.java=UTF-8
+encoding//src/org/gecko/codec/test/CodecModelInfoOverwriteTest.java=UTF-8
+encoding//src/org/gecko/codec/test/CodecModuleConfigOverwriteTest.java=UTF-8
+encoding//src/org/gecko/codec/test/CodecModuleConfiguratorTest.java=UTF-8
+encoding//src/org/gecko/codec/test/ObjMapperConfigOverwriteTest.java=UTF-8
+encoding//src/org/gecko/codec/test/ObjMapperConfiguratorTest.java=UTF-8
+encoding/<project>=UTF-8
+encoding/bnd.bnd=UTF-8

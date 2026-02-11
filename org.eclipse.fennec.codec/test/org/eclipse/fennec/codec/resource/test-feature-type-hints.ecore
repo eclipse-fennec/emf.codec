@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testfeaturetypehints" nsURI="http://test.example.org/featuretypehints/1.0" nsPrefix="fth">
+
+  <!--
+    Test model for feature type hints tests (spec chapter 18).
+
+    This model simulates the OpenAPI use case where:
+    - Container has a feature typed as generic EObject
+    - At runtime, we need to provide a type hint to deserialize the concrete type
+  -->
+
+  <!-- Person - a concrete type that can be used as hint target -->
+  <eClassifiers xsi:type="ecore:EClass" name="Person">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="age" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+  <!-- Address - another concrete type that can be used as hint target -->
+  <eClassifiers xsi:type="ecore:EClass" name="Address">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="street" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="city" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Configuration - yet another concrete type -->
+  <eClassifiers xsi:type="ecore:EClass" name="Configuration">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Example - simulates OpenAPI Example with EObject-typed value field -->
+  <eClassifiers xsi:type="ecore:EClass" name="Example">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="summary" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- EObject-typed feature - requires type hint for deserialization -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"
+        containment="true"/>
+  </eClassifiers>
+
+  <!-- Extension - simulates OpenAPI Extension with EObject-typed value -->
+  <eClassifiers xsi:type="ecore:EClass" name="Extension">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- EObject-typed feature - requires type hint for deserialization -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"
+        containment="true"/>
+  </eClassifiers>
+
+  <!-- Container - holds multiple items with EObject-typed values -->
+  <eClassifiers xsi:type="ecore:EClass" name="Container">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <!-- Multi-valued EObject-typed feature for array tests -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="items" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"
+        containment="true"/>
+    <!-- Single Example for basic tests -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="example" eType="#//Example" containment="true"/>
+    <!-- Multiple Extensions for combined tests -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="extensions" upperBound="-1" eType="#//Extension" containment="true"/>
+  </eClassifiers>
+
+</ecore:EPackage>

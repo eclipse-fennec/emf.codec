@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0" localization="OSGI-INF/l10n/org.gecko.codec.test.template">
+  <OCD id="org.gecko.codec.test.template" name="Gecko Codec Test Template" description="Creates a test setup for your codec implementation">
+    <AD id="CodecName" type="String" name="Codec File Prefix" description="The prefix to append to each test class name." default="Codec"/>
+    <AD id="CodecType" type="String" name="Codec Type" description="The name of the codec type property to discriminate services for this particular codec implementation"/>
+  </OCD>
+</metatype:MetaData>

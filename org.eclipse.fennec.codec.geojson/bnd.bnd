@@ -1,0 +1,19 @@
+Bundle-Name: Fennec Codec Geojson
+Bundle-Description: EMF / Codec extension for GeoJson
+
+-library: enable-emf
+
+-buildpath: \
+	org.osgi.service.condition;version=latest,\
+	tools.jackson.core.jackson-core;version=latest,\
+	tools.jackson.core.jackson-databind;version=latest,\
+	com.fasterxml.jackson.core.jackson-annotations;version=latest,\
+	org.geojson.model;version=latest,\
+	org.eclipse.fennec.codec.api;version=snapshot,\
+	org.eclipse.fennec.codec;version=snapshot,\
+	org.eclipse.fennec.codec.metadata;version=snapshot,\
+	org.eclipse.fennec.model.metadata;version=snapshot
+	
+-fixupmessages: \
+	jpms.jarname;is:=ignore,\
+	The .classpath;is:=ignore

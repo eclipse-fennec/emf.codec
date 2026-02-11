@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testdeserialization" nsURI="http://test.example.org/deserialization/1.0" nsPrefix="deser">
+
+  <!--
+    Test model for deserialization entry tests.
+
+    Classes:
+      - Person (main test class with attributes, single string ID)
+      - Address (for containment reference)
+      - MultiIdPerson (for combined ID tests with firstName + lastName)
+      - IntIdEntity (for integer ID type conversion)
+      - LongIdEntity (for long ID type conversion)
+
+    Features tested:
+      - Single-valued attributes (name, age, active, score)
+      - Multi-valued attributes (tags)
+      - Containment reference (address)
+      - Multi-valued containment reference (friends)
+      - Non-containment reference (manager)
+      - Multi-valued non-containment reference (colleagues)
+      - Combined ID (firstName + lastName)
+      - ID type conversion (int, long)
+  -->
+
+  <!-- Address - target for containment references -->
+  <eClassifiers xsi:type="ecore:EClass" name="Address">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="street" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="city" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Person - main test class -->
+  <eClassifiers xsi:type="ecore:EClass" name="Person">
+    <!-- ID attribute -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" iD="true"/>
+
+    <!-- Single-valued attributes -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="age" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="0"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="active" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="score" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+
+    <!-- Multi-valued attribute -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="tags" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+
+    <!-- EJavaObject attribute - can hold any value (String, Number, Boolean, Map, List) -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="metadata" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>
+
+    <!-- Containment reference (single) -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true"/>
+
+    <!-- Containment reference (multi-valued) -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="friends" upperBound="-1" eType="#//Person" containment="true"/>
+
+    <!-- Non-containment reference (single) -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="manager" eType="#//Person"/>
+
+    <!-- Non-containment reference (multi-valued) -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="colleagues" upperBound="-1" eType="#//Person"/>
+  </eClassifiers>
+
+  <!-- MultiIdPerson - for combined ID tests (firstName + lastName) -->
+  <eClassifiers xsi:type="ecore:EClass" name="MultiIdPerson">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="email" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- IntIdEntity - for integer ID type conversion tests -->
+  <eClassifiers xsi:type="ecore:EClass" name="IntIdEntity">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- LongIdEntity - for long ID type conversion tests -->
+  <eClassifiers xsi:type="ecore:EClass" name="LongIdEntity">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong" iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+</ecore:EPackage>

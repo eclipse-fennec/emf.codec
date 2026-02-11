@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testextmeta" nsURI="http://test.example.org/extmeta/1.0" nsPrefix="extmeta">
+
+  <!--
+    Test model for ExtendedMetaData name resolution.
+    Features have different name vs ExtendedMetaData name values.
+  -->
+
+  <eClassifiers xsi:type="ecore:EClass" name="Document">
+    <!-- Feature name "documentTitle", ExtendedMetaData name "title" -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="documentTitle" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="name" value="title"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+
+    <!-- Feature name "documentAuthors", ExtendedMetaData name "author" -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="documentAuthors" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="name" value="author"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+
+    <!-- Feature name "pageCount", NO ExtendedMetaData annotation (should use feature name) -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pageCount" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+
+    <!-- Feature name "internalId", ExtendedMetaData name "id" -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="internalId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" iD="true">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="name" value="id"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+</ecore:EPackage>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testinline" nsURI="http://test.example.org/inline/1.0" nsPrefix="inline">
+
+  <!--
+    Test model for inlineMapping on EReference and fallback strategies.
+
+    1. InlineMapping: PersonContainer.contacts uses inlineMapping source
+       to map discriminator values to concrete Contact subclasses per-reference.
+
+    2. Fallback ERROR: SensorHub.sensors uses typeMapping/strict-sensors
+       with fallbackStrategy=ERROR — unknown discriminators throw.
+
+    3. Fallback FALLBACK: MessageBox.messages uses typeMapping/tolerant-messages
+       with fallbackStrategy=FALLBACK + fallbackEClass — unknown discriminators
+       resolve to a default GenericMessage class.
+  -->
+
+  <!-- ================================================================== -->
+  <!-- Inline Mapping hierarchy: Contact types on a specific EReference   -->
+  <!-- ================================================================== -->
+
+  <!-- Abstract base contact -->
+  <eClassifiers xsi:type="ecore:EClass" name="Contact" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Friend contact -->
+  <eClassifiers xsi:type="ecore:EClass" name="Friend" eSuperTypes="#//Contact">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nickname" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Colleague contact -->
+  <eClassifiers xsi:type="ecore:EClass" name="Colleague" eSuperTypes="#//Contact">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="department" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- PersonContainer with inline-mapped contacts reference -->
+  <eClassifiers xsi:type="ecore:EClass" name="PersonContainer">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ownerName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contacts" upperBound="-1" eType="#//Contact" containment="true">
+      <!-- inlineMapping: discriminator → EClass URI, scoped to this reference -->
+      <eAnnotations source="http://eclipse.org/fennec/codec/inlineMapping">
+        <details key="friend" value="http://test.example.org/inline/1.0#//Friend"/>
+        <details key="colleague" value="http://test.example.org/inline/1.0#//Colleague"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- ================================================================== -->
+  <!-- Fallback ERROR: strict sensor registry                             -->
+  <!-- ================================================================== -->
+
+  <!-- Abstract sensor base -->
+  <eClassifiers xsi:type="ecore:EClass" name="Sensor" abstract="true">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeKey" value="_type"/>
+    </eAnnotations>
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/strict-sensors">
+      <details key="typeDiscriminatorPath" value="_type"/>
+      <details key="fallbackStrategy" value="ERROR"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sensorId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- TempSensor — known discriminator -->
+  <eClassifiers xsi:type="ecore:EClass" name="TempSensor" eSuperTypes="#//Sensor">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/strict-sensors">
+      <details key="typeDiscriminator" value="temp"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="celsius" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+
+  <!-- SensorHub container -->
+  <eClassifiers xsi:type="ecore:EClass" name="SensorHub">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="hubName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sensors" upperBound="-1" eType="#//Sensor" containment="true"/>
+  </eClassifiers>
+
+  <!-- ================================================================== -->
+  <!-- Fallback FALLBACK: tolerant message registry                       -->
+  <!-- ================================================================== -->
+
+  <!-- Abstract message base -->
+  <eClassifiers xsi:type="ecore:EClass" name="Message" abstract="true">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeKey" value="_type"/>
+    </eAnnotations>
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/tolerant-messages">
+      <details key="typeDiscriminatorPath" value="_type"/>
+      <details key="fallbackStrategy" value="FALLBACK"/>
+      <details key="fallbackEClass" value="http://test.example.org/inline/1.0#//GenericMessage"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="timestamp" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- AlertMessage — known discriminator -->
+  <eClassifiers xsi:type="ecore:EClass" name="AlertMessage" eSuperTypes="#//Message">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/tolerant-messages">
+      <details key="typeDiscriminator" value="alert"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="severity" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- GenericMessage — used as fallback for unknown discriminators -->
+  <eClassifiers xsi:type="ecore:EClass" name="GenericMessage" eSuperTypes="#//Message">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="rawPayload" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- MessageBox container -->
+  <eClassifiers xsi:type="ecore:EClass" name="MessageBox">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="boxName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="messages" upperBound="-1" eType="#//Message" containment="true"/>
+  </eClassifiers>
+
+</ecore:EPackage>

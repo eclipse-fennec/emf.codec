@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testtypestrategy" nsURI="http://test.example.org/typestrategy/1.0" nsPrefix="typestrategy">
+
+  <!--
+    Test model for exploring type strategy behavior with containments.
+    Uses SCHEMA_AND_TYPE strategy on the Company class to see how it affects contained objects.
+  -->
+
+  <!-- Address - simple contained object without type annotation -->
+  <eClassifiers xsi:type="ecore:EClass" name="Address">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="street" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="city" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Person - contained object, no special annotation (will use default) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Person">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true"/>
+  </eClassifiers>
+
+  <!-- Company - root object with SCHEMA_AND_TYPE strategy -->
+  <eClassifiers xsi:type="ecore:EClass" name="Company">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="SCHEMA_AND_TYPE"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="employees" upperBound="-1" eType="#//Person" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="partner" eType="#//Company"/>
+  </eClassifiers>
+
+  <!-- Department - root object with URI strategy (explicit default) -->
+  <eClassifiers xsi:type="ecore:EClass" name="Department">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeStrategy" value="URI"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="members" upperBound="-1" eType="#//Person" containment="true"/>
+  </eClassifiers>
+
+</ecore:EPackage>

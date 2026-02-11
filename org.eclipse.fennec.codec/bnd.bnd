@@ -1,0 +1,20 @@
+Bundle-Name: Fennec Codec V2
+Bundle-Description: Next generation EMF codec framework using MetadataService
+
+-library: enable-emf
+
+-buildpath: \
+	org.osgi.service.condition;version=latest,\
+	org.eclipse.fennec.codec.api;version=snapshot,\
+	org.eclipse.fennec.model.metadata;version=snapshot,\
+	org.eclipse.fennec.codec.metadata;version=snapshot,\
+	tools.jackson.core.jackson-core;version=latest,\
+	tools.jackson.core.jackson-databind;version=latest,\
+	com.fasterxml.jackson.core.jackson-annotations;version=latest
+	
+-testpath.codec: \
+	org.geojson.model;version=latest
+	
+-fixupmessages: \
+	jpms.jarname;is:=ignore,\
+	The .classpath;is:=ignore

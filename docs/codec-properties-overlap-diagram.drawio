@@ -1,0 +1,55 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.5 Chrome/126.0.6478.183 Electron/31.3.0 Safari/537.36" version="24.7.5">
+  <diagram id="3228e29e-7158-1315-38df-8450db1d8a1d" name="Page-1">
+    <mxGraphModel dx="1191" dy="1790" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="21565" value="" style="ellipse;whiteSpace=wrap;html=1;rounded=1;shadow=0;labelBackgroundColor=none;strokeColor=#e85642;strokeWidth=3;fillColor=#e85642;fontFamily=Helvetica;fontSize=14;fontColor=#2F5B7C;align=center;opacity=30;rotation=-135;" parent="1" vertex="1">
+          <mxGeometry x="176.11" y="83.19" width="353.43" height="213.45" as="geometry" />
+        </mxCell>
+        <mxCell id="21566" value="" style="ellipse;whiteSpace=wrap;html=1;rounded=1;shadow=0;labelBackgroundColor=none;strokeColor=#12aab5;strokeWidth=3;fillColor=#21B55C;fontFamily=Helvetica;fontSize=14;fontColor=#2F5B7C;align=center;opacity=30;rotation=142;" parent="1" vertex="1">
+          <mxGeometry x="186.96" y="519.25" width="480" height="216.94" as="geometry" />
+        </mxCell>
+        <mxCell id="21567" value="" style="ellipse;whiteSpace=wrap;html=1;rounded=1;shadow=0;labelBackgroundColor=none;strokeColor=#1699d3;strokeWidth=3;fillColor=#1699d3;fontFamily=Helvetica;fontSize=14;fontColor=#2F5B7C;align=center;opacity=30;rotation=74;" parent="1" vertex="1">
+          <mxGeometry x="460" y="260" width="295.98" height="344" as="geometry" />
+        </mxCell>
+        <mxCell id="21568" value="" style="ellipse;whiteSpace=wrap;html=1;rounded=1;shadow=0;labelBackgroundColor=none;strokeColor=#F08705;strokeWidth=3;fillColor=#F08705;fontFamily=Helvetica;fontSize=14;fontColor=#2F5B7C;align=center;opacity=30;rotation=-45;direction=west;" parent="1" vertex="1">
+          <mxGeometry x="607.16" y="118.75" width="430" height="239.52" as="geometry" />
+        </mxCell>
+        <mxCell id="21569" value="" style="ellipse;whiteSpace=wrap;html=1;rounded=1;shadow=0;labelBackgroundColor=none;strokeColor=#736ca8;strokeWidth=3;fillColor=#736ca8;fontFamily=Helvetica;fontSize=14;fontColor=#2F5B7C;align=center;opacity=30;rotation=15;" parent="1" vertex="1">
+          <mxGeometry x="670" y="480" width="510" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="iCVGjswf5mPfFr9611RF-21591" value="Resource#load(options)&lt;div&gt;Resource#save(options)&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="550" y="400.38" width="130" height="39.62" as="geometry" />
+        </mxCell>
+        <mxCell id="iCVGjswf5mPfFr9611RF-21592" value="&lt;div&gt;&lt;b&gt;CodecModelInfo&lt;/b&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="770" y="480" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="iCVGjswf5mPfFr9611RF-21593" value="&lt;b&gt;CodecModule Config&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="360" y="560" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="iCVGjswf5mPfFr9611RF-21594" value="&lt;b&gt;CodecFactory Config&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="220" y="92.08" width="170" height="27.92" as="geometry" />
+        </mxCell>
+        <mxCell id="iCVGjswf5mPfFr9611RF-21595" value="&lt;b&gt;CodecObjectMapper &lt;/b&gt;&lt;b style=&quot;background-color: initial;&quot;&gt;Config&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="800" y="100" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="iCVGjswf5mPfFr9611RF-21597" value="The properties set through the options passed to the Resource at the moment of saving or loading should be able to overwrite the CodecObjectMapper properties that can be configured per call (namely Serialization/Deserialization Features and Generator/Parser Features), as well as the ones defined in the CodecModule and through model annotations." style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;size=30;position=0.5;direction=north;position2=0.52;" parent="1" vertex="1">
+          <mxGeometry x="100" y="340" width="290" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="jOIaOFqzgeNw6U-2L7ip-21569" value="&lt;ol&gt;&lt;li&gt;JsonFactory.Feature&lt;/li&gt;&lt;li&gt;StreamWriteFeature&lt;/li&gt;&lt;li&gt;JsonWriteFeature&lt;/li&gt;&lt;li&gt;StreamReadFeature&lt;/li&gt;&lt;li&gt;JsonReadFeature&lt;/li&gt;&lt;/ol&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="270" y="143.9" width="170" height="96.1" as="geometry" />
+        </mxCell>
+        <mxCell id="jOIaOFqzgeNw6U-2L7ip-21570" value="&lt;ol&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;MapperFeature&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;SerializationFeature&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;DeserializationFeature&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;DateFormat&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;Locale&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;TimeZone&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;StreamWriteFeature&lt;/span&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;JsonWriteFeature&lt;/li&gt;&lt;li&gt;StreamReadFeature&lt;/li&gt;&lt;li&gt;JsonReadFeature&lt;/li&gt;&lt;/ol&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="750" y="150" width="170" height="136.56" as="geometry" />
+        </mxCell>
+        <mxCell id="jOIaOFqzgeNw6U-2L7ip-21572" value="General options, like weather to serialize id, type, supertypes and default field keys to use;&amp;nbsp;&lt;div&gt;If id should be set on top, if supertypes should be serialized as array,&amp;nbsp;&lt;/div&gt;&lt;div&gt;if extended meta data should be considered, etc.&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="290" y="620" width="210" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="jOIaOFqzgeNw6U-2L7ip-21573" value="Set via model annotations: id strategy, id features and order, weather to ignore a feature, type strategy, reader and writer names to be used for certain features, etc." style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="755.98" y="540" width="314.02" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

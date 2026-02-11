@@ -1,0 +1,10 @@
+{
+	"ref1": {
+		"type": "test-data/type-as-feature.ecore#//Child",
+		"name": "child1"
+	},
+	"ref2": {
+	    "kind": "test-data/type-as-feature.ecore#//Child2"
+	}
+	
+}

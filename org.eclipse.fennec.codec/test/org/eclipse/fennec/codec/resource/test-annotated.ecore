@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testannotated" nsURI="http://test.example.org/annotated/1.0" nsPrefix="annotated">
+
+  <!--
+    Test model for annotation-based configuration tests.
+    This model uses codec EAnnotations to customize serialization behavior.
+  -->
+
+  <!-- Product - class with custom ID configuration -->
+  <eClassifiers xsi:type="ecore:EClass" name="Product">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idStrategy" value="ID_FIELD"/>
+      <details key="idKey" value="id"/>
+      <details key="typeStrategy" value="NAME"/>
+      <details key="typeKey" value="type"/>
+    </eAnnotations>
+
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sku" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="price" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+
+    <!-- Ignored feature - should not be serialized -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="internalCode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="ignore" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+  <!-- Order - class with combined ID -->
+  <eClassifiers xsi:type="ecore:EClass" name="Order">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idStrategy" value="COMBINED"/>
+      <details key="idKey" value="orderId"/>
+      <details key="idSeparator" value="-"/>
+      <details key="idFeatures" value="customerId,orderDate"/>
+    </eAnnotations>
+
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="customerId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="orderDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="total" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+
+    <!-- Containment reference to items -->
+    <eStructuralFeatures xsi:type="ecore:EReference" name="items" upperBound="-1" eType="#//OrderItem" containment="true"/>
+  </eClassifiers>
+
+  <!-- OrderItem - nested class -->
+  <eClassifiers xsi:type="ecore:EClass" name="OrderItem">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="productName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="quantity" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="unitPrice" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+
+  <!-- Customer - class with supertype serialization enabled -->
+  <eClassifiers xsi:type="ecore:EClass" name="Customer">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="superTypeSerialize" value="true"/>
+      <details key="superTypeKey" value="_extends"/>
+      <details key="superTypeStrategy" value="ALL"/>
+    </eAnnotations>
+
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="email" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- VIPCustomer - subclass to test inheritance and type discrimination -->
+  <eClassifiers xsi:type="ecore:EClass" name="VIPCustomer" eSuperTypes="#//Customer">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="vipLevel" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="discountPercent" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+
+</ecore:EPackage>

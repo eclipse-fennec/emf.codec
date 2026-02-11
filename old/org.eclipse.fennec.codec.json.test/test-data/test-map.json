@@ -1,0 +1,10 @@
+{
+	"stringMapValues": {
+		"Hello": {
+			"value": 1
+		},
+		"World": {
+			"value": 2
+		}
+	}
+}

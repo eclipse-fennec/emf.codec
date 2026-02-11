@@ -1,0 +1,13 @@
+-library: enableOSGi-Test
+
+-runrequires: \
+	bnd.identity;id='{{basePackageName}}',\
+	bnd.identity;id='org.apache.felix.gogo.command',\
+	bnd.identity;id='org.apache.felix.gogo.shell'
+	
+-runbundles.test: \
+	{{basePackageName}};version=snapshot
+
+-runfw: org.apache.felix.framework
+
+-runee: JavaSE-17

@@ -1,0 +1,79 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.5 Chrome/126.0.6478.183 Electron/31.3.0 Safari/537.36" version="24.7.5">
+  <diagram name="Page-1" id="R_TYCAyILTIppOyX57p5">
+    <mxGraphModel dx="1191" dy="670" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="meXqgI94mEAzVshPRImk-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="uARANUQPBzvvQ3UgLYXO-1" target="meXqgI94mEAzVshPRImk-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-1" value="&lt;b&gt;CodecFactoryBuilder&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="200" y="200" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="uARANUQPBzvvQ3UgLYXO-2" target="uARANUQPBzvvQ3UgLYXO-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-2" value="&lt;b&gt;ObjectMapperConfigurator&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="480" y="80" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="uARANUQPBzvvQ3UgLYXO-4" target="uARANUQPBzvvQ3UgLYXO-1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-4" value="&lt;b&gt;CodecFactoryConfigurator&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="200" y="80" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="meXqgI94mEAzVshPRImk-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="uARANUQPBzvvQ3UgLYXO-5" target="meXqgI94mEAzVshPRImk-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-5" value="&lt;b&gt;ObjectMapperBuilder&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="480" y="200" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-8" value="This is configurable and we can pass FactoryFeatures, GeneratorFeatures and ParserFeatures" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;direction=north;position2=0.67;align=center;rounded=1;" parent="1" vertex="1">
+          <mxGeometry x="10" y="60" width="180" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-9" value="This service is responsible of creating the EPackageCodecInfo when a model is registered. We can pass options via model annotations here!" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;direction=south;position2=0.25;align=center;size=30;position=0.13;base=20;rounded=1;" parent="1" vertex="1">
+          <mxGeometry x="660" y="440" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="uARANUQPBzvvQ3UgLYXO-10" target="uARANUQPBzvvQ3UgLYXO-12" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-10" value="&lt;b&gt;CodecModuleConfigurator&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+          <mxGeometry x="200" y="560" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="meXqgI94mEAzVshPRImk-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="uARANUQPBzvvQ3UgLYXO-12" target="meXqgI94mEAzVshPRImk-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-12" value="&lt;b&gt;CodecModuleBuilder&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="200" y="440" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="meXqgI94mEAzVshPRImk-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="uARANUQPBzvvQ3UgLYXO-16" target="meXqgI94mEAzVshPRImk-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-16" value="&lt;b&gt;CodecModelInfo&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="480" y="440" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-17" value="This is configurable and we can pass specific options, like useIdField, idKey, typeKey, etc." style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;direction=north;position2=0.67;align=center;rounded=1;" parent="1" vertex="1">
+          <mxGeometry x="10" y="560" width="180" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="uARANUQPBzvvQ3UgLYXO-18" value="This is configurable and we can pass MapperFeatures, SerializationFeatures and DeserializationFeatures" style="shape=callout;whiteSpace=wrap;html=1;perimeter=calloutPerimeter;direction=south;position2=0.25;align=center;size=30;position=0.13;base=20;rounded=1;" parent="1" vertex="1">
+          <mxGeometry x="650" y="70" width="170" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="meXqgI94mEAzVshPRImk-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="meXqgI94mEAzVshPRImk-2" target="uARANUQPBzvvQ3UgLYXO-16" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="meXqgI94mEAzVshPRImk-2" value="&lt;b&gt;EPackage&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="480" y="560" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="meXqgI94mEAzVshPRImk-8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="meXqgI94mEAzVshPRImk-4" target="meXqgI94mEAzVshPRImk-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="meXqgI94mEAzVshPRImk-4" value="&lt;b&gt;Resource#save(options)&lt;/b&gt;&lt;div&gt;&lt;b&gt;Resource#load(options)&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="10" y="320" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="meXqgI94mEAzVshPRImk-5" value="When saving/loading a resource we create the actual objects&amp;nbsp;&lt;div&gt;(Factory, ObjMapper) and we register the CodecModule.&amp;nbsp;&lt;/div&gt;&lt;div&gt;Everything after overwriting the different configuration with what comes from the saving/loading options!&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="200" y="285" width="460" height="110" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

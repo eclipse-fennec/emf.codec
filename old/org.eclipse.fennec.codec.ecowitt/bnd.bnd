@@ -1,0 +1,14 @@
+Bundle-Name: EcoWitt WeatherStation Codec Adapter
+Bundle-Description: Codec De-Serializer for EcoWitt Weatherstation Data
+
+-library: enable-emf
+
+-buildpath: \
+	tools.jackson.core.jackson-databind;version=latest,\
+	tools.jackson.core.jackson-core;version=latest,\
+	org.eclipse.fennec.ecowitt.model;version=snapshot,\
+	org.eclipse.fennec.codec;version=snapshot,\
+	org.eclipse.fennec.codec.info;version=snapshot,\
+	org.eclipse.fennec.codec.json;version=snapshot,\
+	org.eclipse.fennec.codec.constants;version=snapshot
+	

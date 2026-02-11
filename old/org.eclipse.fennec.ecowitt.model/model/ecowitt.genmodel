@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" copyrightText="Copyright (c) 2012 - 2025 Data In Motion and others.&#xA;All rights reserved. &#xA;&#xA;This program and the accompanying materials are made&#xA;available under the terms of the Eclipse Public License 2.0&#xA;which is available at https://www.eclipse.org/legal/epl-2.0/&#xA;&#xA;SPDX-License-Identifier: EPL-2.0&#xA;&#xA;Contributors:&#xA;     Mark Hoffmann - initial API and implementation"
+    modelDirectory="/org.eclipse.fennec.ecowitt.model/src" modelPluginID="org.eclipse.fennec.ecowitt.model"
+    modelName="ecowitt" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    importerID="org.eclipse.emf.importer.ecore" complianceLevel="17.0" suppressGenModelAnnotations="false"
+    copyrightFields="false" operationReflection="true" importOrganizing="true" oSGiCompatible="true">
+  <foreignModel>ecowitt.ecore</foreignModel>
+  <genPackages prefix="EcoWitt" basePackage="org.eclipse.fennec.ecowitt.model" resource="XMI"
+      disposableProviderFactory="true" contentTypeIdentifier="ecowitt#1.0" ecorePackage="ecowitt.ecore#/">
+    <genClasses ecoreClass="ecowitt.ecore#//EcoWittWeather">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/passkey"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/stationType"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/dateUTC"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/dnsIP"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/dnsErrorCount"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/cdnFlag"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/temperaturIndoor"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/huminityIndoor"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/barometerRel"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/barometerAbs"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/temperaturOutdoor"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/humidityOutdoor"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/vpd"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/windDirection"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/windDirAvg10min"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/windSpeedMph"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/gustDailyMax"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/gustWindMPH"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/solarRadiation"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/uvIndex"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/rainRate"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/rainEvent"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/rainDaily"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/rainHourly"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/rainLast24H"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/rainWeekly"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/rainMonthly"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/rainYearly"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/wh65BatteryStatus"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/frequency"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/model"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/updateInterval"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/runtime"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute ecowitt.ecore#//EcoWittWeather/heap"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>

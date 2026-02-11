@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testhint" nsURI="http://test.example.org/hint/1.0" nsPrefix="testhint">
+
+  <!--
+    Model for testing CODEC_ROOT_OBJECT hint-based type resolution.
+    When _type is missing, the hint EClass (or URI String) determines the type.
+    For nested objects without _type, EReference.eType is used.
+  -->
+
+  <!-- Simple class without _type requirement -->
+  <eClassifiers xsi:type="ecore:EClass" name="Customer">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="email" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="Product">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sku" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="price" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+
+  <!-- Container with typed reference - nested object uses EReference.eType -->
+  <eClassifiers xsi:type="ecore:EClass" name="Order">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="orderId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="customer" eType="#//Customer" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="items" upperBound="-1" eType="#//Product" containment="true"/>
+  </eClassifiers>
+
+  <!-- Hierarchy for testing EReference.eType as hint -->
+  <eClassifiers xsi:type="ecore:EClass" name="Vehicle" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="brand" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="Car" eSuperTypes="#//Vehicle">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="doors" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="Motorcycle" eSuperTypes="#//Vehicle">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="engineCC" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+  <!-- Container referencing abstract type - needs _type for concrete class -->
+  <eClassifiers xsi:type="ecore:EClass" name="Garage">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="vehicles" upperBound="-1" eType="#//Vehicle" containment="true"/>
+  </eClassifiers>
+
+</ecore:EPackage>
