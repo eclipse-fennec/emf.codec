@@ -42,7 +42,7 @@ sonarqube {
     property "sonar.organization", "eclipse-fennec"
     property "sonar.host.url", "https://sonarcloud.io"
     property "sonar.coverage.jacoco.xmlReportPaths", "${rootDir}/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml"
-    //property "sonar.exclusions", "org.gecko.project/**/*.java, org.gecko.other.project/**/*.java"
+    //property "sonar.exclusions", "org.eclipse.fennec.project/**/*.java"
   }
 }
 

@@ -1393,7 +1393,7 @@ The deserializer:
 
 ## 6. Real-World Example: GeoJSON
 
-This section demonstrates deserialization of real [GeoJSON](https://geojson.org/) data using the [org.geojson.model](https://github.com/geckoprojects-org/org.gecko.emf.models/tree/main/org.geojson.model) EMF model.
+This section demonstrates deserialization of real [GeoJSON](https://geojson.org/) data using the [org.geojson.model](https://github.com/eclipse-fennec/org.eclipse.fennec.emf.models/tree/main/org.geojson.model) EMF model.
 
 ### 6.1 The GeoJSON Model
 
