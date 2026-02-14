@@ -15,7 +15,10 @@ package org.eclipse.fennec.codec.ser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
+
+import org.mockito.InOrder;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
@@ -212,11 +215,14 @@ class ReferenceSerializationEntryTest extends SerializationEntryTestBase {
 
             entry.serialize(createState(person), generator, serializationContext);
 
-            verify(generator).writeName("manager");
-            verify(generator).writeStartObject();
-            // The ref will be the EClass URI since there's no resource
-            verify(generator).writeStringProperty("_ref", "http://test.example.org/serialization/1.0#//Person");
-            verify(generator).writeEndObject();
+            // STRUCTURED format: writes { "_type": typeUri, "_ref": refUri }
+            InOrder inOrder = inOrder(generator);
+            inOrder.verify(generator).writeName("manager");
+            inOrder.verify(generator).writeStartObject();
+            inOrder.verify(generator).writeStringProperty("_type", "http://test.example.org/serialization/1.0#//Person");
+            inOrder.verify(generator).writeName("_ref");
+            inOrder.verify(generator).writeString("http://test.example.org/serialization/1.0#//Person");
+            inOrder.verify(generator).writeEndObject();
         }
 
         @Test
@@ -278,7 +284,9 @@ class ReferenceSerializationEntryTest extends SerializationEntryTestBase {
 
             entry.serialize(createState(person), generator, serializationContext);
 
-            verify(generator).writeStringProperty("@ref", "http://test.example.org/serialization/1.0#//Person");
+            // STRUCTURED format: writes { "_type": typeUri, "@ref": refUri }
+            verify(generator).writeName("@ref");
+            verify(generator).writeString("http://test.example.org/serialization/1.0#//Person");
         }
 
         @Test

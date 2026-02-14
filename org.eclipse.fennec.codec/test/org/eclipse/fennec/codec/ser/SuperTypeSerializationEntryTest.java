@@ -156,6 +156,7 @@ class SuperTypeSerializationEntryTest {
                 .serialize(true)
                 .superTypeKey("_supertype")
                 .strategy(SuperTypeSelection.SINGLE)
+                .asArray(false)
                 .build();
 
         SuperTypeSerializationEntry entry = new SuperTypeSerializationEntry(config, testEClass);

@@ -1,25 +1,24 @@
 # We include setups for
-#	OSGi-Test Support - gecko-osgitest
-#	DIMC Github-Configuration - gecko-dimc
+#	Fennec Github-Configuration - fennec
+#	OSGi-Test Support - fennec-osgitest
 #	Jacoco Support - gecko-jacoco
 -library: \
-	geckoDIMC,\
-	geckoOSGi-Test,\
-	geckoJacoco,\
-	geckoEMF,\
-	geckoEMFUtil,\
-	geckoEMFRepository
+	fennec,\
+	fennecTest,\
+	fennecJacoco,\
+	geckoEMF
 
 # Needed because we enabled library 'gecko-dimc'
 # Activate baselining
-dimcBaselining: true
-github-project: org.gecko.codec
-base-version: 1.1.0
+#fennec-baselining: true
+github-orga: eclipse-fennec
+github-project: emf.codec
+base-version: 0.1.0
 Bundle-Version: ${base-version}.SNAPSHOT
 
 # Maven Central Group-Id
-# For Geckoprojects the groupid must start with org.geckoprojects
--groupid: org.geckoprojects.codec
+# For Eclipse Fennec the groupid must start with org.eclipse.fennec
+-groupid: org.eclipse.fennec.codec
 
 javac.source: 17
 javac.target: 17
@@ -28,7 +27,7 @@ javac.target: 17
 
 -plugin.0.Central: \
     aQute.bnd.repository.maven.provider.MavenBndRepository; \
-        snapshotUrl="https://oss.sonatype.org/content/repositories/snapshots/,https://s01.oss.sonatype.org/content/repositories/snapshots/"; \
+        snapshotUrl="https://central.sonatype.com/repository/maven-snapshots/"; \
         releaseUrl=https://repo.maven.apache.org/maven2/; \
         index=${.}/central.mvn; \
         readOnly=true; \

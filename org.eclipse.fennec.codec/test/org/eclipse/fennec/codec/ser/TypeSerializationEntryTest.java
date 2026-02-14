@@ -19,15 +19,21 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.fennec.codec.config.SuperTypeConfig;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.model.metadata.SerializationFormat;
 import org.eclipse.fennec.model.metadata.SuperTypeSelection;
 import org.eclipse.fennec.model.metadata.TypeStrategy;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -65,6 +71,19 @@ class TypeSerializationEntryTest {
         testEClass = EcoreFactory.eINSTANCE.createEClass();
         testEClass.setName("Person");
         testPackage.getEClassifiers().add(testEClass);
+
+        // Register package and put it in a resource so EcoreUtil.getURI returns full URI
+        ResourceSet rs = new ResourceSetImpl();
+        rs.getResourceFactoryRegistry().getExtensionToFactoryMap()
+            .put("*", new XMIResourceFactoryImpl());
+        Resource resource = rs.createResource(URI.createURI(testPackage.getNsURI()));
+        resource.getContents().add(testPackage);
+        EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
+    }
+
+    @AfterEach
+    void tearDown() {
+        EPackage.Registry.INSTANCE.remove("http://example.org/test");
     }
 
     private TypeConfig createDefaultConfig() {

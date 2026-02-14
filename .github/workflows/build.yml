@@ -1,17 +1,14 @@
 name: CI Build
 on:
   push:
-    paths-ignore:
-    - 'docs/**'
-    - '.github/**/*docs*'
-    - '.github/**/*codeql*'
-    - '.github/*.yml'
+    branches-ignore:
+      # This build should run on all pushes EXCEPT main and snapshot branches.
+      - main
+      - snapshot
   pull_request:
-    paths-ignore:
-    - 'docs/**'
-    - '.github/**/*docs*'
-    - '.github/**/*codeql*'
-    - '.github/*.yml'
+    # This build should run for all pull requests.
+    branches:
+    - '*' # Run on all branches for pull requests.
 
 env:
   LC_ALL: en_US.UTF-8
@@ -23,40 +20,23 @@ defaults:
     shell: bash
 
 jobs:
-  Build_Matrix:
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
-        java: [ 17 ]
-        runner: [ 'xvfb-run --auto-servernum {0}' ]
-    name: JDK${{ matrix.java }} ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+  build:
+    name: Gradle Build
+    runs-on: ubuntu-latest
     steps:
     - name: Git Checkout
       uses: actions/checkout@v4
-    - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.12.0
-      with:
-        mongodb-version: '8.0'
     - name: Gradle Wrapper Validation
-      uses: gradle/wrapper-validation-action@v3
-    - name: Set up Java ${{ matrix.java }}
+      uses: gradle/actions/wrapper-validation@v4
+    - name: Set up Java
       uses: actions/setup-java@v4
       with:
         distribution: "temurin"
         cache: "gradle"
-        java-version: ${{ matrix.java }}
+        java-version: 21
     - name: Grant execute permission for gradlew
       run: chmod +x ./gradlew
     - name: Gradle version
       run: ./gradlew --no-daemon --version
     - name: Build with Gradle
-      run: ./gradlew build
-    - name: Upload Test Reports
-      if: ${{ always() && ((steps.build.outcome == 'success') || (steps.build.outcome == 'failure')) }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: JDK${{ matrix.java }}_${{ matrix.os }}-test-reports
-        path: |
-          */generated/test-reports/*/TEST-*.xml
-
+      run: ./gradlew build --info

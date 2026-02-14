@@ -13,7 +13,10 @@
 package org.eclipse.fennec.codec.ser;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
+
+import org.mockito.InOrder;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -111,12 +114,14 @@ class ReferenceSerializationEntryCustomWriterTest extends SerializationEntryTest
 
             entry.serialize(createState(person), generator, serializationContext);
 
-            // Should use default URI serialization
-            verify(generator).writeName("manager");
-            verify(generator).writeStartObject();
-            // Default: writes URI string
-            verify(generator).writeStringProperty("_ref", "http://test.example.org/serialization/1.0#//Person");
-            verify(generator).writeEndObject();
+            // Should use default STRUCTURED format: { "_type": typeUri, "_ref": refUri }
+            InOrder inOrder = inOrder(generator);
+            inOrder.verify(generator).writeName("manager");
+            inOrder.verify(generator).writeStartObject();
+            inOrder.verify(generator).writeStringProperty("_type", "http://test.example.org/serialization/1.0#//Person");
+            inOrder.verify(generator).writeName("_ref");
+            inOrder.verify(generator).writeString("http://test.example.org/serialization/1.0#//Person");
+            inOrder.verify(generator).writeEndObject();
         }
 
         @Test
@@ -137,8 +142,10 @@ class ReferenceSerializationEntryCustomWriterTest extends SerializationEntryTest
 
             entry.serialize(createState(person), generator, serializationContext);
 
-            // Should use default URI serialization
-            verify(generator).writeStringProperty("_ref", "http://test.example.org/serialization/1.0#//Person");
+            // Should use default STRUCTURED format with _type and _ref
+            verify(generator).writeStringProperty("_type", "http://test.example.org/serialization/1.0#//Person");
+            verify(generator).writeName("_ref");
+            verify(generator).writeString("http://test.example.org/serialization/1.0#//Person");
         }
 
         @Test
@@ -175,8 +182,10 @@ class ReferenceSerializationEntryCustomWriterTest extends SerializationEntryTest
 
             entry.serialize(createState(person), generator, serializationContext);
 
-            // Should use default URI serialization
-            verify(generator).writeStringProperty("_ref", "http://test.example.org/serialization/1.0#//Person");
+            // Should use default STRUCTURED format with _type and _ref
+            verify(generator).writeStringProperty("_type", "http://test.example.org/serialization/1.0#//Person");
+            verify(generator).writeName("_ref");
+            verify(generator).writeString("http://test.example.org/serialization/1.0#//Person");
         }
     }
 

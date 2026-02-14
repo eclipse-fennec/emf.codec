@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -192,7 +193,7 @@ class IdSerializationEntryTest {
 
         // Should not write anything since there's no ID attribute
         // Verify no _id field was written (the only key IdSerializationEntry uses)
-        verify(generator, never()).writeStringProperty("_id", anyString());
+        verify(generator, never()).writeStringProperty(eq("_id"), anyString());
         verify(generator, never()).writeName("_id");
     }
 
