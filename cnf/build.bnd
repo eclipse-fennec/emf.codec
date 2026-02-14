@@ -1,14 +1,14 @@
 # We include setups for
 #	Fennec Github-Configuration - fennec
 #	OSGi-Test Support - fennec-osgitest
-#	Jacoco Support - gecko-jacoco
+#	Jacoco Support - fennec-jacoco
 -library: \
 	fennec,\
 	fennecTest,\
 	fennecJacoco,\
-	geckoEMF
+	fennecEMF
 
-# Needed because we enabled library 'gecko-dimc'
+# Needed because we enabled library 'fennec'
 # Activate baselining
 #fennec-baselining: true
 github-orga: eclipse-fennec

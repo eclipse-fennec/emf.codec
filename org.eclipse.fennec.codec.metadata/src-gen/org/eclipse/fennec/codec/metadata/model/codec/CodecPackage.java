@@ -18,9 +18,9 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EReference;
 
-import org.eclipse.fennec.model.metadata.MetadataPackage;
+import org.eclipse.fennec.emf.osgi.annotation.provide.EPackage;
 
-import org.gecko.emf.osgi.annotation.provide.EPackage;
+import org.eclipse.fennec.model.metadata.MetadataPackage;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -42,7 +42,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = CodecPackage.eNS_URI, genModel = "/model/codec.genmodel", genModelSourceLocations = {"model/codec.genmodel","org.eclipse.fennec.codec.metadata/model/codec.genmodel"}, ecore="/model/codec.ecore", ecoreSourceLocations="/model/codec.ecore")
+@EPackage(uri = CodecPackage.eNS_URI, genModel = "/model/codec.genmodel", genModelSourceLocations = {"model/codec.genmodel","org.eclipse.fennec.codec.metadata/model/codec.genmodel"}, ecore = "/model/codec.ecore", ecoreSourceLocations = "/model/codec.ecore")
 public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.

@@ -16,7 +16,7 @@ package org.eclipse.fennec.model.metadata.api;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EOperation;
 
-import org.gecko.emf.osgi.annotation.provide.EPackage;
+import org.eclipse.fennec.emf.osgi.annotation.provide.EPackage;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -38,7 +38,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = ApiPackage.eNS_URI, genModel = "/model/metadata-api.genmodel", genModelSourceLocations = {"model/metadata-api.genmodel","org.eclipse.fennec.model.metadata/model/metadata-api.genmodel"}, ecore="/model/metadata-api.ecore", ecoreSourceLocations="/model/metadata-api.ecore")
+@EPackage(uri = ApiPackage.eNS_URI, genModel = "/model/metadata-api.genmodel", genModelSourceLocations = {"model/metadata-api.genmodel","org.eclipse.fennec.model.metadata/model/metadata-api.genmodel"}, ecore = "/model/metadata-api.ecore", ecoreSourceLocations = "/model/metadata-api.ecore")
 public interface ApiPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.

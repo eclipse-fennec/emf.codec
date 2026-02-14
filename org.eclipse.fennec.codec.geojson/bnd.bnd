@@ -1,7 +1,7 @@
 Bundle-Name: Fennec Codec Geojson
 Bundle-Description: EMF / Codec extension for GeoJson
 
--library: enable-emf
+-library: enableEMF
 
 -buildpath: \
 	org.osgi.service.condition;version=latest,\

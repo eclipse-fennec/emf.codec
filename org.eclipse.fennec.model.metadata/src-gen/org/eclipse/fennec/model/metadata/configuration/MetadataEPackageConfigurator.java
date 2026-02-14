@@ -15,11 +15,11 @@ package org.eclipse.fennec.model.metadata.configuration;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
+
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
+
 import org.eclipse.fennec.model.metadata.MetadataPackage;
-
-import org.gecko.emf.osgi.configurator.EPackageConfigurator;
-
-import org.gecko.emf.osgi.constants.EMFNamespaces;
 
 /**
  * <!-- begin-user-doc -->
@@ -39,7 +39,7 @@ public class MetadataEPackageConfigurator implements EPackageConfigurator {
 	
 	/**
 	 * (non-Javadoc)
-	 * @see org.gecko.emf.osgi.EPackageRegistryConfigurator#configureEPackage(org.eclipse.emf.ecore.EPackage.Registry)
+	 * @see org.eclipse.fennec.emf.osgi.EPackageRegistryConfigurator#configureEPackage(org.eclipse.emf.ecore.EPackage.Registry)
 	 * @generated
 	 */
 	@Override
@@ -49,7 +49,7 @@ public class MetadataEPackageConfigurator implements EPackageConfigurator {
 	
 	/**
 	 * (non-Javadoc)
-	 * @see org.gecko.emf.osgi.EPackageRegistryConfigurator#unconfigureEPackage(org.eclipse.emf.ecore.EPackage.Registry)
+	 * @see org.eclipse.fennec.emf.osgi.EPackageRegistryConfigurator#unconfigureEPackage(org.eclipse.emf.ecore.EPackage.Registry)
 	 * @generated
 	 */
 	@Override
@@ -63,7 +63,7 @@ public class MetadataEPackageConfigurator implements EPackageConfigurator {
 	 */
 	public Map<String, Object> getServiceProperties() {
 		Map<String, Object> properties = new HashMap<String, Object>();
-		properties.put(EMFNamespaces.EMF_MODEL_NAME, MetadataPackage.eNAME);
+		properties.put(EMFNamespaces.EMF_NAME, MetadataPackage.eNAME);
 		properties.put(EMFNamespaces.EMF_MODEL_NSURI, MetadataPackage.eNS_URI);
 		properties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_PROVIDED);
 		properties.put(EMFNamespaces.EMF_MODEL_FILE_EXT, "metadata");

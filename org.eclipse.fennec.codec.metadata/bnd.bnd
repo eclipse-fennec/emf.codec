@@ -3,13 +3,13 @@ Bundle-Description: Codec-specific aspects for the Model Metadata Service
 
 src=${^src},src-gen
 
--library: enable-emf
+-library: enableEMF
 
 -includeresource.model: model=model
 
 -generate:\
 	model/codec.genmodel;\
-		generate=geckoEMF;\
+		generate=fennecEMF;\
 		genmodel=model/codec.genmodel;\
 		output=src-gen
 # Add this attribute to find some logging information

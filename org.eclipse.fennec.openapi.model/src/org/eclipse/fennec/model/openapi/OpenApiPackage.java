@@ -18,7 +18,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EReference;
 
-import org.gecko.emf.osgi.annotation.provide.EPackage;
+import org.eclipse.fennec.emf.osgi.annotation.provide.EPackage;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -45,7 +45,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = OpenApiPackage.eNS_URI, genModel = "/model/openapi_v3.genmodel", genModelSourceLocations = {"model/openapi_v3.genmodel","org.eclipse.fennec.openapi.model/model/openapi_v3.genmodel"}, ecore="/model/openapi_v3.ecore", ecoreSourceLocations="/model/openapi_v3.ecore")
+@EPackage(uri = OpenApiPackage.eNS_URI, genModel = "/model/openapi_v3.genmodel", genModelSourceLocations = {"model/openapi_v3.genmodel","org.eclipse.fennec.openapi.model/model/openapi_v3.genmodel"}, ecore = "/model/openapi_v3.ecore", ecoreSourceLocations = "/model/openapi_v3.ecore")
 public interface OpenApiPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.

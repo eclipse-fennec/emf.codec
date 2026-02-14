@@ -23,7 +23,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 
 import org.eclipse.fennec.codec.metadata.model.codec.CodecPackage;
 
-import org.gecko.emf.osgi.constants.EMFNamespaces;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 
 /**
  * <!-- begin-user-doc -->

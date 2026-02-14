@@ -1,7 +1,7 @@
 Bundle-Name: Fennec Codec V2
 Bundle-Description: Next generation EMF codec framework using MetadataService
 
--library: enable-emf
+-library: enableEMF
 
 -buildpath: \
 	org.osgi.service.condition;version=latest,\

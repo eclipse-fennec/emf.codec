@@ -4,15 +4,15 @@ Bundle-Description: Services to hold model metadata
 src=${^src},src-gen,src-gen-api
 
 -library: \
-	enable-emf
+	enableEMF
 	
 -generate:\
 	model/metadata.genmodel;\
-		generate=geckoEMF;\
+		generate=fennecEMF;\
 		genmodel=model/metadata.genmodel;\
 		output=src-gen,\
 	model/metadata-api.genmodel;\
-		generate=geckoEMF;\
+		generate=fennecEMF;\
 		genmodel=model/metadata-api.genmodel;\
 		output=src-gen-api
 # Add this attribute to find some logging information

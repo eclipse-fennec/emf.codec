@@ -1,7 +1,7 @@
 Bundle-Name: Fennec Codec API
 Bundle-Description: EMF Codec API 
 
--library: enable-emf
+-library: enableEMF
 
 -buildpath: \
 	org.osgi.service.condition;version=latest,\

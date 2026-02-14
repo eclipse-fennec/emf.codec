@@ -1,7 +1,7 @@
 Bundle-Name: Fennec Codec JsonSchema
 Bundle-Description: EMF / Codec extension to handle JsonSchema
 
--library: enable-emf
+-library: enableEMF
 
 -buildpath: \
 	org.osgi.service.condition;version=latest,\

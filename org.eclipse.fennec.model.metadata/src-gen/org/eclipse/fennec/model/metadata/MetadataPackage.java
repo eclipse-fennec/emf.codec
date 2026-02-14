@@ -18,7 +18,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EReference;
 
-import org.gecko.emf.osgi.annotation.provide.EPackage;
+import org.eclipse.fennec.emf.osgi.annotation.provide.EPackage;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -40,7 +40,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = MetadataPackage.eNS_URI, genModel = "/model/metadata.genmodel", genModelSourceLocations = {"model/metadata.genmodel","org.eclipse.fennec.model.metadata/model/metadata.genmodel"}, ecore="/model/metadata.ecore", ecoreSourceLocations="/model/metadata.ecore")
+@EPackage(uri = MetadataPackage.eNS_URI, genModel = "/model/metadata.genmodel", genModelSourceLocations = {"model/metadata.genmodel","org.eclipse.fennec.model.metadata/model/metadata.genmodel"}, ecore = "/model/metadata.ecore", ecoreSourceLocations = "/model/metadata.ecore")
 public interface MetadataPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.

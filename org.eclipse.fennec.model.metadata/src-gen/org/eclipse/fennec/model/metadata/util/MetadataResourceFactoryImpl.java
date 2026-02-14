@@ -21,9 +21,9 @@ import org.eclipse.emf.ecore.resource.Resource;
 
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 
-import org.eclipse.fennec.model.metadata.MetadataPackage;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 
-import org.gecko.emf.osgi.constants.EMFNamespaces;
+import org.eclipse.fennec.model.metadata.MetadataPackage;
 
 /**
  * <!-- begin-user-doc -->
