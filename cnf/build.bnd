@@ -23,7 +23,7 @@ Bundle-Version: ${base-version}.SNAPSHOT
 javac.source: 17
 javac.target: 17
 
--require-bnd "(version>=7.0.0)"
+-require-bnd "(version>=7.2.1)"
 
 -plugin.0.Central: \
     aQute.bnd.repository.maven.provider.MavenBndRepository; \
