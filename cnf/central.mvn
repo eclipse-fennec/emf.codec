@@ -141,7 +141,7 @@ org.slf4j:slf4j-api:1.7.36
 
 org.apache.commons:commons-lang3:3.12.0
 
-org.eclipse.fennec.bnd:org.eclipse.fennec.bnd.library:0.0.6
-org.eclipse.fennec.bnd:org.eclipse.fennec.jacoco.bnd.library:0.0.6
-org.eclipse.fennec.bnd:org.eclipse.fennec.osgitest.bnd.library:0.0.6
+org.eclipse.fennec.bnd:org.eclipse.fennec.bnd.library:0.0.7
+org.eclipse.fennec.bnd:org.eclipse.fennec.jacoco.bnd.library:0.0.7
+org.eclipse.fennec.bnd:org.eclipse.fennec.osgitest.bnd.library:0.0.7
 org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bnd.library.workspace:0.0.1-SNAPSHOT
