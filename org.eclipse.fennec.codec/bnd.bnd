@@ -1,5 +1,5 @@
-Bundle-Name: Fennec Codec V2
-Bundle-Description: Next generation EMF codec framework using MetadataService
+Bundle-Name: Fennec EMF Codec
+Bundle-Description: Next generation EMF codec framework using Jackson3
 
 -library: enableEMF
 
