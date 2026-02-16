@@ -2,16 +2,19 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-02-08 (Plan E Architecture + Old Code Archived)
+**Last Updated:** 2026-02-16 (Plan E Implementation Started)
 
-**Session Summary (2026-02-08 latest):**
+**Session Summary (2026-02-16 latest):**
 
-**Plan E Architecture (Multi-Format Support):**
-- Designed FormatDelegate<T> pattern for pluggable format support
-- Architecture: `JacksonCodecWriter` delegates to `FormatDelegate<T>` for format-specific encoding
-- Generic type `T` allows different output targets: `OutputStream` (JSON/CBOR), `BsonDocument` (MongoDB), `Document` (Lucene)
-- Test strategy: JSON (existing) + CBOR (Jackson binary) + BSON (custom in-memory)
-- See `codec-v2-plans.md` Plan E for full details
+**Plan E Implementation Started (Multi-Format Support):**
+- Refined FormatDelegate<T> architecture with concrete implementation plan
+- Strategy: Build abstraction first → verify with existing JSON tests (~1000+) → BSON as first non-Jackson format
+- Key insight: `FormatDelegateGenerator<T>` extends Jackson's `GeneratorBase` (IS a `JsonGenerator`), so zero entry class changes needed
+- Architecture: `FormatDelegate<T>` for writers, `FormatReaderDelegate<S>` for readers, `CodecFormatProvider<S,T>` factory
+- Jackson bridge: `FormatDelegateGenerator<T>` wraps FormatDelegate as JsonGenerator, `FormatDelegateParser<S>` wraps FormatReaderDelegate as JsonParser
+- `CodecReadContext` (already exists) provides EMF context for non-JSON parsers; deserializer has existing fallback via `DeserializationContext` attributes
+- Implementation order: E1 (interfaces) → E2 (bridge) → E3 (JSON impl) → E4 (CodecResource) → E5 (verify) → E6 (BSON) → E7 (CBOR etc.)
+- See `codec-v2-plans.md` Plan E for full details with file listings and step tracking
 
 **Old Code Archived:**
 - Moved old codec projects to `old/` folder (reference implementations for Plan E)
@@ -72,7 +75,7 @@ This document provides context for continuing codec development across sessions.
 - Implemented GAP-003 (Feature Strictness) — `ClassConfig`, strictOnUnknown/strictOnMissing
 - Postponed GAP-004 (Diagnostic Options), GAP-014 (inherit enum) to later release
 
-**Next Session:** Plan B mostly complete (12/14 GAPs done, 2 postponed). Plan D verified complete. Consider Plan C (documentation examples), performance testing, or release preparation.
+**Next Session:** Continue Plan E implementation. Start with Phase E1 (FormatDelegate interfaces in codec.api). See `codec-v2-plans.md` §7 for detailed step tracking.
 
 ---
 
@@ -103,38 +106,51 @@ MAIN TASK: [description] - [status: ACTIVE/PAUSED/✅]
 ### 0.2 Current Task Hierarchy
 
 ```
-COMPLETED: Integration Tests + PLAIN Reference Format - ✅ (2026-02-06)
+ACTIVE: Plan E Multi-Format Support - IN PROGRESS (2026-02-16)
 │
-│  INTEGRATION TESTS:
-│  │  - NEW: FeatureVisibilityIntegrationTest.java (20 tests)
-│  │    - ignoreRead/ignoreWrite/ignore on attributes and containment refs
-│  │    - Comparison tests, round-trip tests, edge cases
-│  │  - ENHANCED: ExpandReferenceTest.java (+8 edge case tests)
-│  │    - expand + null, expand + ignoreWrite, expandIgnoreBidirectional
-│  │    - empty multi-valued with serializeEmpty, mixed expand/proxy
+│  Phase E1: FormatDelegate Interfaces (codec.api) - PENDING
+│  │  - E1.1: TokenType enum
+│  │  - E1.2: FormatDelegate<T> interface
+│  │  - E1.3: FormatReaderDelegate<S> interface
+│  │  - E1.4: CodecFormatProvider<S,T> interface
 │  │
-│  PLAIN REFERENCE FORMAT IMPLEMENTATION:
-│  │  - Deserialization: ReferenceDeserializationEntry.deserializeSingleValued()
-│  │    - Added VALUE_STRING handling for single-valued non-containment
-│  │    - Multi-valued PLAIN was already supported
-│  │  - Serialization: ReferenceSerializationEntry.writeReferenceObject()
-│  │    - Added refFormat field from ReferenceConfig
-│  │    - PLAIN outputs bare URI string, STRUCTURED outputs object with _type/$ref
-│  │  - NEW: PlainReferenceFormatTest.java (16 tests)
-│  │    - PLAIN deser (single/multi), type hints, mixed formats, PLAIN ser, round-trip
-│  │  - SPEC UPDATE: 10-reference.md §1.1 PLAIN Strategy
-│  │    - Type resolution table, polymorphism warning, implementation status
+│  Phase E2: Jackson Bridge (codec) - PENDING
+│  │  - E2.1: FormatDelegateGenerator<T> extends GeneratorBase
+│  │  - E2.2: FormatDelegateParser<S> extends ParserBase
+│  │  - E2.3: TokenTypeMapper utility
 │  │
-│  CONFIGURATION: refFormat via optionsProperties
-│  │  ConfigurationResolver.builder().optionsProperties(Map.of("refFormat", "PLAIN")).build()
+│  Phase E3: JSON/Jackson FormatDelegate impl - PENDING
+│  │  - E3.1: JacksonStreamFormatDelegate (wraps any Jackson generator)
+│  │  - E3.2: JacksonStreamFormatReaderDelegate (wraps any Jackson parser)
+│  │  - E3.3: JacksonFormatProvider (takes TokenStreamFactory)
 │  │
-│  FINAL STATE: codec = ~1008 tests, 0 failures
-│
-│  NEXT STEPS:
-│  │  - Continue with Plan B GAP work (GAP-002/003/014 are migration tasks)
-│  │  - GAP-004 (Diagnostic Options) is a new feature, lower priority
+│  Phase E4: Refactor CodecResource - PENDING
+│  │  - E4.1: Add CodecFormatProvider to CodecResource
+│  │  - E4.2: Add Resource fallback in ContextHelper + deserializer
+│  │  - E4.3: doSaveWithFormat() / doLoadWithFormat()
+│  │  - E4.4: CodecFormatResourceFactory
+│  │
+│  Phase E5: Verify with existing JSON tests - PENDING
+│  │  - E5.1: All ~1000+ tests through FormatDelegate layer
+│  │  - E5.2: AbstractFormatFeatureParityTest
+│  │  - E5.3: JsonFormatFeatureParityTest (baseline)
+│  │
+│  Phase E6: BSON Format - PENDING
+│  │  - E6.1: org.eclipse.fennec.codec.bson project
+│  │  - E6.2: BsonFormatDelegate<BsonDocument>
+│  │  - E6.3: BsonFormatReaderDelegate<BsonDocument>
+│  │  - E6.4: BsonFormatProvider
+│  │  - E6.5: Round-trip + parity tests
+│  │
+│  Phase E7: Additional Jackson Formats (CBOR, YAML, etc.) - FUTURE
 
-PREVIOUS: Code Cleanup, Deprecated Removal & Helper Extraction - ✅ (2026-02-05)
+PREVIOUS: Plan B + Plan D Complete - ✅ (2026-02-08)
+│  - Plan B: 12/14 GAPs done, 2 postponed (GAP-004, GAP-013/014)
+│  - Plan D: Discriminator refactoring verified complete
+│  - Old code archived to old/ folder
+│  - Total: ~2519+ tests, 0 failures
+
+PREVIOUS: Integration Tests + PLAIN Reference Format - ✅ (2026-02-06)
 > **Older completed tasks available in git history**
 
 ```
@@ -272,20 +288,16 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 
 ### 3.3 What's Next
 
-**IMMEDIATE (Next Session):**
-1. Plan B GAP work — GAP-002 (Fallback Strategy), GAP-003 (Strictness), GAP-014 (inherit enum) are migration tasks
-2. OR continue integration test coverage (reference expansion, feature visibility)
-3. GAP-004 (Diagnostic Options) is a new feature — lower priority
+**ACTIVE (Current):**
+1. **Plan E: Multi-Format Support** — FormatDelegate abstraction + BSON
+   - See `codec-v2-plans.md` §7 for detailed phase/step tracking
+   - E1→E2→E3→E4→E5 (verify with JSON) → E6 (BSON) → E7 (CBOR etc.)
 
-**SHORT TERM:**
-1. Complete Plan B Phase 1 migration GAPs
-2. Create integration tests for complex scenarios
-3. Plan B Phase 2 (GAP-006 through GAP-010)
-
-**LONG TERM:**
-1. Performance testing
-2. Documentation completion (user guide, migration guide)
-3. Plan C (optional features): custom serializers, advanced streaming
+**DEFERRED:**
+1. Plan B remaining: GAP-004 (Diagnostic Options), GAP-013 (Enum annotations), GAP-014 (inherit enum)
+2. Plan C: Documentation examples (DOC-001 through DOC-004)
+3. Performance testing
+4. User guide, migration guide
 
 ## 4. Key Documents
 
@@ -548,10 +560,33 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 
 ### 10.4 Current TODO List
 
-**Next session:**
-1. Plan B GAP work: GAP-002 (Fallback Strategy), GAP-003 (Strictness), GAP-014 (inherit enum) — all migration tasks
-2. OR continue integration test coverage (reference expansion, feature visibility)
-3. GAP-004 (Diagnostic Options) is a new feature — lower priority
+**Plan E — Multi-Format Support (active, see `codec-v2-plans.md` §7 for details):**
+
+Each step = one commit. See plans doc for sub-steps and files.
+
+1. [ ] **Step 1:** FormatDelegate API interfaces (codec.api: TokenType, FormatDelegate, FormatReaderDelegate, CodecFormatProvider)
+2. [ ] **Step 2:** TokenTypeMapper utility + tests
+3. [ ] **Step 3:** FormatDelegateGenerator (write bridge, extends GeneratorBase) + tests
+4. [ ] **Step 4:** FormatDelegateParser (read bridge, extends ParserBase) + tests
+5. [ ] **Step 5:** JacksonStreamFormatDelegate (write impl) + tests
+6. [ ] **Step 6:** JacksonStreamFormatReaderDelegate (read impl) + tests
+7. [ ] **Step 7:** JacksonFormatProvider + tests
+8. [ ] **Step 8:** Context fallback for non-JSON parsers (ContextHelper + deserializer)
+9. [ ] **Step 9:** CodecResource format provider support (doSaveWithFormat/doLoadWithFormat)
+10. [ ] **Step 10:** CodecFormatResourceFactory
+11. [ ] **Step 11:** JSON FormatDelegate integration test (end-to-end round-trip)
+12. [ ] **Step 12:** Feature parity test framework (AbstractFormatFeatureParityTest + JSON baseline)
+13. [ ] **Step 13:** BSON project setup (bnd.bnd, empty project)
+14. [ ] **Step 14:** BsonFormatDelegate (write) + tests
+15. [ ] **Step 15:** BsonFormatReaderDelegate (read) + tests
+16. [ ] **Step 16:** BsonFormatProvider + round-trip + parity tests
+17. [ ] **Step 17+:** Additional Jackson formats (CBOR, YAML, Smile — one commit each)
+
+**Deferred:**
+- [ ] GAP-004: Diagnostic Options integration
+- [ ] GAP-013: Enum-level annotation support
+- [ ] GAP-014: inherit enum type mismatch
+- [ ] DOC-001 through DOC-004: Documentation examples
 
 ## 11. Reference Information
 
