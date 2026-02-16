@@ -40,6 +40,11 @@ import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.config.bridge.AspectToPropertiesConverter;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
+import org.eclipse.fennec.codec.format.CodecFormatProvider;
+import org.eclipse.fennec.codec.format.FormatDelegate;
+import org.eclipse.fennec.codec.format.FormatDelegateGenerator;
+import org.eclipse.fennec.codec.format.FormatDelegateParser;
+import org.eclipse.fennec.codec.format.FormatReaderDelegate;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.context.ContextHelper;
@@ -52,9 +57,18 @@ import org.eclipse.fennec.codec.util.CodecResourceHelper;
 import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 
+import tools.jackson.core.ErrorReportConfiguration;
+import tools.jackson.core.JsonEncoding;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
 import tools.jackson.core.ObjectReadContext;
+import tools.jackson.core.ObjectWriteContext;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.StreamWriteConstraints;
+import tools.jackson.core.io.ContentReference;
+import tools.jackson.core.io.IOContext;
+import tools.jackson.core.util.BufferRecycler;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -96,6 +110,7 @@ public class CodecResource extends ResourceImpl {
     private final CodecValueRegistry valueRegistry;
     private final JsonMapper.Builder mapperBuilder;
     private final CodecResourceHelper helper;
+    private final CodecFormatProvider<?, ?> formatProvider;
 
     private ObjectMapper mapper;
 
@@ -109,7 +124,7 @@ public class CodecResource extends ResourceImpl {
      */
     public CodecResource(URI uri, MetadataService metadataService, ConfigurationResolver resolver,
             JsonMapper.Builder mapperBuilder) {
-        this(uri, metadataService, resolver, null, mapperBuilder);
+        this(uri, metadataService, resolver, null, mapperBuilder, null);
     }
 
     /**
@@ -123,12 +138,33 @@ public class CodecResource extends ResourceImpl {
      */
     public CodecResource(URI uri, MetadataService metadataService, ConfigurationResolver resolver,
             CodecValueRegistry valueRegistry, JsonMapper.Builder mapperBuilder) {
+        this(uri, metadataService, resolver, valueRegistry, mapperBuilder, null);
+    }
+
+    /**
+     * Creates a new CodecResource with a format provider for non-JSON formats.
+     * <p>
+     * When a format provider is set, serialization and deserialization use
+     * {@link FormatDelegateGenerator} and {@link FormatDelegateParser} to bridge
+     * between Jackson's ObjectMapper and the format-specific delegates.
+     *
+     * @param uri the resource URI
+     * @param metadataService the metadata service
+     * @param resolver the configuration resolver
+     * @param valueRegistry custom value readers/writers registry (null for default)
+     * @param mapperBuilder pre-configured mapper builder (null for default)
+     * @param formatProvider the format provider (null for default JSON via CodecJsonFactory)
+     */
+    public CodecResource(URI uri, MetadataService metadataService, ConfigurationResolver resolver,
+            CodecValueRegistry valueRegistry, JsonMapper.Builder mapperBuilder,
+            CodecFormatProvider<?, ?> formatProvider) {
         super(uri);
         this.metadataService = requireNonNull(metadataService, "metadataService must not be null");
         this.resolver = enrichWithAnnotations(resolver, metadataService);
         this.valueRegistry = valueRegistry;
         this.mapperBuilder = mapperBuilder;
         this.helper = new CodecResourceHelper(metadataService);
+        this.formatProvider = formatProvider;
     }
 
     public ObjectMapper getMapper() {
@@ -141,6 +177,10 @@ public class CodecResource extends ResourceImpl {
 
     public ConfigurationResolver getResolver() {
         return resolver;
+    }
+
+    public CodecFormatProvider<?, ?> getFormatProvider() {
+        return formatProvider;
     }
 
     // ========================================================================
@@ -166,6 +206,13 @@ public class CodecResource extends ResourceImpl {
         ConfigurationResolver operationResolver = enrichWithOptions(resolver, effectiveOptions);
 
         mapper = createObjectMapper(effectiveOptions, operationResolver);
+
+        if (formatProvider != null) {
+            doSaveWithFormat(outputStream, effectiveOptions);
+            LOGGER.fine(() -> String.format("Saved %s to %s (format: %s)",
+                    eClass.getName(), getURI(), formatProvider.getFormatId()));
+            return;
+        }
 
         // Check if we have custom value writer configurations
         Object valueWriterInstancesOption = effectiveOptions.get(CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES);
@@ -224,6 +271,11 @@ public class CodecResource extends ResourceImpl {
 
         mapper = createObjectMapper(mergedOptions, operationResolver);
 
+        if (formatProvider != null) {
+            doLoadWithFormat(inputStream, mergedOptions, rootEClassHint, operationResolver);
+            return;
+        }
+
         // Create EffectiveCodecConfig for the codec factory
         DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
         EffectiveCodecConfig effectiveConfig = EffectiveCodecConfig.builder()
@@ -240,7 +292,7 @@ public class CodecResource extends ResourceImpl {
         var reader = mapper.readerFor(EObject.class)
                 .withAttribute(ContextHelper.UNRESOLVED_REFERENCES, unresolvedReferences)
                 .withAttribute(ContextHelper.DIAGNOSTIC_COLLECTOR, diagnosticCollector)
-                .without(tools.jackson.databind.DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+                .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
         if (nonNull(rootEClassHint)) {
             reader = reader.withAttribute(ContextHelper.EXPECTED_TYPE, rootEClassHint);
@@ -317,6 +369,140 @@ public class CodecResource extends ResourceImpl {
 
         LOGGER.fine(() -> String.format("Loaded %d objects from %s (errors=%d, warnings=%d)",
             getContents().size(), getURI(),
+            getErrors().size(), getWarnings().size()));
+    }
+
+    // ========================================================================
+    // Format Provider Methods
+    // ========================================================================
+
+    @SuppressWarnings("unchecked")
+    private <T> void doSaveWithFormat(OutputStream outputStream,
+            Map<String, Object> effectiveOptions) throws IOException {
+        CodecFormatProvider<?, T> provider = (CodecFormatProvider<?, T>) formatProvider;
+        FormatDelegate<T> delegate = provider.createWriter((T) outputStream);
+
+        IOContext ioCtxt = new IOContext(
+                StreamReadConstraints.defaults(),
+                StreamWriteConstraints.defaults(),
+                ErrorReportConfiguration.defaults(),
+                new BufferRecycler(),
+                ContentReference.unknown(), false, JsonEncoding.UTF8);
+
+        try (FormatDelegateGenerator<T> gen = FormatDelegateGenerator.create(
+                ObjectWriteContext.empty(), ioCtxt, delegate)) {
+
+            var writer = mapper.writerFor(EObject.class);
+
+            // Set feature value writer instances if provided
+            Object valueWriterInstancesOption = effectiveOptions.get(
+                    CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES);
+            if (valueWriterInstancesOption instanceof Map<?, ?> instancesMap) {
+                writer = writer.withAttribute(ContextHelper.FEATURE_VALUE_WRITER_INSTANCES, instancesMap);
+            }
+
+            // Set feature value writers by name if provided
+            Object valueWritersOption = effectiveOptions.get(CodecOptions.CODEC_FEATURE_VALUE_WRITERS);
+            if (valueWritersOption instanceof Map<?, ?> valueWritersMap) {
+                writer = writer.withAttribute(ContextHelper.FEATURE_VALUE_WRITERS, valueWritersMap);
+            }
+
+            if (getContents().size() == 1) {
+                writer.writeValue(gen, getContents().get(0));
+            } else {
+                writer.writeValue(gen, getContents().toArray(new EObject[0]));
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <S> void doLoadWithFormat(InputStream inputStream, Map<String, Object> mergedOptions,
+            EClass rootEClassHint, ConfigurationResolver operationResolver) throws IOException {
+
+        CodecFormatProvider<S, ?> provider = (CodecFormatProvider<S, ?>) formatProvider;
+        FormatReaderDelegate<S> delegate = provider.createReader((S) inputStream);
+
+        IOContext ioCtxt = new IOContext(
+                StreamReadConstraints.defaults(),
+                StreamWriteConstraints.defaults(),
+                ErrorReportConfiguration.defaults(),
+                new BufferRecycler(),
+                ContentReference.unknown(), true, JsonEncoding.UTF8);
+
+        DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+        List<UnresolvedReference> unresolvedReferences = new ArrayList<>();
+
+        var reader = mapper.readerFor(EObject.class)
+                .withAttribute(ContextHelper.UNRESOLVED_REFERENCES, unresolvedReferences)
+                .withAttribute(ContextHelper.DIAGNOSTIC_COLLECTOR, diagnosticCollector)
+                .withAttribute(ContextHelper.RESOURCE, this)
+                .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+
+        if (nonNull(rootEClassHint)) {
+            reader = reader.withAttribute(ContextHelper.EXPECTED_TYPE, rootEClassHint);
+        }
+
+        String contextSchemaUri = resolveContextSchema(mergedOptions, rootEClassHint);
+        if (nonNull(contextSchemaUri)) {
+            reader = reader.withAttribute(ContextHelper.CONTEXT_SCHEMA_URI, contextSchemaUri);
+        }
+
+        // Set feature type hints if provided
+        Object typeHintsOption = mergedOptions.get(CodecOptions.CODEC_FEATURE_TYPE_HINTS);
+        if (typeHintsOption instanceof Map<?, ?> typeHintsMap) {
+            Map<EStructuralFeature, EClass> typeHints = (Map<EStructuralFeature, EClass>) typeHintsMap;
+            reader = reader.withAttribute(ContextHelper.FEATURE_TYPE_HINTS, typeHints);
+        }
+
+        // Set feature value reader instances if provided
+        Object valueReaderInstancesOption = mergedOptions.get(CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES);
+        if (valueReaderInstancesOption instanceof Map<?, ?> instancesMap) {
+            reader = reader.withAttribute(ContextHelper.FEATURE_VALUE_READER_INSTANCES, instancesMap);
+        }
+
+        // Set feature value readers by name if provided
+        Object valueReadersOption = mergedOptions.get(CodecOptions.CODEC_FEATURE_VALUE_READERS);
+        if (valueReadersOption instanceof Map<?, ?> valueReadersMap) {
+            reader = reader.withAttribute(ContextHelper.FEATURE_VALUE_READERS, valueReadersMap);
+        }
+
+        // Set deserialization mode if provided
+        Object deserializationModeOption = mergedOptions.get(CodecOptions.CODEC_DESERIALIZATION_MODE);
+        if (deserializationModeOption != null) {
+            String modeString = deserializationModeOption.toString();
+            reader = reader.withAttribute(ContextHelper.DESERIALIZATION_MODE, modeString);
+        }
+
+        try (FormatDelegateParser<S> parser = FormatDelegateParser.create(
+                ObjectReadContext.empty(), ioCtxt, delegate)) {
+
+            JsonToken firstToken = parser.nextToken();
+
+            if (firstToken == JsonToken.START_ARRAY) {
+                while (parser.nextToken() != JsonToken.END_ARRAY) {
+                    EObject result = reader.readValue(parser);
+                    if (nonNull(result)) {
+                        getContents().add(result);
+                    }
+                }
+            } else if (firstToken == JsonToken.START_OBJECT) {
+                EObject result = reader.readValue(parser);
+                if (nonNull(result)) {
+                    getContents().add(result);
+                }
+            } else if (firstToken != null) {
+                LOGGER.warning(() -> String.format("Unexpected token at root: %s", firstToken));
+            }
+        }
+
+        if (!unresolvedReferences.isEmpty()) {
+            resolveReferences(unresolvedReferences, diagnosticCollector);
+        }
+
+        diagnosticCollector.addToResource(this);
+
+        LOGGER.fine(() -> String.format("Loaded %d objects from %s (format: %s, errors=%d, warnings=%d)",
+            getContents().size(), getURI(), formatProvider.getFormatId(),
             getErrors().size(), getWarnings().size()));
     }
 
