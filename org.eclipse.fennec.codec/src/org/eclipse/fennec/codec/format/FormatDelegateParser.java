@@ -25,7 +25,6 @@ import tools.jackson.core.TokenStreamContext;
 import tools.jackson.core.TokenStreamLocation;
 import tools.jackson.core.Version;
 import tools.jackson.core.base.ParserBase;
-import tools.jackson.core.io.ContentReference;
 import tools.jackson.core.io.IOContext;
 import tools.jackson.core.util.JacksonFeatureSet;
 import tools.jackson.core.util.SimpleStreamReadContext;
