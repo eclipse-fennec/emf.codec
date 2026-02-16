@@ -493,7 +493,7 @@ Each step below is a self-contained unit that compiles, can be tested, and shoul
 
 ---
 
-#### Step 1: FormatDelegate API interfaces ── 🔖 Commit Point
+#### Step 1: FormatDelegate API interfaces ── ✅ Done
 **Phase:** E1 | **Project:** `codec.api`
 
 Create the core format abstraction interfaces. These are pure API with no implementation.
@@ -509,7 +509,7 @@ Create the core format abstraction interfaces. These are pure API with no implem
 
 ---
 
-#### Step 2: TokenTypeMapper utility ── 🔖 Commit Point
+#### Step 2: TokenTypeMapper utility ── ✅ Done
 **Phase:** E2 | **Project:** `codec`
 
 | Sub-step | File | Description |
@@ -521,7 +521,7 @@ Create the core format abstraction interfaces. These are pure API with no implem
 
 ---
 
-#### Step 3: FormatDelegateGenerator (write bridge) ── 🔖 Commit Point
+#### Step 3: FormatDelegateGenerator (write bridge) ── ✅ Done
 **Phase:** E2 | **Project:** `codec`
 
 | Sub-step | File | Description |
@@ -533,7 +533,7 @@ Create the core format abstraction interfaces. These are pure API with no implem
 
 ---
 
-#### Step 4: FormatDelegateParser (read bridge) ── 🔖 Commit Point
+#### Step 4: FormatDelegateParser (read bridge) ── ✅ Done
 **Phase:** E2 | **Project:** `codec`
 
 | Sub-step | File | Description |
@@ -547,7 +547,7 @@ Create the core format abstraction interfaces. These are pure API with no implem
 
 ---
 
-#### Step 5: JacksonStreamFormatDelegate (write impl) ── 🔖 Commit Point
+#### Step 5: JacksonStreamFormatDelegate (write impl) ── ✅ Done
 **Phase:** E3 | **Project:** `codec`
 
 | Sub-step | File | Description |
@@ -559,7 +559,7 @@ Create the core format abstraction interfaces. These are pure API with no implem
 
 ---
 
-#### Step 6: JacksonStreamFormatReaderDelegate (read impl) ── 🔖 Commit Point
+#### Step 6: JacksonStreamFormatReaderDelegate (read impl) ── ✅ Done
 **Phase:** E3 | **Project:** `codec`
 
 | Sub-step | File | Description |
@@ -571,7 +571,7 @@ Create the core format abstraction interfaces. These are pure API with no implem
 
 ---
 
-#### Step 7: JacksonFormatProvider ── 🔖 Commit Point
+#### Step 7: JacksonFormatProvider ── ✅ Done
 **Phase:** E3 | **Project:** `codec`
 
 | Sub-step | File | Description |
@@ -583,7 +583,7 @@ Create the core format abstraction interfaces. These are pure API with no implem
 
 ---
 
-#### Step 8: Context fallback for non-JSON parsers ── 🔖 Commit Point
+#### Step 8: Context fallback for non-JSON parsers ── ✅ Done
 **Phase:** E4 | **Project:** `codec`
 
 Add `Resource` as a `DeserializationContext` attribute so the deserializer works without `CodecJsonReadContext`.
@@ -597,7 +597,7 @@ Add `Resource` as a `DeserializationContext` attribute so the deserializer works
 
 ---
 
-#### Step 9: CodecResource format provider support ── 🔖 Commit Point
+#### Step 9: CodecResource format provider support ── ✅ Done
 **Phase:** E4 | **Project:** `codec`
 
 | Sub-step | File | Description |
@@ -611,7 +611,7 @@ Add `Resource` as a `DeserializationContext` attribute so the deserializer works
 
 ---
 
-#### Step 10: CodecFormatResourceFactory ── 🔖 Commit Point
+#### Step 10: CodecFormatResourceFactory ── ✅ Done
 **Phase:** E4 | **Project:** `codec`
 
 | Sub-step | File | Description |
@@ -622,7 +622,7 @@ Add `Resource` as a `DeserializationContext` attribute so the deserializer works
 
 ---
 
-#### Step 11: JSON FormatDelegate integration test ── 🔖 Commit Point
+#### Step 11: JSON FormatDelegate integration test ── ✅ Done
 **Phase:** E5 | **Project:** `codec`
 
 Route existing codec operations through the full FormatDelegate → FormatDelegateGenerator → entry path.
@@ -635,7 +635,7 @@ Route existing codec operations through the full FormatDelegate → FormatDelega
 
 ---
 
-#### Step 12: Feature parity test framework ── 🔖 Commit Point
+#### Step 12: Feature parity test framework ── ✅ Done
 **Phase:** E5 | **Project:** `codec`
 
 | Sub-step | File | Description |
@@ -647,7 +647,7 @@ Route existing codec operations through the full FormatDelegate → FormatDelega
 
 ---
 
-#### Step 13: BSON project setup ── 🔖 Commit Point
+#### Step 13: BSON project setup ── ✅ Done
 **Phase:** E6 | **Project:** `codec.bson` (new)
 
 | Sub-step | File | Description |
@@ -659,7 +659,7 @@ Route existing codec operations through the full FormatDelegate → FormatDelega
 
 ---
 
-#### Step 14: BsonFormatDelegate (write) ── 🔖 Commit Point
+#### Step 14: BsonFormatDelegate (write) ── ✅ Done
 **Phase:** E6 | **Project:** `codec.bson`
 
 | Sub-step | File | Description |
@@ -673,7 +673,7 @@ Port from `old/org.eclipse.fennec.codec.mongo/src/.../MongoCodecGenerator.java`.
 
 ---
 
-#### Step 15: BsonFormatReaderDelegate (read) ── 🔖 Commit Point
+#### Step 15: BsonFormatReaderDelegate (read) ── ✅ Done
 **Phase:** E6 | **Project:** `codec.bson`
 
 | Sub-step | File | Description |
@@ -687,7 +687,7 @@ Port from `old/org.eclipse.fennec.codec.mongo/src/.../MongoCodecParser.java`.
 
 ---
 
-#### Step 16: BsonFormatProvider + round-trip tests ── 🔖 Commit Point
+#### Step 16: BsonFormatProvider + round-trip tests ── ✅ Done
 **Phase:** E6 | **Project:** `codec.bson`
 
 | Sub-step | File | Description |
@@ -700,12 +700,12 @@ Port from `old/org.eclipse.fennec.codec.mongo/src/.../MongoCodecParser.java`.
 
 ---
 
-#### Step 17+ (Future): Additional Jackson Formats
+#### Step 17: Additional Jackson Formats ── ✅ Done
 
-Each format is a single-commit project:
-- `org.eclipse.fennec.codec.cbor` — `CborFormatProvider` + parity test
-- `org.eclipse.fennec.codec.yaml` — `YamlFormatProvider` + parity test
-- `org.eclipse.fennec.codec.smile` — `SmileFormatProvider` + parity test
+- ✅ `org.eclipse.fennec.codec.cbor` — `CborFormatProvider` extends `JacksonFormatProvider` (15 tests)
+- ✅ `org.eclipse.fennec.codec.yaml` — `YamlFormatProvider` extends `JacksonFormatProvider` (15 tests)
+  - Requires `org.snakeyaml.engine` as transitive dependency
+- `org.eclipse.fennec.codec.smile` — not yet implemented (add when needed)
 
 ### Key Design Decisions
 
