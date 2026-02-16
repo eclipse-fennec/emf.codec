@@ -132,7 +132,12 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         }
 
         // Create deserialization state with resource from context
+        // Primary: EMFCodecReadContext (for CodecJsonParser path)
+        // Fallback: ContextHelper.RESOURCE attribute (for FormatDelegateParser path)
         Resource resource = emfContext != null ? emfContext.getResource() : null;
+        if (resource == null) {
+            resource = ContextHelper.getResource(ctxt);
+        }
         DeserializationState state = new DeserializationState(resource);
 
         // Get or create shared unresolved references list from context

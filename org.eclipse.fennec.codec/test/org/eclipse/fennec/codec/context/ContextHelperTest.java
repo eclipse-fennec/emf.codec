@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -534,6 +535,56 @@ class ContextHelperTest {
 
             assertEquals(1, collector.getErrorCount());
             assertEquals("Serialization error", collector.getErrors().get(0).getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("Resource methods")
+    class ResourceTest {
+
+        @Test
+        @DisplayName("getResource returns null when not set")
+        void getResourceNull() {
+            when(deserCtxt.getAttribute(ContextHelper.RESOURCE)).thenReturn(null);
+            assertNull(ContextHelper.getResource(deserCtxt));
+        }
+
+        @Test
+        @DisplayName("getResource returns null for null context")
+        void getResourceNullContext() {
+            assertNull(ContextHelper.getResource(null));
+        }
+
+        @Test
+        @DisplayName("getResource returns resource when set")
+        void getResourceSet() {
+            Resource resource =
+                    mock(Resource.class);
+            when(deserCtxt.getAttribute(ContextHelper.RESOURCE)).thenReturn(resource);
+            assertSame(resource, ContextHelper.getResource(deserCtxt));
+        }
+
+        @Test
+        @DisplayName("setResource stores resource in context")
+        void setResource() {
+            Resource resource =
+                    mock(Resource.class);
+            ContextHelper.setResource(deserCtxt, resource);
+            verify(deserCtxt).setAttribute(ContextHelper.RESOURCE, resource);
+        }
+
+        @Test
+        @DisplayName("setResource does nothing for null context")
+        void setResourceNullContext() {
+            Resource resource =
+                    mock(Resource.class);
+            assertDoesNotThrow(() -> ContextHelper.setResource(null, resource));
+        }
+
+        @Test
+        @DisplayName("RESOURCE constant is defined")
+        void resourceConstant() {
+            assertEquals("CODEC_RESOURCE", ContextHelper.RESOURCE);
         }
     }
 }

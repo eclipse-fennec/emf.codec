@@ -17,6 +17,7 @@ import java.util.Map;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 
 import tools.jackson.core.JsonParser;
@@ -161,6 +162,16 @@ public final class ContextHelper {
      * </p>
      */
     public static final String CURRENT_SERIALIZATION_REFERENCE = "CODEC_CURRENT_SERIALIZATION_REFERENCE";
+
+    /**
+     * Context attribute key for the EMF Resource.
+     * <p>
+     * Used as a fallback when the parser's stream read context does not
+     * provide the resource (e.g., when using {@code FormatDelegateParser}
+     * instead of {@code CodecJsonParser}).
+     * </p>
+     */
+    public static final String RESOURCE = "CODEC_RESOURCE";
 
     /**
      * Context attribute key for the deserialization mode.
@@ -489,6 +500,40 @@ public final class ContextHelper {
         }
         throw new IllegalStateException(
                 EXPECTED_TYPE + " must be of type EClass, but was: " + value.getClass().getName());
+    }
+
+    // ========================================================================
+    // Resource Methods (for FormatDelegate-based parsers)
+    // ========================================================================
+
+    /**
+     * Gets the EMF Resource from the deserialization context.
+     * <p>
+     * This provides a fallback for parsers that do not use
+     * {@code CodecJsonReadContext} (e.g., {@code FormatDelegateParser}).
+     * </p>
+     *
+     * @param ctxt the deserialization context
+     * @return the EMF Resource, or null if not set
+     */
+    public static Resource getResource(DeserializationContext ctxt) {
+        if (ctxt == null) {
+            return null;
+        }
+        Object value = ctxt.getAttribute(RESOURCE);
+        return value instanceof Resource ? (Resource) value : null;
+    }
+
+    /**
+     * Sets the EMF Resource in the deserialization context.
+     *
+     * @param ctxt the deserialization context
+     * @param resource the EMF Resource
+     */
+    public static void setResource(DeserializationContext ctxt, Resource resource) {
+        if (ctxt != null) {
+            ctxt.setAttribute(RESOURCE, resource);
+        }
     }
 
     // ========================================================================
