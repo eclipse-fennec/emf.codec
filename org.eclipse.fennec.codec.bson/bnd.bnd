@@ -5,8 +5,13 @@ Bundle-Description: Bson Parser and Generator
 
 -buildpath: \
 	org.osgi.service.condition;version=latest,\
+	org.mongodb.bson;version=latest,\
 	org.eclipse.fennec.codec.api;version=snapshot,\
 	org.eclipse.fennec.codec;version=snapshot,\
 	tools.jackson.core.jackson-core;version=latest,\
 	tools.jackson.core.jackson-databind;version=latest,\
 	com.fasterxml.jackson.core.jackson-annotations;version=latest
+	
+-fixupmessages: \
+	jpms.jarname;is:=ignore,\
+	The .classpath;is:=ignore
