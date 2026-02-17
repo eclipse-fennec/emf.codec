@@ -2,9 +2,25 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-02-16 (Plan E COMPLETE — all formats operational)
+**Last Updated:** 2026-02-17 (Plan F TCK Tests COMPLETE — 3,016 tests across all projects)
 
-**Session Summary (2026-02-16 latest):**
+**Session Summary (2026-02-17 latest):**
+
+**Plan F TCK Test Suite — COMPLETE:**
+
+Comprehensive Technology Compatibility Kit (TCK) for all format providers. Three phases of abstract TCK classes verified across BSON, CBOR, and YAML formats.
+
+*TCK Phases:*
+- **P0 Core Round-Trip** (Phase 1): Basic attribute types, containment/non-containment references, enums, multi-valued attributes, complex round-trip
+- **P1 Feature Strategies** (Phase 2): Type strategy, ID strategy, enum strategy, polymorphism, reference format, value handling, custom key
+- **P2 Advanced Features** (Phase 3): EMap, SuperType, visibility, force read/write, global ignore, strictness, array root, large payloads, extended metadata, custom value reader/writer
+
+*Bug Fixes During TCK Development:*
+- **Array root serialization** — `CodecResource.doSaveWithFormat()` now handles multiple root objects correctly (iterates individually within array start/end)
+- **`CodecFormatProvider.supportsArrayRoot()`** — New capability method; `BsonFormatProvider` returns `false` (single-document format), throws `IOException` on multi-root save
+- **BSON reader infinite loop** — `BsonFormatReaderDelegate` now tracks `valueConsumed` flag to skip unconsumed primitive values when `nextToken()` is called without reading. Verified with 11 dedicated tests covering all BSON value types.
+
+**Previous Session Summary (2026-02-16):**
 
 **Plan E Multi-Format Support — COMPLETE:**
 
@@ -21,10 +37,10 @@ All steps implemented and verified. Four format providers operational: JSON (def
 
 | Project | Provider | Type | Tests |
 |---------|----------|------|-------|
-| `org.eclipse.fennec.codec` | (default JSON, no FormatDelegate) | Jackson native | ~1000+ |
-| `org.eclipse.fennec.codec.bson` | `BsonFormatProvider` | In-memory BsonDocument | 53 |
-| `org.eclipse.fennec.codec.cbor` | `CborFormatProvider` extends `JacksonFormatProvider` | Binary (CBORFactory) | 15 |
-| `org.eclipse.fennec.codec.yaml` | `YamlFormatProvider` extends `JacksonFormatProvider` | Text (YAMLFactory) | 15 |
+| `org.eclipse.fennec.codec` | (default JSON, no FormatDelegate) | Jackson native | ~1,231 |
+| `org.eclipse.fennec.codec.bson` | `BsonFormatProvider` | In-memory BsonDocument | 98 |
+| `org.eclipse.fennec.codec.cbor` | `CborFormatProvider` extends `JacksonFormatProvider` | Binary (CBORFactory) | 53 |
+| `org.eclipse.fennec.codec.yaml` | `YamlFormatProvider` extends `JacksonFormatProvider` | Text (YAMLFactory) | 53 |
 
 *Key design decisions:*
 - JSON is NOT migrated to FormatDelegate. The original `CodecJsonFactory` → Jackson native path remains the default. FormatDelegate is an additional path, verified to produce identical output.
@@ -122,19 +138,26 @@ MAIN TASK: [description] - [status: ACTIVE/PAUSED/✅]
 ### 0.2 Current Task Hierarchy
 
 ```
-COMPLETED: Plan E Multi-Format Support - ✅ (2026-02-16)
+COMPLETED: Plan F TCK Test Suite - ✅ (2026-02-17)
 │
-│  Phase E1: FormatDelegate Interfaces (codec.api) - ✅
-│  Phase E2: Jackson Bridge (codec) - ✅
-│  Phase E3: JSON/Jackson FormatDelegate impl - ✅
-│  Phase E4: Refactor CodecResource - ✅
-│  Phase E5: Verify with existing JSON tests - ✅
-│  Phase E6: BSON Format - ✅ (53 tests)
-│  Phase E7: Additional Jackson Formats - ✅
-│  │  - CBOR: CborFormatProvider (15 tests)
-│  │  - YAML: YamlFormatProvider (15 tests)
-│  │  - Smile: not implemented (no demand yet)
-
+│  Phase F1 (P0 Core): Abstract round-trip TCKs - ✅
+│  │  - 6 suites: attributes, containment refs, non-containment refs, enums, multi-valued, complex
+│  Phase F2 (P1 Features): Feature strategy TCKs - ✅
+│  │  - 7 suites: type, ID, enum, polymorphism, reference, value handling, custom key
+│  Phase F3 (P2 Advanced): Advanced feature TCKs - ✅
+│  │  - 10 suites: EMap, SuperType, visibility, force, global ignore, strictness,
+│  │    array root, large payload, extended metadata, custom value
+│  │  - 8 ecore models + 10 abstract TCK classes + 30 format subclasses
+│  Bug Fixes: - ✅
+│  │  - Array root serialization in CodecResource.doSaveWithFormat()
+│  │  - CodecFormatProvider.supportsArrayRoot() capability method
+│  │  - BsonFormatReaderDelegate valueConsumed fix (+ 11 regression tests)
+│
+COMPLETED: Plan E Multi-Format Support - ✅ (2026-02-16)
+│  - BSON: BsonFormatProvider (98 tests)
+│  - CBOR: CborFormatProvider (53 tests)
+│  - YAML: YamlFormatProvider (53 tests)
+│
 PREVIOUS: Plan B + Plan D Complete - ✅ (2026-02-08)
 PREVIOUS: Integration Tests + PLAIN Reference Format - ✅ (2026-02-06)
 > **Older completed tasks available in git history**
@@ -260,11 +283,21 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 ✅ **Multi-Format Support (Plan E)**
 - FormatDelegate abstraction: `FormatDelegate<T>`, `FormatReaderDelegate<S>`, `CodecFormatProvider<S,T>`
 - Jackson bridge: `FormatDelegateGenerator<T>` (extends GeneratorBase), `FormatDelegateParser<S>` (extends ParserBase)
-- BSON format: `BsonFormatDelegate`, `BsonFormatReaderDelegate`, `BsonFormatProvider` (53 tests)
-- CBOR format: `CborFormatProvider` extends `JacksonFormatProvider` (15 tests)
-- YAML format: `YamlFormatProvider` extends `JacksonFormatProvider` (15 tests)
+- BSON format: `BsonFormatDelegate`, `BsonFormatReaderDelegate`, `BsonFormatProvider` (98 tests)
+- CBOR format: `CborFormatProvider` extends `JacksonFormatProvider` (53 tests)
+- YAML format: `YamlFormatProvider` extends `JacksonFormatProvider` (53 tests)
 - Feature parity verified: `AbstractFormatFeatureParityTest` + `JsonFormatFeatureParityTest`
 - CodecResource: optional `CodecFormatProvider` field, `doSaveWithFormat()`/`doLoadWithFormat()`
+- `CodecFormatProvider.supportsArrayRoot()` — capability check (BSON returns false)
+
+✅ **TCK Test Suite (Plan F)**
+- 18 abstract TCK classes in `org.eclipse.fennec.codec.tests` covering all codec features
+- 8 dedicated ecore test models for TCK scenarios
+- P0: 6 core round-trip suites (attributes, references, enums, multi-valued, complex)
+- P1: 7 feature strategy suites (type, ID, enum, polymorphism, reference, value handling, custom key)
+- P2: 10 advanced feature suites (EMap, SuperType, visibility, force, global ignore, strictness, array root, large payload, extended metadata, custom value)
+- Each format (BSON, CBOR, YAML) has all 18 TCK suites as concrete subclasses
+- BSON additionally has 11 unconsumed-value regression tests verifying the `valueConsumed` fix
 
 ✅ **Deprecated Code Removed**
 - All `old codec.v2.*` source/test files deleted (55 src + 9 test)
@@ -273,16 +306,22 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 
 ### 3.2 Test Status
 
-**Current Counts (2026-02-16, after Plan E completion):**
-- **codec:** ~1000+ tests, 0 failures, 0 skipped (includes FormatDelegate parity tests)
-- **codec.api:** ~490 tests
-- **codec.metadata:** ~220 tests
-- **model.metadata:** ~200 tests
-- **codec.bson:** 53 tests (writer 21, reader 13, provider round-trip 19)
-- **codec.cbor:** 15 tests (round-trip through CodecResource)
-- **codec.yaml:** 15 tests (round-trip through CodecResource)
-- **codec.geojson, codec.jsonschema, codec.openapi:** ~617 tests combined
-- **Total across all 10 projects:** ~2600+ tests, 0 failures, 0 skipped
+**Current Counts (2026-02-17, after Plan F TCK completion):**
+
+| Project | Tests | Suites |
+|---------|------:|-------:|
+| `org.eclipse.fennec.codec.api` | 1,039 | 179 |
+| `org.eclipse.fennec.codec` | 1,231 | 373 |
+| `org.eclipse.fennec.codec.bson` | 98 | 33 |
+| `org.eclipse.fennec.codec.cbor` | 53 | 24 |
+| `org.eclipse.fennec.codec.yaml` | 53 | 24 |
+| `org.eclipse.fennec.codec.metadata` | 255 | 61 |
+| `org.eclipse.fennec.codec.geojson` | 34 | 13 |
+| `org.eclipse.fennec.codec.jsonschema` | 101 | 30 |
+| `org.eclipse.fennec.codec.openapi` | 75 | 34 |
+| **Total** | **3,016** | **771** |
+
+All tests pass with 0 failures, 0 errors, 0 skipped.
 
 **Test Organization:**
 - `org.eclipse.fennec.codec.api/test` — config API tests (spec + resolver tests)
@@ -290,16 +329,23 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 - `org.eclipse.fennec.codec/test/org/eclipse/fennec/codec/*` — runtime tests (all active)
 - `org.eclipse.fennec.codec/test/org/eclipse/fennec/codec/util/*` — helper unit tests
 - `org.eclipse.fennec.codec/test/org/eclipse/fennec/codec/format/*` — FormatDelegate parity + integration tests
-- `org.eclipse.fennec.codec.bson/test` — BSON format delegate + provider tests
-- `org.eclipse.fennec.codec.cbor/test` — CBOR round-trip tests
-- `org.eclipse.fennec.codec.yaml/test` — YAML round-trip tests
+- `org.eclipse.fennec.codec.tests/src` — abstract TCK classes + ecore models (shared test infrastructure)
+- `org.eclipse.fennec.codec.bson/test` — BSON format delegate + provider + TCK tests
+- `org.eclipse.fennec.codec.cbor/test` — CBOR TCK tests
+- `org.eclipse.fennec.codec.yaml/test` — YAML TCK tests
 
 ### 3.3 What's Next
 
 **COMPLETED:**
 1. **Plan E: Multi-Format Support** — ✅ COMPLETE (BSON, CBOR, YAML all operational)
    - FormatDelegate abstraction fully operational with 4 format providers
-   - Total format tests: 83 (BSON 53 + CBOR 15 + YAML 15) + JSON parity tests in codec project
+   - Total format tests: 204 (BSON 98 + CBOR 53 + YAML 53) + JSON parity tests in codec project
+
+2. **Plan F: TCK Test Suite** — ✅ COMPLETE (18 abstract TCK classes × 3 formats)
+   - P0 Core: 6 round-trip suites
+   - P1 Features: 7 strategy suites
+   - P2 Advanced: 10 advanced feature suites
+   - Bug fixes: array root serialization, `supportsArrayRoot()` capability, BSON reader `valueConsumed` fix
 
 **DEFERRED:**
 1. Plan B remaining: GAP-004 (Diagnostic Options), GAP-013 (Enum annotations), GAP-014 (inherit enum)
@@ -362,6 +408,14 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 - Resource tests (CodecResource end-to-end)
 - Ser/Deser tests (specific features)
 - Roundtrip tests (symmetry verification)
+
+**TCK Tests** (codec.tests + format projects):
+- Abstract TCK classes define format-agnostic test logic with `createFormatProvider()` + `getFileExtension()` hooks
+- Each format project provides concrete subclasses (e.g., `BsonEMapTCKTest extends AbstractEMapTCK`)
+- Dedicated ecore models per TCK topic (in `codec.tests/src/.../tck/`)
+- Three priority tiers: P0 (core round-trip), P1 (feature strategies), P2 (advanced features)
+- Tests use `ConfigurationResolver.builder()` for per-test configuration
+- Format capability checks via `CodecFormatProvider.supportsArrayRoot()` for graceful test adaptation
 
 **Custom Codec Tests** (codec.geojson, codec.jsonschema, codec.openapi):
 - Domain-specific serialization tests
@@ -494,6 +548,23 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 
 ### 8.3 Fixed Bugs
 
+**2026-02-17:**
+✅ **Array root serialization crash** (CodecResource)
+- `doSaveWithFormat()` passed `EObject[]` to `ObjectWriter` typed for `EObject` → `InvalidDefinitionException`
+- Fix: iterate objects individually within array start/end when multiple root objects present
+
+✅ **BSON multi-root not supported** (BsonFormatProvider, CodecFormatProvider)
+- Added `supportsArrayRoot()` to `CodecFormatProvider` interface (default `true`)
+- `BsonFormatProvider` overrides to return `false` — throws `IOException` on multi-root save
+- `AbstractArrayRootTCK` tests both supported (round-trip) and unsupported (assertThrows) paths
+
+✅ **BSON reader infinite loop on unconsumed values** (BsonFormatReaderDelegate)
+- BSON's state machine requires explicit value consumption (unlike Jackson streaming parsers)
+- When codec skipped unknown fields by calling `nextToken()` without reading, reader stayed in VALUE state forever
+- Fix: `valueConsumed` boolean flag — set `false` in `handleBsonType()` for primitives, set `true` in all read methods
+- At start of `nextToken()`, if `!valueConsumed && state == VALUE`, calls `reader.skipValue()` to advance
+- Verified with 11 dedicated tests covering all BSON value types (string, int, long, double, decimal128, boolean, binary, ObjectId, multiple consecutive, array context, nested SuperType scenario)
+
 **2026-02-05:**
 ✅ **Discriminator mapping not using targeted resolve()** (TypeDeserializationEntry, CodecEObjectDeserializer)
 - Now extracts mapId from DiscriminatorConfig and calls targeted `resolve(mapId, value, ...)`
@@ -571,38 +642,29 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 
 ### 10.4 Current TODO List
 
-**Plan E — Multi-Format Support (see `codec-v2-plans.md` §7 for details):**
+**Plan E — Multi-Format Support:** ✅ COMPLETE (see `codec-v2-plans.md` §7)
 
-Steps 1-16: ✅ COMPLETE
+**Plan F — TCK Test Suite:** ✅ COMPLETE
 
-1. [✅] **Step 1:** FormatDelegate API interfaces (codec.api: TokenType, FormatDelegate, FormatReaderDelegate, CodecFormatProvider)
-2. [✅] **Step 2:** TokenTypeMapper utility + tests
-3. [✅] **Step 3:** FormatDelegateGenerator (write bridge, extends GeneratorBase) + tests
-4. [✅] **Step 4:** FormatDelegateParser (read bridge, extends ParserBase) + tests
-5. [✅] **Step 5:** JacksonStreamFormatDelegate (write impl) + tests
-6. [✅] **Step 6:** JacksonStreamFormatReaderDelegate (read impl) + tests
-7. [✅] **Step 7:** JacksonFormatProvider + tests
-8. [✅] **Step 8:** Context fallback for non-JSON parsers (ContextHelper + deserializer)
-9. [✅] **Step 9:** CodecResource format provider support (doSaveWithFormat/doLoadWithFormat)
-10. [✅] **Step 10:** CodecFormatResourceFactory
-11. [✅] **Step 11:** JSON FormatDelegate integration test (end-to-end round-trip)
-12. [✅] **Step 12:** Feature parity test framework (AbstractFormatFeatureParityTest + JSON baseline)
-13. [✅] **Step 13:** BSON project setup (bnd.bnd, empty project)
-14. [✅] **Step 14:** BsonFormatDelegate (write) + tests
-15. [✅] **Step 15:** BsonFormatReaderDelegate (read) + tests
-16. [✅] **Step 16:** BsonFormatProvider + round-trip + parity tests
+| Phase | Suites | Status |
+|-------|--------|--------|
+| P0 Core Round-Trip | 6 abstract TCK classes | ✅ |
+| P1 Feature Strategies | 7 abstract TCK classes | ✅ |
+| P2 Advanced Features | 10 abstract TCK classes + 8 ecore models | ✅ |
+| Format Subclasses | 18 × 3 formats = 54 concrete test classes | ✅ |
+| Bug Fixes | Array root, supportsArrayRoot, BSON valueConsumed | ✅ |
 
-Step 17 (Additional Jackson Formats): ✅ COMPLETE
-
-17. [✅] **CBOR:** `org.eclipse.fennec.codec.cbor` — `CborFormatProvider` extends `JacksonFormatProvider` (15 tests)
-18. [✅] **YAML:** `org.eclipse.fennec.codec.yaml` — `YamlFormatProvider` extends `JacksonFormatProvider` (15 tests)
-19. [ ] **Smile:** `org.eclipse.fennec.codec.smile` — not yet needed (add when demand arises)
+**TCK Abstract Classes** (in `org.eclipse.fennec.codec.tests`):
+- P0: `AbstractRoundTripTCK` (6 suites for basic types/refs/enums)
+- P1: `Abstract{TypeStrategy,IdStrategy,EnumStrategy,Polymorphism,ReferenceFormat,ValueHandling,CustomKey}TCK`
+- P2: `Abstract{EMap,SuperType,Visibility,ForceReadWrite,GlobalIgnore,Strictness,ArrayRoot,LargePayload,ExtendedMetaData,CustomValue}TCK`
 
 **Deferred:**
 - [ ] GAP-004: Diagnostic Options integration
 - [ ] GAP-013: Enum-level annotation support
 - [ ] GAP-014: inherit enum type mismatch
 - [ ] DOC-001 through DOC-004: Documentation examples
+- [ ] Smile format: `org.eclipse.fennec.codec.smile` — add when demand arises
 
 ## 11. Reference Information
 

@@ -1,5 +1,5 @@
 Bundle-Name: Fennec Codec CBOR
-Bundle-Description: CBOR Parser and Generator
+Bundle-Description: CBOR format provider for the Fennec EMF Codec
 
 -library: enableEMF
 

@@ -1,5 +1,5 @@
-Bundle-Name: Fennec Codec Bson
-Bundle-Description: Bson Parser and Generator
+Bundle-Name: Fennec Codec BSON
+Bundle-Description: BSON format provider for the Fennec EMF Codec
 
 -library: enableEMF
 

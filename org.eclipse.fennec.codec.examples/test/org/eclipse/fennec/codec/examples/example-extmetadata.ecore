@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="extmeta" nsURI="http://example.org/fennec/extmeta/1.0" nsPrefix="extmeta">
+
+  <!--
+    ExtendedMetaData model for ExtendedMetaData examples.
+  -->
+
+  <eClassifiers xsi:type="ecore:EClass" name="Article">
+    <!-- Feature name "articleTitle", ExtendedMetaData name "title" -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="articleTitle" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="name" value="title"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+
+    <!-- Feature name "articleBody", ExtendedMetaData name "body" -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="articleBody" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="name" value="body"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+
+    <!-- Feature name "pageCount", NO ExtendedMetaData annotation -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pageCount" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+</ecore:EPackage>

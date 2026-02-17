@@ -4,7 +4,7 @@ This document consolidates all active plans for completing the codec migration. 
 Spec Compliance Refactoring Plan and the Deprecated API Migration Plan into a single phased roadmap.
 
 **Created:** 2026-02-02
-**Updated:** 2026-02-08
+**Updated:** 2026-02-17
 
 **Related documents:**
 - [`docs/codec-v2-development-guide.md`](codec-v2-development-guide.md) — Session continuity, current state
@@ -21,8 +21,9 @@ Spec Compliance Refactoring Plan and the Deprecated API Migration Plan into a si
 5. [Plan C: Documentation Examples](#5-plan-c-documentation-examples-deferred)
 6. [Plan D: Discriminator Refactoring](#6-plan-d-discriminator-refactoring-deferred)
 7. [Plan E: Multi-Format Support](#7-plan-e-multi-format-support)
-8. [Execution Roadmap](#8-execution-roadmap)
-9. [Critical Files Reference](#9-critical-files-reference)
+8. [Plan F: TCK Test Suite](#8-plan-f-tck-test-suite)
+9. [Execution Roadmap](#9-execution-roadmap)
+10. [Critical Files Reference](#10-critical-files-reference)
 
 ---
 
@@ -45,7 +46,7 @@ The 8-step package migration from `codec.v2.*` to `codec.*` is **complete**:
 - Deleted 55 src + 9 test files from `codec.v2.*`, 11 src + 14 test files from deprecated API
 - Extracted helper classes: `TypeResolutionHelper` (22 tests), `EMapHelper` (18 tests)
 - Cleaned up all `@claude` comments
-- Total: 2519 tests, 0 failures, 0 skipped across 7 projects
+- Total: 2519 tests, 0 failures, 0 skipped across 7 projects (now 3,016 across 9 projects after Plan E+F)
 
 **Integration Tests + PLAIN Reference Format COMPLETE** (2026-02-06):
 - Created `FeatureVisibilityIntegrationTest.java` (20 tests for ignoreRead/ignoreWrite/ignore)
@@ -63,7 +64,8 @@ The 8-step package migration from `codec.v2.*` to `codec.*` is **complete**:
 | **Plan B** | Fill spec compliance gaps (12/14 GAPs done, 2 postponed) | ✅ MOSTLY COMPLETE |
 | **Plan C** | Documentation examples (deferred from spec review) | Not Started |
 | ~~**Plan D**~~ | ~~Discriminator refactoring~~ | ✅ VERIFIED COMPLETE |
-| **Plan E** | Multi-format support (BSON, CSV, Ecowitt) | Not Started |
+| ~~**Plan E**~~ | ~~Multi-format support (BSON, CBOR, YAML)~~ | ✅ COMPLETE |
+| ~~**Plan F**~~ | ~~TCK test suite (3 phases, 18 abstract TCKs)~~ | ✅ COMPLETE |
 
 ---
 
@@ -433,7 +435,7 @@ Spec `08-discriminator-mapping.md` section 1.4 now clarifies this interaction. I
 
 ## 7. Plan E: Multi-Format Support
 
-**Status:** IN PROGRESS (Started 2026-02-16)
+**Status:** ✅ COMPLETE (2026-02-16)
 
 **Goal:** Extend codec to support formats beyond JSON (BSON, CBOR, YAML, Lucene, etc.) while maintaining feature parity with the JSON implementation.
 
@@ -730,7 +732,95 @@ The old codec projects in `old/` folder serve as reference implementations:
 
 ---
 
-## 8. Execution Roadmap
+## 8. Plan F: TCK Test Suite
+
+**Status:** ✅ COMPLETE (2026-02-17)
+
+**Goal:** Comprehensive Technology Compatibility Kit (TCK) ensuring all format providers (BSON, CBOR, YAML) pass identical feature tests. Abstract test classes define format-agnostic logic; each format provides trivial concrete subclasses.
+
+### Architecture
+
+```
+org.eclipse.fennec.codec.tests/src/.../tck/
+├── test-tck-*.ecore           (8 ecore models)
+├── Abstract*TCK.java          (18 abstract test classes)
+│
+org.eclipse.fennec.codec.bson/test/.../bson/
+├── Bson*TCKTest.java          (18 concrete subclasses)
+│
+org.eclipse.fennec.codec.cbor/test/.../cbor/
+├── Cbor*TCKTest.java          (18 concrete subclasses)
+│
+org.eclipse.fennec.codec.yaml/test/.../yaml/
+├── Yaml*TCKTest.java          (18 concrete subclasses)
+```
+
+### TCK Phases
+
+#### P0: Core Round-Trip (6 suites)
+
+| Suite | Tests | Ecore Model |
+|-------|------:|-------------|
+| Attribute types | 7 | test-tck.ecore |
+| Containment references | 2 | test-tck.ecore |
+| Non-containment references | 2 | test-tck.ecore |
+| Enum attributes | 2 | test-tck.ecore |
+| Multi-valued attributes | 2 | test-tck.ecore |
+| Complex round-trip | 1 | test-tck.ecore |
+
+#### P1: Feature Strategies (7 suites)
+
+| Suite | Tests | Ecore Model |
+|-------|------:|-------------|
+| Type Strategy | 2 | test-tck-type.ecore |
+| ID Strategy | 4 | test-tck-id.ecore |
+| Enum Strategy | 2 | test-tck-enum.ecore |
+| Polymorphism | 2 | test-tck-polymorphism.ecore |
+| Reference Format | 2 | test-tck-reference.ecore |
+| Value Handling | 3 | test-tck-valuehandling.ecore |
+| Custom Key | 1 | test-tck-customkey.ecore |
+
+#### P2: Advanced Features (10 suites)
+
+| Suite | Tests | Ecore Model |
+|-------|------:|-------------|
+| EMap | 2 | test-tck-emap.ecore |
+| SuperType | 2 | test-tck-supertype.ecore |
+| Visibility | 3 | test-tck-visibility.ecore |
+| Force Read/Write | 2 | test-tck-force.ecore |
+| Global Ignore | 2 | test-tck-visibility.ecore (shared) |
+| Strictness | 2 | test-tck-strictness.ecore |
+| Array Root | 2 | test-tck-arrayroot.ecore |
+| Large Payload (1000 objects) | 1 | test-tck-arrayroot.ecore (shared) |
+| Extended MetaData | 1 | test-tck-extmetadata.ecore |
+| Custom Value Reader/Writer | 1 | test-tck-customvalue.ecore |
+
+### Bug Fixes During TCK Development
+
+1. **Array root serialization** — `CodecResource.doSaveWithFormat()` now iterates objects individually within array start/end instead of passing `EObject[]`
+2. **`CodecFormatProvider.supportsArrayRoot()`** — New default method (returns `true`); `BsonFormatProvider` overrides to `false` and throws `IOException` on multi-root
+3. **BSON reader `valueConsumed` fix** — `BsonFormatReaderDelegate` tracks whether primitive values were consumed; `nextToken()` calls `skipValue()` for unconsumed values. 11 regression tests in `BsonFormatReaderDelegateTest$UnconsumedValues`.
+
+### Concrete Subclass Pattern
+
+Each format subclass is trivial (same pattern for all 18 × 3 = 54 classes):
+
+```java
+public class BsonEMapTCKTest extends AbstractEMapTCK {
+    @Override
+    protected CodecFormatProvider<?, ?> createFormatProvider() {
+        return new BsonFormatProvider();
+    }
+    @Override
+    protected String getFileExtension() {
+        return "bson";
+    }
+}
+```
+
+---
+
+## 9. Execution Roadmap
 
 ### Recommended Order
 
@@ -764,14 +854,14 @@ Plan D (Discriminator Refactoring) — ✅ VERIFIED COMPLETE (2026-02-08):
   D3: Property-based discriminator config — DONE (documented in spec)
   D4: STRUCTURED format with discriminator — DONE (spec clarified, implementation correct)
 
-Plan E (Multi-Format Support) — IN PROGRESS (started 2026-02-16):
-  E1: FormatDelegate interfaces (TokenType, FormatDelegate<T>, FormatReaderDelegate<S>, CodecFormatProvider)
-  E2: Jackson Bridge (FormatDelegateGenerator extends GeneratorBase, FormatDelegateParser extends ParserBase)
-  E3: JSON/Jackson FormatDelegate impl (JacksonStreamFormatDelegate wraps any Jackson generator)
-  E4: Refactor CodecResource (add CodecFormatProvider support, Resource fallback in deserializer)
-  E5: Verify with existing JSON tests (~1000+ tests through FormatDelegate layer)
-  E6: BSON format (BsonFormatDelegate<BsonDocument>, port from old MongoCodecGenerator/Parser)
-  E7: Additional Jackson formats (CBOR, YAML, Smile — trivial once E3 works)
+Plan E (Multi-Format Support) — ✅ COMPLETE (2026-02-16):
+  E1-E7: FormatDelegate abstraction + BSON/CBOR/YAML format providers
+
+Plan F (TCK Test Suite) — ✅ COMPLETE (2026-02-17):
+  F1: P0 Core round-trip TCKs (6 abstract suites)
+  F2: P1 Feature strategy TCKs (7 abstract suites)
+  F3: P2 Advanced feature TCKs (10 abstract suites + 8 ecore models)
+  F4: Bug fixes (array root, supportsArrayRoot, BSON valueConsumed)
 ```
 
 **Notes:**
@@ -832,7 +922,7 @@ Plan E (Multi-Format Support) — IN PROGRESS (started 2026-02-16):
 
 ---
 
-## 9. Critical Files Reference
+## 10. Critical Files Reference
 
 ### Plan A: Files to Modify
 

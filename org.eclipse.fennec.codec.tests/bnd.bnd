@@ -1,5 +1,5 @@
-Bundle-Name: Fennec Codec Tests
-Bundle-Description: Basic TCK Test
+Bundle-Name: Fennec Codec TCK
+Bundle-Description: Technology Compatibility Kit for Fennec EMF Codec format providers
 
 Export-Package: org.eclipse.fennec.codec.tests.tck
 

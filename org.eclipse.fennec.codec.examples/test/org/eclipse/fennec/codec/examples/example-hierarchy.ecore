@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="hierarchy" nsURI="http://example.org/fennec/hierarchy/1.0" nsPrefix="hierarchy">
+
+  <!--
+    Hierarchy model for TypeStrategy, Polymorphism, and SuperType examples.
+  -->
+
+  <!-- Shape - abstract base class -->
+  <eClassifiers xsi:type="ecore:EClass" name="Shape" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="color" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Circle - concrete shape -->
+  <eClassifiers xsi:type="ecore:EClass" name="Circle" eSuperTypes="#//Shape">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="radius" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+
+  <!-- Rectangle - concrete shape -->
+  <eClassifiers xsi:type="ecore:EClass" name="Rectangle" eSuperTypes="#//Shape">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="width" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="height" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+
+  <!-- Canvas - container for shapes -->
+  <eClassifiers xsi:type="ecore:EClass" name="Canvas">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="title" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="shapes" upperBound="-1" eType="#//Shape" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="featured" eType="#//Shape"/>
+  </eClassifiers>
+
+</ecore:EPackage>

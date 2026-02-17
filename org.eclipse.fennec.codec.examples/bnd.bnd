@@ -1,5 +1,5 @@
-Bundle-Name: Fennec Codec YAML
-Bundle-Description: YAML format provider for the Fennec EMF Codec
+Bundle-Name: Fennec Codec Examples
+Bundle-Description: Examples project for the Fennec EMF Codec
 
 -library: enableEMF
 
@@ -7,16 +7,18 @@ Bundle-Description: YAML format provider for the Fennec EMF Codec
 	org.osgi.service.condition;version=latest,\
 	org.eclipse.fennec.codec.api;version=snapshot,\
 	org.eclipse.fennec.codec;version=snapshot,\
+	org.eclipse.fennec.codec.yaml;version=snapshot,\
+	org.eclipse.fennec.codec.cbor;version=snapshot,\
+	org.eclipse.fennec.codec.bson;version=snapshot,\
 	org.eclipse.fennec.model.metadata;version=snapshot,\
 	org.eclipse.fennec.codec.metadata;version=snapshot,\
 	tools.jackson.core.jackson-core;version=latest,\
 	tools.jackson.core.jackson-databind;version=latest,\
 	com.fasterxml.jackson.core.jackson-annotations;version=latest,\
 	tools.jackson.dataformat.jackson-dataformat-yaml;version=latest,\
-	org.snakeyaml.engine;version=latest
-	
--testpath: \
-	org.eclipse.fennec.codec.tests;version=snapshot
+	tools.jackson.dataformat.jackson-dataformat-cbor;version=latest,\
+	org.snakeyaml.engine;version=latest,\
+	org.mongodb.bson;version=latest
 
 -fixupmessages: \
 	jpms.jarname;is:=ignore,\
