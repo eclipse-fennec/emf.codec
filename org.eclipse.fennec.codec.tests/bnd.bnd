@@ -1,5 +1,7 @@
-Bundle-Name: Fennec Codec CBOR
-Bundle-Description: CBOR Parser and Generator
+Bundle-Name: Fennec Codec Tests
+Bundle-Description: Basic TCK Test
+
+Export-Package: org.eclipse.fennec.codec.tests.tck
 
 -library: enableEMF
 
@@ -11,12 +13,13 @@ Bundle-Description: CBOR Parser and Generator
 	org.eclipse.fennec.codec.metadata;version=snapshot,\
 	tools.jackson.core.jackson-core;version=latest,\
 	tools.jackson.core.jackson-databind;version=latest,\
+	junit-jupiter-api;version=latest,\
+	junit-jupiter-params;version=latest,\
+	org.mockito.mockito-core;version=latest,\
 	com.fasterxml.jackson.core.jackson-annotations;version=latest,\
-	tools.jackson.dataformat.jackson-dataformat-cbor;version=latest
+	tools.jackson.dataformat.jackson-dataformat-yaml;version=latest,\
+	org.snakeyaml.engine;version=latest
 	
--testpath: \
-	org.eclipse.fennec.codec.tests;version=snapshot
-
 -fixupmessages: \
 	jpms.jarname;is:=ignore,\
 	The .classpath;is:=ignore

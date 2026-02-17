@@ -15,6 +15,9 @@ Bundle-Description: YAML Parser and Generator
 	tools.jackson.dataformat.jackson-dataformat-yaml;version=latest,\
 	org.snakeyaml.engine;version=latest
 	
+-testpath: \
+	org.eclipse.fennec.codec.tests;version=snapshot
+
 -fixupmessages: \
 	jpms.jarname;is:=ignore,\
 	The .classpath;is:=ignore
