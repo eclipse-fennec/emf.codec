@@ -45,7 +45,6 @@ import org.junit.jupiter.api.Test;
 /**
  * Round-trip integration tests for {@link CodecResource} (new codec.* package).
  * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceRoundTripTest}.
  * Tests that objects can be serialized to JSON and deserialized back
  * with all data preserved.
  * </p>

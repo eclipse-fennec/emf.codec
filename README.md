@@ -23,7 +23,6 @@ Further documentation:
 |----------|---------|
 | [Development Guide](docs/codec-v2-development-guide.md) | Current state, architecture, session continuity |
 | [Plans & Roadmap](docs/codec-v2-plans.md) | Active plans, GAP analysis |
-| [Migration Notes (V1 to V2)](docs/codec-v2-migration-notes.md) | Package changes, API changes |
 | [Reference](docs/codec-v2-reference.md) | EMF concepts, terminology, API reference |
 
 ## Project Structure
@@ -34,9 +33,13 @@ Further documentation:
 | `org.eclipse.fennec.codec.api` | Configuration API (TypeConfig, IdConfig, etc.) |
 | `org.eclipse.fennec.codec.metadata` | Codec-specific metadata aspects |
 | `org.eclipse.fennec.model.metadata` | Generic metadata service infrastructure |
+| `org.eclipse.fennec.codec.bson` | BSON (MongoDB) format provider |
+| `org.eclipse.fennec.codec.cbor` | CBOR format provider |
+| `org.eclipse.fennec.codec.yaml` | YAML format provider |
 | `org.eclipse.fennec.codec.geojson` | GeoJSON codec extension |
 | `org.eclipse.fennec.codec.jsonschema` | JSON Schema codec extension |
 | `org.eclipse.fennec.codec.openapi` | OpenAPI codec extension |
+| `org.eclipse.fennec.codec.examples` | Usage examples |
 
 ## Build
 

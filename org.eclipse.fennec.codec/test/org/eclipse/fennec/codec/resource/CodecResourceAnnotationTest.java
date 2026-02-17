@@ -55,9 +55,6 @@ import org.junit.jupiter.api.Test;
  * These tests verify that EAnnotations in the Ecore model are correctly
  * parsed and used during serialization/deserialization.
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceAnnotationTest}
- * </p>
  */
 @DisplayName("CodecResource EAnnotation Configuration Tests")
 class CodecResourceAnnotationTest {

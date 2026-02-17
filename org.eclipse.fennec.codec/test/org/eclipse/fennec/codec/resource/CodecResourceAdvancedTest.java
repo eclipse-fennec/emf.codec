@@ -56,9 +56,6 @@ import org.junit.jupiter.api.Test;
  *   <li>Error scenarios</li>
  * </ul>
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceAdvancedTest}
- * </p>
  *
  * @see <a href="docs/codec-v2-spec/11-polymorphism.md">Spec: Polymorphism and Inheritance</a>
  * @see <a href="docs/codec-v2-spec/08-reference.md">Spec: Reference Serialization</a>

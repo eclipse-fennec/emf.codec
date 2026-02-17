@@ -44,9 +44,6 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for featurePath-based MAPPED TypeStrategy.
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceFeaturePathTypeTest}.
- * </p>
  *
  * @see TypeDiscriminatorService
  */

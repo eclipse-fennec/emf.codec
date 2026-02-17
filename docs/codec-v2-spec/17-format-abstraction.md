@@ -518,32 +518,7 @@ Default registrations:
 
 ---
 
-## 9. Compatibility with V1 Codecs
-
-The V1 codec implementations (`CodecParserBaseImpl`, `CodecGeneratorBaseImpl`) can be wrapped:
-
-```java
-// Wrap V1 parser in stream abstraction
-public class V1ParserStreamReader implements CodecStreamReader {
-    private final CodecParserBaseImpl parser;
-
-    @Override
-    public CodecToken currentToken() {
-        return mapToken(parser.currentToken());
-    }
-
-    @Override
-    public String getString() {
-        return (String) parser.doGetCurrentValue();
-    }
-}
-```
-
-This allows gradual migration from V1 to V2 architecture.
-
----
-
-## 10. Example: Multi-Format Value Reader
+## 9. Example: Multi-Format Value Reader
 
 A value reader that works with the current Jackson-based implementation:
 
@@ -589,7 +564,7 @@ public class ISO8601DateReader implements CodecValueReader<Date, EAttribute> {
 
 ---
 
-## 11. Open Questions
+## 10. Open Questions
 
 1. **Streaming vs Buffering**: Should the abstraction support streaming for large documents, or is buffering acceptable?
 
@@ -603,7 +578,7 @@ public class ISO8601DateReader implements CodecValueReader<Date, EAttribute> {
 
 ---
 
-## 12. Format Extension Projects
+## 11. Format Extension Projects
 
 The following projects provide pre-configured resources for specific formats:
 
@@ -614,7 +589,7 @@ The following projects provide pre-configured resources for specific formats:
 
 **Note:** Most format extensions extend `CodecResource` for standard EObject serialization. JSON Schema is special because it's a **meta-format** that converts the schema itself (EPackage), not instances.
 
-### 12.1 GeoJSON Extension
+### 11.1 GeoJSON Extension
 
 **Project:** `org.eclipse.fennec.codec.geojson`
 
@@ -652,7 +627,7 @@ GeoJsonResourceImpl resource = new GeoJsonResourceImpl(
     metadataService);
 ```
 
-### 12.2 JSON Schema Extension
+### 11.2 JSON Schema Extension
 
 **Project:** `org.eclipse.fennec.codec.jsonschema`
 
@@ -671,7 +646,7 @@ Therefore, the JSON Schema extension provides **two integration patterns**:
 | **Standalone** | `.jsonschema` files, schema generation | `JsonSchemaResourceImpl` (extends `ResourceImpl`) |
 | **Embedded** | OpenAPI `components/schemas`, AI structured output | `EPackageValueReader` / `EPackageValueWriter` |
 
-#### 12.2.1 Standalone Mode
+#### 11.2.1 Standalone Mode
 
 For standalone JSON Schema files, use `JsonSchemaResourceImpl` directly:
 
@@ -701,7 +676,7 @@ resource.save(outputStream, options);
 
 **Note:** `JsonSchemaResourceImpl` extends `ResourceImpl` directly, not `CodecResource`, because it performs meta-format conversion rather than standard EObject serialization.
 
-#### 12.2.2 Embedded Mode
+#### 11.2.2 Embedded Mode
 
 For JSON Schema embedded within other formats (e.g., OpenAPI), use the value handlers that integrate with codec v2's value transformation layer:
 
@@ -743,7 +718,7 @@ CodecResource resource = new CodecResource(
 | `EPackageValueWriter(schemaFeature)` | Specific feature key |
 | `EPackageValueWriter(schemaFeature, embedInFeature)` | If `true`, output only definitions content |
 
-#### 12.2.3 JSON Schema Features
+#### 11.2.3 JSON Schema Features
 
 The converters support these JSON Schema features:
 
@@ -783,7 +758,7 @@ The converters support these JSON Schema features:
 | `EReference (containment)` | Nested object |
 | `EReference (non-containment)` | `$ref` |
 
-#### 12.2.4 Example: OpenAPI Integration
+#### 11.2.4 Example: OpenAPI Integration
 
 ```java
 // OpenAPI document with embedded schemas
@@ -806,7 +781,7 @@ The converters support these JSON Schema features:
 
 With registered value handlers, the `components.schemas` object is automatically converted to/from an `EPackage` containing the `Person` EClass.
 
-### 12.3 Creating Custom Format Extensions
+### 11.3 Creating Custom Format Extensions
 
 To create a custom format extension:
 
@@ -851,11 +826,11 @@ public class MyFormatResourceFactoryImpl extends ResourceFactoryImpl {
 
 ---
 
-## 13. JSON Schema Version Support and Feature Coverage
+## 12. JSON Schema Version Support and Feature Coverage
 
 This section provides a comprehensive reference for JSON Schema support in the codec.
 
-### 13.1 Supported JSON Schema Versions
+### 12.1 Supported JSON Schema Versions
 
 The JSON Schema converter supports multiple draft versions:
 
@@ -869,9 +844,9 @@ The JSON Schema converter supports multiple draft versions:
 
 **Note:** The converter auto-detects the definitions key (`definitions` vs `$defs`) or uses the explicitly specified `OPTION_SCHEMA_FEATURE`.
 
-### 13.2 Complete Feature Matrix
+### 12.2 Complete Feature Matrix
 
-#### 13.2.1 Core Keywords
+#### 12.2.1 Core Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -884,7 +859,7 @@ The JSON Schema converter supports multiple draft versions:
 | `$dynamicAnchor` | - | ❌ | ❌ | Draft 2020-12, not supported |
 | `$vocabulary` | - | ❌ | ❌ | Meta-schema feature |
 
-#### 13.2.2 Type Keywords
+#### 12.2.2 Type Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -897,7 +872,7 @@ The JSON Schema converter supports multiple draft versions:
 | `type: "null"` | - | ⚠️ | ⚠️ | Handled via nullability |
 | `type: ["string", "integer"]` | Union class | ✅ | ✅ | Creates artificial base + variants |
 
-#### 13.2.3 Object Keywords
+#### 12.2.3 Object Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -912,7 +887,7 @@ The JSON Schema converter supports multiple draft versions:
 | `dependentRequired` | - | ❌ | ❌ | Not mappable to EMF |
 | `dependentSchemas` | - | ❌ | ❌ | Not mappable to EMF |
 
-#### 13.2.4 Array Keywords
+#### 12.2.4 Array Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -926,7 +901,7 @@ The JSON Schema converter supports multiple draft versions:
 | `maxContains` | - | ❌ | ❌ | Not mappable to EMF |
 | `unevaluatedItems` | - | ❌ | ❌ | Draft 2020-12 |
 
-#### 13.2.5 Composition Keywords
+#### 12.2.5 Composition Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -936,7 +911,7 @@ The JSON Schema converter supports multiple draft versions:
 | `not` | - | ❌ | ❌ | Not mappable to EMF |
 | `if` / `then` / `else` | - | ❌ | ❌ | Conditional schemas not mappable |
 
-#### 13.2.6 String Validation Keywords
+#### 12.2.6 String Validation Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -969,7 +944,7 @@ The JSON Schema converter supports multiple draft versions:
 | `relative-json-pointer` | ✅ | |
 | `regex` | ✅ | |
 
-#### 13.2.7 Numeric Validation Keywords
+#### 12.2.7 Numeric Validation Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -979,7 +954,7 @@ The JSON Schema converter supports multiple draft versions:
 | `exclusiveMaximum` | EAnnotation | ✅ | ✅ | |
 | `multipleOf` | EAnnotation | ✅ | ✅ | |
 
-#### 13.2.8 Annotation Keywords
+#### 12.2.8 Annotation Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -992,7 +967,7 @@ The JSON Schema converter supports multiple draft versions:
 | `writeOnly` | EAnnotation | ✅ | ✅ | |
 | `$comment` | EAnnotation | ✅ | ✅ | Preserved as "comment" annotation |
 
-#### 13.2.9 Content Keywords
+#### 12.2.9 Content Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -1000,14 +975,14 @@ The JSON Schema converter supports multiple draft versions:
 | `contentMediaType` | EAnnotation | ✅ | ✅ | e.g., "image/png" |
 | `contentSchema` | - | ❌ | ❌ | Complex, not mappable |
 
-#### 13.2.10 Enum and Const
+#### 12.2.10 Enum and Const
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
 | `enum` | `EEnum` | ✅ | ✅ | String enums become EEnum |
 | `const` | EAnnotation | ✅ | ✅ | Fixed value preserved |
 
-### 13.3 Feature Legend
+### 12.3 Feature Legend
 
 | Symbol | Meaning |
 |--------|---------|
@@ -1015,7 +990,7 @@ The JSON Schema converter supports multiple draft versions:
 | ⚠️ | Partially supported (preserved as annotation, may not round-trip perfectly) |
 | ❌ | Not supported |
 
-### 13.4 EMF Limitations
+### 12.4 EMF Limitations
 
 The following JSON Schema features have **no natural EMF equivalent** and cannot be represented:
 
@@ -1028,7 +1003,7 @@ The following JSON Schema features have **no natural EMF equivalent** and cannot
 7. **Dynamic References** (`$dynamicRef`, `$dynamicAnchor`): Complex recursive patterns
 8. **Content Schema** (`contentSchema`): Complex embedded schema for content validation
 
-### 13.5 Annotations Source
+### 12.5 Annotations Source
 
 All JSON Schema metadata is preserved in EMF EAnnotations with these sources:
 
@@ -1038,9 +1013,9 @@ All JSON Schema metadata is preserved in EMF EAnnotations with these sources:
 | `http://www.eclipse.org/emf/2002/GenModel` | Documentation (description) |
 | `http:///org/eclipse/emf/ecore/util/ExtendedMetaData` | Original names |
 
-### 13.6 Special Patterns
+### 12.6 Special Patterns
 
-#### 13.6.1 Discriminated Unions
+#### 12.6.1 Discriminated Unions
 
 When JSON Schema uses the pattern:
 ```json
@@ -1060,27 +1035,27 @@ This creates:
 - Concrete subclasses for each option with `discriminatorKey` annotation
 - Type mapping annotations for codec deserialization
 
-#### 13.6.2 Context-Specific Variants (oneOf without discriminator)
+#### 12.6.2 Context-Specific Variants (oneOf without discriminator)
 
 When `oneOf` has multiple complete schemas with overlapping properties:
 - Creates abstract base class with `commonBase=true` annotation
 - Extracts common properties to base class
 - Creates variant subclasses with `variant=<title>` annotation
 
-#### 13.6.3 Namespace Paths
+#### 12.6.3 Namespace Paths
 
 Nested definition structures like `definitions/configs/kafka` are handled:
 - Intermediate nodes without schema keywords are organizational namespaces
 - EClassifiers get `namespacePath` annotation (e.g., `configs`)
 - `$ref` paths resolve correctly across namespaces
 
-### 13.7 Diagnostic Warnings
+### 12.7 Diagnostic Warnings
 
 > **See also:** [Error Handling](15-error-handling.md) for the general codec diagnostics mechanism.
 
 The JSON Schema converter reports issues through EMF's standard diagnostics mechanism. After loading a schema, check `resource.getWarnings()` for any conversion warnings.
 
-#### 13.7.1 Accessing Diagnostics
+#### 12.7.1 Accessing Diagnostics
 
 ```java
 // Load schema
@@ -1103,7 +1078,7 @@ for (JsonSchemaConversionDiagnostic diag : converter.getDiagnostics()) {
 }
 ```
 
-#### 13.7.2 Diagnostic Codes
+#### 12.7.2 Diagnostic Codes
 
 | Code | Description | Example Keywords |
 |------|-------------|------------------|
@@ -1112,7 +1087,7 @@ for (JsonSchemaConversionDiagnostic diag : converter.getDiagnostics()) {
 | `COMPLEX_ANYOF` | Complex `anyOf` with different schemas detected | - |
 | `UNRESOLVED_REFERENCE` | A `$ref` could not be resolved | - |
 
-#### 13.7.3 Warning Messages
+#### 12.7.3 Warning Messages
 
 | Condition | Warning Message |
 |-----------|-----------------|
@@ -1121,7 +1096,7 @@ for (JsonSchemaConversionDiagnostic diag : converter.getDiagnostics()) {
 | Complex `anyOf` | "Complex anyOf with different schemas detected. May require manual modeling." |
 | Unresolved `$ref` | "Could not resolve reference: {path}" |
 
-#### 13.7.4 Helper Class: JsonSchemaKeywords
+#### 12.7.4 Helper Class: JsonSchemaKeywords
 
 The `JsonSchemaKeywords` utility class provides programmatic access to keyword support information:
 
@@ -1141,7 +1116,7 @@ boolean isSupported = JsonSchemaKeywords.isFullySupported("allOf");     // true
 boolean isUnsupported = JsonSchemaKeywords.isUnsupported("prefixItems"); // true
 ```
 
-### 13.8 Round-Trip Fidelity
+### 12.8 Round-Trip Fidelity
 
 **Round-trip guaranteed** for:
 - Basic types (string, number, integer, boolean)
@@ -1160,11 +1135,11 @@ boolean isUnsupported = JsonSchemaKeywords.isUnsupported("prefixItems"); // true
 - Deeply nested namespace paths
 - `patternProperties` (preserved but not semantically mapped)
 
-### 13.9 Schema Reference Methods: `$anchor` vs JSON Pointer
+### 12.9 Schema Reference Methods: `$anchor` vs JSON Pointer
 
 JSON Schema supports two methods for referencing definitions within a schema:
 
-#### 13.9.1 JSON Pointer References (Default)
+#### 12.9.1 JSON Pointer References (Default)
 
 JSON Pointer references use the path syntax `#/definitions/Name`:
 
@@ -1192,7 +1167,7 @@ JSON Pointer references use the path syntax `#/definitions/Name`:
 - Self-documenting - shows the exact path to the definition
 - Default behavior - no special configuration needed
 
-#### 13.9.2 Anchor-Based References
+#### 12.9.2 Anchor-Based References
 
 Anchor-based references use `$anchor` to define a short name and `#anchorName` to reference it:
 
@@ -1221,7 +1196,7 @@ Anchor-based references use `$anchor` to define a short name and `#anchorName` t
 - References survive definition moves/renames
 - Introduced in JSON Schema 2019-09
 
-#### 13.9.3 Serialization Options
+#### 12.9.3 Serialization Options
 
 When converting EPackage to JSON Schema, the default is JSON Pointer references. To generate anchor-based references, use the `OPTION_USE_ANCHOR_REFS` option:
 
@@ -1239,7 +1214,7 @@ writer.convert(ePackage, outputStream, "definitions", true, options);
 // Output: "$anchor": "address" and "$ref": "#address"
 ```
 
-#### 13.9.4 Round-Trip Behavior
+#### 12.9.4 Round-Trip Behavior
 
 | Input Schema | Output without option | Output with `OPTION_USE_ANCHOR_REFS` |
 |--------------|----------------------|--------------------------------------|
@@ -1249,7 +1224,7 @@ writer.convert(ePackage, outputStream, "definitions", true, options);
 
 **Note:** Existing `$anchor` annotations from the input schema are always preserved, regardless of the option setting.
 
-#### 13.9.5 Per-Class Override
+#### 12.9.5 Per-Class Override
 
 You can also enable anchors for specific classes via EAnnotation:
 
@@ -1265,11 +1240,11 @@ This generates `$anchor` for that class and uses anchor refs when referencing it
 
 ---
 
-## 14. Working with Generated EPackages
+## 13. Working with Generated EPackages
 
 Once you've converted a JSON Schema to an EPackage, you can use it for deserializing JSON data that conforms to the schema.
 
-### 14.1 Example: Simple Schema
+### 13.1 Example: Simple Schema
 
 ```java
 // Step 1: Load JSON Schema and convert to EPackage
@@ -1292,7 +1267,7 @@ EClass meterReadingClass = (EClass) ePackage.getEClassifier("MeterReading");
 // (requires codec v2 CodecResource with proper configuration)
 ```
 
-### 14.2 Important: EPackage Registration
+### 13.2 Important: EPackage Registration
 
 When working with dynamically generated EPackages, you must register them in:
 
@@ -1306,7 +1281,7 @@ When working with dynamically generated EPackages, you must register them in:
    metadataService.registerPackage(ePackage);
    ```
 
-### 14.3 Limitations with oneOf / Union Types
+### 13.3 Limitations with oneOf / Union Types
 
 JSON Schema's `oneOf` construct creates challenges for deserialization:
 
@@ -1340,11 +1315,11 @@ Type mapping based solely on property name presence (discriminating based on whi
 
 ---
 
-## 15. Future Work
+## 14. Future Work
 
 The following features are planned but not yet implemented. See the linked documents for implementation details.
 
-### 15.1 Tuple Validation (`prefixItems`)
+### 14.1 Tuple Validation (`prefixItems`)
 
 JSON Schema's `prefixItems` keyword for arrays with typed positional elements (tuples).
 
@@ -1352,7 +1327,7 @@ JSON Schema's `prefixItems` keyword for arrays with typed positional elements (t
 
 **Details:** [todo/jsonschema-prefixItems-implementation.md](todo/jsonschema-prefixItems-implementation.md)
 
-### 15.2 Format-to-EDataType Mapping
+### 14.2 Format-to-EDataType Mapping
 
 Map JSON Schema `format` values to proper EMF EDataTypes instead of just preserving as annotations.
 
@@ -1371,11 +1346,11 @@ Map JSON Schema `format` values to proper EMF EDataTypes instead of just preserv
 
 ---
 
-## 16. OpenAPI Integration Example
+## 15. OpenAPI Integration Example
 
 This section demonstrates a complete real-world integration: embedding JSON Schema handling within OpenAPI documents using the value reader/writer pattern.
 
-### 16.1 Overview
+### 15.1 Overview
 
 OpenAPI 3.x documents embed JSON Schema definitions in `components/schemas`. The Fennec codec handles this by:
 
@@ -1384,7 +1359,7 @@ OpenAPI 3.x documents embed JSON Schema definitions in `components/schemas`. The
 
 This is implemented using the `ReferenceValueReader/Writer` pattern described in [Custom Values](14-custom-values.md).
 
-### 16.2 Architecture
+### 15.2 Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -1405,7 +1380,7 @@ This is implemented using the `ReferenceValueReader/Writer` pattern described in
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 16.3 Model Definition
+### 15.3 Model Definition
 
 The OpenAPI model defines the `schemas` reference as a containment to `EPackage`:
 
@@ -1428,9 +1403,9 @@ Key points:
 - `containment="true"` means the schemas are owned by the Components object
 - Codec annotations specify the reader/writer names in the registry
 
-### 16.4 Resource Configuration
+### 15.4 Resource Configuration
 
-#### 16.4.1 OpenApiResourceImpl
+#### 15.4.1 OpenApiResourceImpl
 
 ```java
 public class OpenApiResourceImpl extends CodecResource {
@@ -1452,7 +1427,7 @@ public class OpenApiResourceImpl extends CodecResource {
 }
 ```
 
-#### 16.4.2 Factory Registration
+#### 15.4.2 Factory Registration
 
 ```java
 public class OpenApiResourceFactoryImpl implements Resource.Factory {
@@ -1464,9 +1439,9 @@ public class OpenApiResourceFactoryImpl implements Resource.Factory {
 }
 ```
 
-### 16.5 Value Reader/Writer Implementation
+### 15.5 Value Reader/Writer Implementation
 
-#### 16.5.1 EPackageValueReader
+#### 15.5.1 EPackageValueReader
 
 ```java
 public class EPackageValueReader implements ReferenceValueReader<EPackage> {
@@ -1488,7 +1463,7 @@ public class EPackageValueReader implements ReferenceValueReader<EPackage> {
 }
 ```
 
-#### 16.5.2 EPackageValueWriter
+#### 15.5.2 EPackageValueWriter
 
 ```java
 public class EPackageValueWriter implements ReferenceValueWriter<EPackage> {
@@ -1517,9 +1492,9 @@ public class EPackageValueWriter implements ReferenceValueWriter<EPackage> {
 }
 ```
 
-### 16.6 Usage Example
+### 15.6 Usage Example
 
-#### 16.6.1 Loading an OpenAPI Document
+#### 15.6.1 Loading an OpenAPI Document
 
 ```java
 // Register factory
@@ -1548,7 +1523,7 @@ EClass petClass = (EClass) schemas.getEClassifier("Pet");
 EAttribute nameAttr = (EAttribute) petClass.getEStructuralFeature("name");
 ```
 
-#### 16.6.2 Creating and Saving
+#### 15.6.2 Creating and Saving
 
 ```java
 // Create OpenAPI programmatically
@@ -1582,7 +1557,7 @@ resource.getContents().add(openApi);
 resource.save(null);
 ```
 
-### 16.7 Roundtrip Behavior
+### 15.7 Roundtrip Behavior
 
 Most schemas are preserved through roundtrip:
 
@@ -1598,7 +1573,7 @@ Most schemas are preserved through roundtrip:
 
 **Artificial Schemas:** Some schemas are marked as "artificial" during conversion (e.g., inline object definitions). These are expanded inline during serialization and not recreated as top-level schemas.
 
-### 16.8 Real-World Test Results
+### 15.8 Real-World Test Results
 
 | File | Size | Schemas | After Roundtrip | Preservation |
 |------|------|---------|-----------------|--------------|
@@ -1607,7 +1582,7 @@ Most schemas are preserved through roundtrip:
 | sevdesk.json | 678 KB | 234 | 199 | 85% |
 | kubernetes-api.json | 1.9 MB | 286 | 286 | 100% |
 
-### 16.9 Limitations
+### 15.9 Limitations
 
 1. **Swagger 2.0**: Only OpenAPI 3.x is supported. Swagger 2.0 uses `definitions` instead of `components/schemas` and has different structure.
 

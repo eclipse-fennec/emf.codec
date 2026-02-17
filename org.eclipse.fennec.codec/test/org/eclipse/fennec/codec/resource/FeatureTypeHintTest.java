@@ -52,9 +52,6 @@ import org.junit.jupiter.api.Test;
  * <p>
  * See specification: docs/codec-v2-spec/18-feature-type-hints.md
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.FeatureTypeHintTest}
- * </p>
  */
 @DisplayName("Feature Type Hint Tests")
 class FeatureTypeHintTest {

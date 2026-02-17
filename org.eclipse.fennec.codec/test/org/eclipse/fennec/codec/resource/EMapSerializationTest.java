@@ -57,9 +57,6 @@ import org.junit.jupiter.api.Test;
  * }
  * </pre>
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.EMapSerializationTest}
- * </p>
  */
 @DisplayName("EMap Serialization Tests")
 class EMapSerializationTest {

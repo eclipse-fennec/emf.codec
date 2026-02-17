@@ -51,9 +51,6 @@ import org.junit.jupiter.api.Test;
  *   <li>Base package discriminators remain unaffected by extension package changes</li>
  * </ul>
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceCrossPackageTest}
- * </p>
  *
  * @see TypeDiscriminatorService
  */

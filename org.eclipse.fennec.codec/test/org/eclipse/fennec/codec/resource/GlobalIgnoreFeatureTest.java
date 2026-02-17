@@ -44,9 +44,6 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Integration tests for Global Feature Ignore List.
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.GlobalIgnoreFeatureTest}.
- * </p>
  *
  * @see <a href="docs/codec-v2-spec/03-global-options.md#4-global-feature-ignore-list">Spec: Global Feature Ignore List</a>
  */

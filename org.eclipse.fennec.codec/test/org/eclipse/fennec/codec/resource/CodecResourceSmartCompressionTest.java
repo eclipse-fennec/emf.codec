@@ -39,9 +39,6 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for smart compression behavior.
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceSmartCompressionTest}.
- * </p>
  *
  * @see <a href="docs/codec-v2-spec/04-global-options.md#1-smart-compression">Spec: Smart Compression</a>
  */

@@ -326,6 +326,10 @@ When `registerPackage(EPackage)` is called, the service executes the following l
   3. Provider returns a `PackageProfile` containing `ClassProfile` objects with pre-computed configuration
   4. Store the `PackageProfile` in `PackageMetadata.profiles`
 
+**Phase 5: Index and Notify**
+- Index the package via `MetadataIndex` (if set)
+- Notify all registered `MetadataHandler` instances via `handler.onPackageRegistered(pkgMetadata)`
+
 ### 7.2. Aspect Resolution (3-Layer Cascade)
 
 When building aspects, providers follow a **3-Layer Cascade**. The first source to provide a value wins:
@@ -416,6 +420,10 @@ MetadataWhiteboard extends MetadataService
   +getMetadataIndex(): MetadataIndex
   +setMetadataIndex(index: MetadataIndex): void
   +unsetMetadataIndex(index: MetadataIndex): void
+
+  // Handler management
+  +addMetadataHandler(handler: MetadataHandler): void
+  +removeMetadataHandler(handler: MetadataHandler): void
 ```
 
 ### 8.3 AspectProvider
@@ -446,6 +454,41 @@ AspectProvider (interface)
 4. Cross-references are resolved
 5. For each provider, build profiles with filtered metadata copy
 6. Profiles are stored in PackageMetadata
+
+### 8.4 MetadataHandler (Lifecycle Callback)
+
+Generic lifecycle callback triggered by the whiteboard when packages are registered or unregistered. This enables external services to react to metadata changes without coupling to the internal registration logic.
+
+```
+MetadataHandler (interface)
+  +onPackageRegistered(packageMetadata: PackageMetadata): void
+  +onPackageUnregistered(packageMetadata: PackageMetadata): void
+  +clear(): void
+```
+
+**Key Points:**
+- `onPackageRegistered` is called **after** all aspects and profiles have been built, so the `PackageMetadata` is fully populated
+- `onPackageUnregistered` is called **before** the package is removed from internal maps, so the metadata is still valid
+- `clear` is called when the handler is removed via `removeMetadataHandler`
+- **Late binding:** When `addMetadataHandler` is called, the handler immediately receives `onPackageRegistered` for all already-registered packages (same pattern as `setMetadataIndex`)
+- Duplicate handlers are ignored (same instance is not added twice)
+- Thread-safe: handlers are stored in a `CopyOnWriteArrayList`
+
+**Example: TypeDiscriminatorService as MetadataHandler**
+```java
+MetadataWhiteboard whiteboard = new MetadataServiceImpl();
+whiteboard.registerAspectProvider(new CodecAspectProvider());
+
+// Create handler and register it
+TypeDiscriminatorService typeService = new TypeDiscriminatorService();
+whiteboard.addMetadataHandler(typeService);
+
+// Now register packages — handler is notified automatically
+whiteboard.registerPackage(SensorPackage.eINSTANCE);
+
+// Or if packages were registered first, late binding notifies the handler
+// about all existing packages when addMetadataHandler is called
+```
 
 ## 9. Usage Example
 

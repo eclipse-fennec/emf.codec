@@ -48,11 +48,6 @@ All steps implemented and verified. Four format providers operational: JSON (def
 - CBOR and YAML providers are one-class projects — they just extend `JacksonFormatProvider` with the respective factory.
 - YAML requires `org.snakeyaml.engine` as transitive dependency of `jackson-dataformat-yaml`.
 
-**Old Code Archived:**
-- Moved old codec projects to `old/` folder (reference implementations for Plan E)
-- Updated `settings.gradle` to exclude `old/` and `docs/` from Gradle build
-- Old projects preserved as reference: `org.eclipse.fennec.codec`, `org.eclipse.fennec.codec.mongo`, etc.
-
 **Previous Session (2026-02-08):**
 
 **Plan D Verification (Discriminator Refactoring):**
@@ -384,7 +379,6 @@ All tests pass with 0 failures, 0 errors, 0 skipped.
 **Development:**
 - `docs/codec-v2-development-guide.md` (this file)
 - `docs/codec-v2-plans.md` (roadmap, GAP analysis)
-- `docs/codec-v2-migration-notes.md` (V1 → V2 migration guide)
 - `docs/codec-v2-reference.md` (EMF concepts, terminology, API reference)
 
 ## 5. Development Workflow
@@ -528,25 +522,21 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 }
 ```
 
-## 7. Migration Notes (V1 → V2)
+## 7. Known Issues & Limitations
 
-> See [`codec-v2-migration-notes.md`](codec-v2-migration-notes.md) for full migration details (package changes, API changes, EAnnotation changes).
-
-## 8. Known Issues & Limitations
-
-### 8.1 Current Limitations
+### 7.1 Current Limitations
 
 1. **Cross-document containment references** — not yet supported (deser only)
 2. **Custom Jackson modules** — limited integration
 3. **Streaming mode** — not optimized for large documents
 
-### 8.2 Spec Gaps (To Be Addressed)
+### 7.2 Spec Gaps (To Be Addressed)
 
 1. Entry-build pattern not documented in spec §1.2
 2. Deserialization gate shouldDeserialize() usage not explicit
 3. isChangeable() pre-check not documented
 
-### 8.3 Fixed Bugs
+### 7.3 Fixed Bugs
 
 **2026-02-17:**
 ✅ **Array root serialization crash** (CodecResource)
@@ -591,7 +581,7 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 - forceWrite now ONLY affects visibility gate, NOT value gate
 - serializeNull/Empty/Default still apply with forceWrite=true
 
-## 9. Gradle Commands
+## 8. Gradle Commands
 
 ```bash
 # Build everything
@@ -617,30 +607,30 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 
 **Note:** Do NOT use `testOSGi` for v2 projects (only for old codec).
 
-## 10. Session Handoff Protocol
+## 9. Session Handoff Protocol
 
-### 10.1 At Session Start
+### 9.1 At Session Start
 
 1. Read this document (section 0 "Active Task Hierarchy")
 2. Check git status: `git status`, `git log --oneline -10`
 3. Review "Next Session" in header
 4. Ask user for clarification if needed
 
-### 10.2 During Session
+### 9.2 During Session
 
 1. Update section 0.2 "Current Task Hierarchy" as work progresses
 2. Mark tasks ✅ when complete
 3. Add child tasks for nested investigations
 4. Document decisions and blockers
 
-### 10.3 At Session End
+### 9.3 At Session End
 
 1. Update header: "Last Updated", "Session Summary", "Next Session"
 2. Add new "COMPLETED" entry in section 0.2
 3. Mark all tasks ✅
 4. Commit changes: descriptive commit message
 
-### 10.4 Current TODO List
+### 9.4 Current TODO List
 
 **Plan E — Multi-Format Support:** ✅ COMPLETE (see `codec-v2-plans.md` §7)
 
@@ -666,13 +656,13 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 - [ ] DOC-001 through DOC-004: Documentation examples
 - [ ] Smile format: `org.eclipse.fennec.codec.smile` — add when demand arises
 
-## 11. Reference Information
+## 10. Reference Information
 
 > See [`codec-v2-reference.md`](codec-v2-reference.md) for full reference details (EMF concepts, terminology, Jackson integration, metadata service usage, config builder patterns, deprecated API audit + migration order).
 
 ---
 
-## 12. Session Continuity Tips
+## 11. Session Continuity Tips
 
 If context is lost:
 

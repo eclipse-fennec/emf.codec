@@ -54,9 +54,6 @@ import org.junit.jupiter.api.Test;
  *   <li>Polymorphic containers work with MAPPED strategy</li>
  * </ul>
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceMappedTypeTest}
- * </p>
  *
  * @see TypeDiscriminatorService
  */

@@ -20,10 +20,9 @@ plugins {
 }
 rootProject.name = "fennec-codec"
 
-// Exclude 'old' and 'docs' folders from Gradle build
-// These are archived projects and documentation, not active build targets
+// Exclude 'docs' folder from Gradle build — it contains documentation, not build targets
 gradle.beforeProject { project ->
-  if (project.name == 'old' || project.name == 'docs') {
+  if (project.name == 'docs') {
     project.tasks.configureEach { task ->
       task.enabled = false
     }

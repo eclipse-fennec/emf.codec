@@ -34,8 +34,9 @@ org.eclipse.fennec.codec.metadata/
 │       │   ├── CodecAspectProvider.java         (AspectProvider implementation + profile builder)
 │       │   └── package-info.java
 │       ├── type/
-│       │   ├── TypeDiscriminatorRegistry.java   (registry for type mappings)
-│       │   ├── TypeDiscriminatorService.java     (discriminator resolution service)
+│       │   ├── TypeDiscriminatorReader.java      (read-only query interface)
+│       │   ├── TypeDiscriminatorRegistry.java    (registry for type mappings)
+│       │   ├── TypeDiscriminatorService.java     (discriminator resolution + MetadataHandler)
 │       │   └── package-info.java
 │       └── util/
 │           ├── AnnotationParseHelper.java       (parsing utility for annotation values)
@@ -59,12 +60,15 @@ org.eclipse.fennec.codec.metadata/
 │       └── impl/                      (implementation classes)
 │
 └── test/
-    └── org/eclipse/fennec/codec/metadata/provider/
-        ├── CodecAspectProviderValidConfigTest.java  (valid annotation parsing)
-        ├── CodecAspectProviderMisconfigTest.java     (misconfiguration diagnostics)
-        ├── CodecProfileBuildTest.java                (profile building + retrieval)
-        ├── test-codec-annotations.ecore              (test model with annotations)
-        └── ...
+    └── org/eclipse/fennec/codec/metadata/
+        ├── provider/
+        │   ├── CodecAspectProviderValidConfigTest.java  (valid annotation parsing)
+        │   ├── CodecAspectProviderMisconfigTest.java     (misconfiguration diagnostics)
+        │   ├── CodecProfileBuildTest.java                (profile building + retrieval)
+        │   ├── test-codec-annotations.ecore              (test model with annotations)
+        │   └── ...
+        └── type/
+            └── TypeDiscriminatorServiceTest.java         (discriminator service + handler tests)
 ```
 
 ---
@@ -540,18 +544,64 @@ if (profile instanceof CodecClassProfile codecProfile) {
 
 ---
 
-## Migration from V1 (codec.info)
+## Type Discriminator Service
 
-| V1 Class | V2 EMF Class | Notes |
-|----------|--------------|-------|
-| `EClassCodecInfo` | `ClassCodecAspect` | Now EMF-generated |
-| `FeatureCodecInfo` | `FeatureCodecAspect` | Now EMF-generated |
-| `TypeInfo` | `TypeSerializationConfig` | Extends BaseTypeConfig |
-| `IdentityInfo` | `IdSerializationConfig` | Extends BaseIdConfig |
-| `SuperTypeInfo` | `SuperTypeSerializationConfig` | Extends BaseSuperTypeConfig |
-| `TypeStrategy` enum | `TypeStrategy` EEnum | In metadata.ecore |
-| `IdStrategy` enum | `IdStrategy` EEnum | In metadata.ecore |
-| `CodecModelInfo` | `MetadataService` | Service-based lookup |
+### TypeDiscriminatorReader (Read-Only Query Interface)
+
+`TypeDiscriminatorReader` is the read-only query interface for type discriminator lookups. It is used by the codec serialization/deserialization pipeline to resolve type discriminator values without needing access to the mutable `TypeDiscriminatorService`.
+
+```java
+TypeDiscriminatorReader (interface)
+  // Serialization (EClass → discriminator value)
+  +getDiscriminatorValue(mapId: String, eClass: EClass): String
+  +getDiscriminatorValueFromAny(eClass: EClass): String
+  +getDiscriminatorValueForReference(ref: EReference, eClass: EClass): String
+  +getMapIdForEClass(eClass: EClass): String
+
+  // Deserialization (discriminator value → EClass)
+  +getEClass(mapId: String, discriminatorValue: String): EClass
+  +getEClassFromAny(discriminatorValue: String): EClass
+  +resolve(mapId: String, discriminatorValue: String, resolver: Function): EClass
+  +resolveFromAny(discriminatorValue: String, resolver: Function): EClass
+  +resolveForReference(ref: EReference, discriminatorValue: String, resolver: Function): EClass
+
+  // Path
+  +getAnyDiscriminatorPath(): String
+  +getDiscriminatorPath(mapId: String): String
+```
+
+### TypeDiscriminatorService (MetadataHandler Implementation)
+
+`TypeDiscriminatorService` implements both `MetadataHandler` and `TypeDiscriminatorReader`. As a `MetadataHandler`, it is notified by the `MetadataWhiteboard` when packages are registered/unregistered and incrementally updates its discriminator registries.
+
+**Handler Lifecycle:**
+- `onPackageRegistered(PackageMetadata)` — Scans the package's `ClassMetadata` for `ClassCodecAspect` discriminator values and `typeMapping/{mapId}` annotations. Registers mappings incrementally rather than rebuilding the entire service.
+- `onPackageUnregistered(PackageMetadata)` — Removes all discriminator mappings for EClasses from the unregistered package.
+- `clear()` — Removes all registries and mappings.
+
+**Two Population Modes:**
+
+1. **Managed (recommended):** Register as a `MetadataHandler` on the whiteboard. Mappings are updated automatically as packages are registered/unregistered.
+   ```java
+   TypeDiscriminatorService typeService = new TypeDiscriminatorService();
+   whiteboard.addMetadataHandler(typeService);
+   // Mappings are populated automatically via handler callbacks
+   ```
+
+2. **Static:** Use `TypeDiscriminatorService.fromMetadataService(metadataService)` for a one-time snapshot. This scans all currently registered packages but does NOT update when packages change.
+   ```java
+   TypeDiscriminatorService typeService = TypeDiscriminatorService.fromMetadataService(metadataService);
+   // Static snapshot — not updated when packages change
+   ```
+
+**Usage with CodecResource:**
+```java
+// Pass the reader interface to CodecResource
+CodecResource resource = new CodecResource(uri, contentType, metadataService,
+    codecAspectProvider, formatProvider, options, typeService);
+// CodecResource uses the TypeDiscriminatorReader for type resolution
+// instead of creating a fresh TypeDiscriminatorService on every save/load
+```
 
 ---
 
@@ -562,11 +612,12 @@ if (profile instanceof CodecClassProfile codecProfile) {
 2. ✅ Aspect building (ClassCodecAspect, FeatureCodecAspect, ReferenceCodecAspect)
 3. ✅ Profile building (CodecPackageProfile, CodecClassProfile)
 4. ✅ Annotation validation and diagnostics
-5. ✅ Test coverage (179 tests passing)
+5. ✅ TypeDiscriminatorService with MetadataHandler integration
+6. ✅ TypeDiscriminatorReader interface (read-only query API)
+7. ✅ Test coverage (179+ tests passing)
 
 ### Next Steps:
 1. **EClass hierarchy inheritance** - Implement `inherit=DIRECT/ALL/NONE` across parent EClasses in profile building
 2. **Runtime ConfigurationResolver** - Merge dynamic overrides (levels 1-4) on top of profile (levels 5+6)
 3. **Codec V2 integration** - Wire profiles into the new codec serialization pipeline
-4. **Type discriminator mapping** - Complete TypeDiscriminatorRegistry and TypeDiscriminatorService implementation
-5. **Custom value readers/writers** - Implement ValueReader/ValueWriter registry and resolution
+4. **Custom value readers/writers** - Implement ValueReader/ValueWriter registry and resolution

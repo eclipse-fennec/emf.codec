@@ -55,9 +55,6 @@ import org.junit.jupiter.api.Test;
  *   <li>Do contained objects use their own configured/default strategy?</li>
  * </ul>
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.TypeStrategyExplorationTest}
- * </p>
  */
 @DisplayName("Type Strategy Exploration Tests")
 class TypeStrategyExplorationTest {

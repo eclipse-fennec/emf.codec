@@ -43,9 +43,6 @@ import tools.jackson.core.ObjectReadContext;
  *   <li>Resolve EClass via TypeDiscriminatorReader once discriminator value is found</li>
  * </ol>
  * </p>
- * <p>
- * Based on the fennec v1 approach from {@code CodecEObjectDeserializer.determineType()}.
- * </p>
  *
  * @see TypeDiscriminatorReader
  * @author Mark Hoffmann

@@ -68,9 +68,6 @@ import org.junit.jupiter.api.Test;
  * ]
  * </pre>
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.BikeRawTrafficLoadTest}
- * </p>
  *
  * @see <a href="https://github.com/eclipse/fennec-codec/issues/48">Issue #48</a>
  */

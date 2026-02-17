@@ -43,9 +43,6 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for same-schema smart compression.
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.SmartCompressionSameSchemaTest}.
- * </p>
  *
  * @see <a href="docs/codec-v2-spec/04-global-options.md#1-smart-compression">Spec: Smart Compression</a>
  */

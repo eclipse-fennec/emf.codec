@@ -63,9 +63,6 @@ import org.junit.jupiter.api.Test;
  *   <li>key="second", value=Item(id="2", value=200)</li>
  * </ul>
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.EMapDeserializationTest}
- * </p>
  */
 @DisplayName("EMap Deserialization Tests")
 class EMapDeserializationTest {

@@ -16,14 +16,12 @@ Spec Compliance Refactoring Plan and the Deprecated API Migration Plan into a si
 
 1. [Current State](#1-current-state)
 2. [Architecture Overview](#2-architecture-overview)
-3. [Plan A: Deprecated API Migration](#3-plan-a-deprecated-api-migration--complete) ✅
-4. [Plan B: Spec Compliance Gaps](#4-plan-b-spec-compliance-gaps)
-5. [Plan C: Documentation Examples](#5-plan-c-documentation-examples-deferred)
-6. [Plan D: Discriminator Refactoring](#6-plan-d-discriminator-refactoring-deferred)
-7. [Plan E: Multi-Format Support](#7-plan-e-multi-format-support)
-8. [Plan F: TCK Test Suite](#8-plan-f-tck-test-suite)
-9. [Execution Roadmap](#9-execution-roadmap)
-10. [Critical Files Reference](#10-critical-files-reference)
+3. [Plan B: Spec Compliance Gaps](#3-plan-b-spec-compliance-gaps)
+4. [Plan C: Documentation Examples](#4-plan-c-documentation-examples-deferred)
+5. [Plan E: Multi-Format Support](#5-plan-e-multi-format-support)
+6. [Plan F: TCK Test Suite](#6-plan-f-tck-test-suite)
+7. [Execution Roadmap](#7-execution-roadmap)
+8. [Critical Files Reference](#8-critical-files-reference)
 
 ---
 
@@ -60,10 +58,8 @@ The 8-step package migration from `codec.v2.*` to `codec.*` is **complete**:
 
 | Category | Description | Status |
 |----------|-------------|--------|
-| ~~**Plan A**~~ | ~~Migrate deprecated API + cleanup~~ | ✅ COMPLETE |
 | **Plan B** | Fill spec compliance gaps (12/14 GAPs done, 2 postponed) | ✅ MOSTLY COMPLETE |
 | **Plan C** | Documentation examples (deferred from spec review) | Not Started |
-| ~~**Plan D**~~ | ~~Discriminator refactoring~~ | ✅ VERIFIED COMPLETE |
 | ~~**Plan E**~~ | ~~Multi-format support (BSON, CBOR, YAML)~~ | ✅ COMPLETE |
 | ~~**Plan F**~~ | ~~TCK test suite (3 phases, 18 abstract TCKs)~~ | ✅ COMPLETE |
 
@@ -132,35 +128,7 @@ Resolution: First non-null value wins, scanning scope left-to-right, source top-
 
 ---
 
-## 3. Plan A: Deprecated API Migration ✅ COMPLETE
-
-**Completed:** 2026-02-04
-
-Replaced all usages of deprecated `codec.api.value.*` types with `codec.value.*` types.
-
-### What Was Done
-
-1. **Core codec migration** - Entry classes, module, resource now use new API
-2. **Dependent projects migrated:**
-   - `codec.geojson` - Uses `ConfigurationResolver` + `forceWrite`/`forceRead`
-   - `codec.jsonschema` - `EPackageValueReader`/`Writer` use new context API
-   - `codec.openapi` - `OperationValueReader` uses new context API
-3. **Bug fixes:**
-   - `forceWrite` now correctly implements two-gate model (visibility vs value gate)
-   - `forceRead` now works for volatile features in `ConfigurationResolver`
-
-### API Changes Summary
-
-| Aspect | Old (`codec.api.value`) | New (`codec.value`) |
-|--------|------------------------|---------------------|
-| Reader method | `read(JsonParser, F, DeserializationContext)` | `read(CodecReaderContext, F)` |
-| Writer method | `write(T, F, JsonGenerator, SerializationContext)` | `write(T, F, CodecWriterContext)` |
-| Registration | `registerReader("name", reader)` | `register(reader)` (uses `getName()`) |
-| Config access | Not available | Via `ctx.getConfig()` |
-
----
-
-## 4. Plan B: Spec Compliance Gaps
+## 3. Plan B: Spec Compliance Gaps
 
 ### Gap Summary
 
@@ -375,7 +343,7 @@ Replaced all usages of deprecated `codec.api.value.*` types with `codec.value.*`
 
 ---
 
-## 5. Plan C: Documentation Examples (Deferred)
+## 4. Plan C: Documentation Examples (Deferred)
 
 These documentation tasks were identified during spec review but deferred as lower priority.
 
@@ -388,52 +356,7 @@ These documentation tasks were identified during spec review but deferred as low
 
 ---
 
-## 6. Plan D: Discriminator Refactoring
-
-**Status: VERIFIED COMPLETE** (2026-02-08)
-
-These items were verified against current spec and implementation:
-
-### D1: Remove MAPPED from TypeStrategy Enum
-
-**Status:** ✅ DONE
-
-`MAPPED` has been removed from `TypeStrategy` enum. Discriminator mapping is now a separate layer that works alongside any strategy. See spec `06-type.md` line 23: "MAPPED was removed from TypeStrategy."
-
-### D2: Inline Mapping for References
-
-**Status:** ✅ DONE
-
-Inline mapping is fully implemented with dedicated annotation source:
-- Annotation source: `http://eclipse.org/fennec/codec/inlineMapping`
-- Fully documented in spec `08-discriminator-mapping.md` section 5
-- Tests in `CodecResourceInlineMappingTest.java`
-
-### D3: Property-Based Discriminator Configuration
-
-**Status:** ✅ DONE
-
-Programmatic configuration fully documented in spec:
-- `08-discriminator-mapping.md` sections 4.4 and 5.1 show builder API and property map examples
-- Property keys: `codec.typeMapId`, `codec.typeDiscriminatorPath`, `codec.typeMappings`, `codec.inlineMappings`
-
-### D4: STRUCTURED Format with Discriminator Mapping
-
-**Status:** ✅ DONE (Spec Clarified)
-
-Original issue assumed STRUCTURED format should emit WARNING when discriminator mapping is configured. **Actual behavior:** Discriminator mapping has priority over STRUCTURED format — when both are configured, the discriminator value is written inside the STRUCTURED `_type` object:
-
-```json
-{ "_type": { "type": "temp" }, "sensorId": "s-001" }
-```
-
-Spec `08-discriminator-mapping.md` section 1.4 now clarifies this interaction. Implementation handles this correctly in:
-- `TypeSerializationEntry.java` lines 244-251 (serialization)
-- `TypeDeserializationEntry.java` lines 505-540 (deserialization)
-
----
-
-## 7. Plan E: Multi-Format Support
+## 5. Plan E: Multi-Format Support
 
 **Status:** ✅ COMPLETE (2026-02-16)
 
@@ -669,7 +592,7 @@ Route existing codec operations through the full FormatDelegate → FormatDelega
 | 14a | `codec.bson/.../BsonFormatDelegate.java` | `FormatDelegate<BsonDocument>`, wraps `BsonDocumentWriter` |
 | 14b | `codec.bson/test/.../BsonFormatDelegateTest.java` | Unit tests: write values, verify BsonDocument content |
 
-Port from `old/org.eclipse.fennec.codec.mongo/src/.../MongoCodecGenerator.java`.
+Ported from the original `MongoCodecGenerator.java` (see [pre-rework branch](https://github.com/geckoprojects-org/org.gecko.codec/tree/snapshot)).
 
 **Verify:** `./gradlew :org.eclipse.fennec.codec.bson:test` passes
 
@@ -683,7 +606,7 @@ Port from `old/org.eclipse.fennec.codec.mongo/src/.../MongoCodecGenerator.java`.
 | 15a | `codec.bson/.../BsonFormatReaderDelegate.java` | `FormatReaderDelegate<BsonDocument>`, wraps `BsonDocumentReader` |
 | 15b | `codec.bson/test/.../BsonFormatReaderDelegateTest.java` | Unit tests: read from BsonDocument, verify parsed values |
 
-Port from `old/org.eclipse.fennec.codec.mongo/src/.../MongoCodecParser.java`.
+Ported from the original `MongoCodecParser.java` (see [pre-rework branch](https://github.com/geckoprojects-org/org.gecko.codec/tree/snapshot)).
 
 **Verify:** `./gradlew :org.eclipse.fennec.codec.bson:test` passes
 
@@ -721,18 +644,14 @@ Port from `old/org.eclipse.fennec.codec.mongo/src/.../MongoCodecParser.java`.
 
 ### Old Codec Reference
 
-The old codec projects in `old/` folder serve as reference implementations:
+The original V1 codec implementations are available on GitHub for reference:
 
-| Old Project | Reference For |
-|-------------|---------------|
-| `old/org.eclipse.fennec.codec/` | `CodecGeneratorBaseImpl`, `CodecParserBaseImpl` pattern |
-| `old/org.eclipse.fennec.codec.mongo/` | `MongoCodecGenerator`, `MongoCodecParser` → port to `BsonFormatDelegate` |
-| `old/org.eclipse.fennec.codec.csv/` | `CodecCSVParser` → future `CsvFormatReaderDelegate` |
-| `old/org.eclipse.fennec.codec.ecowitt/` | Custom protocol parser → future reference |
+- **Pre-rework (original code):** https://github.com/geckoprojects-org/org.gecko.codec/tree/snapshot
+- **Before this rework:** https://github.com/geckoprojects-org/org.gecko.codec/tree/issue%2348
 
 ---
 
-## 8. Plan F: TCK Test Suite
+## 6. Plan F: TCK Test Suite
 
 **Status:** ✅ COMPLETE (2026-02-17)
 
@@ -820,13 +739,11 @@ public class BsonEMapTCKTest extends AbstractEMapTCK {
 
 ---
 
-## 9. Execution Roadmap
+## 7. Execution Roadmap
 
 ### Recommended Order
 
 ```
-Plan A (Deprecated API Migration) ✅ COMPLETE
-
 Plan B Phase 1 (Core Metadata Gaps):
   GAP-001: Feature Visibility (directional ignore/force)
   GAP-002: Fallback Strategy wiring
@@ -848,12 +765,6 @@ Plan B Phase 3 (Polish):
 Plan C (Documentation Examples) — can be done in parallel:
   DOC-001 through DOC-004
 
-Plan D (Discriminator Refactoring) — ✅ VERIFIED COMPLETE (2026-02-08):
-  D1: Remove MAPPED from TypeStrategy — DONE (spec confirms removal)
-  D2: Inline mapping for references — DONE (fully implemented + tested)
-  D3: Property-based discriminator config — DONE (documented in spec)
-  D4: STRUCTURED format with discriminator — DONE (spec clarified, implementation correct)
-
 Plan E (Multi-Format Support) — ✅ COMPLETE (2026-02-16):
   E1-E7: FormatDelegate abstraction + BSON/CBOR/YAML format providers
 
@@ -865,11 +776,8 @@ Plan F (TCK Test Suite) — ✅ COMPLETE (2026-02-17):
 ```
 
 **Notes:**
-- Plan A is complete: deprecated code fully deleted, codebase clean
-- GAP-002, GAP-003, GAP-014 are migration tasks (existed in old code)
-- GAP-004 is a new feature (never existed in old code) — lower priority
+- GAP-004 is a new feature — lower priority
 - Helper classes extracted (TypeResolutionHelper, EMapHelper) improving testability
-- GAP-008 (value handlers) can proceed now that Plan A is done
 
 ### Property Matrix (for Plan B reference)
 
@@ -922,36 +830,7 @@ Plan F (TCK Test Suite) — ✅ COMPLETE (2026-02-17):
 
 ---
 
-## 10. Critical Files Reference
-
-### Plan A: Files to Modify
-
-**New files to create (codec.api project):**
-- `src/org/eclipse/fennec/codec/value/DefaultCodecReaderContext.java`
-- `src/org/eclipse/fennec/codec/value/DefaultCodecWriterContext.java`
-- `src/org/eclipse/fennec/codec/value/SimpleEffectiveCodecConfig.java`
-- `test/org/eclipse/fennec/codec/value/DefaultCodecReaderContextTest.java`
-- `test/org/eclipse/fennec/codec/value/DefaultCodecWriterContextTest.java`
-
-**SRC files to modify (codec project, `codec.*` package):**
-- `config/effective/EffectiveCodecConfig.java`
-- `module/CodecModule.java`
-- `resource/CodecResource.java`
-- `ser/AttributeSerializationEntry.java`
-- `ser/ReferenceSerializationEntry.java`
-- `deser/AttributeDeserializationEntry.java`
-- `deser/ReferenceDeserializationEntry.java`
-- `ser/CodecEObjectSerializer.java` (orchestrator — entry creation)
-
-**TEST files to modify (codec project, `codec.*` package):**
-- `deser/AttributeDeserializationEntryCanHandleTest.java`
-- `deser/ReferenceDeserializationEntryCanHandleTest.java`
-- `deser/ReferenceDeserializationEntryCustomReaderTest.java`
-- `ser/AttributeSerializationEntryCanHandleTest.java`
-- `ser/ReferenceSerializationEntryCanHandleTest.java`
-- `ser/ReferenceSerializationEntryCustomWriterTest.java`
-- `module/CodecModuleBuilderTest.java`
-- `resource/CodecResourceCustomValueTest.java`
+## 8. Critical Files Reference
 
 ### Plan B: Files to Modify
 

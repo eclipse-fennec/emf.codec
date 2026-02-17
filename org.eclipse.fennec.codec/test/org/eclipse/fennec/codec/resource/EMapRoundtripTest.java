@@ -49,9 +49,6 @@ import org.junit.jupiter.api.Test;
  *   <li>The deserialized EObject is equivalent to the original</li>
  * </ol>
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.EMapRoundtripTest}
- * </p>
  */
 @DisplayName("EMap Roundtrip Tests")
 class EMapRoundtripTest {

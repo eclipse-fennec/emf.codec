@@ -47,9 +47,6 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Integration tests for custom value readers/writers in CodecResource.
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceCustomValueTest}.
- * </p>
  *
  * @see <a href="docs/codec-v2-spec/10-custom-values.md">Spec 10: Custom Value Readers/Writers</a>
  */

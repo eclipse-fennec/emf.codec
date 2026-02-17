@@ -51,9 +51,6 @@ import org.junit.jupiter.api.Test;
  *   <li>sites.json - JSON array with 6 site objects</li>
  * </ul>
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.BikeSitesArrayLoadTest}
- * </p>
  *
  * @see <a href="docs/codec-v2-serialization-spec.md#187-root-element--multiple-contents">Spec 18.7</a>
  */

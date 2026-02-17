@@ -38,9 +38,6 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Integration tests for SuperType serialization.
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceSuperTypeTest}.
- * </p>
  *
  * @see <a href="docs/codec-v2-spec/05-supertype.md">Spec: SuperType Serialization</a>
  */

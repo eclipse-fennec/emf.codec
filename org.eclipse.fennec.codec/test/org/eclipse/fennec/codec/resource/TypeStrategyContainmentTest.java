@@ -46,9 +46,6 @@ import org.junit.jupiter.api.Test;
  *   <li>What should the expected behavior be?</li>
  * </ul>
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.TypeStrategyContainmentTest}
- * </p>
  */
 @DisplayName("Type Strategy Containment Behavior Test")
 class TypeStrategyContainmentTest {

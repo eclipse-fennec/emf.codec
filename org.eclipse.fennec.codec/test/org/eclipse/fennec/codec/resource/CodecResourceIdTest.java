@@ -43,9 +43,6 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Integration tests for ID serialization formats.
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceIdTest}.
- * </p>
  *
  * @see <a href="docs/codec-v2-spec/06-id.md">Spec: ID Serialization</a>
  */

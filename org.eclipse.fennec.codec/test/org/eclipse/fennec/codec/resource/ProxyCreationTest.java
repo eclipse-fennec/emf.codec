@@ -43,9 +43,6 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for proxy creation during reference resolution.
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.ProxyCreationTest}.
- * </p>
  *
  * @see <a href="docs/codec-v2-spec/07-reference.md#8-deserialization">Spec: Reference Deserialization</a>
  */

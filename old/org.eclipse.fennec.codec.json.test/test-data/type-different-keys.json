@@ -1,9 +1,0 @@
-{
-	"ref1": {
-		"type": "http://example.de/type/1.0#//Child",
-		"name": "child1"
-	},
-	"ref2": {
-	    "kind": "http://example.de/type/1.0#//Child2"
-	}	
-}

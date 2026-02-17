@@ -50,9 +50,6 @@ import org.junit.jupiter.api.Test;
  * On deserialization, the codec automatically detects whether the root is
  * an array or object and populates the resource contents accordingly.
  * </p>
- * <p>
- * Migrated from {@code org.eclipse.fennec.codec.v2.resource.CodecResourceArrayRootTest}
- * </p>
  *
  * @see <a href="docs/codec-v2-serialization-spec.md#187-root-element--multiple-contents">Spec 18.7</a>
  */
