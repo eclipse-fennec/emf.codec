@@ -40,6 +40,7 @@ import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.PackageProfile;
 import org.eclipse.fennec.model.metadata.ReferenceMetadata;
 import org.eclipse.fennec.model.metadata.api.AspectProvider;
+import org.eclipse.fennec.model.metadata.api.MetadataHandler;
 import org.eclipse.fennec.model.metadata.api.MetadataIndex;
 import org.eclipse.fennec.model.metadata.api.MetadataIndexReader;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
@@ -65,6 +66,7 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 
     private final MetadataRegistry registry;
     private final List<AspectProvider> aspectProviders = new CopyOnWriteArrayList<>();
+    private final List<MetadataHandler> metadataHandlers = new CopyOnWriteArrayList<>();
     private volatile MetadataIndex index;
 
     // Fast lookup maps for EClass/EStructuralFeature -> Metadata (not indexed by string)
@@ -348,6 +350,11 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
             idx.indexPackage(pkgMetadata);
         }
 
+        // Notify metadata handlers
+        for (MetadataHandler handler : metadataHandlers) {
+            handler.onPackageRegistered(pkgMetadata);
+        }
+
         return pkgMetadata;
     }
 
@@ -358,9 +365,16 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
         }
 
         String nsURI = ePackage.getNsURI();
-        PackageMetadata pkgMetadata = packagesByNsURI.remove(nsURI);
+        PackageMetadata pkgMetadata = packagesByNsURI.get(nsURI);
 
         if (pkgMetadata != null) {
+            // Notify metadata handlers before removing
+            for (MetadataHandler handler : metadataHandlers) {
+                handler.onPackageUnregistered(pkgMetadata);
+            }
+
+            packagesByNsURI.remove(nsURI);
+
             // Remove from index first
             MetadataIndex idx = this.index;
             if (idx != null) {
@@ -440,6 +454,26 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
         if (index != null && index == this.index) {
             index.clear();
             this.index = null;
+        }
+    }
+
+    @Override
+    public void addMetadataHandler(MetadataHandler handler) {
+        if (handler != null && !metadataHandlers.contains(handler)) {
+            metadataHandlers.add(handler);
+
+            // Late binding: notify handler about all existing packages
+            for (PackageMetadata pkgMetadata : registry.getPackages()) {
+                handler.onPackageRegistered(pkgMetadata);
+            }
+        }
+    }
+
+    @Override
+    public void removeMetadataHandler(MetadataHandler handler) {
+        if (handler != null) {
+            metadataHandlers.remove(handler);
+            handler.clear();
         }
     }
 

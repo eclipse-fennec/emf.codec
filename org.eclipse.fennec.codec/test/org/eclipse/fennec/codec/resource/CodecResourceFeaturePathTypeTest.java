@@ -30,6 +30,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
+import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.ClassMetadata;
@@ -57,7 +58,7 @@ class CodecResourceFeaturePathTypeTest {
     private EcoreHelper ecoreHelper;
     private EPackage testPackage;
     private MetadataWhiteboard metadataService;
-    private TypeDiscriminatorService typeService;
+    private TypeDiscriminatorReader typeService;
 
     // EClasses
     private EClass deviceInfoClass;

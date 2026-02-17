@@ -35,6 +35,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.FallbackStrategy;
 import org.eclipse.fennec.model.metadata.ClassMetadata;
 import org.eclipse.fennec.model.metadata.MetadataRegistry;
 import org.eclipse.fennec.model.metadata.PackageMetadata;
+import org.eclipse.fennec.model.metadata.api.MetadataHandler;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 
 /**
@@ -78,7 +79,7 @@ import org.eclipse.fennec.model.metadata.api.MetadataService;
  * @author Mark Hoffmann
  * @since 2025-12-17
  */
-public class TypeDiscriminatorService {
+public class TypeDiscriminatorService implements MetadataHandler, TypeDiscriminatorReader {
 
     private static final Logger LOGGER = Logger.getLogger(TypeDiscriminatorService.class.getName());
 
@@ -127,6 +128,51 @@ public class TypeDiscriminatorService {
         }
 
         return service;
+    }
+
+    // ========================================================================
+    // MetadataHandler implementation
+    // ========================================================================
+
+    /**
+     * Called when a package is registered with the MetadataWhiteboard.
+     * <p>
+     * Incrementally scans the package's ClassMetadata for discriminator annotations
+     * and registers them, rather than rebuilding the entire service.
+     * </p>
+     *
+     * @param packageMetadata the newly registered package metadata
+     */
+    @Override
+    public void onPackageRegistered(PackageMetadata packageMetadata) {
+        if (packageMetadata == null) {
+            return;
+        }
+
+        // Phase 1: register discriminator values from ClassCodecAspect
+        for (ClassMetadata classMetadata : packageMetadata.getClasses()) {
+            registerFromClassMetadata(classMetadata);
+        }
+
+        // Phase 2: scan raw annotations for fallback config and inline mappings
+        EPackage ePackage = packageMetadata.getEPackage();
+        if (ePackage != null) {
+            Function<String, EClass> eClassResolver = uri -> resolveEClassFromUri(uri, ePackage);
+            registerAnnotationMappings(ePackage, eClassResolver);
+        }
+    }
+
+    /**
+     * Called when a package is unregistered from the MetadataWhiteboard.
+     * <p>
+     * Removes all discriminator mappings for EClasses from the specified package.
+     * </p>
+     *
+     * @param packageMetadata the package metadata being unregistered
+     */
+    @Override
+    public void onPackageUnregistered(PackageMetadata packageMetadata) {
+        unregisterPackage(packageMetadata);
     }
 
     /**
@@ -482,6 +528,7 @@ public class TypeDiscriminatorService {
      * @return the resolved EClass, or null if not found and strategy is SKIP
      * @throws IllegalStateException on ERROR strategy, or FALLBACK with no fallbackEClass
      */
+    @Override
     public EClass resolve(String mapId, String discriminatorValue, Function<String, EClass> eClassResolver) {
         TypeDiscriminatorRegistry registry = getRegistry(mapId);
         if (registry == null) {
@@ -501,6 +548,7 @@ public class TypeDiscriminatorService {
      * @param eClassResolver function that resolves EClass URI strings to EClass instances
      * @return the resolved EClass, or null if no inline mapping exists or value not found
      */
+    @Override
     public EClass resolveForReference(EReference reference, String discriminatorValue,
             Function<String, EClass> eClassResolver) {
         if (reference == null) {
@@ -569,6 +617,7 @@ public class TypeDiscriminatorService {
      * @param discriminatorValue the discriminator value
      * @return the corresponding EClass, or null if not found
      */
+    @Override
     public EClass getEClass(String mapId, String discriminatorValue) {
         TypeDiscriminatorRegistry registry = getRegistry(mapId);
         return registry != null ? registry.getEClass(discriminatorValue) : null;
@@ -584,6 +633,7 @@ public class TypeDiscriminatorService {
      * @param discriminatorValue the discriminator value
      * @return the corresponding EClass, or null if not found in any registry
      */
+    @Override
     public EClass getEClassFromAny(String discriminatorValue) {
         if (discriminatorValue == null) {
             return null;
@@ -619,6 +669,7 @@ public class TypeDiscriminatorService {
      * @return the resolved EClass, or null if not found and all strategies are SKIP
      * @throws IllegalStateException if ERROR strategy is active, or FALLBACK with missing fallbackEClass
      */
+    @Override
     public EClass resolveFromAny(String discriminatorValue, Function<String, EClass> eClassResolver) {
         if (discriminatorValue == null) {
             return null;
@@ -651,6 +702,7 @@ public class TypeDiscriminatorService {
      * @param eClass the EClass
      * @return the corresponding discriminator value, or null if not found
      */
+    @Override
     public String getDiscriminatorValue(String mapId, EClass eClass) {
         TypeDiscriminatorRegistry registry = getRegistry(mapId);
         return registry != null ? registry.getDiscriminatorValue(eClass) : null;
@@ -662,6 +714,7 @@ public class TypeDiscriminatorService {
      * @param eClass the EClass
      * @return the corresponding discriminator value, or null if not found
      */
+    @Override
     public String getDiscriminatorValueFromAny(EClass eClass) {
         if (eClass == null) {
             return null;
@@ -686,6 +739,7 @@ public class TypeDiscriminatorService {
      * @param eClass the EClass to look up
      * @return the discriminator value, or null if no inline mapping exists or EClass not found
      */
+    @Override
     public String getDiscriminatorValueForReference(EReference reference, EClass eClass) {
         if (reference == null || eClass == null) {
             return null;
@@ -700,6 +754,7 @@ public class TypeDiscriminatorService {
      * @param mapId the namespace identifier
      * @return the discriminator path, or null if not set
      */
+    @Override
     public String getDiscriminatorPath(String mapId) {
         TypeDiscriminatorRegistry registry = getRegistry(mapId);
         return registry != null ? registry.getDiscriminatorPath() : null;
@@ -714,6 +769,7 @@ public class TypeDiscriminatorService {
      *
      * @return the first non-null discriminator path, or null if none found
      */
+    @Override
     public String getAnyDiscriminatorPath() {
         for (TypeDiscriminatorRegistry registry : registries.values()) {
             String path = registry.getDiscriminatorPath();
@@ -753,6 +809,7 @@ public class TypeDiscriminatorService {
      * @param eClass the EClass to scan
      * @return the mapId, or null if no typeMapping annotation found
      */
+    @Override
     public String getMapIdForEClass(EClass eClass) {
         if (eClass == null) {
             return null;
@@ -860,6 +917,7 @@ public class TypeDiscriminatorService {
     /**
      * Clears all registries.
      */
+    @Override
     public void clear() {
         registries.clear();
     }

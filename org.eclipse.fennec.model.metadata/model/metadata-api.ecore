@@ -248,6 +248,29 @@
       </eAnnotations>
     </eOperations>
   </eClassifiers>
+  <!-- ==================== Metadata Handler ==================== -->
+  <eClassifiers xsi:type="ecore:EClass" name="MetadataHandler" abstract="true" interface="true">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Generic lifecycle callback triggered by MetadataWhiteboard when packages are registered or unregistered. Implementations can incrementally update their internal state (e.g., TypeDiscriminatorService) instead of rebuilding from scratch. Follows the same set/unset pattern as MetadataIndex."/>
+    </eAnnotations>
+    <eOperations name="onPackageRegistered">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Called after a package has been registered with the MetadataWhiteboard. The handler should incrementally update its state based on the new package metadata."/>
+      </eAnnotations>
+      <eParameters name="packageMetadata" eType="ecore:EClass metadata.ecore#//PackageMetadata"/>
+    </eOperations>
+    <eOperations name="onPackageUnregistered">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Called before a package is removed from the MetadataWhiteboard. The handler should remove any state associated with this package."/>
+      </eAnnotations>
+      <eParameters name="packageMetadata" eType="ecore:EClass metadata.ecore#//PackageMetadata"/>
+    </eOperations>
+    <eOperations name="clear">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Clear all internal state. Called when the handler is removed from the whiteboard."/>
+      </eAnnotations>
+    </eOperations>
+  </eClassifiers>
   <!-- ==================== Admin / Whiteboard Interface ==================== -->
   <eClassifiers xsi:type="ecore:EClass" name="MetadataWhiteboard" abstract="true"
       interface="true" eSuperTypes="#//MetadataService">
@@ -302,6 +325,19 @@
         <details key="documentation" value="Remove the given MetadataIndex implementation. Called by OSGi DS when the index service is unbound. The parameter must match the currently set index — if it does not match, this is a no-op (guards against out-of-order DS lifecycle events). Clears the index before removing it. After this call, getIndexReader() on MetadataService returns null until a new index is set."/>
       </eAnnotations>
       <eParameters name="index" eType="#//MetadataIndex"/>
+    </eOperations>
+    <!-- MetadataHandler lifecycle -->
+    <eOperations name="addMetadataHandler">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Add a MetadataHandler to receive lifecycle callbacks. If packages are already registered, onPackageRegistered is called immediately for each existing package (late binding, like setMetadataIndex)."/>
+      </eAnnotations>
+      <eParameters name="handler" eType="#//MetadataHandler"/>
+    </eOperations>
+    <eOperations name="removeMetadataHandler">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Remove a MetadataHandler. Calls clear() on the handler before removing it."/>
+      </eAnnotations>
+      <eParameters name="handler" eType="#//MetadataHandler"/>
     </eOperations>
   </eClassifiers>
   <!-- ==================== Aspect Provider ==================== -->

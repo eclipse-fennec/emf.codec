@@ -33,7 +33,7 @@ import org.eclipse.fennec.codec.config.ReferenceConfig;
 import org.eclipse.fennec.codec.config.SuperTypeConfig;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
-import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
+import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.model.metadata.ClassMetadata;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 
@@ -58,7 +58,7 @@ import org.eclipse.fennec.model.metadata.api.MetadataService;
  *   <li>{@link MetadataService} — for EClass/EPackage metadata lookups</li>
  *   <li>{@link DiagnosticCollector} — for collecting warnings/errors</li>
  *   <li>{@link CodecValueRegistry} — for custom value readers/writers</li>
- *   <li>{@link TypeDiscriminatorService} — for MAPPED strategy resolution</li>
+ *   <li>{@link TypeDiscriminatorReader} — for MAPPED strategy resolution</li>
  *   <li>Global flags like smart compression, sort alphabetically, etc.</li>
  * </ul>
  * </p>
@@ -74,7 +74,7 @@ public final class EffectiveCodecConfig
     private final ConfigurationResolver resolver;
     private final DiagnosticCollector diagnostics;
     private final MetadataService metadataService;
-    private final TypeDiscriminatorService typeDiscriminatorService;
+    private final TypeDiscriminatorReader typeDiscriminatorService;
     private final CodecValueRegistry valueRegistry;
 
     // Global settings (not per-class)
@@ -308,7 +308,7 @@ public final class EffectiveCodecConfig
      *
      * @return the discriminator service, or null if not configured
      */
-    public TypeDiscriminatorService getTypeDiscriminatorService() {
+    public TypeDiscriminatorReader getTypeDiscriminatorReader() {
         return typeDiscriminatorService;
     }
 
@@ -553,7 +553,7 @@ public final class EffectiveCodecConfig
         private ConfigurationResolver resolver;
         private DiagnosticCollector diagnostics;
         private MetadataService metadataService;
-        private TypeDiscriminatorService typeDiscriminatorService;
+        private TypeDiscriminatorReader typeDiscriminatorService;
         private CodecValueRegistry valueRegistry;
         private List<String> globalIgnoreFeatures;
         private boolean sortPropertiesAlphabetically = false;
@@ -582,7 +582,7 @@ public final class EffectiveCodecConfig
             return this;
         }
 
-        public Builder typeDiscriminatorService(TypeDiscriminatorService typeDiscriminatorService) {
+        public Builder typeDiscriminatorService(TypeDiscriminatorReader typeDiscriminatorService) {
             this.typeDiscriminatorService = typeDiscriminatorService;
             return this;
         }

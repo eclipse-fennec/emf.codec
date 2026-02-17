@@ -23,7 +23,7 @@ import org.eclipse.fennec.codec.config.SuperTypeConfig;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.ContextHelper;
-import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
+import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.model.metadata.SerializationFormat;
 import org.eclipse.fennec.model.metadata.TypeStrategy;
 
@@ -323,7 +323,7 @@ public class TypeSerializationEntry implements SerializationEntry {
      * <p>
      * When serializing an EObject contained in an EReference with an inlineMapping
      * annotation, this method looks up the correct discriminator value from the
-     * reference-scoped registry in {@link TypeDiscriminatorService}.
+     * reference-scoped registry in {@link TypeDiscriminatorReader}.
      * </p>
      *
      * @param ctxt the serialization context
@@ -337,7 +337,7 @@ public class TypeSerializationEntry implements SerializationEntry {
         if (currentRef == null) {
             return null;
         }
-        TypeDiscriminatorService typeService = codecConfig.getTypeDiscriminatorService();
+        TypeDiscriminatorReader typeService = codecConfig.getTypeDiscriminatorReader();
         if (typeService == null) {
             return null;
         }
@@ -363,7 +363,7 @@ public class TypeSerializationEntry implements SerializationEntry {
         if (codecConfig == null) {
             return null;
         }
-        TypeDiscriminatorService typeService = codecConfig.getTypeDiscriminatorService();
+        TypeDiscriminatorReader typeService = codecConfig.getTypeDiscriminatorReader();
         if (typeService == null) {
             return null;
         }

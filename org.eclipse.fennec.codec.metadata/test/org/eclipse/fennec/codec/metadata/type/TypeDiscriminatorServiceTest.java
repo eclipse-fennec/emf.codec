@@ -18,12 +18,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
+import org.eclipse.fennec.codec.metadata.model.codec.CodecFactory;
 import org.eclipse.fennec.codec.metadata.model.codec.FallbackStrategy;
+import org.eclipse.fennec.model.metadata.ClassMetadata;
+import org.eclipse.fennec.model.metadata.MetadataFactory;
+import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -826,6 +832,214 @@ class TypeDiscriminatorServiceTest {
             service.getOrCreateRegistry("map2").setDiscriminatorPath("_type");
 
             assertEquals("_type", service.getAnyDiscriminatorPath());
+        }
+    }
+
+    // ========================================================================
+    // MetadataHandler implementation (onPackageRegistered / onPackageUnregistered)
+    // ========================================================================
+
+    @Nested
+    @DisplayName("MetadataHandler implementation")
+    class MetadataHandlerImpl {
+
+        private EPackage testPackage;
+        private EClass sensorClass;
+        private EClass tempSensorClass;
+
+        @BeforeEach
+        void setUpPackage() {
+            testPackage = EcoreFactory.eINSTANCE.createEPackage();
+            testPackage.setName("sensors");
+            testPackage.setNsURI("http://example.org/sensors/1.0");
+            testPackage.setNsPrefix("sensors");
+
+            sensorClass = EcoreFactory.eINSTANCE.createEClass();
+            sensorClass.setName("Sensor");
+            sensorClass.setAbstract(true);
+            testPackage.getEClassifiers().add(sensorClass);
+
+            tempSensorClass = EcoreFactory.eINSTANCE.createEClass();
+            tempSensorClass.setName("TemperatureSensor");
+            tempSensorClass.getESuperTypes().add(sensorClass);
+            testPackage.getEClassifiers().add(tempSensorClass);
+        }
+
+        private PackageMetadata createPackageMetadataWithDiscriminators(String mapId) {
+            // Add typeMapping annotation to classes
+            addTypeMappingAnnotation(sensorClass, mapId);
+            addTypeMappingAnnotation(tempSensorClass, mapId);
+
+            // Build PackageMetadata with ClassCodecAspect containing discriminator values
+            PackageMetadata pkgMeta = MetadataFactory.eINSTANCE.createPackageMetadata();
+            pkgMeta.setEPackage(testPackage);
+            pkgMeta.setNsURI(testPackage.getNsURI());
+
+            ClassMetadata sensorMeta = createClassMetadataWithDiscriminator(sensorClass, "sensor");
+            ClassMetadata tempSensorMeta = createClassMetadataWithDiscriminator(tempSensorClass, "temp-sensor");
+
+            pkgMeta.getClasses().add(sensorMeta);
+            pkgMeta.getClasses().add(tempSensorMeta);
+
+            return pkgMeta;
+        }
+
+        private ClassMetadata createClassMetadataWithDiscriminator(EClass eClass, String discriminatorValue) {
+            ClassMetadata classMeta = MetadataFactory.eINSTANCE.createClassMetadata();
+            classMeta.setEClass(eClass);
+            classMeta.setName(eClass.getName());
+
+            ClassCodecAspect aspect = CodecFactory.eINSTANCE.createClassCodecAspect();
+            aspect.setDiscriminatorValue(discriminatorValue);
+            classMeta.getAspects().add(aspect);
+
+            return classMeta;
+        }
+
+        private void addTypeMappingAnnotation(EClass eClass, String mapId) {
+            EAnnotation ann = EcoreFactory.eINSTANCE.createEAnnotation();
+            ann.setSource("http://eclipse.org/fennec/codec/typeMapping/" + mapId);
+            eClass.getEAnnotations().add(ann);
+        }
+
+        @Test
+        @DisplayName("onPackageRegistered registers discriminator mappings")
+        void onPackageRegisteredRegistersDiscriminators() {
+            PackageMetadata pkgMeta = createPackageMetadataWithDiscriminators("iot-sensors");
+
+            service.onPackageRegistered(pkgMeta);
+
+            assertTrue(service.hasRegistry("iot-sensors"));
+            assertEquals(tempSensorClass, service.getEClass("iot-sensors", "temp-sensor"));
+            assertEquals(sensorClass, service.getEClass("iot-sensors", "sensor"));
+            assertEquals(2, service.getTotalMappings());
+        }
+
+        @Test
+        @DisplayName("onPackageRegistered with null is no-op")
+        void onPackageRegisteredNullIsNoOp() {
+            service.onPackageRegistered(null);
+            assertEquals(0, service.getTotalMappings());
+        }
+
+        @Test
+        @DisplayName("onPackageRegistered with empty classes is no-op")
+        void onPackageRegisteredEmptyClassesIsNoOp() {
+            PackageMetadata pkgMeta = MetadataFactory.eINSTANCE.createPackageMetadata();
+            pkgMeta.setEPackage(testPackage);
+
+            service.onPackageRegistered(pkgMeta);
+
+            assertEquals(0, service.getTotalMappings());
+        }
+
+        @Test
+        @DisplayName("onPackageRegistered without discriminator aspects does not register")
+        void onPackageRegisteredWithoutAspectsDoesNotRegister() {
+            PackageMetadata pkgMeta = MetadataFactory.eINSTANCE.createPackageMetadata();
+            pkgMeta.setEPackage(testPackage);
+
+            ClassMetadata classMeta = MetadataFactory.eINSTANCE.createClassMetadata();
+            classMeta.setEClass(sensorClass);
+            classMeta.setName("Sensor");
+            pkgMeta.getClasses().add(classMeta);
+
+            service.onPackageRegistered(pkgMeta);
+
+            assertEquals(0, service.getTotalMappings());
+        }
+
+        @Test
+        @DisplayName("onPackageUnregistered removes discriminator mappings")
+        void onPackageUnregisteredRemovesMappings() {
+            PackageMetadata pkgMeta = createPackageMetadataWithDiscriminators("iot-sensors");
+
+            service.onPackageRegistered(pkgMeta);
+            assertEquals(2, service.getTotalMappings());
+
+            service.onPackageUnregistered(pkgMeta);
+            assertEquals(0, service.getTotalMappings());
+        }
+
+        @Test
+        @DisplayName("onPackageUnregistered with null is no-op")
+        void onPackageUnregisteredNullIsNoOp() {
+            service.onPackageRegistered(createPackageMetadataWithDiscriminators("iot-sensors"));
+            int before = service.getTotalMappings();
+
+            service.onPackageUnregistered(null);
+
+            assertEquals(before, service.getTotalMappings());
+        }
+
+        @Test
+        @DisplayName("onPackageUnregistered only removes mappings for that package")
+        void onPackageUnregisteredOnlyRemovesOwnMappings() {
+            // Register first package
+            PackageMetadata pkgMeta1 = createPackageMetadataWithDiscriminators("iot-sensors");
+            service.onPackageRegistered(pkgMeta1);
+
+            // Manually add another mapping in a different registry
+            service.getOrCreateRegistry("other-map").register("device", deviceClass);
+            assertEquals(3, service.getTotalMappings());
+
+            // Unregister first package
+            service.onPackageUnregistered(pkgMeta1);
+
+            // Only the manually added mapping should remain
+            assertEquals(1, service.getTotalMappings());
+            assertEquals(deviceClass, service.getEClass("other-map", "device"));
+        }
+
+        @Test
+        @DisplayName("clear removes all registries as MetadataHandler")
+        void clearRemovesAllRegistries() {
+            service.onPackageRegistered(createPackageMetadataWithDiscriminators("iot-sensors"));
+            service.getOrCreateRegistry("other").register("x", deviceClass);
+
+            service.clear();
+
+            assertEquals(0, service.getTotalMappings());
+            assertEquals(0, service.getMapIds().size());
+        }
+
+        @Test
+        @DisplayName("onPackageRegistered registers fallback config from annotations")
+        void onPackageRegisteredRegistersFallbackConfig() {
+            addTypeMappingAnnotation(sensorClass, "strict-sensors");
+
+            // Add fallback config to the annotation
+            EAnnotation ann = sensorClass.getEAnnotation("http://eclipse.org/fennec/codec/typeMapping/strict-sensors");
+            ann.getDetails().put("fallbackStrategy", "ERROR");
+
+            PackageMetadata pkgMeta = MetadataFactory.eINSTANCE.createPackageMetadata();
+            pkgMeta.setEPackage(testPackage);
+            ClassMetadata classMeta = MetadataFactory.eINSTANCE.createClassMetadata();
+            classMeta.setEClass(sensorClass);
+            classMeta.setName("Sensor");
+            pkgMeta.getClasses().add(classMeta);
+
+            service.onPackageRegistered(pkgMeta);
+
+            TypeDiscriminatorRegistry registry = service.getRegistry("strict-sensors");
+            assertNotNull(registry);
+            assertEquals(FallbackStrategy.ERROR, registry.getFallbackStrategy());
+        }
+
+        @Test
+        @DisplayName("register then unregister then re-register works correctly")
+        void registerUnregisterReregister() {
+            PackageMetadata pkgMeta = createPackageMetadataWithDiscriminators("iot-sensors");
+
+            service.onPackageRegistered(pkgMeta);
+            assertEquals(2, service.getTotalMappings());
+
+            service.onPackageUnregistered(pkgMeta);
+            assertEquals(0, service.getTotalMappings());
+
+            service.onPackageRegistered(pkgMeta);
+            assertEquals(2, service.getTotalMappings());
+            assertEquals(tempSensorClass, service.getEClass("iot-sensors", "temp-sensor"));
         }
     }
 }

@@ -13,10 +13,14 @@
 package org.eclipse.fennec.model.metadata.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -34,6 +38,7 @@ import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.PackageProfile;
 import org.eclipse.fennec.model.metadata.ReferenceMetadata;
 import org.eclipse.fennec.model.metadata.api.AspectProvider;
+import org.eclipse.fennec.model.metadata.api.MetadataHandler;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
 import org.eclipse.fennec.model.metadata.impl.ClassAspectImpl;
 import org.eclipse.fennec.model.metadata.impl.FeatureAspectImpl;
@@ -516,6 +521,136 @@ class MetadataServiceImplTest {
     }
 
     // ========================================================================
+    // MetadataHandler Tests
+    // ========================================================================
+
+    @Test
+    void testAddMetadataHandlerNotifiedOnRegister() {
+        RecordingMetadataHandler handler = new RecordingMetadataHandler();
+        service.addMetadataHandler(handler);
+
+        service.registerPackage(testPackage);
+
+        assertEquals(1, handler.registered.size());
+        assertSame(testPackage, handler.registered.get(0).getEPackage());
+    }
+
+    @Test
+    void testAddMetadataHandlerNotifiedOnUnregister() {
+        RecordingMetadataHandler handler = new RecordingMetadataHandler();
+        service.addMetadataHandler(handler);
+        service.registerPackage(testPackage);
+
+        service.unregisterPackage(testPackage);
+
+        assertEquals(1, handler.unregistered.size());
+        assertSame(testPackage, handler.unregistered.get(0).getEPackage());
+    }
+
+    @Test
+    void testAddMetadataHandlerLateBinding() {
+        // Register package BEFORE adding handler
+        service.registerPackage(testPackage);
+
+        RecordingMetadataHandler handler = new RecordingMetadataHandler();
+        service.addMetadataHandler(handler);
+
+        // Handler should be notified about already-registered package
+        assertEquals(1, handler.registered.size());
+        assertSame(testPackage, handler.registered.get(0).getEPackage());
+    }
+
+    @Test
+    void testAddMetadataHandlerLateBindingMultiplePackages() {
+        EPackage pkg2 = EcoreFactory.eINSTANCE.createEPackage();
+        pkg2.setName("test2");
+        pkg2.setNsURI("http://test2.example.org/1.0");
+        pkg2.setNsPrefix("test2");
+
+        service.registerPackage(testPackage);
+        service.registerPackage(pkg2);
+
+        RecordingMetadataHandler handler = new RecordingMetadataHandler();
+        service.addMetadataHandler(handler);
+
+        assertEquals(2, handler.registered.size());
+    }
+
+    @Test
+    void testRemoveMetadataHandlerClearsHandler() {
+        RecordingMetadataHandler handler = new RecordingMetadataHandler();
+        service.addMetadataHandler(handler);
+
+        service.removeMetadataHandler(handler);
+
+        assertTrue(handler.cleared);
+    }
+
+    @Test
+    void testRemoveMetadataHandlerStopsNotifications() {
+        RecordingMetadataHandler handler = new RecordingMetadataHandler();
+        service.addMetadataHandler(handler);
+        service.removeMetadataHandler(handler);
+
+        service.registerPackage(testPackage);
+
+        // Should NOT be notified after removal
+        assertTrue(handler.registered.isEmpty());
+    }
+
+    @Test
+    void testAddMetadataHandlerNull() {
+        // Should not throw
+        service.addMetadataHandler(null);
+    }
+
+    @Test
+    void testRemoveMetadataHandlerNull() {
+        // Should not throw
+        service.removeMetadataHandler(null);
+    }
+
+    @Test
+    void testAddMetadataHandlerDuplicate() {
+        RecordingMetadataHandler handler = new RecordingMetadataHandler();
+        service.addMetadataHandler(handler);
+        service.addMetadataHandler(handler);
+
+        service.registerPackage(testPackage);
+
+        // Should only be notified once (not added twice)
+        assertEquals(1, handler.registered.size());
+    }
+
+    @Test
+    void testMultipleHandlersNotified() {
+        RecordingMetadataHandler handler1 = new RecordingMetadataHandler();
+        RecordingMetadataHandler handler2 = new RecordingMetadataHandler();
+        service.addMetadataHandler(handler1);
+        service.addMetadataHandler(handler2);
+
+        service.registerPackage(testPackage);
+
+        assertEquals(1, handler1.registered.size());
+        assertEquals(1, handler2.registered.size());
+    }
+
+    @Test
+    void testHandlerNotifiedBeforeRemovalOnUnregister() {
+        RecordingMetadataHandler handler = new RecordingMetadataHandler();
+        service.addMetadataHandler(handler);
+        service.registerPackage(testPackage);
+
+        service.unregisterPackage(testPackage);
+
+        // Handler should have received unregistered callback with valid metadata
+        assertEquals(1, handler.unregistered.size());
+        PackageMetadata unregisteredPkg = handler.unregistered.get(0);
+        assertNotNull(unregisteredPkg.getEPackage());
+        assertFalse(unregisteredPkg.getClasses().isEmpty());
+    }
+
+    // ========================================================================
     // Test AspectProvider Implementations
     // ========================================================================
 
@@ -620,5 +755,29 @@ class MetadataServiceImplTest {
      */
     private static class TestPackageAspect extends PackageAspectImpl {
         // Uses default implementation
+    }
+
+    /**
+     * Recording MetadataHandler for testing handler notifications.
+     */
+    private static class RecordingMetadataHandler implements MetadataHandler {
+        final List<PackageMetadata> registered = new ArrayList<>();
+        final List<PackageMetadata> unregistered = new ArrayList<>();
+        boolean cleared = false;
+
+        @Override
+        public void onPackageRegistered(PackageMetadata packageMetadata) {
+            registered.add(packageMetadata);
+        }
+
+        @Override
+        public void onPackageUnregistered(PackageMetadata packageMetadata) {
+            unregistered.add(packageMetadata);
+        }
+
+        @Override
+        public void clear() {
+            cleared = true;
+        }
     }
 }

@@ -124,4 +124,26 @@ public interface MetadataWhiteboard extends MetadataService {
 	 */
 	void unsetMetadataIndex(MetadataIndex index);
 
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * Add a MetadataHandler to receive lifecycle callbacks. If packages are already registered, onPackageRegistered is called immediately for each existing package (late binding, like setMetadataIndex).
+	 * <!-- end-model-doc -->
+	 * @model
+	 * @generated
+	 */
+	void addMetadataHandler(MetadataHandler handler);
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * Remove a MetadataHandler. Calls clear() on the handler before removing it.
+	 * <!-- end-model-doc -->
+	 * @model
+	 * @generated
+	 */
+	void removeMetadataHandler(MetadataHandler handler);
+
 } // MetadataWhiteboard

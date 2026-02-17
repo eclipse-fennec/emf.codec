@@ -16,8 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 
-import org.mockito.InOrder;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
@@ -31,6 +29,7 @@ import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 
 /**
  * Tests for custom value writer support in {@link ReferenceSerializationEntry}.

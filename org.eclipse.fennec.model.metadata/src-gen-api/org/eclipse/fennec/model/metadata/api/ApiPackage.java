@@ -608,6 +608,61 @@ public interface ApiPackage extends org.eclipse.emf.ecore.EPackage {
 	int METADATA_SERVICE_OPERATION_COUNT = 17;
 
 	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.model.metadata.api.MetadataHandler <em>Metadata Handler</em>}' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.model.metadata.api.MetadataHandler
+	 * @see org.eclipse.fennec.model.metadata.api.impl.ApiPackageImpl#getMetadataHandler()
+	 * @generated
+	 */
+	int METADATA_HANDLER = 4;
+
+	/**
+	 * The number of structural features of the '<em>Metadata Handler</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int METADATA_HANDLER_FEATURE_COUNT = 0;
+
+	/**
+	 * The operation id for the '<em>On Package Registered</em>' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int METADATA_HANDLER___ON_PACKAGE_REGISTERED__PACKAGEMETADATA = 0;
+
+	/**
+	 * The operation id for the '<em>On Package Unregistered</em>' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int METADATA_HANDLER___ON_PACKAGE_UNREGISTERED__PACKAGEMETADATA = 1;
+
+	/**
+	 * The operation id for the '<em>Clear</em>' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int METADATA_HANDLER___CLEAR = 2;
+
+	/**
+	 * The number of operations of the '<em>Metadata Handler</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int METADATA_HANDLER_OPERATION_COUNT = 3;
+
+	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.model.metadata.api.MetadataWhiteboard <em>Metadata Whiteboard</em>}' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -615,7 +670,7 @@ public interface ApiPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.metadata.api.impl.ApiPackageImpl#getMetadataWhiteboard()
 	 * @generated
 	 */
-	int METADATA_WHITEBOARD = 4;
+	int METADATA_WHITEBOARD = 5;
 
 	/**
 	 * The number of structural features of the '<em>Metadata Whiteboard</em>' class.
@@ -852,13 +907,31 @@ public interface ApiPackage extends org.eclipse.emf.ecore.EPackage {
 	int METADATA_WHITEBOARD___UNSET_METADATA_INDEX__METADATAINDEX = METADATA_SERVICE_OPERATION_COUNT + 7;
 
 	/**
+	 * The operation id for the '<em>Add Metadata Handler</em>' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int METADATA_WHITEBOARD___ADD_METADATA_HANDLER__METADATAHANDLER = METADATA_SERVICE_OPERATION_COUNT + 8;
+
+	/**
+	 * The operation id for the '<em>Remove Metadata Handler</em>' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int METADATA_WHITEBOARD___REMOVE_METADATA_HANDLER__METADATAHANDLER = METADATA_SERVICE_OPERATION_COUNT + 9;
+
+	/**
 	 * The number of operations of the '<em>Metadata Whiteboard</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int METADATA_WHITEBOARD_OPERATION_COUNT = METADATA_SERVICE_OPERATION_COUNT + 8;
+	int METADATA_WHITEBOARD_OPERATION_COUNT = METADATA_SERVICE_OPERATION_COUNT + 10;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.model.metadata.api.AspectProvider <em>Aspect Provider</em>}' class.
@@ -868,7 +941,7 @@ public interface ApiPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.metadata.api.impl.ApiPackageImpl#getAspectProvider()
 	 * @generated
 	 */
-	int ASPECT_PROVIDER = 5;
+	int ASPECT_PROVIDER = 6;
 
 	/**
 	 * The number of structural features of the '<em>Aspect Provider</em>' class.
@@ -1313,6 +1386,46 @@ public interface ApiPackage extends org.eclipse.emf.ecore.EPackage {
 	EOperation getMetadataService__GetRegistry();
 
 	/**
+	 * Returns the meta object for class '{@link org.eclipse.fennec.model.metadata.api.MetadataHandler <em>Metadata Handler</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for class '<em>Metadata Handler</em>'.
+	 * @see org.eclipse.fennec.model.metadata.api.MetadataHandler
+	 * @generated
+	 */
+	EClass getMetadataHandler();
+
+	/**
+	 * Returns the meta object for the '{@link org.eclipse.fennec.model.metadata.api.MetadataHandler#onPackageRegistered(org.eclipse.fennec.model.metadata.PackageMetadata) <em>On Package Registered</em>}' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the '<em>On Package Registered</em>' operation.
+	 * @see org.eclipse.fennec.model.metadata.api.MetadataHandler#onPackageRegistered(org.eclipse.fennec.model.metadata.PackageMetadata)
+	 * @generated
+	 */
+	EOperation getMetadataHandler__OnPackageRegistered__PackageMetadata();
+
+	/**
+	 * Returns the meta object for the '{@link org.eclipse.fennec.model.metadata.api.MetadataHandler#onPackageUnregistered(org.eclipse.fennec.model.metadata.PackageMetadata) <em>On Package Unregistered</em>}' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the '<em>On Package Unregistered</em>' operation.
+	 * @see org.eclipse.fennec.model.metadata.api.MetadataHandler#onPackageUnregistered(org.eclipse.fennec.model.metadata.PackageMetadata)
+	 * @generated
+	 */
+	EOperation getMetadataHandler__OnPackageUnregistered__PackageMetadata();
+
+	/**
+	 * Returns the meta object for the '{@link org.eclipse.fennec.model.metadata.api.MetadataHandler#clear() <em>Clear</em>}' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the '<em>Clear</em>' operation.
+	 * @see org.eclipse.fennec.model.metadata.api.MetadataHandler#clear()
+	 * @generated
+	 */
+	EOperation getMetadataHandler__Clear();
+
+	/**
 	 * Returns the meta object for class '{@link org.eclipse.fennec.model.metadata.api.MetadataWhiteboard <em>Metadata Whiteboard</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -1401,6 +1514,26 @@ public interface ApiPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 */
 	EOperation getMetadataWhiteboard__UnsetMetadataIndex__MetadataIndex();
+
+	/**
+	 * Returns the meta object for the '{@link org.eclipse.fennec.model.metadata.api.MetadataWhiteboard#addMetadataHandler(org.eclipse.fennec.model.metadata.api.MetadataHandler) <em>Add Metadata Handler</em>}' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the '<em>Add Metadata Handler</em>' operation.
+	 * @see org.eclipse.fennec.model.metadata.api.MetadataWhiteboard#addMetadataHandler(org.eclipse.fennec.model.metadata.api.MetadataHandler)
+	 * @generated
+	 */
+	EOperation getMetadataWhiteboard__AddMetadataHandler__MetadataHandler();
+
+	/**
+	 * Returns the meta object for the '{@link org.eclipse.fennec.model.metadata.api.MetadataWhiteboard#removeMetadataHandler(org.eclipse.fennec.model.metadata.api.MetadataHandler) <em>Remove Metadata Handler</em>}' operation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the '<em>Remove Metadata Handler</em>' operation.
+	 * @see org.eclipse.fennec.model.metadata.api.MetadataWhiteboard#removeMetadataHandler(org.eclipse.fennec.model.metadata.api.MetadataHandler)
+	 * @generated
+	 */
+	EOperation getMetadataWhiteboard__RemoveMetadataHandler__MetadataHandler();
 
 	/**
 	 * Returns the meta object for class '{@link org.eclipse.fennec.model.metadata.api.AspectProvider <em>Aspect Provider</em>}'.
@@ -1802,6 +1935,40 @@ public interface ApiPackage extends org.eclipse.emf.ecore.EPackage {
 		EOperation METADATA_SERVICE___GET_REGISTRY = eINSTANCE.getMetadataService__GetRegistry();
 
 		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.model.metadata.api.MetadataHandler <em>Metadata Handler</em>}' class.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.model.metadata.api.MetadataHandler
+		 * @see org.eclipse.fennec.model.metadata.api.impl.ApiPackageImpl#getMetadataHandler()
+		 * @generated
+		 */
+		EClass METADATA_HANDLER = eINSTANCE.getMetadataHandler();
+
+		/**
+		 * The meta object literal for the '<em><b>On Package Registered</b></em>' operation.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EOperation METADATA_HANDLER___ON_PACKAGE_REGISTERED__PACKAGEMETADATA = eINSTANCE.getMetadataHandler__OnPackageRegistered__PackageMetadata();
+
+		/**
+		 * The meta object literal for the '<em><b>On Package Unregistered</b></em>' operation.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EOperation METADATA_HANDLER___ON_PACKAGE_UNREGISTERED__PACKAGEMETADATA = eINSTANCE.getMetadataHandler__OnPackageUnregistered__PackageMetadata();
+
+		/**
+		 * The meta object literal for the '<em><b>Clear</b></em>' operation.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EOperation METADATA_HANDLER___CLEAR = eINSTANCE.getMetadataHandler__Clear();
+
+		/**
 		 * The meta object literal for the '{@link org.eclipse.fennec.model.metadata.api.MetadataWhiteboard <em>Metadata Whiteboard</em>}' class.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
@@ -1874,6 +2041,22 @@ public interface ApiPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EOperation METADATA_WHITEBOARD___UNSET_METADATA_INDEX__METADATAINDEX = eINSTANCE.getMetadataWhiteboard__UnsetMetadataIndex__MetadataIndex();
+
+		/**
+		 * The meta object literal for the '<em><b>Add Metadata Handler</b></em>' operation.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EOperation METADATA_WHITEBOARD___ADD_METADATA_HANDLER__METADATAHANDLER = eINSTANCE.getMetadataWhiteboard__AddMetadataHandler__MetadataHandler();
+
+		/**
+		 * The meta object literal for the '<em><b>Remove Metadata Handler</b></em>' operation.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EOperation METADATA_WHITEBOARD___REMOVE_METADATA_HANDLER__METADATAHANDLER = eINSTANCE.getMetadataWhiteboard__RemoveMetadataHandler__MetadataHandler();
 
 		/**
 		 * The meta object literal for the '{@link org.eclipse.fennec.model.metadata.api.AspectProvider <em>Aspect Provider</em>}' class.

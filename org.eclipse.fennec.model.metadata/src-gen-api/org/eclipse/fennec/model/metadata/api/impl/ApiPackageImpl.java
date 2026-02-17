@@ -23,6 +23,7 @@ import org.eclipse.fennec.model.metadata.MetadataPackage;
 import org.eclipse.fennec.model.metadata.api.ApiFactory;
 import org.eclipse.fennec.model.metadata.api.ApiPackage;
 import org.eclipse.fennec.model.metadata.api.AspectProvider;
+import org.eclipse.fennec.model.metadata.api.MetadataHandler;
 import org.eclipse.fennec.model.metadata.api.MetadataIndex;
 import org.eclipse.fennec.model.metadata.api.MetadataIndexReader;
 import org.eclipse.fennec.model.metadata.api.MetadataIndexWriter;
@@ -63,6 +64,13 @@ public class ApiPackageImpl extends EPackageImpl implements ApiPackage {
 	 * @generated
 	 */
 	private EClass metadataServiceEClass = null;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	private EClass metadataHandlerEClass = null;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -507,6 +515,46 @@ public class ApiPackageImpl extends EPackageImpl implements ApiPackage {
 	 * @generated
 	 */
 	@Override
+	public EClass getMetadataHandler() {
+		return metadataHandlerEClass;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EOperation getMetadataHandler__OnPackageRegistered__PackageMetadata() {
+		return metadataHandlerEClass.getEOperations().get(0);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EOperation getMetadataHandler__OnPackageUnregistered__PackageMetadata() {
+		return metadataHandlerEClass.getEOperations().get(1);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EOperation getMetadataHandler__Clear() {
+		return metadataHandlerEClass.getEOperations().get(2);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EClass getMetadataWhiteboard() {
 		return metadataWhiteboardEClass;
 	}
@@ -589,6 +637,26 @@ public class ApiPackageImpl extends EPackageImpl implements ApiPackage {
 	@Override
 	public EOperation getMetadataWhiteboard__UnsetMetadataIndex__MetadataIndex() {
 		return metadataWhiteboardEClass.getEOperations().get(7);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EOperation getMetadataWhiteboard__AddMetadataHandler__MetadataHandler() {
+		return metadataWhiteboardEClass.getEOperations().get(8);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EOperation getMetadataWhiteboard__RemoveMetadataHandler__MetadataHandler() {
+		return metadataWhiteboardEClass.getEOperations().get(9);
 	}
 
 	/**
@@ -740,6 +808,11 @@ public class ApiPackageImpl extends EPackageImpl implements ApiPackage {
 		createEOperation(metadataServiceEClass, METADATA_SERVICE___GET_CLASS_PROFILE_BY_URI__STRING_STRING);
 		createEOperation(metadataServiceEClass, METADATA_SERVICE___GET_REGISTRY);
 
+		metadataHandlerEClass = createEClass(METADATA_HANDLER);
+		createEOperation(metadataHandlerEClass, METADATA_HANDLER___ON_PACKAGE_REGISTERED__PACKAGEMETADATA);
+		createEOperation(metadataHandlerEClass, METADATA_HANDLER___ON_PACKAGE_UNREGISTERED__PACKAGEMETADATA);
+		createEOperation(metadataHandlerEClass, METADATA_HANDLER___CLEAR);
+
 		metadataWhiteboardEClass = createEClass(METADATA_WHITEBOARD);
 		createEOperation(metadataWhiteboardEClass, METADATA_WHITEBOARD___REGISTER_PACKAGE__EPACKAGE);
 		createEOperation(metadataWhiteboardEClass, METADATA_WHITEBOARD___UNREGISTER_PACKAGE__EPACKAGE);
@@ -749,6 +822,8 @@ public class ApiPackageImpl extends EPackageImpl implements ApiPackage {
 		createEOperation(metadataWhiteboardEClass, METADATA_WHITEBOARD___GET_METADATA_INDEX);
 		createEOperation(metadataWhiteboardEClass, METADATA_WHITEBOARD___SET_METADATA_INDEX__METADATAINDEX);
 		createEOperation(metadataWhiteboardEClass, METADATA_WHITEBOARD___UNSET_METADATA_INDEX__METADATAINDEX);
+		createEOperation(metadataWhiteboardEClass, METADATA_WHITEBOARD___ADD_METADATA_HANDLER__METADATAHANDLER);
+		createEOperation(metadataWhiteboardEClass, METADATA_WHITEBOARD___REMOVE_METADATA_HANDLER__METADATAHANDLER);
 
 		aspectProviderEClass = createEClass(ASPECT_PROVIDER);
 		createEOperation(aspectProviderEClass, ASPECT_PROVIDER___GET_ASPECT_TYPE_ID);
@@ -914,6 +989,16 @@ public class ApiPackageImpl extends EPackageImpl implements ApiPackage {
 
 		initEOperation(getMetadataService__GetRegistry(), theMetadataPackage.getMetadataRegistry(), "getRegistry", 0, 1, IS_UNIQUE, IS_ORDERED);
 
+		initEClass(metadataHandlerEClass, MetadataHandler.class, "MetadataHandler", IS_ABSTRACT, IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+
+		op = initEOperation(getMetadataHandler__OnPackageRegistered__PackageMetadata(), null, "onPackageRegistered", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, theMetadataPackage.getPackageMetadata(), "packageMetadata", 0, 1, IS_UNIQUE, IS_ORDERED);
+
+		op = initEOperation(getMetadataHandler__OnPackageUnregistered__PackageMetadata(), null, "onPackageUnregistered", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, theMetadataPackage.getPackageMetadata(), "packageMetadata", 0, 1, IS_UNIQUE, IS_ORDERED);
+
+		initEOperation(getMetadataHandler__Clear(), null, "clear", 0, 1, IS_UNIQUE, IS_ORDERED);
+
 		initEClass(metadataWhiteboardEClass, MetadataWhiteboard.class, "MetadataWhiteboard", IS_ABSTRACT, IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 
 		op = initEOperation(getMetadataWhiteboard__RegisterPackage__EPackage(), theMetadataPackage.getPackageMetadata(), "registerPackage", 0, 1, IS_UNIQUE, IS_ORDERED);
@@ -937,6 +1022,12 @@ public class ApiPackageImpl extends EPackageImpl implements ApiPackage {
 
 		op = initEOperation(getMetadataWhiteboard__UnsetMetadataIndex__MetadataIndex(), null, "unsetMetadataIndex", 0, 1, IS_UNIQUE, IS_ORDERED);
 		addEParameter(op, this.getMetadataIndex(), "index", 0, 1, IS_UNIQUE, IS_ORDERED);
+
+		op = initEOperation(getMetadataWhiteboard__AddMetadataHandler__MetadataHandler(), null, "addMetadataHandler", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, this.getMetadataHandler(), "handler", 0, 1, IS_UNIQUE, IS_ORDERED);
+
+		op = initEOperation(getMetadataWhiteboard__RemoveMetadataHandler__MetadataHandler(), null, "removeMetadataHandler", 0, 1, IS_UNIQUE, IS_ORDERED);
+		addEParameter(op, this.getMetadataHandler(), "handler", 0, 1, IS_UNIQUE, IS_ORDERED);
 
 		initEClass(aspectProviderEClass, AspectProvider.class, "AspectProvider", IS_ABSTRACT, IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 

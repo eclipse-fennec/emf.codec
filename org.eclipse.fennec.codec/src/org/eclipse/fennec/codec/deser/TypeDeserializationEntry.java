@@ -23,7 +23,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.SuperTypeConfig;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.context.ContextHelper;
-import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
+import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 import org.eclipse.fennec.model.metadata.TypeStrategy;
 
@@ -55,7 +55,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
     private static final Logger LOGGER = Logger.getLogger(TypeDeserializationEntry.class.getName());
 
     private final TypeConfig config;
-    private final TypeDiscriminatorService typeDiscriminatorService;
+    private final TypeDiscriminatorReader typeDiscriminatorService;
     private final SuperTypeConfig superTypeConfig;
     private final String discriminatorMapId;
 
@@ -69,12 +69,12 @@ public class TypeDeserializationEntry implements DeserializationEntry {
     }
 
     /**
-     * Creates a new TypeDeserializationEntry with a TypeDiscriminatorService.
+     * Creates a new TypeDeserializationEntry with a TypeDiscriminatorReader.
      *
      * @param config the effective type configuration
      * @param typeDiscriminatorService the service for MAPPED strategy type resolution (may be null)
      */
-    public TypeDeserializationEntry(TypeConfig config, TypeDiscriminatorService typeDiscriminatorService) {
+    public TypeDeserializationEntry(TypeConfig config, TypeDiscriminatorReader typeDiscriminatorService) {
         this(config, typeDiscriminatorService, null, null);
     }
 
@@ -85,7 +85,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      * @param typeDiscriminatorService the service for MAPPED strategy type resolution (may be null)
      * @param superTypeConfig the supertype configuration for validation (may be null)
      */
-    public TypeDeserializationEntry(TypeConfig config, TypeDiscriminatorService typeDiscriminatorService,
+    public TypeDeserializationEntry(TypeConfig config, TypeDiscriminatorReader typeDiscriminatorService,
             SuperTypeConfig superTypeConfig) {
         this(config, typeDiscriminatorService, superTypeConfig, null);
     }
@@ -94,7 +94,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      * Creates a new TypeDeserializationEntry with targeted discriminator registry.
      * <p>
      * When {@code discriminatorMapId} is provided, discriminator resolution uses
-     * {@link TypeDiscriminatorService#resolve(String, String, java.util.function.Function)}
+     * {@link TypeDiscriminatorReader#resolve(String, String, java.util.function.Function)}
      * targeting the specific registry. This ensures the correct fallback strategy
      * (ERROR, SKIP, FALLBACK) is applied per the registry configuration.
      * </p>
@@ -107,7 +107,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      * @param superTypeConfig the supertype configuration for validation (may be null)
      * @param discriminatorMapId the targeted registry mapId (may be null for untargeted resolution)
      */
-    public TypeDeserializationEntry(TypeConfig config, TypeDiscriminatorService typeDiscriminatorService,
+    public TypeDeserializationEntry(TypeConfig config, TypeDiscriminatorReader typeDiscriminatorService,
             SuperTypeConfig superTypeConfig, String discriminatorMapId) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.typeDiscriminatorService = typeDiscriminatorService;
@@ -461,7 +461,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      * </p>
      * <p>
      * When a {@code currentReference} is provided, inline mapping resolution is attempted
-     * first via {@link TypeDiscriminatorService#resolveForReference} before falling back to
+     * first via {@link TypeDiscriminatorReader#resolveForReference} before falling back to
      * the global discriminator registries.
      * </p>
      *
@@ -515,7 +515,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             }
         }
 
-        // Fourth: try discriminator lookup via TypeDiscriminatorService.
+        // Fourth: try discriminator lookup via TypeDiscriminatorReader.
         // When a discriminatorMapId is set, use targeted resolution via resolve(mapId, ...)
         // which applies the correct fallback strategy (ERROR/SKIP/FALLBACK) for that registry.
         // Otherwise fall back to resolveFromAny() which searches all registries.

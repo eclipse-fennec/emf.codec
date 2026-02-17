@@ -94,6 +94,10 @@ public class ApiAdapterFactory extends AdapterFactoryImpl {
 				return createMetadataServiceAdapter();
 			}
 			@Override
+			public Adapter caseMetadataHandler(MetadataHandler object) {
+				return createMetadataHandlerAdapter();
+			}
+			@Override
 			public Adapter caseMetadataWhiteboard(MetadataWhiteboard object) {
 				return createMetadataWhiteboardAdapter();
 			}
@@ -174,6 +178,20 @@ public class ApiAdapterFactory extends AdapterFactoryImpl {
 	 * @generated
 	 */
 	public Adapter createMetadataServiceAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eclipse.fennec.model.metadata.api.MetadataHandler <em>Metadata Handler</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eclipse.fennec.model.metadata.api.MetadataHandler
+	 * @generated
+	 */
+	public Adapter createMetadataHandlerAdapter() {
 		return null;
 	}
 

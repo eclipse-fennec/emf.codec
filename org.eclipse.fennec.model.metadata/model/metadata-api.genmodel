@@ -123,6 +123,15 @@
       </genOperations>
       <genOperations ecoreOperation="metadata-api.ecore#//MetadataService/getRegistry"/>
     </genClasses>
+    <genClasses image="false" ecoreClass="metadata-api.ecore#//MetadataHandler">
+      <genOperations ecoreOperation="metadata-api.ecore#//MetadataHandler/onPackageRegistered">
+        <genParameters ecoreParameter="metadata-api.ecore#//MetadataHandler/onPackageRegistered/packageMetadata"/>
+      </genOperations>
+      <genOperations ecoreOperation="metadata-api.ecore#//MetadataHandler/onPackageUnregistered">
+        <genParameters ecoreParameter="metadata-api.ecore#//MetadataHandler/onPackageUnregistered/packageMetadata"/>
+      </genOperations>
+      <genOperations ecoreOperation="metadata-api.ecore#//MetadataHandler/clear"/>
+    </genClasses>
     <genClasses image="false" ecoreClass="metadata-api.ecore#//MetadataWhiteboard">
       <genOperations ecoreOperation="metadata-api.ecore#//MetadataWhiteboard/registerPackage">
         <genParameters ecoreParameter="metadata-api.ecore#//MetadataWhiteboard/registerPackage/ePackage"/>
@@ -143,6 +152,12 @@
       </genOperations>
       <genOperations ecoreOperation="metadata-api.ecore#//MetadataWhiteboard/unsetMetadataIndex">
         <genParameters ecoreParameter="metadata-api.ecore#//MetadataWhiteboard/unsetMetadataIndex/index"/>
+      </genOperations>
+      <genOperations ecoreOperation="metadata-api.ecore#//MetadataWhiteboard/addMetadataHandler">
+        <genParameters ecoreParameter="metadata-api.ecore#//MetadataWhiteboard/addMetadataHandler/handler"/>
+      </genOperations>
+      <genOperations ecoreOperation="metadata-api.ecore#//MetadataWhiteboard/removeMetadataHandler">
+        <genParameters ecoreParameter="metadata-api.ecore#//MetadataWhiteboard/removeMetadataHandler/handler"/>
       </genOperations>
     </genClasses>
     <genClasses image="false" ecoreClass="metadata-api.ecore#//AspectProvider">

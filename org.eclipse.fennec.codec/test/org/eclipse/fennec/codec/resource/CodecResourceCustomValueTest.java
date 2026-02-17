@@ -25,12 +25,12 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;

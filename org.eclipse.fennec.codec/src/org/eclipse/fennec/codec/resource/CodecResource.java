@@ -45,6 +45,7 @@ import org.eclipse.fennec.codec.format.FormatDelegate;
 import org.eclipse.fennec.codec.format.FormatDelegateGenerator;
 import org.eclipse.fennec.codec.format.FormatDelegateParser;
 import org.eclipse.fennec.codec.format.FormatReaderDelegate;
+import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.context.ContextHelper;
@@ -111,6 +112,7 @@ public class CodecResource extends ResourceImpl {
     private final JsonMapper.Builder mapperBuilder;
     private final CodecResourceHelper helper;
     private final CodecFormatProvider<?, ?> formatProvider;
+    private final TypeDiscriminatorReader typeDiscriminatorReader;
 
     private ObjectMapper mapper;
 
@@ -158,6 +160,29 @@ public class CodecResource extends ResourceImpl {
     public CodecResource(URI uri, MetadataService metadataService, ConfigurationResolver resolver,
             CodecValueRegistry valueRegistry, JsonMapper.Builder mapperBuilder,
             CodecFormatProvider<?, ?> formatProvider) {
+        this(uri, metadataService, resolver, valueRegistry, mapperBuilder, formatProvider, null);
+    }
+
+    /**
+     * Creates a new CodecResource with an externally managed TypeDiscriminatorReader.
+     * <p>
+     * When a {@code typeDiscriminatorReader} is provided, it is used directly instead of
+     * creating a fresh {@link TypeDiscriminatorService} on every save()/load() call.
+     * This is the recommended approach in OSGi where the TypeDiscriminatorService is
+     * managed as a MetadataHandler on the MetadataWhiteboard.
+     * </p>
+     *
+     * @param uri the resource URI
+     * @param metadataService the metadata service
+     * @param resolver the configuration resolver
+     * @param valueRegistry custom value readers/writers registry (null for default)
+     * @param mapperBuilder pre-configured mapper builder (null for default)
+     * @param formatProvider the format provider (null for default JSON via CodecJsonFactory)
+     * @param typeDiscriminatorReader externally managed discriminator reader (null to create fresh per operation)
+     */
+    public CodecResource(URI uri, MetadataService metadataService, ConfigurationResolver resolver,
+            CodecValueRegistry valueRegistry, JsonMapper.Builder mapperBuilder,
+            CodecFormatProvider<?, ?> formatProvider, TypeDiscriminatorReader typeDiscriminatorReader) {
         super(uri);
         this.metadataService = requireNonNull(metadataService, "metadataService must not be null");
         this.resolver = enrichWithAnnotations(resolver, metadataService);
@@ -165,6 +190,7 @@ public class CodecResource extends ResourceImpl {
         this.mapperBuilder = mapperBuilder;
         this.helper = new CodecResourceHelper(metadataService);
         this.formatProvider = formatProvider;
+        this.typeDiscriminatorReader = typeDiscriminatorReader;
     }
 
     public ObjectMapper getMapper() {
@@ -601,9 +627,10 @@ public class CodecResource extends ResourceImpl {
     }
 
     private ObjectMapper createObjectMapper(Map<String, Object> options, ConfigurationResolver operationResolver) {
-        // Create TypeDiscriminatorService for MAPPED strategy resolution
-        TypeDiscriminatorService typeService =
-                TypeDiscriminatorService.fromMetadataService(metadataService);
+        // Use externally managed TypeDiscriminatorReader or create fresh one
+        TypeDiscriminatorReader typeService = typeDiscriminatorReader != null
+                ? typeDiscriminatorReader
+                : TypeDiscriminatorService.fromMetadataService(metadataService);
 
         // Extract global properties from the operation resolver (includes load/save options)
         List<String> ignoreFeatures = operationResolver.getGlobalProperty(ConfigProperty.IGNORE_FEATURES);

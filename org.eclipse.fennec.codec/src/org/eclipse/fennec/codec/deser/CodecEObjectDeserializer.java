@@ -37,7 +37,7 @@ import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
-import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
+import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -174,12 +174,12 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         // If no hint provided, try to find ANY discriminatorPath from registered types
         if (!FeaturePathTypeResolver.hasDiscriminatorPath(discriminatorPath)
                 && hintEClass == null
-                && config.getTypeDiscriminatorService() != null) {
-            discriminatorPath = config.getTypeDiscriminatorService().getAnyDiscriminatorPath();
+                && config.getTypeDiscriminatorReader() != null) {
+            discriminatorPath = config.getTypeDiscriminatorReader().getAnyDiscriminatorPath();
         }
 
         if (FeaturePathTypeResolver.hasDiscriminatorPath(discriminatorPath)
-                && config.getTypeDiscriminatorService() != null
+                && config.getTypeDiscriminatorReader() != null
                 && !isTypeKey(discriminatorPath)) {
             return deserializeWithFeaturePath(parser, ctxt, state, hintEClass, discriminatorPath);
         }
@@ -353,7 +353,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         String discriminatorMapId = getDiscriminatorMapId(hintEClass);
 
         TypeDeserializationEntry typeEntry = new TypeDeserializationEntry(
-                typeConfig, config.getTypeDiscriminatorService(),
+                typeConfig, config.getTypeDiscriminatorReader(),
                 globalSuperTypeConfig, discriminatorMapId);
 
         // Compose type value with schema if needed (SCHEMA_AND_TYPE format)
@@ -722,7 +722,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         // Add type entry (with supertype config for STRUCTURED format validation)
         if (typeConfig != null && typeConfig.isInclude()) {
             TypeDeserializationEntry typeEntry = new TypeDeserializationEntry(
-                    typeConfig, config.getTypeDiscriminatorService(),
+                    typeConfig, config.getTypeDiscriminatorReader(),
                     superTypeConfig);
             entries.put(typeEntry.getKey(), typeEntry);
         }
@@ -812,9 +812,9 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 return mapId;
             }
         }
-        // Fall back to direct annotation scanning via TypeDiscriminatorService
+        // Fall back to direct annotation scanning via TypeDiscriminatorReader
         // (walks up supertypes looking for typeMapping/{mapId} annotations)
-        TypeDiscriminatorService tds = config.getTypeDiscriminatorService();
+        TypeDiscriminatorReader tds = config.getTypeDiscriminatorReader();
         if (tds != null) {
             return tds.getMapIdForEClass(eClass);
         }
@@ -837,7 +837,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         String mapId = getDiscriminatorMapId(hintEClass);
 
         FeaturePathTypeResolver resolver = new FeaturePathTypeResolver(
-                discriminatorPath, config.getTypeDiscriminatorService(), mapId);
+                discriminatorPath, config.getTypeDiscriminatorReader(), mapId);
         resolver.scan(parser, ctxt);
 
         EClass resolvedEClass = resolver.getResolvedEClass();

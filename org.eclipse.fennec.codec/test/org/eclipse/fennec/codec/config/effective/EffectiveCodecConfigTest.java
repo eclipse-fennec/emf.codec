@@ -36,7 +36,7 @@ import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.eclipse.fennec.codec.config.IdConfig;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
-import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
+import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.model.metadata.ClassMetadata;
 import org.eclipse.fennec.model.metadata.TypeStrategy;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
@@ -360,13 +360,13 @@ class EffectiveCodecConfigTest {
         @Test
         @DisplayName("returns type discriminator service")
         void returnsTypeDiscriminatorService() {
-            TypeDiscriminatorService tds = mock(TypeDiscriminatorService.class);
+            TypeDiscriminatorReader tds = mock(TypeDiscriminatorReader.class);
             EffectiveCodecConfig cfg = EffectiveCodecConfig.builder()
                     .resolver(resolver)
                     .diagnostics(diagnostics)
                     .typeDiscriminatorService(tds)
                     .build();
-            assertSame(tds, cfg.getTypeDiscriminatorService());
+            assertSame(tds, cfg.getTypeDiscriminatorReader());
         }
 
         @Test

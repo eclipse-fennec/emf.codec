@@ -15,6 +15,7 @@ package org.eclipse.fennec.codec.util;
 import static java.util.Objects.requireNonNull;
 
 import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
+import org.eclipse.fennec.model.metadata.api.MetadataHandler;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
 import org.eclipse.fennec.model.metadata.service.MetadataServiceImpl;
 
@@ -48,13 +49,25 @@ public final class MetadataServiceFactory {
      * is typically provided via DS and the CodecAspectProvider is registered
      * separately.
      * </p>
+     * <p>
+     * Optional {@link MetadataHandler} instances can be provided. They will be
+     * registered on the whiteboard and automatically receive callbacks when
+     * packages are registered or unregistered. For example, pass a
+     * {@link org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService TypeDiscriminatorService}
+     * to get an incrementally managed type discriminator instead of rebuilding
+     * it on every save()/load() call.
+     * </p>
      *
+     * @param handlers optional metadata handlers to register on the whiteboard
      * @return a new MetadataWhiteboard configured for codec serialization
      */
     @SuppressWarnings("restriction")
-    public static MetadataWhiteboard create() {
+    public static MetadataWhiteboard create(MetadataHandler... handlers) {
         MetadataServiceImpl service = new MetadataServiceImpl();
         service.registerAspectProvider(new CodecAspectProvider());
+        for (MetadataHandler handler : handlers) {
+            service.addMetadataHandler(handler);
+        }
         return service;
     }
 

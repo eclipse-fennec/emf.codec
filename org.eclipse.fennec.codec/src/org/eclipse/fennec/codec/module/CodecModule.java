@@ -23,7 +23,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.deser.CodecDeserializers;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
-import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
+import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.ser.CodecSerializers;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 
@@ -59,7 +59,7 @@ public class CodecModule extends SimpleModule {
     private final String moduleName;
     private final ConfigurationResolver resolver;
     private final MetadataService metadataService;
-    private final TypeDiscriminatorService typeDiscriminatorService;
+    private final TypeDiscriminatorReader typeDiscriminatorService;
     private final CodecValueRegistry valueRegistry;
     private final List<String> globalIgnoreFeatures;
     private final boolean sortPropertiesAlphabetically;
@@ -200,7 +200,7 @@ public class CodecModule extends SimpleModule {
      *
      * @return the discriminator service, may be null
      */
-    public TypeDiscriminatorService getTypeDiscriminatorService() {
+    public TypeDiscriminatorReader getTypeDiscriminatorReader() {
         return typeDiscriminatorService;
     }
 
@@ -287,7 +287,7 @@ public class CodecModule extends SimpleModule {
         private String moduleName = DEFAULT_MODULE_NAME;
         private ConfigurationResolver resolver;
         private MetadataService metadataService;
-        private TypeDiscriminatorService typeDiscriminatorService;
+        private TypeDiscriminatorReader typeDiscriminatorService;
         private CodecValueRegistry valueRegistry;
         private List<String> globalIgnoreFeatures;
         private boolean sortPropertiesAlphabetically = false;
@@ -317,7 +317,7 @@ public class CodecModule extends SimpleModule {
             return this;
         }
 
-        public Builder typeDiscriminatorService(TypeDiscriminatorService typeDiscriminatorService) {
+        public Builder typeDiscriminatorService(TypeDiscriminatorReader typeDiscriminatorService) {
             this.typeDiscriminatorService = typeDiscriminatorService;
             return this;
         }

@@ -20,7 +20,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.buffer.CodecTokenBuffer;
-import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
+import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -40,14 +40,14 @@ import tools.jackson.core.ObjectReadContext;
  *   <li>Track nesting depth while scanning JSON tokens</li>
  *   <li>Buffer all tokens for later replay</li>
  *   <li>When a path segment matches at the correct depth, navigate deeper or extract value</li>
- *   <li>Resolve EClass via TypeDiscriminatorService once discriminator value is found</li>
+ *   <li>Resolve EClass via TypeDiscriminatorReader once discriminator value is found</li>
  * </ol>
  * </p>
  * <p>
  * Based on the fennec v1 approach from {@code CodecEObjectDeserializer.determineType()}.
  * </p>
  *
- * @see TypeDiscriminatorService
+ * @see TypeDiscriminatorReader
  * @author Mark Hoffmann
  * @since 2025-12-28
  */
@@ -56,7 +56,7 @@ public class FeaturePathTypeResolver {
     private static final Logger LOGGER = Logger.getLogger(FeaturePathTypeResolver.class.getName());
 
     private final String discriminatorPath;
-    private final TypeDiscriminatorService typeDiscriminatorService;
+    private final TypeDiscriminatorReader typeDiscriminatorService;
     private final String mapId;
 
     /** The resolved EClass (set after scanning) */
@@ -74,7 +74,7 @@ public class FeaturePathTypeResolver {
      * @param discriminatorPath the feature path (e.g., "info.profileName" or "messageType")
      * @param typeDiscriminatorService the service for resolving discriminator values to EClasses
      */
-    public FeaturePathTypeResolver(String discriminatorPath, TypeDiscriminatorService typeDiscriminatorService) {
+    public FeaturePathTypeResolver(String discriminatorPath, TypeDiscriminatorReader typeDiscriminatorService) {
         this(discriminatorPath, typeDiscriminatorService, null);
     }
 
@@ -89,7 +89,7 @@ public class FeaturePathTypeResolver {
      * @param typeDiscriminatorService the service for resolving discriminator values to EClasses
      * @param mapId the registry map ID (from DiscriminatorConfig), or null to search all registries
      */
-    public FeaturePathTypeResolver(String discriminatorPath, TypeDiscriminatorService typeDiscriminatorService, String mapId) {
+    public FeaturePathTypeResolver(String discriminatorPath, TypeDiscriminatorReader typeDiscriminatorService, String mapId) {
         this.discriminatorPath = Objects.requireNonNull(discriminatorPath, "discriminatorPath must not be null");
         this.typeDiscriminatorService = Objects.requireNonNull(typeDiscriminatorService, "typeDiscriminatorService must not be null");
         this.mapId = mapId;
@@ -265,7 +265,7 @@ public class FeaturePathTypeResolver {
      * Resolves an EClass from a URI string using the global package registry.
      * <p>
      * Used as the {@code eClassResolver} function for fallback strategy resolution
-     * via {@link TypeDiscriminatorService#resolveFromAny}.
+     * via {@link TypeDiscriminatorReader#resolveFromAny}.
      * </p>
      *
      * @param uriStr the EClass URI (e.g., "http://example.org/1.0#//ClassName")
