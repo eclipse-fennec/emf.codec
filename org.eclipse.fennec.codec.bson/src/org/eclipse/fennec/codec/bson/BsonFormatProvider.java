@@ -81,6 +81,11 @@ public class BsonFormatProvider implements CodecFormatProvider<InputStream, Outp
         return new String[] { "application/bson" };
     }
 
+    @Override
+    public boolean supportsArrayRoot() {
+        return false;
+    }
+
     // ========================================================================
     // Stream-wrapping writer: BsonDocument → OutputStream
     // ========================================================================

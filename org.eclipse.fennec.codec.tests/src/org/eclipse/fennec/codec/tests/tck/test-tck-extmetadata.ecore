@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testtckextmetadata" nsURI="http://test.example.org/tck-extmetadata/1.0" nsPrefix="tckextmetadata">
+
+  <!-- Document - class with ExtendedMetaData name annotations -->
+  <eClassifiers xsi:type="ecore:EClass" name="Document">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="documentTitle" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="name" value="title"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pageCount" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="internalId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+        <details key="name" value="id"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+</ecore:EPackage>

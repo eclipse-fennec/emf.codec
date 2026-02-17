@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="testtckemap" nsURI="http://test.example.org/tck-emap/1.0" nsPrefix="tckemap">
+
+  <!-- Map entry for String->String maps -->
+  <eClassifiers xsi:type="ecore:EClass" name="MapEntry" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- Map entry for String->Item maps -->
+  <eClassifiers xsi:type="ecore:EClass" name="ItemEntry" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//Item" containment="true"/>
+  </eClassifiers>
+
+  <!-- Item - value type for object maps -->
+  <eClassifiers xsi:type="ecore:EClass" name="Item">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="count" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+  <!-- MapContainer - root class with EMap features -->
+  <eClassifiers xsi:type="ecore:EClass" name="MapContainer">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="metadata" upperBound="-1" eType="#//MapEntry" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="items" upperBound="-1" eType="#//ItemEntry" containment="true"/>
+  </eClassifiers>
+
+</ecore:EPackage>

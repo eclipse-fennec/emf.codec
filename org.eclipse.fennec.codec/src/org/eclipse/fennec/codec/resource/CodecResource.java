@@ -409,8 +409,17 @@ public class CodecResource extends ResourceImpl {
 
             if (getContents().size() == 1) {
                 writer.writeValue(gen, getContents().get(0));
+            } else if (!provider.supportsArrayRoot()) {
+                throw new IOException(String.format(
+                        "Format '%s' does not support multiple root objects (array root). "
+                        + "Resource %s contains %d root objects.",
+                        provider.getFormatId(), getURI(), getContents().size()));
             } else {
-                writer.writeValue(gen, getContents().toArray(new EObject[0]));
+                gen.writeStartArray();
+                for (EObject content : getContents()) {
+                    writer.writeValue(gen, content);
+                }
+                gen.writeEndArray();
             }
         }
     }

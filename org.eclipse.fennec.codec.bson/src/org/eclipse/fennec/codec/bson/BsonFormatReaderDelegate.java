@@ -60,16 +60,16 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
     private final Deque<ContextType> contextStack = new ArrayDeque<>();
 
     /**
-     * Creates a new delegate. Call {@link #setSource(BsonDocument)} before reading.
+     * Tracks whether the last primitive value token was consumed by a read method.
+     * BSON's state machine requires values to be explicitly read (unlike Jackson's
+     * streaming parsers which auto-advance). If nextToken() is called without
+     * consuming the previous value, we must skip it to avoid an infinite loop.
      */
+    private boolean valueConsumed = true;
+
     public BsonFormatReaderDelegate() {
     }
 
-    /**
-     * Creates a new delegate with the given source document.
-     *
-     * @param source the BSON document to read from
-     */
     public BsonFormatReaderDelegate(BsonDocument source) {
         setSource(source);
     }
@@ -91,6 +91,14 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
 
     @Override
     public TokenType nextToken() {
+        // If the previous value token was not consumed, skip it to advance
+        // the BSON reader's state machine. Without this, calling nextToken()
+        // repeatedly without reading the value causes an infinite loop.
+        if (!valueConsumed && reader.getState() == State.VALUE) {
+            reader.skipValue();
+        }
+        valueConsumed = true;
+
         State state = reader.getState();
 
         switch (state) {
@@ -165,17 +173,22 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
                 break;
             case STRING:
                 currentToken = TokenType.VALUE_STRING;
+                valueConsumed = false;
                 break;
             case INT32:
             case INT64:
                 currentToken = TokenType.VALUE_NUMBER_INT;
+                valueConsumed = false;
                 break;
             case DOUBLE:
             case DECIMAL128:
                 currentToken = TokenType.VALUE_NUMBER_FLOAT;
+                valueConsumed = false;
                 break;
             case BOOLEAN:
+                // Boolean is consumed eagerly in FormatDelegateParser.nextToken()
                 currentToken = TokenType.VALUE_BOOLEAN;
+                valueConsumed = false;
                 break;
             case NULL:
                 reader.readNull();
@@ -183,9 +196,11 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
                 break;
             case BINARY:
                 currentToken = TokenType.VALUE_BINARY;
+                valueConsumed = false;
                 break;
             case OBJECT_ID:
                 currentToken = TokenType.VALUE_STRING;
+                valueConsumed = false;
                 break;
             default:
                 currentToken = TokenType.NOT_AVAILABLE;
@@ -207,6 +222,7 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
     @Override
     public void skipChildren() {
         reader.skipValue();
+        valueConsumed = true;
     }
 
     // ========================================================================
@@ -216,6 +232,7 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
     @Override
     public String readString() {
         BsonType type = reader.getCurrentBsonType();
+        valueConsumed = true;
         if (type == BsonType.OBJECT_ID) {
             return reader.readObjectId().toHexString();
         }
@@ -224,11 +241,13 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
 
     @Override
     public int readInt() {
+        valueConsumed = true;
         return reader.readInt32();
     }
 
     @Override
     public long readLong() {
+        valueConsumed = true;
         BsonType type = reader.getCurrentBsonType();
         if (type == BsonType.INT32) {
             return reader.readInt32();
@@ -238,11 +257,13 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
 
     @Override
     public float readFloat() {
+        valueConsumed = true;
         return (float) reader.readDouble();
     }
 
     @Override
     public double readDouble() {
+        valueConsumed = true;
         BsonType type = reader.getCurrentBsonType();
         if (type == BsonType.DECIMAL128) {
             return reader.readDecimal128().bigDecimalValue().doubleValue();
@@ -252,6 +273,7 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
 
     @Override
     public BigInteger readBigInteger() {
+        valueConsumed = true;
         BsonType type = reader.getCurrentBsonType();
         if (type == BsonType.STRING) {
             return new BigInteger(reader.readString());
@@ -264,6 +286,7 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
 
     @Override
     public BigDecimal readBigDecimal() {
+        valueConsumed = true;
         BsonType type = reader.getCurrentBsonType();
         if (type == BsonType.DECIMAL128) {
             return reader.readDecimal128().bigDecimalValue();
@@ -273,11 +296,13 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
 
     @Override
     public boolean readBoolean() {
+        valueConsumed = true;
         return reader.readBoolean();
     }
 
     @Override
     public byte[] readBinary() {
+        valueConsumed = true;
         return reader.readBinaryData().getData();
     }
 
@@ -292,6 +317,7 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
 
     @Override
     public Object readObjectId() {
+        valueConsumed = true;
         return reader.readObjectId();
     }
 

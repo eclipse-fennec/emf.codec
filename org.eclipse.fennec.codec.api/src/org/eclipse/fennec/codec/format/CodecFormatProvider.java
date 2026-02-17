@@ -96,4 +96,21 @@ public interface CodecFormatProvider<S, T> {
     default String[] getContentTypes() {
         return new String[0];
     }
+
+    /**
+     * Returns whether this format supports multiple root objects (array root).
+     * <p>
+     * When {@code true}, the codec can serialize/deserialize resources with
+     * multiple root objects as an array. When {@code false}, only single root
+     * objects are supported and an error will be raised if the resource
+     * contains more than one root object.
+     * <p>
+     * Most streaming formats (JSON, YAML, CBOR) support array root.
+     * Document-based formats (BSON) typically do not.
+     *
+     * @return {@code true} if array root is supported, {@code false} otherwise
+     */
+    default boolean supportsArrayRoot() {
+        return true;
+    }
 }

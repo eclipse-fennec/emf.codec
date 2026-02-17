@@ -18,7 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.bson.BsonArray;
 import org.bson.BsonBinary;
 import org.bson.BsonBoolean;
 import org.bson.BsonDocument;
@@ -28,6 +30,8 @@ import org.bson.BsonInt64;
 import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonString;
+import org.bson.types.Decimal128;
+import org.bson.BsonDecimal128;
 import org.bson.types.ObjectId;
 import org.eclipse.fennec.codec.format.TokenType;
 import org.junit.jupiter.api.DisplayName;
@@ -295,6 +299,269 @@ class BsonFormatReaderDelegateTest {
             assertEquals(TokenType.VALUE_NUMBER_FLOAT, reader.nextToken());
             assertEquals(9.5, reader.readDouble());
 
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+    }
+
+    @Nested
+    @DisplayName("unconsumed values")
+    class UnconsumedValues {
+
+        @Test
+        @DisplayName("skips unconsumed string when advancing to next token")
+        void skipsUnconsumedString() throws IOException {
+            BsonDocument doc = new BsonDocument()
+                    .append("a", new BsonString("skip-me"))
+                    .append("b", new BsonInt32(42));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("a", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            // Do NOT call readString() — simulate codec skipping unknown field
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("b", reader.currentName());
+            assertEquals(TokenType.VALUE_NUMBER_INT, reader.nextToken());
+            assertEquals(42, reader.readInt());
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+
+        @Test
+        @DisplayName("skips unconsumed int when advancing to next token")
+        void skipsUnconsumedInt() throws IOException {
+            BsonDocument doc = new BsonDocument()
+                    .append("a", new BsonInt32(99))
+                    .append("b", new BsonString("hello"));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.VALUE_NUMBER_INT, reader.nextToken());
+            // Do NOT call readInt()
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("b", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals("hello", reader.readString());
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+
+        @Test
+        @DisplayName("skips unconsumed long when advancing to next token")
+        void skipsUnconsumedLong() throws IOException {
+            BsonDocument doc = new BsonDocument()
+                    .append("a", new BsonInt64(123456789L))
+                    .append("b", new BsonString("next"));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.VALUE_NUMBER_INT, reader.nextToken());
+            // Do NOT call readLong()
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("b", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals("next", reader.readString());
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+
+        @Test
+        @DisplayName("skips unconsumed double when advancing to next token")
+        void skipsUnconsumedDouble() throws IOException {
+            BsonDocument doc = new BsonDocument()
+                    .append("a", new BsonDouble(3.14))
+                    .append("b", new BsonString("after"));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.VALUE_NUMBER_FLOAT, reader.nextToken());
+            // Do NOT call readDouble()
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("b", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals("after", reader.readString());
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+
+        @Test
+        @DisplayName("skips unconsumed decimal128 when advancing to next token")
+        void skipsUnconsumedDecimal128() throws IOException {
+            BsonDocument doc = new BsonDocument()
+                    .append("a", new BsonDecimal128(new Decimal128(99)))
+                    .append("b", new BsonString("end"));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.VALUE_NUMBER_FLOAT, reader.nextToken());
+            // Do NOT call readBigDecimal()
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("b", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals("end", reader.readString());
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+
+        @Test
+        @DisplayName("skips unconsumed boolean when advancing to next token")
+        void skipsUnconsumedBoolean() throws IOException {
+            BsonDocument doc = new BsonDocument()
+                    .append("a", BsonBoolean.TRUE)
+                    .append("b", new BsonString("found"));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.VALUE_BOOLEAN, reader.nextToken());
+            // Do NOT call readBoolean()
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("b", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals("found", reader.readString());
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+
+        @Test
+        @DisplayName("skips unconsumed binary when advancing to next token")
+        void skipsUnconsumedBinary() throws IOException {
+            BsonDocument doc = new BsonDocument()
+                    .append("a", new BsonBinary(new byte[]{1, 2, 3}))
+                    .append("b", new BsonString("ok"));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.VALUE_BINARY, reader.nextToken());
+            // Do NOT call readBinary()
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("b", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals("ok", reader.readString());
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+
+        @Test
+        @DisplayName("skips unconsumed ObjectId when advancing to next token")
+        void skipsUnconsumedObjectId() throws IOException {
+            BsonDocument doc = new BsonDocument()
+                    .append("a", new BsonObjectId(new ObjectId()))
+                    .append("b", new BsonString("done"));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            // Do NOT call readString() or readObjectId()
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("b", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals("done", reader.readString());
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+
+        @Test
+        @DisplayName("skips multiple consecutive unconsumed values")
+        void skipsMultipleUnconsumedValues() throws IOException {
+            BsonDocument doc = new BsonDocument()
+                    .append("a", new BsonString("skip1"))
+                    .append("b", new BsonInt32(123))
+                    .append("c", new BsonDouble(4.5))
+                    .append("d", new BsonString("read-me"));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+
+            // Skip "a" (string)
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+
+            // Skip "b" (int)
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.VALUE_NUMBER_INT, reader.nextToken());
+
+            // Skip "c" (double)
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.VALUE_NUMBER_FLOAT, reader.nextToken());
+
+            // Read "d" (string)
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("d", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals("read-me", reader.readString());
+
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+
+        @Test
+        @DisplayName("skips unconsumed values in array context")
+        void skipsUnconsumedValuesInArray() throws IOException {
+            BsonDocument doc = new BsonDocument("items",
+                    new BsonArray(List.of(
+                            new BsonString("skip1"),
+                            new BsonString("skip2"),
+                            new BsonString("read-me"))));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals(TokenType.START_ARRAY, reader.nextToken());
+
+            // Skip first two values without consuming
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+
+            // Read the third
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals("read-me", reader.readString());
+
+            assertEquals(TokenType.END_ARRAY, reader.nextToken());
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            reader.close();
+        }
+
+        @Test
+        @DisplayName("skips unconsumed value in nested object — the SuperType bug scenario")
+        void skipsUnconsumedValueInNestedObject() throws IOException {
+            // Reproduces the exact pattern that caused the SuperType hang:
+            // An object inside an array with an unknown field whose value is not consumed
+            BsonDocument inner = new BsonDocument()
+                    .append("_supertype", new BsonString("Manager"))
+                    .append("name", new BsonString("Alice"));
+            BsonDocument doc = new BsonDocument("staff",
+                    new BsonArray(List.of(inner)));
+            BsonFormatReaderDelegate reader = createReader(doc);
+
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("staff", reader.currentName());
+            assertEquals(TokenType.START_ARRAY, reader.nextToken());
+            assertEquals(TokenType.START_OBJECT, reader.nextToken());
+
+            // Read _supertype field name but skip its value (the bug scenario)
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("_supertype", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            // Do NOT call readString() — this is what caused the infinite loop
+
+            // The fix should allow advancing to the next field
+            assertEquals(TokenType.FIELD_NAME, reader.nextToken());
+            assertEquals("name", reader.currentName());
+            assertEquals(TokenType.VALUE_STRING, reader.nextToken());
+            assertEquals("Alice", reader.readString());
+
+            assertEquals(TokenType.END_OBJECT, reader.nextToken());
+            assertEquals(TokenType.END_ARRAY, reader.nextToken());
             assertEquals(TokenType.END_OBJECT, reader.nextToken());
             reader.close();
         }
