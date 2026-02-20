@@ -36,7 +36,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -73,16 +73,16 @@ class ExtendedMetaDataTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(ExtendedMetaDataTest.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, ExtendedMetaDataTest.class);
 
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
-        documentClass = ecoreHelper.getEClass(testPackage, "Document");
-        documentTitleAttribute = (EAttribute) ecoreHelper.getFeature(documentClass, "documentTitle");
-        documentAuthorsAttribute = (EAttribute) ecoreHelper.getFeature(documentClass, "documentAuthors");
-        pageCountAttribute = (EAttribute) ecoreHelper.getFeature(documentClass, "pageCount");
-        internalIdAttribute = (EAttribute) ecoreHelper.getFeature(documentClass, "internalId");
+        documentClass = EcoreHelper.getEClass(testPackage, "Document");
+        documentTitleAttribute = (EAttribute) EcoreHelper.getFeature(documentClass, "documentTitle");
+        documentAuthorsAttribute = (EAttribute) EcoreHelper.getFeature(documentClass, "documentAuthors");
+        pageCountAttribute = (EAttribute) EcoreHelper.getFeature(documentClass, "pageCount");
+        internalIdAttribute = (EAttribute) EcoreHelper.getFeature(documentClass, "internalId");
     }
 
     @AfterEach

@@ -33,7 +33,7 @@ import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,17 +61,17 @@ public abstract class AbstractEMapTCK {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(AbstractEMapTCK.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, AbstractEMapTCK.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        mapContainerClass = ecoreHelper.getEClass(testPackage, "MapContainer");
-        itemClass = ecoreHelper.getEClass(testPackage, "Item");
-        metadataRef = (EReference) ecoreHelper.getFeature(mapContainerClass, "metadata");
-        itemsRef = (EReference) ecoreHelper.getFeature(mapContainerClass, "items");
+        mapContainerClass = EcoreHelper.getEClass(testPackage, "MapContainer");
+        itemClass = EcoreHelper.getEClass(testPackage, "Item");
+        metadataRef = (EReference) EcoreHelper.getFeature(mapContainerClass, "metadata");
+        itemsRef = (EReference) EcoreHelper.getFeature(mapContainerClass, "items");
     }
 
     @AfterEach
@@ -85,7 +85,7 @@ public abstract class AbstractEMapTCK {
     @SuppressWarnings("unchecked")
     void stringMapRoundTrip() throws IOException {
         EObject container = testPackage.getEFactoryInstance().create(mapContainerClass);
-        container.eSet(ecoreHelper.getFeature(mapContainerClass, "name"), "test-container");
+        container.eSet(EcoreHelper.getFeature(mapContainerClass, "name"), "test-container");
 
         EMap<String, String> metadata = (EMap<String, String>) container.eGet(metadataRef);
         metadata.put("key1", "value1");
@@ -95,7 +95,7 @@ public abstract class AbstractEMapTCK {
         EObject loaded = roundTrip(container, mapContainerClass);
 
         assertNotNull(loaded);
-        assertEquals("test-container", loaded.eGet(ecoreHelper.getFeature(mapContainerClass, "name")));
+        assertEquals("test-container", loaded.eGet(EcoreHelper.getFeature(mapContainerClass, "name")));
         EMap<String, String> loadedMetadata = (EMap<String, String>) loaded.eGet(metadataRef);
         assertEquals(3, loadedMetadata.size());
         assertEquals("value1", loadedMetadata.get("key1"));
@@ -108,18 +108,18 @@ public abstract class AbstractEMapTCK {
     @SuppressWarnings("unchecked")
     void objectMapRoundTrip() throws IOException {
         EObject container = testPackage.getEFactoryInstance().create(mapContainerClass);
-        container.eSet(ecoreHelper.getFeature(mapContainerClass, "name"), "item-container");
+        container.eSet(EcoreHelper.getFeature(mapContainerClass, "name"), "item-container");
 
         EMap<String, EObject> items = (EMap<String, EObject>) container.eGet(itemsRef);
 
         EObject item1 = testPackage.getEFactoryInstance().create(itemClass);
-        item1.eSet(ecoreHelper.getFeature(itemClass, "name"), "Widget");
-        item1.eSet(ecoreHelper.getFeature(itemClass, "count"), 10);
+        item1.eSet(EcoreHelper.getFeature(itemClass, "name"), "Widget");
+        item1.eSet(EcoreHelper.getFeature(itemClass, "count"), 10);
         items.put("widget", item1);
 
         EObject item2 = testPackage.getEFactoryInstance().create(itemClass);
-        item2.eSet(ecoreHelper.getFeature(itemClass, "name"), "Gadget");
-        item2.eSet(ecoreHelper.getFeature(itemClass, "count"), 5);
+        item2.eSet(EcoreHelper.getFeature(itemClass, "name"), "Gadget");
+        item2.eSet(EcoreHelper.getFeature(itemClass, "count"), 5);
         items.put("gadget", item2);
 
         EObject loaded = roundTrip(container, mapContainerClass);
@@ -130,13 +130,13 @@ public abstract class AbstractEMapTCK {
 
         EObject loadedWidget = loadedItems.get("widget");
         assertNotNull(loadedWidget);
-        assertEquals("Widget", loadedWidget.eGet(ecoreHelper.getFeature(itemClass, "name")));
-        assertEquals(10, loadedWidget.eGet(ecoreHelper.getFeature(itemClass, "count")));
+        assertEquals("Widget", loadedWidget.eGet(EcoreHelper.getFeature(itemClass, "name")));
+        assertEquals(10, loadedWidget.eGet(EcoreHelper.getFeature(itemClass, "count")));
 
         EObject loadedGadget = loadedItems.get("gadget");
         assertNotNull(loadedGadget);
-        assertEquals("Gadget", loadedGadget.eGet(ecoreHelper.getFeature(itemClass, "name")));
-        assertEquals(5, loadedGadget.eGet(ecoreHelper.getFeature(itemClass, "count")));
+        assertEquals("Gadget", loadedGadget.eGet(EcoreHelper.getFeature(itemClass, "name")));
+        assertEquals(5, loadedGadget.eGet(EcoreHelper.getFeature(itemClass, "count")));
     }
 
     // ========================================================================

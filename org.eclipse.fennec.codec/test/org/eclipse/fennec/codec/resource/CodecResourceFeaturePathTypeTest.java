@@ -35,7 +35,7 @@ import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.ClassMetadata;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -68,8 +68,8 @@ class CodecResourceFeaturePathTypeTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(CodecResourceFeaturePathTypeTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, CodecResourceFeaturePathTypeTest.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
@@ -77,13 +77,13 @@ class CodecResourceFeaturePathTypeTest {
 
         typeService = TypeDiscriminatorService.fromMetadataService(metadataService);
 
-        deviceInfoClass = ecoreHelper.getEClass(testPackage, "DeviceInfo");
-        uplinkMessageClass = ecoreHelper.getEClass(testPackage, "UplinkMessage");
-        temperatureMessageClass = ecoreHelper.getEClass(testPackage, "TemperatureMessage");
-        humidityMessageClass = ecoreHelper.getEClass(testPackage, "HumidityMessage");
-        simpleMessageClass = ecoreHelper.getEClass(testPackage, "SimpleMessage");
-        textMessageClass = ecoreHelper.getEClass(testPackage, "TextMessage");
-        binaryMessageClass = ecoreHelper.getEClass(testPackage, "BinaryMessage");
+        deviceInfoClass = EcoreHelper.getEClass(testPackage, "DeviceInfo");
+        uplinkMessageClass = EcoreHelper.getEClass(testPackage, "UplinkMessage");
+        temperatureMessageClass = EcoreHelper.getEClass(testPackage, "TemperatureMessage");
+        humidityMessageClass = EcoreHelper.getEClass(testPackage, "HumidityMessage");
+        simpleMessageClass = EcoreHelper.getEClass(testPackage, "SimpleMessage");
+        textMessageClass = EcoreHelper.getEClass(testPackage, "TextMessage");
+        binaryMessageClass = EcoreHelper.getEClass(testPackage, "BinaryMessage");
     }
 
     @AfterEach

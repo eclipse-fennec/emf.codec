@@ -36,7 +36,7 @@ import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.TypeStrategy;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -71,22 +71,22 @@ public abstract class AbstractTypeStrategyTCK {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(AbstractTypeStrategyTCK.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, AbstractTypeStrategyTCK.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        zooClass = ecoreHelper.getEClass(testPackage, "Zoo");
-        dogClass = ecoreHelper.getEClass(testPackage, "Dog");
-        catClass = ecoreHelper.getEClass(testPackage, "Cat");
-        zooNameAttr = (EAttribute) ecoreHelper.getFeature(zooClass, "name");
-        animalNameAttr = (EAttribute) ecoreHelper.getFeature(ecoreHelper.getEClass(testPackage, "Animal"), "name");
-        animalAgeAttr = (EAttribute) ecoreHelper.getFeature(ecoreHelper.getEClass(testPackage, "Animal"), "age");
-        breedAttr = (EAttribute) ecoreHelper.getFeature(dogClass, "breed");
-        indoorAttr = (EAttribute) ecoreHelper.getFeature(catClass, "indoor");
-        animalsRef = (EReference) ecoreHelper.getFeature(zooClass, "animals");
+        zooClass = EcoreHelper.getEClass(testPackage, "Zoo");
+        dogClass = EcoreHelper.getEClass(testPackage, "Dog");
+        catClass = EcoreHelper.getEClass(testPackage, "Cat");
+        zooNameAttr = (EAttribute) EcoreHelper.getFeature(zooClass, "name");
+        animalNameAttr = (EAttribute) EcoreHelper.getFeature(EcoreHelper.getEClass(testPackage, "Animal"), "name");
+        animalAgeAttr = (EAttribute) EcoreHelper.getFeature(EcoreHelper.getEClass(testPackage, "Animal"), "age");
+        breedAttr = (EAttribute) EcoreHelper.getFeature(dogClass, "breed");
+        indoorAttr = (EAttribute) EcoreHelper.getFeature(catClass, "indoor");
+        animalsRef = (EReference) EcoreHelper.getFeature(zooClass, "animals");
     }
 
     @AfterEach

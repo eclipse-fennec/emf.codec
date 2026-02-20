@@ -34,7 +34,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -71,9 +71,9 @@ class FeatureConfigExample {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(FeatureConfigExample.class);
-        basicPkg = ecoreHelper.loadEcoreAbsolute(BASIC_ECORE);
-        forcePkg = ecoreHelper.loadEcoreAbsolute(FORCE_ECORE);
+        ecoreHelper = new EcoreHelper();
+        basicPkg = ecoreHelper.loadEcore(BASIC_ECORE, FeatureConfigExample.class);
+        forcePkg = ecoreHelper.loadEcore(FORCE_ECORE, FeatureConfigExample.class);
         EPackage.Registry.INSTANCE.put(basicPkg.getNsURI(), basicPkg);
         EPackage.Registry.INSTANCE.put(forcePkg.getNsURI(), forcePkg);
 
@@ -81,17 +81,17 @@ class FeatureConfigExample {
         metadataService.registerPackage(basicPkg);
         metadataService.registerPackage(forcePkg);
 
-        personClass = ecoreHelper.getEClass(basicPkg, "Person");
-        cachedItemClass = ecoreHelper.getEClass(forcePkg, "CachedItem");
+        personClass = EcoreHelper.getEClass(basicPkg, "Person");
+        cachedItemClass = EcoreHelper.getEClass(forcePkg, "CachedItem");
 
-        personId = (EAttribute) ecoreHelper.getFeature(personClass, "personId");
-        nameAttr = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        ageAttr = (EAttribute) ecoreHelper.getFeature(personClass, "age");
-        salaryAttr = (EAttribute) ecoreHelper.getFeature(personClass, "salary");
-        tagsAttr = (EAttribute) ecoreHelper.getFeature(personClass, "tags");
+        personId = (EAttribute) EcoreHelper.getFeature(personClass, "personId");
+        nameAttr = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        ageAttr = (EAttribute) EcoreHelper.getFeature(personClass, "age");
+        salaryAttr = (EAttribute) EcoreHelper.getFeature(personClass, "salary");
+        tagsAttr = (EAttribute) EcoreHelper.getFeature(personClass, "tags");
 
-        itemNameAttr = (EAttribute) ecoreHelper.getFeature(cachedItemClass, "name");
-        computedHashAttr = (EAttribute) ecoreHelper.getFeature(cachedItemClass, "computedHash");
+        itemNameAttr = (EAttribute) EcoreHelper.getFeature(cachedItemClass, "name");
+        computedHashAttr = (EAttribute) EcoreHelper.getFeature(cachedItemClass, "computedHash");
     }
 
     @AfterEach

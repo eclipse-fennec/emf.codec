@@ -42,7 +42,7 @@ import org.eclipse.fennec.model.metadata.FeatureMetadata;
 import org.eclipse.fennec.model.metadata.IdStrategy;
 import org.eclipse.fennec.model.metadata.TypeStrategy;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -86,8 +86,8 @@ class CodecResourceAnnotationTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(CodecResourceAnnotationTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, CodecResourceAnnotationTest.class);
 
         // Register package in global registry for type resolution
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
@@ -97,23 +97,23 @@ class CodecResourceAnnotationTest {
         metadataService.registerPackage(testPackage);
 
         // Load EClasses
-        productClass = ecoreHelper.getEClass(testPackage, "Product");
-        orderClass = ecoreHelper.getEClass(testPackage, "Order");
-        orderItemClass = ecoreHelper.getEClass(testPackage, "OrderItem");
-        customerClass = ecoreHelper.getEClass(testPackage, "Customer");
-        vipCustomerClass = ecoreHelper.getEClass(testPackage, "VIPCustomer");
+        productClass = EcoreHelper.getEClass(testPackage, "Product");
+        orderClass = EcoreHelper.getEClass(testPackage, "Order");
+        orderItemClass = EcoreHelper.getEClass(testPackage, "OrderItem");
+        customerClass = EcoreHelper.getEClass(testPackage, "Customer");
+        vipCustomerClass = EcoreHelper.getEClass(testPackage, "VIPCustomer");
 
         // Load Product attributes
-        skuAttribute = (EAttribute) ecoreHelper.getFeature(productClass, "sku");
-        productNameAttribute = (EAttribute) ecoreHelper.getFeature(productClass, "name");
-        priceAttribute = (EAttribute) ecoreHelper.getFeature(productClass, "price");
-        internalCodeAttribute = (EAttribute) ecoreHelper.getFeature(productClass, "internalCode");
+        skuAttribute = (EAttribute) EcoreHelper.getFeature(productClass, "sku");
+        productNameAttribute = (EAttribute) EcoreHelper.getFeature(productClass, "name");
+        priceAttribute = (EAttribute) EcoreHelper.getFeature(productClass, "price");
+        internalCodeAttribute = (EAttribute) EcoreHelper.getFeature(productClass, "internalCode");
 
         // Load Order attributes
-        customerIdAttribute = (EAttribute) ecoreHelper.getFeature(orderClass, "customerId");
-        orderDateAttribute = (EAttribute) ecoreHelper.getFeature(orderClass, "orderDate");
-        totalAttribute = (EAttribute) ecoreHelper.getFeature(orderClass, "total");
-        itemsRef = (EReference) ecoreHelper.getFeature(orderClass, "items");
+        customerIdAttribute = (EAttribute) EcoreHelper.getFeature(orderClass, "customerId");
+        orderDateAttribute = (EAttribute) EcoreHelper.getFeature(orderClass, "orderDate");
+        totalAttribute = (EAttribute) EcoreHelper.getFeature(orderClass, "total");
+        itemsRef = (EReference) EcoreHelper.getFeature(orderClass, "items");
     }
 
     @AfterEach

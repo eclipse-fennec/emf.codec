@@ -30,7 +30,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,16 +56,16 @@ class StrictnessExample {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(StrictnessExample.class);
-        pkg = ecoreHelper.loadEcoreAbsolute(ECORE);
+        ecoreHelper = new EcoreHelper();
+        pkg = ecoreHelper.loadEcore(ECORE, StrictnessExample.class);
         EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(pkg);
 
-        personClass = ecoreHelper.getEClass(pkg, "Person");
-        nameAttr = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        ageAttr = (EAttribute) ecoreHelper.getFeature(personClass, "age");
+        personClass = EcoreHelper.getEClass(pkg, "Person");
+        nameAttr = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        ageAttr = (EAttribute) EcoreHelper.getFeature(personClass, "age");
     }
 
     @AfterEach

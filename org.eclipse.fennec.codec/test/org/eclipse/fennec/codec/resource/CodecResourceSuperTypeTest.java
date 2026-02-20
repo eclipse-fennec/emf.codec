@@ -29,7 +29,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -62,20 +62,20 @@ class CodecResourceSuperTypeTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(CodecResourceSuperTypeTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, CodecResourceSuperTypeTest.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        customerClass = ecoreHelper.getEClass(testPackage, "Customer");
-        vipCustomerClass = ecoreHelper.getEClass(testPackage, "VIPCustomer");
+        customerClass = EcoreHelper.getEClass(testPackage, "Customer");
+        vipCustomerClass = EcoreHelper.getEClass(testPackage, "VIPCustomer");
 
-        emailAttribute = (EAttribute) ecoreHelper.getFeature(customerClass, "email");
-        firstNameAttribute = (EAttribute) ecoreHelper.getFeature(customerClass, "firstName");
-        lastNameAttribute = (EAttribute) ecoreHelper.getFeature(customerClass, "lastName");
-        vipLevelAttribute = (EAttribute) ecoreHelper.getFeature(vipCustomerClass, "vipLevel");
+        emailAttribute = (EAttribute) EcoreHelper.getFeature(customerClass, "email");
+        firstNameAttribute = (EAttribute) EcoreHelper.getFeature(customerClass, "firstName");
+        lastNameAttribute = (EAttribute) EcoreHelper.getFeature(customerClass, "lastName");
+        vipLevelAttribute = (EAttribute) EcoreHelper.getFeature(vipCustomerClass, "vipLevel");
     }
 
     @AfterEach

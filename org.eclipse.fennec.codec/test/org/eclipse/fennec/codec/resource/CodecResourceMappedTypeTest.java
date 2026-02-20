@@ -36,7 +36,7 @@ import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.ClassMetadata;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -75,8 +75,8 @@ class CodecResourceMappedTypeTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(CodecResourceMappedTypeTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute("/org/eclipse/fennec/codec/resource/" + TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore("/org/eclipse/fennec/codec/resource/" + TEST_ECORE, CodecResourceMappedTypeTest.class);
 
         // Register package in global registry for type resolution
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
@@ -89,10 +89,10 @@ class CodecResourceMappedTypeTest {
         typeService = TypeDiscriminatorService.fromMetadataService(metadataService);
 
         // Load EClasses
-        temperatureSensorClass = ecoreHelper.getEClass(testPackage, "TemperatureSensor");
-        humiditySensorClass = ecoreHelper.getEClass(testPackage, "HumiditySensor");
-        gpsTrackerClass = ecoreHelper.getEClass(testPackage, "GPSTracker");
-        deviceContainerClass = ecoreHelper.getEClass(testPackage, "DeviceContainer");
+        temperatureSensorClass = EcoreHelper.getEClass(testPackage, "TemperatureSensor");
+        humiditySensorClass = EcoreHelper.getEClass(testPackage, "HumiditySensor");
+        gpsTrackerClass = EcoreHelper.getEClass(testPackage, "GPSTracker");
+        deviceContainerClass = EcoreHelper.getEClass(testPackage, "DeviceContainer");
     }
 
     @AfterEach

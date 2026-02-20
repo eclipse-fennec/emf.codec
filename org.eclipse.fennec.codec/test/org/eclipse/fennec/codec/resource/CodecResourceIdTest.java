@@ -34,7 +34,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -68,22 +68,22 @@ class CodecResourceIdTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(CodecResourceIdTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, CodecResourceIdTest.class);
 
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        multiIdClass = ecoreHelper.getEClass(testPackage, "MultiId");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        multiIdClass = EcoreHelper.getEClass(testPackage, "MultiId");
 
-        personIdAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "personId");
-        personNameAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        firstNameAttribute = (EAttribute) ecoreHelper.getFeature(multiIdClass, "firstName");
-        lastNameAttribute = (EAttribute) ecoreHelper.getFeature(multiIdClass, "lastName");
-        sequenceAttribute = (EAttribute) ecoreHelper.getFeature(multiIdClass, "sequence");
+        personIdAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "personId");
+        personNameAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        firstNameAttribute = (EAttribute) EcoreHelper.getFeature(multiIdClass, "firstName");
+        lastNameAttribute = (EAttribute) EcoreHelper.getFeature(multiIdClass, "lastName");
+        sequenceAttribute = (EAttribute) EcoreHelper.getFeature(multiIdClass, "sequence");
     }
 
     @AfterEach

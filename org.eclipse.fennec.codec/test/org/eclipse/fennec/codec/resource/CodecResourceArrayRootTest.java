@@ -30,7 +30,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -66,14 +66,14 @@ class CodecResourceArrayRootTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(CodecResourceArrayRootTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, CodecResourceArrayRootTest.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
     }
 
     @AfterEach

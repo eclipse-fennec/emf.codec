@@ -35,7 +35,7 @@ import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -71,17 +71,17 @@ class ForceReadWriteTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(ForceReadWriteTest.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, ForceReadWriteTest.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        idAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "id");
-        nameAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        fullNameAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "fullName");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        idAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "id");
+        nameAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        fullNameAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "fullName");
     }
 
     @AfterEach

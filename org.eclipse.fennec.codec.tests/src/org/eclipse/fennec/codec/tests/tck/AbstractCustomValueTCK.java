@@ -37,7 +37,7 @@ import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -65,17 +65,17 @@ public abstract class AbstractCustomValueTCK {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(AbstractCustomValueTCK.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, AbstractCustomValueTCK.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        dataRecordClass = ecoreHelper.getEClass(testPackage, "DataRecord");
-        idAttr = (EAttribute) ecoreHelper.getFeature(dataRecordClass, "id");
-        labelAttr = (EAttribute) ecoreHelper.getFeature(dataRecordClass, "label");
-        valueAttr = (EAttribute) ecoreHelper.getFeature(dataRecordClass, "value");
+        dataRecordClass = EcoreHelper.getEClass(testPackage, "DataRecord");
+        idAttr = (EAttribute) EcoreHelper.getFeature(dataRecordClass, "id");
+        labelAttr = (EAttribute) EcoreHelper.getFeature(dataRecordClass, "label");
+        valueAttr = (EAttribute) EcoreHelper.getFeature(dataRecordClass, "value");
     }
 
     @AfterEach

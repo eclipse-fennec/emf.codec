@@ -35,7 +35,7 @@ import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -68,20 +68,20 @@ public abstract class AbstractReferenceFormatTCK {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(AbstractReferenceFormatTCK.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, AbstractReferenceFormatTCK.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        warehouseClass = ecoreHelper.getEClass(testPackage, "Warehouse");
-        productClass = ecoreHelper.getEClass(testPackage, "Product");
-        warehouseNameAttr = (EAttribute) ecoreHelper.getFeature(warehouseClass, "name");
-        productIdAttr = (EAttribute) ecoreHelper.getFeature(productClass, "productId");
-        productNameAttr = (EAttribute) ecoreHelper.getFeature(productClass, "name");
-        itemsRef = (EReference) ecoreHelper.getFeature(warehouseClass, "items");
-        featuredRef = (EReference) ecoreHelper.getFeature(warehouseClass, "featured");
+        warehouseClass = EcoreHelper.getEClass(testPackage, "Warehouse");
+        productClass = EcoreHelper.getEClass(testPackage, "Product");
+        warehouseNameAttr = (EAttribute) EcoreHelper.getFeature(warehouseClass, "name");
+        productIdAttr = (EAttribute) EcoreHelper.getFeature(productClass, "productId");
+        productNameAttr = (EAttribute) EcoreHelper.getFeature(productClass, "name");
+        itemsRef = (EReference) EcoreHelper.getFeature(warehouseClass, "items");
+        featuredRef = (EReference) EcoreHelper.getFeature(warehouseClass, "featured");
     }
 
     @AfterEach

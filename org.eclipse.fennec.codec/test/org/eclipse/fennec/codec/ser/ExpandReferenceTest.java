@@ -38,7 +38,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -78,8 +78,8 @@ class ExpandReferenceTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(ExpandReferenceTest.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, ExpandReferenceTest.class);
 
         // Register package in global registry for type resolution
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
@@ -89,17 +89,17 @@ class ExpandReferenceTest {
         metadataService.registerPackage(testPackage);
 
         // Load EClasses
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        companyClass = ecoreHelper.getEClass(testPackage, "Company");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        companyClass = EcoreHelper.getEClass(testPackage, "Company");
 
         // Load EAttributes
-        personNameAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        companyNameAttribute = (EAttribute) ecoreHelper.getFeature(companyClass, "name");
+        personNameAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        companyNameAttribute = (EAttribute) EcoreHelper.getFeature(companyClass, "name");
 
         // Load EReferences
-        friendsRef = (EReference) ecoreHelper.getFeature(personClass, "friends");
-        employeesRef = (EReference) ecoreHelper.getFeature(companyClass, "employees");
-        ceoRef = (EReference) ecoreHelper.getFeature(companyClass, "ceo");
+        friendsRef = (EReference) EcoreHelper.getFeature(personClass, "friends");
+        employeesRef = (EReference) EcoreHelper.getFeature(companyClass, "employees");
+        ceoRef = (EReference) EcoreHelper.getFeature(companyClass, "ceo");
     }
 
     @AfterEach
@@ -711,7 +711,7 @@ class ExpandReferenceTest {
             EObject charlie = createPerson("Charlie");
 
             // Set manager (non-containment single)
-            EReference managerRef = (EReference) ecoreHelper.getFeature(personClass, "manager");
+            EReference managerRef = (EReference) EcoreHelper.getFeature(personClass, "manager");
             alice.eSet(managerRef, bob);
 
             // Set friends (non-containment multi)

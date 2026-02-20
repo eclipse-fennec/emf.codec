@@ -37,7 +37,7 @@ import org.eclipse.fennec.codec.format.impl.JacksonFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -92,8 +92,8 @@ class FormatDelegateJsonRoundTripTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(FormatDelegateJsonRoundTripTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, FormatDelegateJsonRoundTripTest.class);
 
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
@@ -103,24 +103,24 @@ class FormatDelegateJsonRoundTripTest {
         formatProvider = new JacksonFormatProvider("json", new JsonFactory());
 
         // Load EClasses
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        addressClass = ecoreHelper.getEClass(testPackage, "Address");
-        companyClass = ecoreHelper.getEClass(testPackage, "Company");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        addressClass = EcoreHelper.getEClass(testPackage, "Address");
+        companyClass = EcoreHelper.getEClass(testPackage, "Company");
 
         // Load EAttributes
-        nameAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        ageAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "age");
-        activeAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "active");
-        scoreAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "score");
-        tagsAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "tags");
+        nameAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        ageAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "age");
+        activeAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "active");
+        scoreAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "score");
+        tagsAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "tags");
 
         // Load EReferences on Person
-        addressRef = (EReference) ecoreHelper.getFeature(personClass, "address");
-        friendsRef = (EReference) ecoreHelper.getFeature(personClass, "friends");
+        addressRef = (EReference) EcoreHelper.getFeature(personClass, "address");
+        friendsRef = (EReference) EcoreHelper.getFeature(personClass, "friends");
 
         // Load EReferences on Company
-        employeesRef = (EReference) ecoreHelper.getFeature(companyClass, "employees");
-        ceoRef = (EReference) ecoreHelper.getFeature(companyClass, "ceo");
+        employeesRef = (EReference) EcoreHelper.getFeature(companyClass, "employees");
+        ceoRef = (EReference) EcoreHelper.getFeature(companyClass, "ceo");
     }
 
     @AfterEach

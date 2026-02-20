@@ -34,7 +34,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -125,62 +125,62 @@ class DeferredPropertiesDeserializationTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(DeferredPropertiesDeserializationTest.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, DeferredPropertiesDeserializationTest.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
         // Load EClasses
-        containerClass = ecoreHelper.getEClass(testPackage, "Container");
-        addressClass = ecoreHelper.getEClass(testPackage, "Address");
-        tagsClass = ecoreHelper.getEClass(testPackage, "Tags");
-        itemClass = ecoreHelper.getEClass(testPackage, "Item");
-        categoryClass = ecoreHelper.getEClass(testPackage, "Category");
-        cellClass = ecoreHelper.getEClass(testPackage, "Cell");
-        rowClass = ecoreHelper.getEClass(testPackage, "Row");
-        matrixClass = ecoreHelper.getEClass(testPackage, "Matrix");
+        containerClass = EcoreHelper.getEClass(testPackage, "Container");
+        addressClass = EcoreHelper.getEClass(testPackage, "Address");
+        tagsClass = EcoreHelper.getEClass(testPackage, "Tags");
+        itemClass = EcoreHelper.getEClass(testPackage, "Item");
+        categoryClass = EcoreHelper.getEClass(testPackage, "Category");
+        cellClass = EcoreHelper.getEClass(testPackage, "Cell");
+        rowClass = EcoreHelper.getEClass(testPackage, "Row");
+        matrixClass = EcoreHelper.getEClass(testPackage, "Matrix");
 
         // Container features
-        idAttr = (EAttribute) ecoreHelper.getFeature(containerClass, "id");
-        nameAttr = (EAttribute) ecoreHelper.getFeature(containerClass, "name");
-        countAttr = (EAttribute) ecoreHelper.getFeature(containerClass, "count");
-        activeAttr = (EAttribute) ecoreHelper.getFeature(containerClass, "active");
-        labelsAttr = (EAttribute) ecoreHelper.getFeature(containerClass, "labels");
-        scoresAttr = (EAttribute) ecoreHelper.getFeature(containerClass, "scores");
-        addressRef = (EReference) ecoreHelper.getFeature(containerClass, "address");
-        tagsRef = (EReference) ecoreHelper.getFeature(containerClass, "tags");
-        itemsRef = (EReference) ecoreHelper.getFeature(containerClass, "items");
-        categoriesRef = (EReference) ecoreHelper.getFeature(containerClass, "categories");
-        matrixRef = (EReference) ecoreHelper.getFeature(containerClass, "matrix");
+        idAttr = (EAttribute) EcoreHelper.getFeature(containerClass, "id");
+        nameAttr = (EAttribute) EcoreHelper.getFeature(containerClass, "name");
+        countAttr = (EAttribute) EcoreHelper.getFeature(containerClass, "count");
+        activeAttr = (EAttribute) EcoreHelper.getFeature(containerClass, "active");
+        labelsAttr = (EAttribute) EcoreHelper.getFeature(containerClass, "labels");
+        scoresAttr = (EAttribute) EcoreHelper.getFeature(containerClass, "scores");
+        addressRef = (EReference) EcoreHelper.getFeature(containerClass, "address");
+        tagsRef = (EReference) EcoreHelper.getFeature(containerClass, "tags");
+        itemsRef = (EReference) EcoreHelper.getFeature(containerClass, "items");
+        categoriesRef = (EReference) EcoreHelper.getFeature(containerClass, "categories");
+        matrixRef = (EReference) EcoreHelper.getFeature(containerClass, "matrix");
 
         // Address features
-        streetAttr = (EAttribute) ecoreHelper.getFeature(addressClass, "street");
-        cityAttr = (EAttribute) ecoreHelper.getFeature(addressClass, "city");
-        zipCodeAttr = (EAttribute) ecoreHelper.getFeature(addressClass, "zipCode");
+        streetAttr = (EAttribute) EcoreHelper.getFeature(addressClass, "street");
+        cityAttr = (EAttribute) EcoreHelper.getFeature(addressClass, "city");
+        zipCodeAttr = (EAttribute) EcoreHelper.getFeature(addressClass, "zipCode");
 
         // Tags features
-        valuesAttr = (EAttribute) ecoreHelper.getFeature(tagsClass, "values");
+        valuesAttr = (EAttribute) EcoreHelper.getFeature(tagsClass, "values");
 
         // Item features
-        itemNameAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "name");
-        quantityAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "quantity");
-        priceAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "price");
+        itemNameAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "name");
+        quantityAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "quantity");
+        priceAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "price");
 
         // Category features
-        categoryNameAttr = (EAttribute) ecoreHelper.getFeature(categoryClass, "name");
-        categoryItemsRef = (EReference) ecoreHelper.getFeature(categoryClass, "items");
+        categoryNameAttr = (EAttribute) EcoreHelper.getFeature(categoryClass, "name");
+        categoryItemsRef = (EReference) EcoreHelper.getFeature(categoryClass, "items");
 
         // Cell features
-        cellValueAttr = (EAttribute) ecoreHelper.getFeature(cellClass, "value");
+        cellValueAttr = (EAttribute) EcoreHelper.getFeature(cellClass, "value");
 
         // Row features
-        cellsRef = (EReference) ecoreHelper.getFeature(rowClass, "cells");
+        cellsRef = (EReference) EcoreHelper.getFeature(rowClass, "cells");
 
         // Matrix features
-        matrixNameAttr = (EAttribute) ecoreHelper.getFeature(matrixClass, "name");
-        rowsRef = (EReference) ecoreHelper.getFeature(matrixClass, "rows");
+        matrixNameAttr = (EAttribute) EcoreHelper.getFeature(matrixClass, "name");
+        rowsRef = (EReference) EcoreHelper.getFeature(matrixClass, "rows");
     }
 
     @AfterEach

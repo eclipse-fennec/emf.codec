@@ -31,7 +31,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -85,8 +85,8 @@ class EMapDeserializationTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(EMapDeserializationTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, EMapDeserializationTest.class);
 
         // Register package in global registry for type resolution
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
@@ -96,14 +96,14 @@ class EMapDeserializationTest {
         metadataService.registerPackage(testPackage);
 
         // Load EClasses
-        containerClass = ecoreHelper.getEClass(testPackage, "Container");
-        itemClass = ecoreHelper.getEClass(testPackage, "Item");
-        itemEntryClass = ecoreHelper.getEClass(testPackage, "ItemEntry");
-        stringEntryClass = ecoreHelper.getEClass(testPackage, "StringEntry");
+        containerClass = EcoreHelper.getEClass(testPackage, "Container");
+        itemClass = EcoreHelper.getEClass(testPackage, "Item");
+        itemEntryClass = EcoreHelper.getEClass(testPackage, "ItemEntry");
+        stringEntryClass = EcoreHelper.getEClass(testPackage, "StringEntry");
 
         // Load EReferences
-        itemsRef = (EReference) ecoreHelper.getFeature(containerClass, "items");
-        metadataRef = (EReference) ecoreHelper.getFeature(containerClass, "metadata");
+        itemsRef = (EReference) EcoreHelper.getFeature(containerClass, "items");
+        metadataRef = (EReference) EcoreHelper.getFeature(containerClass, "metadata");
     }
 
     @AfterEach

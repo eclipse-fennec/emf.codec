@@ -30,7 +30,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -58,8 +58,8 @@ class TypeResolutionUriTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(TypeResolutionUriTest.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, TypeResolutionUriTest.class);
 
         // Register in global registry for type resolution
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
@@ -68,9 +68,9 @@ class TypeResolutionUriTest {
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        addressClass = ecoreHelper.getEClass(testPackage, "Address");
-        personWithAddressClass = ecoreHelper.getEClass(testPackage, "PersonWithAddress");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        addressClass = EcoreHelper.getEClass(testPackage, "Address");
+        personWithAddressClass = EcoreHelper.getEClass(testPackage, "PersonWithAddress");
     }
 
     @AfterEach

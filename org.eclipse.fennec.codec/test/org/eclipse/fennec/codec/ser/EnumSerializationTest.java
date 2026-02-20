@@ -42,7 +42,7 @@ import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
 import org.eclipse.fennec.model.metadata.FeatureMetadata;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -85,18 +85,18 @@ class EnumSerializationTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(EnumSerializationTest.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, EnumSerializationTest.class);
 
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        taskClass = ecoreHelper.getEClass(testPackage, "Task");
-        nameAttribute = (EAttribute) ecoreHelper.getFeature(taskClass, "name");
-        statusAttribute = (EAttribute) ecoreHelper.getFeature(taskClass, "status");
-        previousStatusesAttribute = (EAttribute) ecoreHelper.getFeature(taskClass, "previousStatuses");
+        taskClass = EcoreHelper.getEClass(testPackage, "Task");
+        nameAttribute = (EAttribute) EcoreHelper.getFeature(taskClass, "name");
+        statusAttribute = (EAttribute) EcoreHelper.getFeature(taskClass, "status");
+        previousStatusesAttribute = (EAttribute) EcoreHelper.getFeature(taskClass, "previousStatuses");
 
         statusEnum = (EEnum) testPackage.getEClassifier("Status");
         pendingLiteral = statusEnum.getEEnumLiteral("PENDING");

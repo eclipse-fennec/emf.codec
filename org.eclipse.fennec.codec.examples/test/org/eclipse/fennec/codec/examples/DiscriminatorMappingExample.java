@@ -35,7 +35,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -67,19 +67,19 @@ class DiscriminatorMappingExample {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(DiscriminatorMappingExample.class);
-        pkg = ecoreHelper.loadEcoreAbsolute(ECORE);
+        ecoreHelper = new EcoreHelper();
+        pkg = ecoreHelper.loadEcore(ECORE, DiscriminatorMappingExample.class);
         EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(pkg);
 
-        sensorNetworkClass = ecoreHelper.getEClass(pkg, "SensorNetwork");
-        temperatureSensorClass = ecoreHelper.getEClass(pkg, "TemperatureSensor");
-        humiditySensorClass = ecoreHelper.getEClass(pkg, "HumiditySensor");
+        sensorNetworkClass = EcoreHelper.getEClass(pkg, "SensorNetwork");
+        temperatureSensorClass = EcoreHelper.getEClass(pkg, "TemperatureSensor");
+        humiditySensorClass = EcoreHelper.getEClass(pkg, "HumiditySensor");
 
-        networkNameAttr = (EAttribute) ecoreHelper.getFeature(sensorNetworkClass, "name");
-        sensorsRef = (EReference) ecoreHelper.getFeature(sensorNetworkClass, "sensors");
+        networkNameAttr = (EAttribute) EcoreHelper.getFeature(sensorNetworkClass, "name");
+        sensorsRef = (EReference) EcoreHelper.getFeature(sensorNetworkClass, "sensors");
     }
 
     @AfterEach

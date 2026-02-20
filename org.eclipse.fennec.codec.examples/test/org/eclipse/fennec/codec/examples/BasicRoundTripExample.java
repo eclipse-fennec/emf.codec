@@ -35,7 +35,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -82,32 +82,32 @@ class BasicRoundTripExample {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(BasicRoundTripExample.class);
-        pkg = ecoreHelper.loadEcoreAbsolute(ECORE);
+        ecoreHelper = new EcoreHelper();
+        pkg = ecoreHelper.loadEcore(ECORE, BasicRoundTripExample.class);
         EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(pkg);
 
-        personClass = ecoreHelper.getEClass(pkg, "Person");
-        addressClass = ecoreHelper.getEClass(pkg, "Address");
-        teamClass = ecoreHelper.getEClass(pkg, "Team");
+        personClass = EcoreHelper.getEClass(pkg, "Person");
+        addressClass = EcoreHelper.getEClass(pkg, "Address");
+        teamClass = EcoreHelper.getEClass(pkg, "Team");
         priorityEnum = (EEnum) pkg.getEClassifier("Priority");
 
-        personId = (EAttribute) ecoreHelper.getFeature(personClass, "personId");
-        nameAttr = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        ageAttr = (EAttribute) ecoreHelper.getFeature(personClass, "age");
-        salaryAttr = (EAttribute) ecoreHelper.getFeature(personClass, "salary");
-        ratingAttr = (EAttribute) ecoreHelper.getFeature(personClass, "rating");
-        activeAttr = (EAttribute) ecoreHelper.getFeature(personClass, "active");
-        priorityAttr = (EAttribute) ecoreHelper.getFeature(personClass, "priority");
-        tagsAttr = (EAttribute) ecoreHelper.getFeature(personClass, "tags");
-        addressRef = (EReference) ecoreHelper.getFeature(personClass, "address");
-        friendsRef = (EReference) ecoreHelper.getFeature(personClass, "friends");
+        personId = (EAttribute) EcoreHelper.getFeature(personClass, "personId");
+        nameAttr = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        ageAttr = (EAttribute) EcoreHelper.getFeature(personClass, "age");
+        salaryAttr = (EAttribute) EcoreHelper.getFeature(personClass, "salary");
+        ratingAttr = (EAttribute) EcoreHelper.getFeature(personClass, "rating");
+        activeAttr = (EAttribute) EcoreHelper.getFeature(personClass, "active");
+        priorityAttr = (EAttribute) EcoreHelper.getFeature(personClass, "priority");
+        tagsAttr = (EAttribute) EcoreHelper.getFeature(personClass, "tags");
+        addressRef = (EReference) EcoreHelper.getFeature(personClass, "address");
+        friendsRef = (EReference) EcoreHelper.getFeature(personClass, "friends");
 
-        teamNameAttr = (EAttribute) ecoreHelper.getFeature(teamClass, "name");
-        membersRef = (EReference) ecoreHelper.getFeature(teamClass, "members");
-        leadRef = (EReference) ecoreHelper.getFeature(teamClass, "lead");
+        teamNameAttr = (EAttribute) EcoreHelper.getFeature(teamClass, "name");
+        membersRef = (EReference) EcoreHelper.getFeature(teamClass, "members");
+        leadRef = (EReference) EcoreHelper.getFeature(teamClass, "lead");
     }
 
     @AfterEach

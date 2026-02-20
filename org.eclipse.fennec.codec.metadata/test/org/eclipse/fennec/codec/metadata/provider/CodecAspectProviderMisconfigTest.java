@@ -34,7 +34,7 @@ import org.eclipse.fennec.model.metadata.MetadataDiagnostic;
 import org.eclipse.fennec.model.metadata.MetadataFactory;
 import org.eclipse.fennec.model.metadata.ReferenceMetadata;
 import org.eclipse.fennec.model.metadata.TypeStrategy;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -73,8 +73,8 @@ class CodecAspectProviderMisconfigTest {
     @BeforeEach
     void setUp() throws IOException {
         provider = new CodecAspectProvider();
-        helper = new EcoreHelper(CodecAspectProviderMisconfigTest.class);
-        testPackage = helper.loadEcore(TEST_ECORE);
+        helper = new EcoreHelper();
+        testPackage = helper.loadEcore(TEST_ECORE, CodecAspectProviderMisconfigTest.class);
     }
 
     @AfterEach
@@ -125,7 +125,7 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("refFormat/refKey on EClass - ignored with WARNING diagnostics (R-V1)")
         void misconfig_refConfigKeysOnClass_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "ClassWithRefConfigMisplaced");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithRefConfigMisplaced");
 
             ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
 
@@ -148,7 +148,7 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("inlineMapping.* on EClass - ignored")
         void misconfig_inlineMappingKeysOnClass_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "ClassWithInlineMappingMisplaced");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithInlineMappingMisplaced");
 
             ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
 
@@ -177,8 +177,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("idStrategy/idFeatures on EReference - ignored with ERROR diagnostics")
         void misconfig_idConfigKeysOnReference_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithIdConfigMisplaced");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithIdConfigMisplaced");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -205,8 +205,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("superType* on EReference - ignored with ERROR diagnostics (ST-V1)")
         void misconfig_superTypeConfigKeysOnReference_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithSuperTypeMisplaced");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithSuperTypeMisplaced");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -232,8 +232,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("enumSerialization on EReference - ignored")
         void misconfig_enumSerializationOnReference_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithEnumSerializationMisplaced");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithEnumSerializationMisplaced");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -252,8 +252,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("typeMapping source on EReference - ignored with ERROR diagnostic (T-V7)")
         void misconfig_typeMappingOnReference_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithDiscriminatorMisplaced");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithDiscriminatorMisplaced");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -276,8 +276,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("typeDiscriminatorPath on EReference - ignored with diagnostic")
         void misconfig_typeDiscriminatorPathOnReference_ignoredWithDiagnostic() {
-            EClass personClass = helper.getEClass(testPackage, "PersonWithContacts");
-            EReference contactsRef = (EReference) helper.getFeature(personClass, "contacts");
+            EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithContacts");
+            EReference contactsRef = (EReference) EcoreHelper.getFeature(personClass, "contacts");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(contactsRef));
 
@@ -302,8 +302,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("typeMapping source on EReference - ignored with ERROR diagnostic")
         void misconfig_typeMappingSourceOnReference_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithTypeMapIdMisplaced");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithTypeMapIdMisplaced");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -327,8 +327,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("more id* class-only keys on EReference - ignored with ERROR diagnostics")
         void misconfig_moreIdConfigKeysOnReference_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithMoreIdConfigMisplaced");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithMoreIdConfigMisplaced");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -349,8 +349,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("fallback reference with ignored typeDiscriminatorPath")
         void misconfig_fallbackReferenceWithIgnoredPath_validKeysParsed() {
-            EClass personClass = helper.getEClass(testPackage, "PersonWithFallbackReference");
-            EReference contactsRef = (EReference) helper.getFeature(personClass, "contacts");
+            EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithFallbackReference");
+            EReference contactsRef = (EReference) EcoreHelper.getFeature(personClass, "contacts");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(contactsRef));
 
@@ -384,8 +384,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("type* keys on EAttribute - ignored")
         void misconfig_typeConfigKeysOnAttribute_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithTypeConfigMisplaced");
-            EAttribute nameAttr = (EAttribute) helper.getFeature(entityClass, "name");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithTypeConfigMisplaced");
+            EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
 
@@ -404,8 +404,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("superType* keys on EAttribute - ignored with ERROR diagnostics (ST-V2)")
         void misconfig_superTypeConfigKeysOnAttribute_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithSuperTypeMisplaced");
-            EAttribute nameAttr = (EAttribute) helper.getFeature(entityClass, "name");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithSuperTypeMisplaced");
+            EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
 
@@ -427,8 +427,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("id* keys on EAttribute - ignored with ERROR diagnostics (ID-V13)")
         void misconfig_idConfigKeysOnAttribute_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithIdConfigMisplaced");
-            EAttribute nameAttr = (EAttribute) helper.getFeature(entityClass, "name");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithIdConfigMisplaced");
+            EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
 
@@ -450,8 +450,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("ref* keys on EAttribute - ignored with ERROR diagnostics (R-V2)")
         void misconfig_refConfigKeysOnAttribute_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithRefConfigMisplaced");
-            EAttribute nameAttr = (EAttribute) helper.getFeature(entityClass, "name");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithRefConfigMisplaced");
+            EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
 
@@ -473,8 +473,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("inlineMapping.* on EAttribute - ignored")
         void misconfig_inlineMappingKeysOnAttribute_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithInlineMappingMisplaced");
-            EAttribute nameAttr = (EAttribute) helper.getFeature(entityClass, "name");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithInlineMappingMisplaced");
+            EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
 
@@ -493,8 +493,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("fallback* keys on EAttribute - ignored")
         void misconfig_fallbackConfigKeysOnAttribute_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithFallbackMisplaced");
-            EAttribute nameAttr = (EAttribute) helper.getFeature(entityClass, "name");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithFallbackMisplaced");
+            EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
 
@@ -513,8 +513,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("expand on EAttribute - ignored with ERROR diagnostic (R-V4)")
         void misconfig_expandOnAttribute_ignored() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithExpandMisplaced");
-            EAttribute nameAttr = (EAttribute) helper.getFeature(entityClass, "name");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithExpandMisplaced");
+            EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
 
@@ -536,8 +536,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("typeValueReaderName/WriterName on EReference - ignored with ERROR diagnostic (T-V1, T-V2)")
         void misconfig_typeValueHandlersOnReference_ignoredWithDiagnostic() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithTypeValueHandlersMisplaced");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithTypeValueHandlersMisplaced");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -580,7 +580,7 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("T-V3/T-V4: typeScope/typeFormatScope on EClass - WARNING diagnostics")
         void validation_runtimeOnlyKeysOnClass_warningDiagnostics() {
-            EClass entityClass = helper.getEClass(testPackage, "ClassWithRuntimeOnlyKeys");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithRuntimeOnlyKeys");
 
             ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
 
@@ -611,8 +611,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("T-V3/T-V4: typeScope/typeFormatScope on EReference - WARNING diagnostics")
         void validation_runtimeOnlyKeysOnReference_warningDiagnostics() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithRuntimeOnlyKeys");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithRuntimeOnlyKeys");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -646,8 +646,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("T-V5: type* keys on EAttribute - ERROR diagnostics")
         void validation_typeKeysOnAttribute_errorDiagnostics() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithTypeConfigMisplaced");
-            EAttribute nameAttr = (EAttribute) helper.getFeature(entityClass, "name");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithTypeConfigMisplaced");
+            EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
 
@@ -677,8 +677,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("T-V7: typeMapping source on EReference (only) - ERROR diagnostic")
         void validation_typeMappingOnReference_errorDiagnostic() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithTypeDiscriminatorOnly");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithTypeDiscriminatorOnly");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -704,7 +704,7 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("T-V30: typeInclude on EClass - WARNING diagnostic (deprecated)")
         void validation_deprecatedTypeInclude_warningDiagnostic() {
-            EClass entityClass = helper.getEClass(testPackage, "ClassWithDeprecatedTypeInclude");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithDeprecatedTypeInclude");
 
             ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
 
@@ -726,7 +726,7 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("T-V31: both typeInclude and typeStrategy - WARNING, strategy takes precedence")
         void validation_bothTypeIncludeAndStrategy_warningDiagnostic() {
-            EClass entityClass = helper.getEClass(testPackage, "ClassWithBothTypeIncludeAndStrategy");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithBothTypeIncludeAndStrategy");
 
             ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
 
@@ -756,7 +756,7 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("ID-V11/ID-V12: idScope/idFormatScope on EClass - WARNING diagnostics")
         void validation_idRuntimeOnlyKeysOnClass_warningDiagnostics() {
-            EClass entityClass = helper.getEClass(testPackage, "ClassWithIdRuntimeOnlyKeys");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithIdRuntimeOnlyKeys");
 
             ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
 
@@ -787,8 +787,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("ID-V11/ID-V12: idScope/idFormatScope on EReference - WARNING diagnostics")
         void validation_idRuntimeOnlyKeysOnReference_warningDiagnostics() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithIdRuntimeOnlyKeys");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithIdRuntimeOnlyKeys");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -827,8 +827,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("strictOnUnknown on EAttribute - WARNING diagnostic")
         void misconfig_strictOnUnknownOnAttribute_warningDiagnostic() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithStrictOnUnknownMisplaced");
-            EAttribute nameAttr = (EAttribute) helper.getFeature(entityClass, "name");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithStrictOnUnknownMisplaced");
+            EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
 
@@ -846,8 +846,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("strictOnMissing on EReference - WARNING diagnostic")
         void misconfig_strictOnMissingOnReference_warningDiagnostic() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithStrictOnMissingMisplaced");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithStrictOnMissingMisplaced");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -863,8 +863,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("both strictness keys on EAttribute - 2 WARNING diagnostics")
         void misconfig_bothStrictnessOnAttribute_twoWarnings() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithBothStrictnessMisplaced");
-            EAttribute dataAttr = (EAttribute) helper.getFeature(entityClass, "data");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithBothStrictnessMisplaced");
+            EAttribute dataAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "data");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(dataAttr));
 
@@ -899,8 +899,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("metadataMerge on EAttribute - ERROR diagnostic")
         void misconfig_metadataMergeOnAttribute_errorDiagnostic() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithMetadataMergeMisplaced");
-            EAttribute nameAttr = (EAttribute) helper.getFeature(entityClass, "name");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithMetadataMergeMisplaced");
+            EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
 
@@ -916,8 +916,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("metadataKey on EReference - ERROR diagnostic")
         void misconfig_metadataKeyOnReference_errorDiagnostic() {
-            EClass entityClass = helper.getEClass(testPackage, "RefWithMetadataKeyMisplaced");
-            EReference addressRef = (EReference) helper.getFeature(entityClass, "address");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithMetadataKeyMisplaced");
+            EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
 
@@ -933,8 +933,8 @@ class CodecAspectProviderMisconfigTest {
         @Test
         @DisplayName("both metadata merge keys on EAttribute - 2 ERROR diagnostics")
         void misconfig_bothMetadataMergeOnAttribute_twoErrors() {
-            EClass entityClass = helper.getEClass(testPackage, "AttrWithBothMetadataMergeMisplaced");
-            EAttribute dataAttr = (EAttribute) helper.getFeature(entityClass, "data");
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithBothMetadataMergeMisplaced");
+            EAttribute dataAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "data");
 
             FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(dataAttr));
 

@@ -32,7 +32,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -100,31 +100,31 @@ class BikeRawTrafficLoadTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(BikeRawTrafficLoadTest.class);
-        bikeRawPackage = ecoreHelper.loadEcoreAbsolute("/org/eclipse/fennec/codec/resource/" + BIKE_RAW_ECORE);
+        ecoreHelper = new EcoreHelper();
+        bikeRawPackage = ecoreHelper.loadEcore("/org/eclipse/fennec/codec/resource/" + BIKE_RAW_ECORE, BikeRawTrafficLoadTest.class);
         EPackage.Registry.INSTANCE.put(bikeRawPackage.getNsURI(), bikeRawPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(bikeRawPackage);
 
         // Load classes
-        historicalRawTrafficClass = ecoreHelper.getEClass(bikeRawPackage, "HistoricalRawTraffic");
-        historicalRawTrafficDataClass = ecoreHelper.getEClass(bikeRawPackage, "HistoricalRawTraffic_data");
-        baseSerieClass = ecoreHelper.getEClass(bikeRawPackage, "BaseSerie");
+        historicalRawTrafficClass = EcoreHelper.getEClass(bikeRawPackage, "HistoricalRawTraffic");
+        historicalRawTrafficDataClass = EcoreHelper.getEClass(bikeRawPackage, "HistoricalRawTraffic_data");
+        baseSerieClass = EcoreHelper.getEClass(bikeRawPackage, "BaseSerie");
 
         // Load BaseSerie attributes (inherited by HistoricalRawTraffic)
-        travelModeAttr = (EAttribute) ecoreHelper.getFeature(baseSerieClass, "travelMode");
-        directionAttr = (EAttribute) ecoreHelper.getFeature(baseSerieClass, "direction");
+        travelModeAttr = (EAttribute) EcoreHelper.getFeature(baseSerieClass, "travelMode");
+        directionAttr = (EAttribute) EcoreHelper.getFeature(baseSerieClass, "direction");
 
         // Load HistoricalRawTraffic own attributes
-        flowIDAttr = (EAttribute) ecoreHelper.getFeature(historicalRawTrafficClass, "flowID");
-        flowNameAttr = (EAttribute) ecoreHelper.getFeature(historicalRawTrafficClass, "flowName");
-        dataRef = (EReference) ecoreHelper.getFeature(historicalRawTrafficClass, "data");
+        flowIDAttr = (EAttribute) EcoreHelper.getFeature(historicalRawTrafficClass, "flowID");
+        flowNameAttr = (EAttribute) EcoreHelper.getFeature(historicalRawTrafficClass, "flowName");
+        dataRef = (EReference) EcoreHelper.getFeature(historicalRawTrafficClass, "data");
 
         // Load HistoricalRawTraffic_data attributes
-        timestampAttr = (EAttribute) ecoreHelper.getFeature(historicalRawTrafficDataClass, "timestamp");
-        granularityAttr = (EAttribute) ecoreHelper.getFeature(historicalRawTrafficDataClass, "granularity");
-        countsAttr = (EAttribute) ecoreHelper.getFeature(historicalRawTrafficDataClass, "counts");
+        timestampAttr = (EAttribute) EcoreHelper.getFeature(historicalRawTrafficDataClass, "timestamp");
+        granularityAttr = (EAttribute) EcoreHelper.getFeature(historicalRawTrafficDataClass, "granularity");
+        countsAttr = (EAttribute) EcoreHelper.getFeature(historicalRawTrafficDataClass, "counts");
     }
 
     @AfterEach

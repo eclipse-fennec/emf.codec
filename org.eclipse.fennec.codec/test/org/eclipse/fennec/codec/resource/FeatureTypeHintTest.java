@@ -35,7 +35,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -83,8 +83,8 @@ class FeatureTypeHintTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(FeatureTypeHintTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute("/org/eclipse/fennec/codec/resource/" + TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore("/org/eclipse/fennec/codec/resource/" + TEST_ECORE, FeatureTypeHintTest.class);
 
         // Register package in global registry for type resolution
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
@@ -94,23 +94,23 @@ class FeatureTypeHintTest {
         metadataService.registerPackage(testPackage);
 
         // Load EClasses
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        addressClass = ecoreHelper.getEClass(testPackage, "Address");
-        exampleClass = ecoreHelper.getEClass(testPackage, "Example");
-        extensionClass = ecoreHelper.getEClass(testPackage, "Extension");
-        containerClass = ecoreHelper.getEClass(testPackage, "Container");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        addressClass = EcoreHelper.getEClass(testPackage, "Address");
+        exampleClass = EcoreHelper.getEClass(testPackage, "Example");
+        extensionClass = EcoreHelper.getEClass(testPackage, "Extension");
+        containerClass = EcoreHelper.getEClass(testPackage, "Container");
 
         // Load EReferences
-        exampleValueRef = (EReference) ecoreHelper.getFeature(exampleClass, "value");
-        extensionValueRef = (EReference) ecoreHelper.getFeature(extensionClass, "value");
-        containerItemsRef = (EReference) ecoreHelper.getFeature(containerClass, "items");
+        exampleValueRef = (EReference) EcoreHelper.getFeature(exampleClass, "value");
+        extensionValueRef = (EReference) EcoreHelper.getFeature(extensionClass, "value");
+        containerItemsRef = (EReference) EcoreHelper.getFeature(containerClass, "items");
 
         // Load EAttributes
-        personNameAttr = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        personAgeAttr = (EAttribute) ecoreHelper.getFeature(personClass, "age");
-        addressStreetAttr = (EAttribute) ecoreHelper.getFeature(addressClass, "street");
-        addressCityAttr = (EAttribute) ecoreHelper.getFeature(addressClass, "city");
-        exampleSummaryAttr = (EAttribute) ecoreHelper.getFeature(exampleClass, "summary");
+        personNameAttr = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        personAgeAttr = (EAttribute) EcoreHelper.getFeature(personClass, "age");
+        addressStreetAttr = (EAttribute) EcoreHelper.getFeature(addressClass, "street");
+        addressCityAttr = (EAttribute) EcoreHelper.getFeature(addressClass, "city");
+        exampleSummaryAttr = (EAttribute) EcoreHelper.getFeature(exampleClass, "summary");
     }
 
     @AfterEach

@@ -18,7 +18,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
 import org.eclipse.fennec.model.metadata.service.MetadataServiceImpl;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -49,14 +49,14 @@ abstract class CodecResourceHelperTestBase {
         metadataService = new MetadataServiceImpl();
         helper = new CodecResourceHelper(metadataService);
 
-        ecoreHelper = new EcoreHelper(CodecResourceHelperTestBase.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, CodecResourceHelperTestBase.class);
 
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        employeeClass = ecoreHelper.getEClass(testPackage, "Employee");
-        addressClass = ecoreHelper.getEClass(testPackage, "Address");
-        abstractEntityClass = ecoreHelper.getEClass(testPackage, "AbstractEntity");
-        namedInterface = ecoreHelper.getEClass(testPackage, "Named");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        employeeClass = EcoreHelper.getEClass(testPackage, "Employee");
+        addressClass = EcoreHelper.getEClass(testPackage, "Address");
+        abstractEntityClass = EcoreHelper.getEClass(testPackage, "AbstractEntity");
+        namedInterface = EcoreHelper.getEClass(testPackage, "Named");
 
         metadataService.registerPackage(testPackage);
     }

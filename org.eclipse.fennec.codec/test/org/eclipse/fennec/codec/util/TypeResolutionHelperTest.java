@@ -23,7 +23,7 @@ import java.io.IOException;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -45,14 +45,16 @@ class TypeResolutionHelperTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(TypeResolutionHelperTest.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        companyClass = ecoreHelper.getEClass(testPackage, "Company");
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, TypeResolutionHelperTest.class);
+        EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        companyClass = EcoreHelper.getEClass(testPackage, "Company");
     }
 
     @AfterEach
     void tearDown() {
+        EPackage.Registry.INSTANCE.remove(testPackage.getNsURI());
         ecoreHelper.releaseAll();
     }
 

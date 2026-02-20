@@ -38,7 +38,7 @@ import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -133,17 +133,17 @@ class CustomValueExample {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(CustomValueExample.class);
-        pkg = ecoreHelper.loadEcoreAbsolute(ECORE);
+        ecoreHelper = new EcoreHelper();
+        pkg = ecoreHelper.loadEcore(ECORE, CustomValueExample.class);
         EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(pkg);
 
-        eventClass = ecoreHelper.getEClass(pkg, "Event");
-        eventIdAttr = (EAttribute) ecoreHelper.getFeature(eventClass, "eventId");
-        titleAttr = (EAttribute) ecoreHelper.getFeature(eventClass, "title");
-        timestampAttr = (EAttribute) ecoreHelper.getFeature(eventClass, "timestamp");
+        eventClass = EcoreHelper.getEClass(pkg, "Event");
+        eventIdAttr = (EAttribute) EcoreHelper.getFeature(eventClass, "eventId");
+        titleAttr = (EAttribute) EcoreHelper.getFeature(eventClass, "title");
+        timestampAttr = (EAttribute) EcoreHelper.getFeature(eventClass, "timestamp");
     }
 
     @AfterEach

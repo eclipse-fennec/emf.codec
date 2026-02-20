@@ -36,7 +36,7 @@ import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -72,24 +72,24 @@ public abstract class AbstractPolymorphismTCK {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(AbstractPolymorphismTCK.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, AbstractPolymorphismTCK.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        zooClass = ecoreHelper.getEClass(testPackage, "Zoo");
-        dogClass = ecoreHelper.getEClass(testPackage, "Dog");
-        catClass = ecoreHelper.getEClass(testPackage, "Cat");
-        EClass animalClass = ecoreHelper.getEClass(testPackage, "Animal");
-        zooNameAttr = (EAttribute) ecoreHelper.getFeature(zooClass, "name");
-        animalNameAttr = (EAttribute) ecoreHelper.getFeature(animalClass, "name");
-        animalAgeAttr = (EAttribute) ecoreHelper.getFeature(animalClass, "age");
-        breedAttr = (EAttribute) ecoreHelper.getFeature(dogClass, "breed");
-        indoorAttr = (EAttribute) ecoreHelper.getFeature(catClass, "indoor");
-        animalsRef = (EReference) ecoreHelper.getFeature(zooClass, "animals");
-        featuredAnimalRef = (EReference) ecoreHelper.getFeature(zooClass, "featuredAnimal");
+        zooClass = EcoreHelper.getEClass(testPackage, "Zoo");
+        dogClass = EcoreHelper.getEClass(testPackage, "Dog");
+        catClass = EcoreHelper.getEClass(testPackage, "Cat");
+        EClass animalClass = EcoreHelper.getEClass(testPackage, "Animal");
+        zooNameAttr = (EAttribute) EcoreHelper.getFeature(zooClass, "name");
+        animalNameAttr = (EAttribute) EcoreHelper.getFeature(animalClass, "name");
+        animalAgeAttr = (EAttribute) EcoreHelper.getFeature(animalClass, "age");
+        breedAttr = (EAttribute) EcoreHelper.getFeature(dogClass, "breed");
+        indoorAttr = (EAttribute) EcoreHelper.getFeature(catClass, "indoor");
+        animalsRef = (EReference) EcoreHelper.getFeature(zooClass, "animals");
+        featuredAnimalRef = (EReference) EcoreHelper.getFeature(zooClass, "featuredAnimal");
     }
 
     @AfterEach

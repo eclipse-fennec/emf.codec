@@ -32,7 +32,7 @@ import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -60,17 +60,17 @@ public abstract class AbstractExtendedMetaDataTCK {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(AbstractExtendedMetaDataTCK.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, AbstractExtendedMetaDataTCK.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        documentClass = ecoreHelper.getEClass(testPackage, "Document");
-        documentTitleAttr = (EAttribute) ecoreHelper.getFeature(documentClass, "documentTitle");
-        pageCountAttr = (EAttribute) ecoreHelper.getFeature(documentClass, "pageCount");
-        internalIdAttr = (EAttribute) ecoreHelper.getFeature(documentClass, "internalId");
+        documentClass = EcoreHelper.getEClass(testPackage, "Document");
+        documentTitleAttr = (EAttribute) EcoreHelper.getFeature(documentClass, "documentTitle");
+        pageCountAttr = (EAttribute) EcoreHelper.getFeature(documentClass, "pageCount");
+        internalIdAttr = (EAttribute) EcoreHelper.getFeature(documentClass, "internalId");
     }
 
     @AfterEach

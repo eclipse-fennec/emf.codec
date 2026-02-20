@@ -34,7 +34,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -67,24 +67,24 @@ class SmartCompressionSameSchemaTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(SmartCompressionSameSchemaTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, SmartCompressionSameSchemaTest.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        companyClass = ecoreHelper.getEClass(testPackage, "Company");
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        addressClass = ecoreHelper.getEClass(testPackage, "Address");
+        companyClass = EcoreHelper.getEClass(testPackage, "Company");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        addressClass = EcoreHelper.getEClass(testPackage, "Address");
 
-        companyNameAttr = (EAttribute) ecoreHelper.getFeature(companyClass, "name");
-        personNameAttr = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        streetAttr = (EAttribute) ecoreHelper.getFeature(addressClass, "street");
-        cityAttr = (EAttribute) ecoreHelper.getFeature(addressClass, "city");
+        companyNameAttr = (EAttribute) EcoreHelper.getFeature(companyClass, "name");
+        personNameAttr = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        streetAttr = (EAttribute) EcoreHelper.getFeature(addressClass, "street");
+        cityAttr = (EAttribute) EcoreHelper.getFeature(addressClass, "city");
 
-        employeesRef = (EReference) ecoreHelper.getFeature(companyClass, "employees");
-        personAddressRef = (EReference) ecoreHelper.getFeature(personClass, "address");
+        employeesRef = (EReference) EcoreHelper.getFeature(companyClass, "employees");
+        personAddressRef = (EReference) EcoreHelper.getFeature(personClass, "address");
     }
 
     @AfterEach

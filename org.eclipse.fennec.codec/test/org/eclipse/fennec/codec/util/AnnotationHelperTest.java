@@ -22,7 +22,7 @@ import java.io.IOException;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,12 +44,12 @@ class AnnotationHelperTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(AnnotationHelperTest.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, AnnotationHelperTest.class);
 
-        documentClass = ecoreHelper.getEClass(testPackage, "Document");
-        documentTitleAttribute = (EAttribute) ecoreHelper.getFeature(documentClass, "documentTitle");
-        pageCountAttribute = (EAttribute) ecoreHelper.getFeature(documentClass, "pageCount");
+        documentClass = EcoreHelper.getEClass(testPackage, "Document");
+        documentTitleAttribute = (EAttribute) EcoreHelper.getFeature(documentClass, "documentTitle");
+        pageCountAttribute = (EAttribute) EcoreHelper.getFeature(documentClass, "pageCount");
     }
 
     @AfterEach

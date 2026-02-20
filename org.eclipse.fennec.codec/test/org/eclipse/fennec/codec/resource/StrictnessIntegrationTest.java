@@ -32,7 +32,7 @@ import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -73,20 +73,20 @@ class StrictnessIntegrationTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(StrictnessIntegrationTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, StrictnessIntegrationTest.class);
 
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        productClass = ecoreHelper.getEClass(testPackage, "Product");
+        productClass = EcoreHelper.getEClass(testPackage, "Product");
 
-        idAttribute = (EAttribute) ecoreHelper.getFeature(productClass, "id");
-        nameAttribute = (EAttribute) ecoreHelper.getFeature(productClass, "name");
-        descriptionAttribute = (EAttribute) ecoreHelper.getFeature(productClass, "description");
-        priceAttribute = (EAttribute) ecoreHelper.getFeature(productClass, "price");
+        idAttribute = (EAttribute) EcoreHelper.getFeature(productClass, "id");
+        nameAttribute = (EAttribute) EcoreHelper.getFeature(productClass, "name");
+        descriptionAttribute = (EAttribute) EcoreHelper.getFeature(productClass, "description");
+        priceAttribute = (EAttribute) EcoreHelper.getFeature(productClass, "price");
     }
 
     @AfterEach

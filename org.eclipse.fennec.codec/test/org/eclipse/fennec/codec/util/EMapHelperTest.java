@@ -27,7 +27,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -62,21 +62,21 @@ class EMapHelperTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(EMapHelperTest.class);
+        ecoreHelper = new EcoreHelper();
 
         // Load EMap test model
-        emapPackage = ecoreHelper.loadEcoreAbsolute(TEST_EMAP_ECORE);
-        containerClass = ecoreHelper.getEClass(emapPackage, "Container");
-        itemEntryClass = ecoreHelper.getEClass(emapPackage, "ItemEntry");
-        stringEntryClass = ecoreHelper.getEClass(emapPackage, "StringEntry");
-        itemClass = ecoreHelper.getEClass(emapPackage, "Item");
+        emapPackage = ecoreHelper.loadEcore(TEST_EMAP_ECORE, EMapHelperTest.class);
+        containerClass = EcoreHelper.getEClass(emapPackage, "Container");
+        itemEntryClass = EcoreHelper.getEClass(emapPackage, "ItemEntry");
+        stringEntryClass = EcoreHelper.getEClass(emapPackage, "StringEntry");
+        itemClass = EcoreHelper.getEClass(emapPackage, "Item");
 
-        itemsRef = (EReference) ecoreHelper.getFeature(containerClass, "items");
-        metadataRef = (EReference) ecoreHelper.getFeature(containerClass, "metadata");
+        itemsRef = (EReference) EcoreHelper.getFeature(containerClass, "items");
+        metadataRef = (EReference) EcoreHelper.getFeature(containerClass, "metadata");
 
         // Load non-map model for negative tests
-        serPackage = ecoreHelper.loadEcore(TEST_SERIALIZATION_ECORE);
-        personClass = ecoreHelper.getEClass(serPackage, "Person");
+        serPackage = ecoreHelper.loadEcore(TEST_SERIALIZATION_ECORE, EMapHelperTest.class);
+        personClass = EcoreHelper.getEClass(serPackage, "Person");
     }
 
     @AfterEach

@@ -37,7 +37,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -121,8 +121,8 @@ class CodecResourceAdvancedTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(CodecResourceAdvancedTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, CodecResourceAdvancedTest.class);
 
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
@@ -130,55 +130,55 @@ class CodecResourceAdvancedTest {
         metadataService.registerPackage(testPackage);
 
         // Load polymorphism classes
-        animalClass = ecoreHelper.getEClass(testPackage, "Animal");
-        dogClass = ecoreHelper.getEClass(testPackage, "Dog");
-        catClass = ecoreHelper.getEClass(testPackage, "Cat");
-        birdClass = ecoreHelper.getEClass(testPackage, "Bird");
-        zooClass = ecoreHelper.getEClass(testPackage, "Zoo");
+        animalClass = EcoreHelper.getEClass(testPackage, "Animal");
+        dogClass = EcoreHelper.getEClass(testPackage, "Dog");
+        catClass = EcoreHelper.getEClass(testPackage, "Cat");
+        birdClass = EcoreHelper.getEClass(testPackage, "Bird");
+        zooClass = EcoreHelper.getEClass(testPackage, "Zoo");
 
         // Load bidirectional classes
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
 
         // Load circular reference classes
-        nodeClass = ecoreHelper.getEClass(testPackage, "Node");
-        graphClass = ecoreHelper.getEClass(testPackage, "Graph");
+        nodeClass = EcoreHelper.getEClass(testPackage, "Node");
+        graphClass = EcoreHelper.getEClass(testPackage, "Graph");
 
         // Load null/default classes
-        entityClass = ecoreHelper.getEClass(testPackage, "Entity");
+        entityClass = EcoreHelper.getEClass(testPackage, "Entity");
 
         // Load animal attributes
-        animalNameAttr = (EAttribute) ecoreHelper.getFeature(animalClass, "name");
-        animalAgeAttr = (EAttribute) ecoreHelper.getFeature(animalClass, "age");
-        dogBreedAttr = (EAttribute) ecoreHelper.getFeature(dogClass, "breed");
-        dogTrainedAttr = (EAttribute) ecoreHelper.getFeature(dogClass, "trained");
-        catIndoorAttr = (EAttribute) ecoreHelper.getFeature(catClass, "indoor");
-        catColorAttr = (EAttribute) ecoreHelper.getFeature(catClass, "color");
-        birdCanFlyAttr = (EAttribute) ecoreHelper.getFeature(birdClass, "canFly");
-        birdWingspanAttr = (EAttribute) ecoreHelper.getFeature(birdClass, "wingspan");
-        zooNameAttr = (EAttribute) ecoreHelper.getFeature(zooClass, "name");
-        zooAnimalsRef = (EReference) ecoreHelper.getFeature(zooClass, "animals");
-        zooFeaturedRef = (EReference) ecoreHelper.getFeature(zooClass, "featuredAnimal");
+        animalNameAttr = (EAttribute) EcoreHelper.getFeature(animalClass, "name");
+        animalAgeAttr = (EAttribute) EcoreHelper.getFeature(animalClass, "age");
+        dogBreedAttr = (EAttribute) EcoreHelper.getFeature(dogClass, "breed");
+        dogTrainedAttr = (EAttribute) EcoreHelper.getFeature(dogClass, "trained");
+        catIndoorAttr = (EAttribute) EcoreHelper.getFeature(catClass, "indoor");
+        catColorAttr = (EAttribute) EcoreHelper.getFeature(catClass, "color");
+        birdCanFlyAttr = (EAttribute) EcoreHelper.getFeature(birdClass, "canFly");
+        birdWingspanAttr = (EAttribute) EcoreHelper.getFeature(birdClass, "wingspan");
+        zooNameAttr = (EAttribute) EcoreHelper.getFeature(zooClass, "name");
+        zooAnimalsRef = (EReference) EcoreHelper.getFeature(zooClass, "animals");
+        zooFeaturedRef = (EReference) EcoreHelper.getFeature(zooClass, "featuredAnimal");
 
         // Load person attributes
-        personNameAttr = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        personParentRef = (EReference) ecoreHelper.getFeature(personClass, "parent");
-        personChildrenRef = (EReference) ecoreHelper.getFeature(personClass, "children");
+        personNameAttr = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        personParentRef = (EReference) EcoreHelper.getFeature(personClass, "parent");
+        personChildrenRef = (EReference) EcoreHelper.getFeature(personClass, "children");
 
         // Load node attributes
-        nodeIdAttr = (EAttribute) ecoreHelper.getFeature(nodeClass, "id");
-        nodeValueAttr = (EAttribute) ecoreHelper.getFeature(nodeClass, "value");
-        nodeNextRef = (EReference) ecoreHelper.getFeature(nodeClass, "next");
-        nodeConnectionsRef = (EReference) ecoreHelper.getFeature(nodeClass, "connections");
-        graphNameAttr = (EAttribute) ecoreHelper.getFeature(graphClass, "name");
-        graphNodesRef = (EReference) ecoreHelper.getFeature(graphClass, "nodes");
+        nodeIdAttr = (EAttribute) EcoreHelper.getFeature(nodeClass, "id");
+        nodeValueAttr = (EAttribute) EcoreHelper.getFeature(nodeClass, "value");
+        nodeNextRef = (EReference) EcoreHelper.getFeature(nodeClass, "next");
+        nodeConnectionsRef = (EReference) EcoreHelper.getFeature(nodeClass, "connections");
+        graphNameAttr = (EAttribute) EcoreHelper.getFeature(graphClass, "name");
+        graphNodesRef = (EReference) EcoreHelper.getFeature(graphClass, "nodes");
 
         // Load entity attributes
-        entityRequiredNameAttr = (EAttribute) ecoreHelper.getFeature(entityClass, "requiredName");
-        entityOptionalDescAttr = (EAttribute) ecoreHelper.getFeature(entityClass, "optionalDescription");
-        entityDefaultedIntAttr = (EAttribute) ecoreHelper.getFeature(entityClass, "defaultedInt");
-        entityDefaultedBoolAttr = (EAttribute) ecoreHelper.getFeature(entityClass, "defaultedBoolean");
-        entityDefaultedStringAttr = (EAttribute) ecoreHelper.getFeature(entityClass, "defaultedString");
-        entityOptionalChildRef = (EReference) ecoreHelper.getFeature(entityClass, "optionalChild");
+        entityRequiredNameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "requiredName");
+        entityOptionalDescAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "optionalDescription");
+        entityDefaultedIntAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "defaultedInt");
+        entityDefaultedBoolAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "defaultedBoolean");
+        entityDefaultedStringAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "defaultedString");
+        entityOptionalChildRef = (EReference) EcoreHelper.getFeature(entityClass, "optionalChild");
     }
 
     @AfterEach

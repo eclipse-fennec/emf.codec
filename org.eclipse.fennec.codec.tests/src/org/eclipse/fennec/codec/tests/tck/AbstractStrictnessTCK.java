@@ -32,7 +32,7 @@ import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -60,17 +60,17 @@ public abstract class AbstractStrictnessTCK {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(AbstractStrictnessTCK.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, AbstractStrictnessTCK.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        strictItemClass = ecoreHelper.getEClass(testPackage, "StrictItem");
-        idAttr = (EAttribute) ecoreHelper.getFeature(strictItemClass, "id");
-        nameAttr = (EAttribute) ecoreHelper.getFeature(strictItemClass, "name");
-        descriptionAttr = (EAttribute) ecoreHelper.getFeature(strictItemClass, "description");
+        strictItemClass = EcoreHelper.getEClass(testPackage, "StrictItem");
+        idAttr = (EAttribute) EcoreHelper.getFeature(strictItemClass, "id");
+        nameAttr = (EAttribute) EcoreHelper.getFeature(strictItemClass, "name");
+        descriptionAttr = (EAttribute) EcoreHelper.getFeature(strictItemClass, "description");
     }
 
     @AfterEach

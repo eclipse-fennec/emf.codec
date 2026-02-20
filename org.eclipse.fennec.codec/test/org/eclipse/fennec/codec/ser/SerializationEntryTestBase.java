@@ -21,7 +21,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -70,29 +70,29 @@ abstract class SerializationEntryTestBase {
 
     @BeforeEach
     void setUpBase() throws IOException {
-        ecoreHelper = new EcoreHelper(SerializationEntryTestBase.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, SerializationEntryTestBase.class);
 
         // Load EClasses
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        addressClass = ecoreHelper.getEClass(testPackage, "Address");
-        namedElementClass = ecoreHelper.getEClass(testPackage, "NamedElement");
-        companyClass = ecoreHelper.getEClass(testPackage, "Company");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        addressClass = EcoreHelper.getEClass(testPackage, "Address");
+        namedElementClass = EcoreHelper.getEClass(testPackage, "NamedElement");
+        companyClass = EcoreHelper.getEClass(testPackage, "Company");
 
         // Load EAttributes
-        idAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "id");
-        nameAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        ageAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "age");
-        activeAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "active");
-        scoreAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "score");
-        tagsAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "tags");
-        fullNameAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "fullName");
+        idAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "id");
+        nameAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        ageAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "age");
+        activeAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "active");
+        scoreAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "score");
+        tagsAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "tags");
+        fullNameAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "fullName");
 
         // Load EReferences
-        addressRef = (EReference) ecoreHelper.getFeature(personClass, "address");
-        friendsRef = (EReference) ecoreHelper.getFeature(personClass, "friends");
-        managerRef = (EReference) ecoreHelper.getFeature(personClass, "manager");
-        colleaguesRef = (EReference) ecoreHelper.getFeature(personClass, "colleagues");
+        addressRef = (EReference) EcoreHelper.getFeature(personClass, "address");
+        friendsRef = (EReference) EcoreHelper.getFeature(personClass, "friends");
+        managerRef = (EReference) EcoreHelper.getFeature(personClass, "manager");
+        colleaguesRef = (EReference) EcoreHelper.getFeature(personClass, "colleagues");
 
         // Create mock Jackson objects
         generator = mock(JsonGenerator.class);

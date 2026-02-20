@@ -31,7 +31,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -64,8 +64,8 @@ class TypeResolutionHintTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(TypeResolutionHintTest.class);
-        testPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, TypeResolutionHintTest.class);
 
         // Register in global registry for type resolution
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
@@ -74,12 +74,12 @@ class TypeResolutionHintTest {
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        customerClass = ecoreHelper.getEClass(testPackage, "Customer");
-        productClass = ecoreHelper.getEClass(testPackage, "Product");
-        orderClass = ecoreHelper.getEClass(testPackage, "Order");
-        carClass = ecoreHelper.getEClass(testPackage, "Car");
-        motorcycleClass = ecoreHelper.getEClass(testPackage, "Motorcycle");
-        garageClass = ecoreHelper.getEClass(testPackage, "Garage");
+        customerClass = EcoreHelper.getEClass(testPackage, "Customer");
+        productClass = EcoreHelper.getEClass(testPackage, "Product");
+        orderClass = EcoreHelper.getEClass(testPackage, "Order");
+        carClass = EcoreHelper.getEClass(testPackage, "Car");
+        motorcycleClass = EcoreHelper.getEClass(testPackage, "Motorcycle");
+        garageClass = EcoreHelper.getEClass(testPackage, "Garage");
     }
 
     @AfterEach

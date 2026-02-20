@@ -33,7 +33,7 @@ import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -76,26 +76,26 @@ class CodecResourceCrossPackageTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(CodecResourceCrossPackageTest.class);
+        ecoreHelper = new EcoreHelper();
 
         // Load base package first (extension depends on it)
-        basePackage = ecoreHelper.loadEcoreAbsolute(BASE_ECORE);
+        basePackage = ecoreHelper.loadEcore(BASE_ECORE, CodecResourceCrossPackageTest.class);
         EPackage.Registry.INSTANCE.put(basePackage.getNsURI(), basePackage);
 
         // Load extension package
-        extPackage = ecoreHelper.loadEcoreAbsolute(EXT_ECORE);
+        extPackage = ecoreHelper.loadEcore(EXT_ECORE, CodecResourceCrossPackageTest.class);
         EPackage.Registry.INSTANCE.put(extPackage.getNsURI(), extPackage);
 
         // Create metadata service
         metadataService = MetadataServiceFactory.create();
 
         // Load EClasses from base package
-        deviceClass = ecoreHelper.getEClass(basePackage, "Device");
-        temperatureSensorClass = ecoreHelper.getEClass(basePackage, "TemperatureSensor");
+        deviceClass = EcoreHelper.getEClass(basePackage, "Device");
+        temperatureSensorClass = EcoreHelper.getEClass(basePackage, "TemperatureSensor");
 
         // Load EClasses from extension package
-        pressureSensorClass = ecoreHelper.getEClass(extPackage, "PressureSensor");
-        lightSensorClass = ecoreHelper.getEClass(extPackage, "LightSensor");
+        pressureSensorClass = EcoreHelper.getEClass(extPackage, "PressureSensor");
+        lightSensorClass = EcoreHelper.getEClass(extPackage, "LightSensor");
     }
 
     @AfterEach
@@ -425,7 +425,7 @@ class CodecResourceCrossPackageTest {
             registerBothPackages();
 
             // Create container from base package
-            EClass containerClass = ecoreHelper.getEClass(basePackage, "DeviceContainer");
+            EClass containerClass = EcoreHelper.getEClass(basePackage, "DeviceContainer");
             EObject container = basePackage.getEFactoryInstance().create(containerClass);
             container.eSet(containerClass.getEStructuralFeature("name"), "Mixed Hub");
 

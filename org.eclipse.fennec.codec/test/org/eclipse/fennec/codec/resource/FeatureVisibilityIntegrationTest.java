@@ -35,7 +35,7 @@ import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -81,23 +81,23 @@ class FeatureVisibilityIntegrationTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(FeatureVisibilityIntegrationTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, FeatureVisibilityIntegrationTest.class);
 
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
-        addressClass = ecoreHelper.getEClass(testPackage, "Address");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
+        addressClass = EcoreHelper.getEClass(testPackage, "Address");
 
-        nameAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        ageAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "age");
-        activeAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "active");
-        scoreAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "score");
+        nameAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        ageAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "age");
+        activeAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "active");
+        scoreAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "score");
 
-        addressRef = (EReference) ecoreHelper.getFeature(personClass, "address");
+        addressRef = (EReference) EcoreHelper.getFeature(personClass, "address");
     }
 
     @AfterEach

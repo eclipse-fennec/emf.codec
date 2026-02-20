@@ -34,7 +34,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -86,8 +86,8 @@ class CodecResourceInlineMappingTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(CodecResourceInlineMappingTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute("/org/eclipse/fennec/codec/resource/" + TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore("/org/eclipse/fennec/codec/resource/" + TEST_ECORE, CodecResourceInlineMappingTest.class);
 
         // Register package in global registry for type resolution
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
@@ -101,18 +101,18 @@ class CodecResourceInlineMappingTest {
         typeService = TypeDiscriminatorService.fromMetadataService(metadataService);
 
         // Load EClasses
-        friendClass = ecoreHelper.getEClass(testPackage, "Friend");
-        colleagueClass = ecoreHelper.getEClass(testPackage, "Colleague");
-        personContainerClass = ecoreHelper.getEClass(testPackage, "PersonContainer");
+        friendClass = EcoreHelper.getEClass(testPackage, "Friend");
+        colleagueClass = EcoreHelper.getEClass(testPackage, "Colleague");
+        personContainerClass = EcoreHelper.getEClass(testPackage, "PersonContainer");
 
-        sensorClass = ecoreHelper.getEClass(testPackage, "Sensor");
-        tempSensorClass = ecoreHelper.getEClass(testPackage, "TempSensor");
-        sensorHubClass = ecoreHelper.getEClass(testPackage, "SensorHub");
+        sensorClass = EcoreHelper.getEClass(testPackage, "Sensor");
+        tempSensorClass = EcoreHelper.getEClass(testPackage, "TempSensor");
+        sensorHubClass = EcoreHelper.getEClass(testPackage, "SensorHub");
 
-        messageClass = ecoreHelper.getEClass(testPackage, "Message");
-        alertMessageClass = ecoreHelper.getEClass(testPackage, "AlertMessage");
-        genericMessageClass = ecoreHelper.getEClass(testPackage, "GenericMessage");
-        messageBoxClass = ecoreHelper.getEClass(testPackage, "MessageBox");
+        messageClass = EcoreHelper.getEClass(testPackage, "Message");
+        alertMessageClass = EcoreHelper.getEClass(testPackage, "AlertMessage");
+        genericMessageClass = EcoreHelper.getEClass(testPackage, "GenericMessage");
+        messageBoxClass = EcoreHelper.getEClass(testPackage, "MessageBox");
     }
 
     @AfterEach

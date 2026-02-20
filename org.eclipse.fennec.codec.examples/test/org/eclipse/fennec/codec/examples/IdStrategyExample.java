@@ -33,7 +33,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -65,21 +65,21 @@ class IdStrategyExample {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(IdStrategyExample.class);
-        pkg = ecoreHelper.loadEcoreAbsolute(ECORE);
+        ecoreHelper = new EcoreHelper();
+        pkg = ecoreHelper.loadEcore(ECORE, IdStrategyExample.class);
         EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(pkg);
 
-        entityClass = ecoreHelper.getEClass(pkg, "Entity");
-        compositeEntityClass = ecoreHelper.getEClass(pkg, "CompositeEntity");
+        entityClass = EcoreHelper.getEClass(pkg, "Entity");
+        compositeEntityClass = EcoreHelper.getEClass(pkg, "CompositeEntity");
 
-        entityIdAttr = (EAttribute) ecoreHelper.getFeature(entityClass, "entityId");
-        labelAttr = (EAttribute) ecoreHelper.getFeature(entityClass, "label");
-        firstNameAttr = (EAttribute) ecoreHelper.getFeature(compositeEntityClass, "firstName");
-        lastNameAttr = (EAttribute) ecoreHelper.getFeature(compositeEntityClass, "lastName");
-        sequenceAttr = (EAttribute) ecoreHelper.getFeature(compositeEntityClass, "sequence");
+        entityIdAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "entityId");
+        labelAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "label");
+        firstNameAttr = (EAttribute) EcoreHelper.getFeature(compositeEntityClass, "firstName");
+        lastNameAttr = (EAttribute) EcoreHelper.getFeature(compositeEntityClass, "lastName");
+        sequenceAttr = (EAttribute) EcoreHelper.getFeature(compositeEntityClass, "sequence");
     }
 
     @AfterEach

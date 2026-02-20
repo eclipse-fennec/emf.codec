@@ -35,7 +35,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -124,84 +124,84 @@ class GeoJsonLikeDeserializationTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(GeoJsonLikeDeserializationTest.class);
-        geoPackage = ecoreHelper.loadEcore(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        geoPackage = ecoreHelper.loadEcore(TEST_ECORE, GeoJsonLikeDeserializationTest.class);
         EPackage.Registry.INSTANCE.put(geoPackage.getNsURI(), geoPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(geoPackage);
 
         // Load EClasses
-        coordinateClass = ecoreHelper.getEClass(geoPackage, "Coordinate");
-        propertiesClass = ecoreHelper.getEClass(geoPackage, "Properties");
-        geometryClass = ecoreHelper.getEClass(geoPackage, "Geometry");
-        pointClass = ecoreHelper.getEClass(geoPackage, "Point");
-        lineStringClass = ecoreHelper.getEClass(geoPackage, "LineString");
-        ringClass = ecoreHelper.getEClass(geoPackage, "Ring");
-        polygonClass = ecoreHelper.getEClass(geoPackage, "Polygon");
-        multiLineStringClass = ecoreHelper.getEClass(geoPackage, "MultiLineString");
-        multiPolygonClass = ecoreHelper.getEClass(geoPackage, "MultiPolygon");
-        geometryCollectionClass = ecoreHelper.getEClass(geoPackage, "GeometryCollection");
-        featureClass = ecoreHelper.getEClass(geoPackage, "Feature");
-        featureCollectionClass = ecoreHelper.getEClass(geoPackage, "FeatureCollection");
-        boundingBoxClass = ecoreHelper.getEClass(geoPackage, "BoundingBox");
-        geoDocumentClass = ecoreHelper.getEClass(geoPackage, "GeoDocument");
+        coordinateClass = EcoreHelper.getEClass(geoPackage, "Coordinate");
+        propertiesClass = EcoreHelper.getEClass(geoPackage, "Properties");
+        geometryClass = EcoreHelper.getEClass(geoPackage, "Geometry");
+        pointClass = EcoreHelper.getEClass(geoPackage, "Point");
+        lineStringClass = EcoreHelper.getEClass(geoPackage, "LineString");
+        ringClass = EcoreHelper.getEClass(geoPackage, "Ring");
+        polygonClass = EcoreHelper.getEClass(geoPackage, "Polygon");
+        multiLineStringClass = EcoreHelper.getEClass(geoPackage, "MultiLineString");
+        multiPolygonClass = EcoreHelper.getEClass(geoPackage, "MultiPolygon");
+        geometryCollectionClass = EcoreHelper.getEClass(geoPackage, "GeometryCollection");
+        featureClass = EcoreHelper.getEClass(geoPackage, "Feature");
+        featureCollectionClass = EcoreHelper.getEClass(geoPackage, "FeatureCollection");
+        boundingBoxClass = EcoreHelper.getEClass(geoPackage, "BoundingBox");
+        geoDocumentClass = EcoreHelper.getEClass(geoPackage, "GeoDocument");
 
         // Coordinate attributes
-        longitudeAttr = (EAttribute) ecoreHelper.getFeature(coordinateClass, "longitude");
-        latitudeAttr = (EAttribute) ecoreHelper.getFeature(coordinateClass, "latitude");
-        elevationAttr = (EAttribute) ecoreHelper.getFeature(coordinateClass, "elevation");
+        longitudeAttr = (EAttribute) EcoreHelper.getFeature(coordinateClass, "longitude");
+        latitudeAttr = (EAttribute) EcoreHelper.getFeature(coordinateClass, "latitude");
+        elevationAttr = (EAttribute) EcoreHelper.getFeature(coordinateClass, "elevation");
 
         // Properties attributes
-        propNameAttr = (EAttribute) ecoreHelper.getFeature(propertiesClass, "name");
-        propDescAttr = (EAttribute) ecoreHelper.getFeature(propertiesClass, "description");
-        propTagsAttr = (EAttribute) ecoreHelper.getFeature(propertiesClass, "tags");
-        propPopulationAttr = (EAttribute) ecoreHelper.getFeature(propertiesClass, "population");
+        propNameAttr = (EAttribute) EcoreHelper.getFeature(propertiesClass, "name");
+        propDescAttr = (EAttribute) EcoreHelper.getFeature(propertiesClass, "description");
+        propTagsAttr = (EAttribute) EcoreHelper.getFeature(propertiesClass, "tags");
+        propPopulationAttr = (EAttribute) EcoreHelper.getFeature(propertiesClass, "population");
 
         // Geometry type attribute
-        geomTypeAttr = (EAttribute) ecoreHelper.getFeature(geometryClass, "type");
+        geomTypeAttr = (EAttribute) EcoreHelper.getFeature(geometryClass, "type");
 
         // Point
-        pointCoordinatesRef = (EReference) ecoreHelper.getFeature(pointClass, "coordinates");
+        pointCoordinatesRef = (EReference) EcoreHelper.getFeature(pointClass, "coordinates");
 
         // LineString
-        lineStringCoordinatesRef = (EReference) ecoreHelper.getFeature(lineStringClass, "coordinates");
+        lineStringCoordinatesRef = (EReference) EcoreHelper.getFeature(lineStringClass, "coordinates");
 
         // Ring
-        ringCoordinatesRef = (EReference) ecoreHelper.getFeature(ringClass, "coordinates");
+        ringCoordinatesRef = (EReference) EcoreHelper.getFeature(ringClass, "coordinates");
 
         // Polygon
-        polygonExteriorRef = (EReference) ecoreHelper.getFeature(polygonClass, "exterior");
-        polygonHolesRef = (EReference) ecoreHelper.getFeature(polygonClass, "holes");
+        polygonExteriorRef = (EReference) EcoreHelper.getFeature(polygonClass, "exterior");
+        polygonHolesRef = (EReference) EcoreHelper.getFeature(polygonClass, "holes");
 
         // MultiLineString
-        multiLineStringLinesRef = (EReference) ecoreHelper.getFeature(multiLineStringClass, "lines");
+        multiLineStringLinesRef = (EReference) EcoreHelper.getFeature(multiLineStringClass, "lines");
 
         // MultiPolygon
-        multiPolygonPolygonsRef = (EReference) ecoreHelper.getFeature(multiPolygonClass, "polygons");
+        multiPolygonPolygonsRef = (EReference) EcoreHelper.getFeature(multiPolygonClass, "polygons");
 
         // GeometryCollection
-        geometryCollectionGeometriesRef = (EReference) ecoreHelper.getFeature(geometryCollectionClass, "geometries");
+        geometryCollectionGeometriesRef = (EReference) EcoreHelper.getFeature(geometryCollectionClass, "geometries");
 
         // Feature
-        featureIdAttr = (EAttribute) ecoreHelper.getFeature(featureClass, "id");
-        featureTypeAttr = (EAttribute) ecoreHelper.getFeature(featureClass, "type");
-        featureGeometryRef = (EReference) ecoreHelper.getFeature(featureClass, "geometry");
-        featurePropertiesRef = (EReference) ecoreHelper.getFeature(featureClass, "properties");
+        featureIdAttr = (EAttribute) EcoreHelper.getFeature(featureClass, "id");
+        featureTypeAttr = (EAttribute) EcoreHelper.getFeature(featureClass, "type");
+        featureGeometryRef = (EReference) EcoreHelper.getFeature(featureClass, "geometry");
+        featurePropertiesRef = (EReference) EcoreHelper.getFeature(featureClass, "properties");
 
         // FeatureCollection
-        featureCollectionTypeAttr = (EAttribute) ecoreHelper.getFeature(featureCollectionClass, "type");
-        featureCollectionFeaturesRef = (EReference) ecoreHelper.getFeature(featureCollectionClass, "features");
+        featureCollectionTypeAttr = (EAttribute) EcoreHelper.getFeature(featureCollectionClass, "type");
+        featureCollectionFeaturesRef = (EReference) EcoreHelper.getFeature(featureCollectionClass, "features");
 
         // BoundingBox
-        bboxSouthwestRef = (EReference) ecoreHelper.getFeature(boundingBoxClass, "southwest");
-        bboxNortheastRef = (EReference) ecoreHelper.getFeature(boundingBoxClass, "northeast");
+        bboxSouthwestRef = (EReference) EcoreHelper.getFeature(boundingBoxClass, "southwest");
+        bboxNortheastRef = (EReference) EcoreHelper.getFeature(boundingBoxClass, "northeast");
 
         // GeoDocument
-        geoDocNameAttr = (EAttribute) ecoreHelper.getFeature(geoDocumentClass, "name");
-        geoDocBboxRef = (EReference) ecoreHelper.getFeature(geoDocumentClass, "bbox");
-        geoDocFeatureCollectionRef = (EReference) ecoreHelper.getFeature(geoDocumentClass, "featureCollection");
-        geoDocGeometryRef = (EReference) ecoreHelper.getFeature(geoDocumentClass, "geometry");
+        geoDocNameAttr = (EAttribute) EcoreHelper.getFeature(geoDocumentClass, "name");
+        geoDocBboxRef = (EReference) EcoreHelper.getFeature(geoDocumentClass, "bbox");
+        geoDocFeatureCollectionRef = (EReference) EcoreHelper.getFeature(geoDocumentClass, "featureCollection");
+        geoDocGeometryRef = (EReference) EcoreHelper.getFeature(geoDocumentClass, "geometry");
     }
 
     @AfterEach

@@ -36,7 +36,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -66,20 +66,20 @@ class ReferenceExample {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(ReferenceExample.class);
-        pkg = ecoreHelper.loadEcoreAbsolute(ECORE);
+        ecoreHelper = new EcoreHelper();
+        pkg = ecoreHelper.loadEcore(ECORE, ReferenceExample.class);
         EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(pkg);
 
-        personClass = ecoreHelper.getEClass(pkg, "Person");
-        teamClass = ecoreHelper.getEClass(pkg, "Team");
-        personId = (EAttribute) ecoreHelper.getFeature(personClass, "personId");
-        nameAttr = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        teamNameAttr = (EAttribute) ecoreHelper.getFeature(teamClass, "name");
-        membersRef = (EReference) ecoreHelper.getFeature(teamClass, "members");
-        leadRef = (EReference) ecoreHelper.getFeature(teamClass, "lead");
+        personClass = EcoreHelper.getEClass(pkg, "Person");
+        teamClass = EcoreHelper.getEClass(pkg, "Team");
+        personId = (EAttribute) EcoreHelper.getFeature(personClass, "personId");
+        nameAttr = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        teamNameAttr = (EAttribute) EcoreHelper.getFeature(teamClass, "name");
+        membersRef = (EReference) EcoreHelper.getFeature(teamClass, "members");
+        leadRef = (EReference) EcoreHelper.getFeature(teamClass, "lead");
     }
 
     @AfterEach

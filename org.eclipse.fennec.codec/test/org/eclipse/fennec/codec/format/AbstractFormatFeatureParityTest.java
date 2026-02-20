@@ -36,7 +36,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -103,8 +103,8 @@ abstract class AbstractFormatFeatureParityTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(AbstractFormatFeatureParityTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, AbstractFormatFeatureParityTest.class);
 
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
@@ -112,33 +112,33 @@ abstract class AbstractFormatFeatureParityTest {
         metadataService.registerPackage(testPackage);
 
         // EClasses
-        itemClass = ecoreHelper.getEClass(testPackage, "Item");
-        detailClass = ecoreHelper.getEClass(testPackage, "Detail");
-        containerClass = ecoreHelper.getEClass(testPackage, "Container");
+        itemClass = EcoreHelper.getEClass(testPackage, "Item");
+        detailClass = EcoreHelper.getEClass(testPackage, "Detail");
+        containerClass = EcoreHelper.getEClass(testPackage, "Container");
 
         // Item attributes
-        idAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "id");
-        labelAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "label");
-        countAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "count");
-        amountAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "amount");
-        ratioAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "ratio");
-        enabledAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "enabled");
-        priorityAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "priority");
-        tagsAttr = (EAttribute) ecoreHelper.getFeature(itemClass, "tags");
+        idAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "id");
+        labelAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "label");
+        countAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "count");
+        amountAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "amount");
+        ratioAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "ratio");
+        enabledAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "enabled");
+        priorityAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "priority");
+        tagsAttr = (EAttribute) EcoreHelper.getFeature(itemClass, "tags");
 
         // Item references
-        detailRef = (EReference) ecoreHelper.getFeature(itemClass, "detail");
-        subItemsRef = (EReference) ecoreHelper.getFeature(itemClass, "subItems");
-        linksRef = (EReference) ecoreHelper.getFeature(itemClass, "links");
+        detailRef = (EReference) EcoreHelper.getFeature(itemClass, "detail");
+        subItemsRef = (EReference) EcoreHelper.getFeature(itemClass, "subItems");
+        linksRef = (EReference) EcoreHelper.getFeature(itemClass, "links");
 
         // Detail attributes
-        detailNameAttr = (EAttribute) ecoreHelper.getFeature(detailClass, "detailName");
-        detailTextAttr = (EAttribute) ecoreHelper.getFeature(detailClass, "detailText");
+        detailNameAttr = (EAttribute) EcoreHelper.getFeature(detailClass, "detailName");
+        detailTextAttr = (EAttribute) EcoreHelper.getFeature(detailClass, "detailText");
 
         // Container
-        containerNameAttr = (EAttribute) ecoreHelper.getFeature(containerClass, "name");
-        containerItemsRef = (EReference) ecoreHelper.getFeature(containerClass, "items");
-        containerPrimaryRef = (EReference) ecoreHelper.getFeature(containerClass, "primary");
+        containerNameAttr = (EAttribute) EcoreHelper.getFeature(containerClass, "name");
+        containerItemsRef = (EReference) EcoreHelper.getFeature(containerClass, "items");
+        containerPrimaryRef = (EReference) EcoreHelper.getFeature(containerClass, "primary");
     }
 
     @AfterEach

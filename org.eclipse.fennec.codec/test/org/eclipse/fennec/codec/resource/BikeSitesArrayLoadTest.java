@@ -31,7 +31,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -86,33 +86,33 @@ class BikeSitesArrayLoadTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(BikeSitesArrayLoadTest.class);
-        bikePackage = ecoreHelper.loadEcoreAbsolute("/org/eclipse/fennec/codec/resource/" + BIKE_ECORE);
+        ecoreHelper = new EcoreHelper();
+        bikePackage = ecoreHelper.loadEcore("/org/eclipse/fennec/codec/resource/" + BIKE_ECORE, BikeSitesArrayLoadTest.class);
         EPackage.Registry.INSTANCE.put(bikePackage.getNsURI(), bikePackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(bikePackage);
 
         // Load site EClass (note: lowercase 'site' in the ecore)
-        siteClass = ecoreHelper.getEClass(bikePackage, "site");
-        locationClass = ecoreHelper.getEClass(bikePackage, "Location");
+        siteClass = EcoreHelper.getEClass(bikePackage, "site");
+        locationClass = EcoreHelper.getEClass(bikePackage, "Location");
 
         // Load site attributes
-        idAttribute = (EAttribute) ecoreHelper.getFeature(siteClass, "id");
-        nameAttribute = (EAttribute) ecoreHelper.getFeature(siteClass, "name");
-        descriptionAttribute = (EAttribute) ecoreHelper.getFeature(siteClass, "description");
-        firstDataAttribute = (EAttribute) ecoreHelper.getFeature(siteClass, "firstData");
-        granularityAttribute = (EAttribute) ecoreHelper.getFeature(siteClass, "granularity");
-        directionalAttribute = (EAttribute) ecoreHelper.getFeature(siteClass, "directional");
-        hasTimestampedDataAttribute = (EAttribute) ecoreHelper.getFeature(siteClass, "hasTimestampedData");
-        hasWeatherAttribute = (EAttribute) ecoreHelper.getFeature(siteClass, "hasWeather");
+        idAttribute = (EAttribute) EcoreHelper.getFeature(siteClass, "id");
+        nameAttribute = (EAttribute) EcoreHelper.getFeature(siteClass, "name");
+        descriptionAttribute = (EAttribute) EcoreHelper.getFeature(siteClass, "description");
+        firstDataAttribute = (EAttribute) EcoreHelper.getFeature(siteClass, "firstData");
+        granularityAttribute = (EAttribute) EcoreHelper.getFeature(siteClass, "granularity");
+        directionalAttribute = (EAttribute) EcoreHelper.getFeature(siteClass, "directional");
+        hasTimestampedDataAttribute = (EAttribute) EcoreHelper.getFeature(siteClass, "hasTimestampedData");
+        hasWeatherAttribute = (EAttribute) EcoreHelper.getFeature(siteClass, "hasWeather");
 
         // Load site references
-        locationRef = (EReference) ecoreHelper.getFeature(siteClass, "location");
+        locationRef = (EReference) EcoreHelper.getFeature(siteClass, "location");
 
         // Load location attributes
-        latAttribute = (EAttribute) ecoreHelper.getFeature(locationClass, "lat");
-        lonAttribute = (EAttribute) ecoreHelper.getFeature(locationClass, "lon");
+        latAttribute = (EAttribute) EcoreHelper.getFeature(locationClass, "lat");
+        lonAttribute = (EAttribute) EcoreHelper.getFeature(locationClass, "lon");
     }
 
     @AfterEach

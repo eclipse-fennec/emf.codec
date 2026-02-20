@@ -33,7 +33,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,17 +61,17 @@ class ExtendedMetaDataExample {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(ExtendedMetaDataExample.class);
-        pkg = ecoreHelper.loadEcoreAbsolute(ECORE);
+        ecoreHelper = new EcoreHelper();
+        pkg = ecoreHelper.loadEcore(ECORE, ExtendedMetaDataExample.class);
         EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(pkg);
 
-        articleClass = ecoreHelper.getEClass(pkg, "Article");
-        articleTitleAttr = (EAttribute) ecoreHelper.getFeature(articleClass, "articleTitle");
-        articleBodyAttr = (EAttribute) ecoreHelper.getFeature(articleClass, "articleBody");
-        pageCountAttr = (EAttribute) ecoreHelper.getFeature(articleClass, "pageCount");
+        articleClass = EcoreHelper.getEClass(pkg, "Article");
+        articleTitleAttr = (EAttribute) EcoreHelper.getFeature(articleClass, "articleTitle");
+        articleBodyAttr = (EAttribute) EcoreHelper.getFeature(articleClass, "articleBody");
+        pageCountAttr = (EAttribute) EcoreHelper.getFeature(articleClass, "pageCount");
     }
 
     @AfterEach

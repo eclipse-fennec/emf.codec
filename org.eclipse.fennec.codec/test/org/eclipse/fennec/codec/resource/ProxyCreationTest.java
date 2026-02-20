@@ -34,7 +34,7 @@ import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.fennec.codec.deser.DeserializationState.UnresolvedReference;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -69,14 +69,14 @@ class ProxyCreationTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(ProxyCreationTest.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, ProxyCreationTest.class);
 
-        personClass = ecoreHelper.getEClass(testPackage, "Person");
+        personClass = EcoreHelper.getEClass(testPackage, "Person");
 
-        nameAttribute = (EAttribute) ecoreHelper.getFeature(personClass, "name");
-        managerRef = (EReference) ecoreHelper.getFeature(personClass, "manager");
-        colleaguesRef = (EReference) ecoreHelper.getFeature(personClass, "colleagues");
+        nameAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "name");
+        managerRef = (EReference) EcoreHelper.getFeature(personClass, "manager");
+        colleaguesRef = (EReference) EcoreHelper.getFeature(personClass, "colleagues");
 
         metadataService = mock(MetadataService.class);
         resource = new CodecResource(URI.createURI("test://test.json"), metadataService, null, null);

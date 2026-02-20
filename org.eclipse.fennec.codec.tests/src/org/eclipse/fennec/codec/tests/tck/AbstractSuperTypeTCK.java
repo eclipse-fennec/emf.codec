@@ -34,7 +34,7 @@ import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.utils.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -63,18 +63,18 @@ public abstract class AbstractSuperTypeTCK {
 
     @BeforeEach
     void setUp() throws IOException {
-        ecoreHelper = new EcoreHelper(AbstractSuperTypeTCK.class);
-        testPackage = ecoreHelper.loadEcoreAbsolute(TEST_ECORE);
+        ecoreHelper = new EcoreHelper();
+        testPackage = ecoreHelper.loadEcore(TEST_ECORE, AbstractSuperTypeTCK.class);
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
 
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
 
-        companyClass = ecoreHelper.getEClass(testPackage, "Company");
-        baseEntityClass = ecoreHelper.getEClass(testPackage, "BaseEntity");
-        employeeClass = ecoreHelper.getEClass(testPackage, "Employee");
-        managerClass = ecoreHelper.getEClass(testPackage, "Manager");
-        staffRef = (EReference) ecoreHelper.getFeature(companyClass, "staff");
+        companyClass = EcoreHelper.getEClass(testPackage, "Company");
+        baseEntityClass = EcoreHelper.getEClass(testPackage, "BaseEntity");
+        employeeClass = EcoreHelper.getEClass(testPackage, "Employee");
+        managerClass = EcoreHelper.getEClass(testPackage, "Manager");
+        staffRef = (EReference) EcoreHelper.getFeature(companyClass, "staff");
     }
 
     @AfterEach
@@ -92,30 +92,30 @@ public abstract class AbstractSuperTypeTCK {
                 .build();
 
         EObject company = testPackage.getEFactoryInstance().create(companyClass);
-        company.eSet(ecoreHelper.getFeature(companyClass, "name"), "Acme Corp");
+        company.eSet(EcoreHelper.getFeature(companyClass, "name"), "Acme Corp");
 
         EObject manager = testPackage.getEFactoryInstance().create(managerClass);
-        manager.eSet(ecoreHelper.getFeature(baseEntityClass, "id"), "mgr-1");
-        manager.eSet(ecoreHelper.getFeature(baseEntityClass, "name"), "Alice");
-        manager.eSet(ecoreHelper.getFeature(employeeClass, "department"), "Engineering");
-        manager.eSet(ecoreHelper.getFeature(managerClass, "level"), 3);
+        manager.eSet(EcoreHelper.getFeature(baseEntityClass, "id"), "mgr-1");
+        manager.eSet(EcoreHelper.getFeature(baseEntityClass, "name"), "Alice");
+        manager.eSet(EcoreHelper.getFeature(employeeClass, "department"), "Engineering");
+        manager.eSet(EcoreHelper.getFeature(managerClass, "level"), 3);
 
         ((List<EObject>) company.eGet(staffRef)).add(manager);
 
         EObject loaded = roundTrip(company, companyClass, config);
 
         assertNotNull(loaded);
-        assertEquals("Acme Corp", loaded.eGet(ecoreHelper.getFeature(companyClass, "name")));
+        assertEquals("Acme Corp", loaded.eGet(EcoreHelper.getFeature(companyClass, "name")));
 
         List<EObject> loadedStaff = (List<EObject>) loaded.eGet(staffRef);
         assertEquals(1, loadedStaff.size());
 
         EObject loadedManager = loadedStaff.get(0);
         assertTrue(managerClass.isInstance(loadedManager), "Should be Manager type");
-        assertEquals("mgr-1", loadedManager.eGet(ecoreHelper.getFeature(baseEntityClass, "id")));
-        assertEquals("Alice", loadedManager.eGet(ecoreHelper.getFeature(baseEntityClass, "name")));
-        assertEquals("Engineering", loadedManager.eGet(ecoreHelper.getFeature(employeeClass, "department")));
-        assertEquals(3, loadedManager.eGet(ecoreHelper.getFeature(managerClass, "level")));
+        assertEquals("mgr-1", loadedManager.eGet(EcoreHelper.getFeature(baseEntityClass, "id")));
+        assertEquals("Alice", loadedManager.eGet(EcoreHelper.getFeature(baseEntityClass, "name")));
+        assertEquals("Engineering", loadedManager.eGet(EcoreHelper.getFeature(employeeClass, "department")));
+        assertEquals(3, loadedManager.eGet(EcoreHelper.getFeature(managerClass, "level")));
     }
 
     @Test
@@ -125,12 +125,12 @@ public abstract class AbstractSuperTypeTCK {
         ConfigurationResolver config = ConfigurationResolver.defaults();
 
         EObject company = testPackage.getEFactoryInstance().create(companyClass);
-        company.eSet(ecoreHelper.getFeature(companyClass, "name"), "Beta Inc");
+        company.eSet(EcoreHelper.getFeature(companyClass, "name"), "Beta Inc");
 
         EObject employee = testPackage.getEFactoryInstance().create(employeeClass);
-        employee.eSet(ecoreHelper.getFeature(baseEntityClass, "id"), "emp-1");
-        employee.eSet(ecoreHelper.getFeature(baseEntityClass, "name"), "Bob");
-        employee.eSet(ecoreHelper.getFeature(employeeClass, "department"), "Sales");
+        employee.eSet(EcoreHelper.getFeature(baseEntityClass, "id"), "emp-1");
+        employee.eSet(EcoreHelper.getFeature(baseEntityClass, "name"), "Bob");
+        employee.eSet(EcoreHelper.getFeature(employeeClass, "department"), "Sales");
 
         ((List<EObject>) company.eGet(staffRef)).add(employee);
 
@@ -142,9 +142,9 @@ public abstract class AbstractSuperTypeTCK {
 
         EObject loadedEmployee = loadedStaff.get(0);
         assertTrue(employeeClass.isInstance(loadedEmployee), "Should be Employee type");
-        assertEquals("emp-1", loadedEmployee.eGet(ecoreHelper.getFeature(baseEntityClass, "id")));
-        assertEquals("Bob", loadedEmployee.eGet(ecoreHelper.getFeature(baseEntityClass, "name")));
-        assertEquals("Sales", loadedEmployee.eGet(ecoreHelper.getFeature(employeeClass, "department")));
+        assertEquals("emp-1", loadedEmployee.eGet(EcoreHelper.getFeature(baseEntityClass, "id")));
+        assertEquals("Bob", loadedEmployee.eGet(EcoreHelper.getFeature(baseEntityClass, "name")));
+        assertEquals("Sales", loadedEmployee.eGet(EcoreHelper.getFeature(employeeClass, "department")));
     }
 
     // ========================================================================
