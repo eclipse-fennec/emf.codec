@@ -17,7 +17,3 @@ Bundle-Description: YAML format provider for the Fennec EMF Codec
 	
 -testpath: \
 	org.eclipse.fennec.codec.tests;version=snapshot
-
--fixupmessages: \
-	jpms.jarname;is:=ignore,\
-	The .classpath;is:=ignore

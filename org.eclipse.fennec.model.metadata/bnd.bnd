@@ -22,7 +22,3 @@ src=${^src},src-gen,src-gen-api
 
 -buildpath: \
 	org.osgi.service.condition;version=latest
-
--fixupmessages: \
-	jpms.jarname;is:=ignore,\
-	The .classpath;is:=ignore

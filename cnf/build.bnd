@@ -58,4 +58,7 @@ javac.target: 17
  	name = EMFCompare
 
 -fixupmessages: \
-	No translation;is:=ignore
+	"No translation";is:=ignore,\
+	"No metadata for revision";is:=warning,\
+	"jpms.jarname calculated module names from file name";is:=ignore,\
+	"The .classpath";is:=ignore

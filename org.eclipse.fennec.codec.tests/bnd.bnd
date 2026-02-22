@@ -19,7 +19,3 @@ Export-Package: org.eclipse.fennec.codec.tests.tck
 	com.fasterxml.jackson.core.jackson-annotations;version=latest,\
 	tools.jackson.dataformat.jackson-dataformat-yaml;version=latest,\
 	org.snakeyaml.engine;version=latest
-	
--fixupmessages: \
-	jpms.jarname;is:=ignore,\
-	The .classpath;is:=ignore

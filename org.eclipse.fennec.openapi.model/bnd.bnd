@@ -12,7 +12,3 @@
 #		logfile=test.log;\
 
 -includeresource.model: model=model
-
--fixupmessages: \
-	jpms.jarname;is:=ignore,\
-	The .classpath;is:=ignore

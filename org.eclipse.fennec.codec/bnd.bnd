@@ -15,6 +15,3 @@ Bundle-Description: Next generation EMF codec framework using Jackson3
 -testpath.codec: \
 	org.geojson.model;version=latest
 
--fixupmessages: \
-	jpms.jarname;is:=ignore,\
-	The .classpath;is:=ignore

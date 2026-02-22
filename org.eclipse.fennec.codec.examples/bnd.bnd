@@ -19,7 +19,3 @@ Bundle-Description: Examples project for the Fennec EMF Codec
 	tools.jackson.dataformat.jackson-dataformat-cbor;version=latest,\
 	org.snakeyaml.engine;version=latest,\
 	org.mongodb.bson;version=latest
-
--fixupmessages: \
-	jpms.jarname;is:=ignore,\
-	The .classpath;is:=ignore

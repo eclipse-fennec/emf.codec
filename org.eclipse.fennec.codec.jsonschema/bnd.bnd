@@ -15,7 +15,3 @@ Bundle-Description: EMF / Codec extension to handle JsonSchema
 	
 -includetestresource: \
 	test-data=test-data
-	
--fixupmessages: \
-	jpms.jarname;is:=ignore,\
-	The .classpath;is:=ignore
