@@ -2,9 +2,21 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-02-17 (Plan F TCK Tests COMPLETE — 3,016 tests across all projects)
+**Last Updated:** 2026-02-24 (JSON Schema EClass Value Handlers + allFieldsRequired option + architecture doc)
 
-**Session Summary (2026-02-17 latest):**
+**Session Summary (2026-02-24 latest):**
+
+**JSON Schema enhancements:**
+- Added `EClassValueReader` / `EClassValueWriter` (embed single-class JSON Schema in other formats)
+- Added `EClassToJsonSchemaConverter` / `JsonSchemaToEClassConverter` (thin wrapper converters)
+- Refactored `EPackageToJsonSchemaConverter.writeEClass` → `writeEClass` + `writeEClassContent`; added `convertEClass` + `writeEClassDocumentMetadata`
+- Added `convertToEClass` to `JsonSchemaToEPackageConverter`; preserves `title` as `originalTitle` annotation for round-trip fidelity
+- Added `OPTION_ALL_FIELDS_REQUIRED` option (`"allFieldsRequired"`) — marks every property required, for AI structured-output schemas
+- Added `EClassValueHandlerTest` (ReaderTests, WriterTests, RoundTripTests) and `AllFieldsRequiredTests` in `NewFeaturesTest`
+- Fixed `withoutOption_onlyMandatoryFeaturesRequired` test: replaced fragile string-position check with Jackson JSON parsing + `requiredContains()` helper
+- Created `org.eclipse.fennec.codec.jsonschema/jsonschema-architecture.md` documenting both usage modes, converter classes, all options, annotation mapping, and three open issues (OI-1: CodecResource bypass, OI-2: no OSGi whiteboard, OI-3: no default $schema)
+
+**Previous Session Summary (2026-02-17):**
 
 **Plan F TCK Test Suite — COMPLETE:**
 
@@ -133,6 +145,14 @@ MAIN TASK: [description] - [status: ACTIVE/PAUSED/✅]
 ### 0.2 Current Task Hierarchy
 
 ```
+COMPLETED: JSON Schema EClass Handlers + allFieldsRequired + docs - ✅ (2026-02-24)
+│  - EClassValueReader / EClassValueWriter (embed single-class JSON Schema)
+│  - EClassToJsonSchemaConverter / JsonSchemaToEClassConverter (thin wrappers)
+│  - EPackageToJsonSchemaConverter: writeEClassContent refactor, convertEClass, OPTION_ALL_FIELDS_REQUIRED
+│  - JsonSchemaToEPackageConverter: convertToEClass + originalTitle annotation preservation
+│  - EClassValueHandlerTest + AllFieldsRequiredTests; fixed test assertion bug
+│  - jsonschema-architecture.md created
+
 COMPLETED: Plan F TCK Test Suite - ✅ (2026-02-17)
 │
 │  Phase F1 (P0 Core): Abstract round-trip TCKs - ✅
@@ -375,6 +395,9 @@ All tests pass with 0 failures, 0 errors, 0 skipped.
 **Metadata Layer:**
 - `org.eclipse.fennec.model.metadata/model-metadata-architecture.md`
 - `org.eclipse.fennec.codec.metadata/codec-metadata-architecture.md`
+
+**JSON Schema:**
+- `org.eclipse.fennec.codec.jsonschema/jsonschema-architecture.md`
 
 **Development:**
 - `docs/codec-v2-development-guide.md` (this file)
