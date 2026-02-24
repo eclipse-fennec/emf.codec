@@ -28,6 +28,11 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EcoreFactory;
+import org.eclipse.emf.ecore.EcorePackage;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -843,5 +848,88 @@ class NewFeaturesTest {
 			return annotation.getDetails().get(key);
 		}
 		return null;
+	}
+
+	// ========================================================================
+	// allFieldsRequired Tests
+	// ========================================================================
+
+	@Nested
+	@DisplayName("OPTION_ALL_FIELDS_REQUIRED")
+	class AllFieldsRequiredTests {
+
+		@Test
+		@DisplayName("without option: only lowerBound>=1 features appear in required")
+		void withoutOption_onlyMandatoryFeaturesRequired() throws IOException {
+			EClass eClass = createClass();
+
+			EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(eClass, baos);
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+			JsonNode required = root.get("required");
+			assertNotNull(required, "required array should be present");
+			assertTrue(requiredContains(required, "mandatory"), "mandatory should be required");
+			assertTrue(!requiredContains(required, "optional"), "optional should NOT be required");
+		}
+
+		@Test
+		@DisplayName("with allFieldsRequired=true: every feature appears in required")
+		void withOption_allFeaturesRequired() throws IOException {
+			EClass eClass = createClass();
+
+			EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(eClass, baos, false, true);
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+			JsonNode required = root.get("required");
+			assertNotNull(required, "required array should be present");
+			assertTrue(requiredContains(required, "mandatory"), "mandatory should be required");
+			assertTrue(requiredContains(required, "optional"), "optional should also be required");
+		}
+
+		@Test
+		@DisplayName("with OPTION_ALL_FIELDS_REQUIRED via Map: every feature required")
+		void withOptionMap_allFeaturesRequired() throws IOException {
+			EClass eClass = createClass();
+
+			EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(eClass, baos, false,
+					Map.of(EPackageToJsonSchemaConverter.OPTION_ALL_FIELDS_REQUIRED, Boolean.TRUE));
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+			JsonNode required = root.get("required");
+			assertNotNull(required, "required array should be present");
+			assertTrue(requiredContains(required, "optional"), "optional should be required");
+		}
+
+		private boolean requiredContains(JsonNode required, String name) {
+			for (JsonNode item : required) {
+				if (name.equals(item.asString())) return true;
+			}
+			return false;
+		}
+
+		private EClass createClass() {
+			EClass eClass = EcoreFactory.eINSTANCE.createEClass();
+			eClass.setName("Item");
+
+			EAttribute mandatory = EcoreFactory.eINSTANCE.createEAttribute();
+			mandatory.setName("mandatory");
+			mandatory.setEType(EcorePackage.Literals.ESTRING);
+			mandatory.setLowerBound(1); // required by lowerBound
+			eClass.getEStructuralFeatures().add(mandatory);
+
+			EAttribute optional = EcoreFactory.eINSTANCE.createEAttribute();
+			optional.setName("optional");
+			optional.setEType(EcorePackage.Literals.ESTRING);
+			optional.setLowerBound(0); // not required by lowerBound
+			eClass.getEStructuralFeatures().add(optional);
+
+			return eClass;
+		}
 	}
 }
