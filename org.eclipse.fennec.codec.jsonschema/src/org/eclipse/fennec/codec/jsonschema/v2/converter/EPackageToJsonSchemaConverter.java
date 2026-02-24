@@ -93,6 +93,19 @@ public class EPackageToJsonSchemaConverter {
 	 */
 	public static final String OPTION_USE_ANCHOR_REFS = "useAnchorRefs";
 
+	/**
+	 * When set to {@code true}, every structural feature is added to the
+	 * {@code required} array regardless of its lowerBound.
+	 * <p>
+	 * Useful when generating schemas for AI structured-output requests, where all
+	 * fields must be declared required so the model is forced to populate them.
+	 * </p>
+	 * <p>
+	 * Default: {@code false} (only features with lowerBound &gt;= 1 are required)
+	 * </p>
+	 */
+	public static final String OPTION_ALL_FIELDS_REQUIRED = "allFieldsRequired";
+
 	private EPackage currentPackage;
 	private String schemaFeature;
 	private Map<String, EClassifier> processedClassifiers = new HashMap<>();
@@ -564,7 +577,11 @@ public class EPackageToJsonSchemaConverter {
 
 	private void writeEClass(EClass eClass, JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
+		writeEClassContent(eClass, gen);
+		gen.writeEndObject();
+	}
 
+	private void writeEClassContent(EClass eClass, JsonGenerator gen) throws IOException {
 		String topLevelArray = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "source");
 		String additionalProperties = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "additionalProperties");
 		String description = extractAnnotationDetail(eClass, AnnotationSources.GEN_MODEL, "documentation");
@@ -600,8 +617,82 @@ public class EPackageToJsonSchemaConverter {
 		} else {
 			writeObjectClass(eClass, gen);
 		}
+	}
 
-		gen.writeEndObject();
+	/**
+	 * Converts a single EClass to a JSON Schema document and writes to output stream.
+	 *
+	 * @param eClass the EClass to convert
+	 * @param outputStream the output stream to write to
+	 * @param prettyPrint whether to format the output with indentation
+	 * @throws IOException if writing fails
+	 */
+	public void convertEClass(EClass eClass, OutputStream outputStream, boolean prettyPrint) throws IOException {
+		convertEClass(eClass, outputStream, prettyPrint, null);
+	}
+
+	/**
+	 * Converts a single EClass to a JSON Schema document and writes to output stream.
+	 *
+	 * @param eClass the EClass to convert
+	 * @param outputStream the output stream to write to
+	 * @param prettyPrint whether to format the output with indentation
+	 * @param options conversion options (e.g., {@link #OPTION_ALL_FIELDS_REQUIRED}, {@link #OPTION_USE_ANCHOR_REFS})
+	 * @throws IOException if writing fails
+	 */
+	public void convertEClass(EClass eClass, OutputStream outputStream, boolean prettyPrint, Map<String, Object> options) throws IOException {
+		this.currentPackage = eClass.getEPackage();
+		this.processedClassifiers.clear();
+		this.options = options != null ? options : new HashMap<>();
+		this.anchorNames.clear();
+		if (currentPackage != null) {
+			precomputeAnchors(currentPackage);
+		}
+		JsonMapper.Builder b = JsonMapper.builder();
+		if (prettyPrint) {
+			b.enable(tools.jackson.databind.SerializationFeature.INDENT_OUTPUT);
+		}
+		try (JsonGenerator gen = b.build().createGenerator(outputStream)) {
+			gen.writeStartObject();
+			writeEClassDocumentMetadata(eClass, gen);
+			writeEClassContent(eClass, gen);
+			gen.writeEndObject();
+		}
+	}
+
+	private void writeEClassDocumentMetadata(EClass eClass, JsonGenerator gen) throws IOException {
+		// $schema: from EClass annotation, fallback to EPackage annotation
+		String schema = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "schema");
+		if (schema == null && currentPackage != null) {
+			schema = extractAnnotationDetail(currentPackage, AnnotationSources.JSONSCHEMA, "schema");
+		}
+		if (schema != null) {
+			gen.writeStringProperty("$schema", schema);
+		}
+
+		// $id: from EClass annotation, fallback to derived URI
+		String id = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "id");
+		if (id == null && currentPackage != null && currentPackage.getNsURI() != null) {
+			id = currentPackage.getNsURI() + "#" + eClass.getName();
+		}
+		if (id != null) {
+			gen.writeStringProperty("$id", id);
+		}
+
+		// title: from originalTitle annotation, ExtendedMetaData name, originalName, or class name
+		String title = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "originalTitle");
+		if (title == null) {
+			title = extractAnnotationDetail(eClass, AnnotationSources.EXTENDED_METADATA, "name");
+		}
+		if (title == null) {
+			title = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "originalName");
+		}
+		if (title == null) {
+			title = eClass.getName();
+		}
+		if (title != null) {
+			gen.writeStringProperty("title", title);
+		}
 	}
 
 	private void writeAdditionalProperties(String additionalProperties, JsonGenerator gen) throws IOException {
@@ -651,7 +742,7 @@ public class EPackageToJsonSchemaConverter {
 				gen.writeObjectPropertyStart("properties");
 				isPropertiesWritten = true;
 			}
-			if (feature.isRequired()) {
+			if (isAllFieldsRequired() || feature.isRequired()) {
 				requiredProperties.add(feature.getName());
 			}
 			writeFeature(feature, gen);
@@ -664,7 +755,7 @@ public class EPackageToJsonSchemaConverter {
 					gen.writeObjectPropertyStart("properties");
 					isPropertiesWritten = true;
 				}
-				if (feature.isRequired()) {
+				if (isAllFieldsRequired() || feature.isRequired()) {
 					requiredProperties.add(feature.getName());
 				}
 				writeFeature(feature, gen);
@@ -702,7 +793,7 @@ public class EPackageToJsonSchemaConverter {
 				gen.writeObjectPropertyStart("properties");
 				isPropertiesWritten = true;
 			}
-			if (feature.isRequired()) {
+			if (isAllFieldsRequired() || feature.isRequired()) {
 				requiredProperties.add(feature.getName());
 			}
 			writeFeature(feature, gen);
@@ -715,7 +806,7 @@ public class EPackageToJsonSchemaConverter {
 					gen.writeObjectPropertyStart("properties");
 					isPropertiesWritten = true;
 				}
-				if (feature.isRequired()) {
+				if (isAllFieldsRequired() || feature.isRequired()) {
 					requiredProperties.add(feature.getName());
 				}
 				writeFeature(feature, gen);
@@ -1481,6 +1572,10 @@ public class EPackageToJsonSchemaConverter {
 			case "java.lang.Double", "java.lang.Float", "java.math.BigDecimal", "double", "float" -> "number";
 			default -> "string";
 		};
+	}
+
+	private boolean isAllFieldsRequired() {
+		return Boolean.TRUE.equals(options.get(OPTION_ALL_FIELDS_REQUIRED));
 	}
 
 	private String extractAnnotationDetail(EModelElement modelElement, String source, String detailKey) {

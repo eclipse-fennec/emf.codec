@@ -406,6 +406,45 @@ public class JsonSchemaToEPackageConverter {
 		return diagnostics != null ? new ArrayList<>(diagnostics) : new ArrayList<>();
 	}
 
+	/**
+	 * Converts a JSON Schema document to a single EClass.
+	 *
+	 * @param schemaNode the JSON Schema node representing the class
+	 * @param name the name for the EClass; if null, derived from the "title" field or defaults to "EClass"
+	 * @return the created EClass, or null if conversion yields a non-class classifier
+	 */
+	public EClass convertToEClass(JsonNode schemaNode, String name) {
+		resetState();
+		if (name == null) {
+			name = schemaNode.has("title") ? schemaNode.get("title").asString() : "EClass";
+		}
+		EClassifier classifier = processSchemaDefinition(schemaNode, name, name);
+		resolveDeferredReferences();
+		resolveMissingReferences();
+		resolveAnyOfReferences();
+		resolveAllOfReferences();
+		if (!(classifier instanceof EClass eClass)) {
+			return null;
+		}
+
+		// Capture document-level metadata as EClass annotations
+		if (schemaNode.has("$schema")) {
+			addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "schema", schemaNode.get("$schema").asString());
+		}
+		if (schemaNode.has("$id")) {
+			addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "id", schemaNode.get("$id").asString());
+		}
+		// Preserve title as originalTitle so writeEClassDocumentMetadata can round-trip it.
+		// createEClass already stores the name in originalName/ExtendedMetaData when it
+		// differs from the capitalized form, but originalTitle is the dedicated writer key.
+		if (schemaNode.has("title")) {
+			addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "originalTitle", schemaNode.get("title").asString());
+		}
+		// Note: description → GEN_MODEL annotation is already handled by processSchemaDefinition → createEClass
+
+		return eClass;
+	}
+
 	private EPackage convertNode(JsonNode rootNode) {
 		EPackage ePackage = ecoreFactory.createEPackage();
 
