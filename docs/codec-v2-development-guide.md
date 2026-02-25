@@ -2,9 +2,15 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-02-24 (JSON Schema EClass Value Handlers + allFieldsRequired option + architecture doc)
+**Last Updated:** 2026-02-25 (workspace.library bundle)
 
-**Session Summary (2026-02-24 latest):**
+**Session Summary (2026-02-25 latest):**
+
+**New bundle — `org.eclipse.fennec.codec.workspace.library`:**
+- Provides all codec dependencies as an OSGi library bundle for workspace consumption
+- **Issue**: The `org.eclipse.fennec.codec.geojson` has a dependency from `org.geojson.model`, which in turn import the package `org.gecko.emf.osgi.configurator;version="[1.0,1.1)"`. As this is now part of the fennec project, we might want to update the geojson model first. This is why the `org.eclipse.fennec.codec.geojson` is currently **NOT** in the provided library dependencies.
+
+**Session Summary (2026-02-24):**
 
 **JSON Schema enhancements:**
 - Added `EClassValueReader` / `EClassValueWriter` (embed single-class JSON Schema in other formats)
@@ -145,6 +151,9 @@ MAIN TASK: [description] - [status: ACTIVE/PAUSED/✅]
 ### 0.2 Current Task Hierarchy
 
 ```
+COMPLETED: workspace.library bundle - ✅ (2026-02-25)
+│  - Added org.eclipse.fennec.codec.workspace.library (OSGi library bundle for codec deps)
+
 COMPLETED: JSON Schema EClass Handlers + allFieldsRequired + docs - ✅ (2026-02-24)
 │  - EClassValueReader / EClassValueWriter (embed single-class JSON Schema)
 │  - EClassToJsonSchemaConverter / JsonSchemaToEClassConverter (thin wrappers)

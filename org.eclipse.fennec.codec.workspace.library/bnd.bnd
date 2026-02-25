@@ -1,0 +1,16 @@
+-resourceonly: true
+-include: ${.}/buildpath.bnd	
+mavendeps: ${sjoin;\n; ${template;-maven-dependencies;${@}}}
+
+-includeresource: resources,\
+	{template/fennecCodec.maven=resources/template/fennecCodec.maven}	
+	
+Provide-Capability: \
+	${gecko-base}
+
+gecko-base:\
+    bnd.library;\
+        bnd.library     = fennecCodec; \
+        path            = template
+Bundle-Name: Fennec Codec
+Bundle-Description: Fennec Codec Dependencies
