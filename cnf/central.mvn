@@ -148,3 +148,4 @@ org.eclipse.fennec.bnd:org.eclipse.fennec.bnd.library:0.0.8
 org.eclipse.fennec.bnd:org.eclipse.fennec.jacoco.bnd.library:0.0.8
 org.eclipse.fennec.bnd:org.eclipse.fennec.osgitest.bnd.library:0.0.8
 org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bnd.library.workspace:0.0.1-SNAPSHOT
+org.eclipse.fennec.models:org.eclipse.fennec.common.models.library:0.0.1-SNAPSHOT

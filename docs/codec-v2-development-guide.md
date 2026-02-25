@@ -8,7 +8,8 @@ This document provides context for continuing codec development across sessions.
 
 **New bundle — `org.eclipse.fennec.codec.workspace.library`:**
 - Provides all codec dependencies as an OSGi library bundle for workspace consumption
-- **Issue**: The `org.eclipse.fennec.codec.geojson` has a dependency from `org.geojson.model`, which in turn import the package `org.gecko.emf.osgi.configurator;version="[1.0,1.1)"`. As this is now part of the fennec project, we might want to update the geojson model first. This is why the `org.eclipse.fennec.codec.geojson` is currently **NOT** in the provided library dependencies.
+- Added Fennec Common Models Library `org.eclipse.fennec.models:org.eclipse.fennec.common.models.library:0.0.1-SNAPSHOT` to be able to use `org.geojson.model` from there
+- Removed `org.geojson.model` from local folder (not needed anymore, as we use the one provided by the Fennec Common Models library)
 
 **Session Summary (2026-02-24):**
 
