@@ -143,6 +143,7 @@ public final class CodecAnnotationConstants {
      * Value: "true" or "false". Default: "false".
      * @deprecated Use {@link #KEY_IGNORE} instead for bidirectional control.
      */
+    @Deprecated()
     public static final String KEY_TRANSIENT = "transient";
 
     /**
@@ -575,6 +576,7 @@ public final class CodecAnnotationConstants {
      * Value: "true" or "false". Default: "true".
      * @deprecated Use {@link #KEY_IGNORE} instead. serialize=false maps to ignore=true.
      */
+    @Deprecated()
     public static final String KEY_SERIALIZE = "serialize";
 
     /**
