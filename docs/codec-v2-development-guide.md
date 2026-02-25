@@ -2,9 +2,15 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-02-24 (JSON Schema EClass Value Handlers + allFieldsRequired option + architecture doc)
+**Last Updated:** 2026-02-25 (Jackson deps upgrade: 3.0.1→3.1.0, jackson-annotations 2.20→2.21)
 
-**Session Summary (2026-02-24 latest):**
+**Session Summary (2026-02-25 latest):**
+
+**Dependency upgrades:**
+- Upgraded Jackson from 3.0.1 to 3.1.0
+- Upgraded jackson-annotations from 2.20 to 2.21
+
+**Session Summary (2026-02-24):**
 
 **JSON Schema enhancements:**
 - Added `EClassValueReader` / `EClassValueWriter` (embed single-class JSON Schema in other formats)
@@ -145,6 +151,10 @@ MAIN TASK: [description] - [status: ACTIVE/PAUSED/✅]
 ### 0.2 Current Task Hierarchy
 
 ```
+COMPLETED: Jackson dependency upgrades - ✅ (2026-02-25)
+│  - Jackson 3.0.1 → 3.1.0
+│  - jackson-annotations 2.20 → 2.21
+
 COMPLETED: JSON Schema EClass Handlers + allFieldsRequired + docs - ✅ (2026-02-24)
 │  - EClassValueReader / EClassValueWriter (embed single-class JSON Schema)
 │  - EClassToJsonSchemaConverter / JsonSchemaToEClassConverter (thin wrappers)
