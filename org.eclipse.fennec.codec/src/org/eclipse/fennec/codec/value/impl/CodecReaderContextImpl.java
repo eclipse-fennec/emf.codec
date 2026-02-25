@@ -10,9 +10,12 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.codec.value;
+package org.eclipse.fennec.codec.value.impl;
 
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
+import org.eclipse.fennec.codec.value.CodecReaderContext;
+import org.eclipse.fennec.codec.value.CodecValueReader;
+import org.eclipse.fennec.codec.value.EffectiveCodecConfig;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;

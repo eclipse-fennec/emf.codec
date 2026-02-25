@@ -15,10 +15,10 @@ package org.eclipse.fennec.codec.context;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
-import org.eclipse.fennec.codec.value.CodecReaderContextImpl;
+import org.eclipse.fennec.codec.value.impl.CodecReaderContextImpl;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
-import org.eclipse.fennec.codec.value.CodecWriterContextImpl;
+import org.eclipse.fennec.codec.value.impl.CodecWriterContextImpl;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;

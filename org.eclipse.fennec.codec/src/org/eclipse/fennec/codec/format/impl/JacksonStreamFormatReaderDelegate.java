@@ -19,7 +19,6 @@ import java.math.BigInteger;
 
 import org.eclipse.fennec.codec.format.FormatReaderDelegate;
 import org.eclipse.fennec.codec.format.TokenType;
-import org.eclipse.fennec.codec.format.TokenTypeMapper;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
