@@ -10,11 +10,14 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.codec.format;
+package org.eclipse.fennec.codec.format.impl;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+
+import org.eclipse.fennec.codec.format.FormatReaderDelegate;
+import org.eclipse.fennec.codec.format.TokenType;
 
 import tools.jackson.core.Base64Variant;
 import tools.jackson.core.JacksonException;

@@ -136,7 +136,7 @@ tools.jackson.dataformat:jackson-dataformat-cbor:3.0.2
 tools.jackson.dataformat:jackson-dataformat-properties:3.0.2
 tools.jackson.dataformat:jackson-dataformat-yaml:3.0.2
 com.fasterxml.jackson.core:jackson-annotations:2.20
-org.snakeyaml:snakeyaml-engine:3.0.1
+org.snakeyaml:snakeyaml-engine:2.10
 
 org.slf4j:slf4j-simple:1.7.36
 org.slf4j:slf4j-api:1.7.36

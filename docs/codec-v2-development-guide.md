@@ -2,9 +2,22 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-02-24 (JSON Schema EClass Value Handlers + allFieldsRequired option + architecture doc)
+**Last Updated:** 2026-02-25 (OSGi facades + integration tests + package restructuring)
 
-**Session Summary (2026-02-24 latest):**
+**Session Summary (2026-02-25 latest):**
+
+**OSGi Integration:**
+- Added `MetadataServiceComponent` in `org.eclipse.fennec.model.metadata` bundle — DS component exposing `MetadataWhiteboard` and `MetadataService` as OSGi services; has `@Reference(MULTIPLE, DYNAMIC)` for `EPackage`, `AspectProvider`, `MetadataIndex` (OPTIONAL), and `MetadataHandler` whiteboard entries
+- Added `CodecAspectProviderComponent` in `org.eclipse.fennec.codec.metadata` bundle — DS component extending `CodecAspectProvider`, registered as `AspectProvider` OSGi service; automatically picked up by `MetadataServiceComponent` and applied to all registered EPackages
+- Added `org.eclipse.fennec.codec.osgi.tests` bundle with 15 OSGi integration tests mirroring the `org.eclipse.fennec.codec.examples` suite; tests use `@InjectService MetadataService`, `@InjectBundleContext BundleContext`, and `ctx.registerService(EPackage.class, pkg, null)` — no manual `MetadataServiceFactory.create()` or `metadataService.registerPackage(pkg)` calls
+- Special pattern for `ExternalTypeDiscriminatorExample`: registers `TypeDiscriminatorService` as `MetadataHandler` OSGi service _before_ the EPackage so that `MetadataServiceComponent.addHandler()` notifies it of package events automatically
+
+**Package restructuring (required for OSGi bndrun resolution and to avoid `ClassNotFoundException` at runtime):**
+- Exported package `org.eclipse.fennec.model.metadata.service` in `org.eclipse.fennec.model.metadata` bnd.bnd — it was missing from the exported API, causing the bndrun resolver to fail
+- Renamed package `org.eclipse.fennec.codec.value` → `org.eclipse.fennec.codec.value.impl` in the `org.eclipse.fennec.codec` bundle to eliminate split-package conflict with the identically named package in `org.eclipse.fennec.codec.api`
+- Moved classes in `org.eclipse.fennec.codec.format` (in the `org.eclipse.fennec.codec` bundle) to `org.eclipse.fennec.codec.format.impl` for the same reason — the public API types (`FormatDelegate`, `FormatReaderDelegate`, `CodecFormatProvider`, `TokenType`) remain in `codec.api`, while the implementation bridge classes (`FormatDelegateGenerator`, `FormatDelegateParser`, `JacksonFormatProvider`) now live in the `.impl` sub-package of the codec bundle
+
+**Previous Session Summary (2026-02-24):**
 
 **JSON Schema enhancements:**
 - Added `EClassValueReader` / `EClassValueWriter` (embed single-class JSON Schema in other formats)
@@ -145,6 +158,14 @@ MAIN TASK: [description] - [status: ACTIVE/PAUSED/✅]
 ### 0.2 Current Task Hierarchy
 
 ```
+COMPLETED: OSGi Facades + Integration Tests + Package Restructuring - ✅ (2026-02-25)
+│  - MetadataServiceComponent (org.eclipse.fennec.model.metadata): DS whiteboard for EPackage/AspectProvider/MetadataHandler
+│  - CodecAspectProviderComponent (org.eclipse.fennec.codec.metadata): DS AspectProvider service
+│  - org.eclipse.fennec.codec.osgi.tests: 15 OSGi integration tests with @InjectService MetadataService
+│  - Exported org.eclipse.fennec.model.metadata.service (was missing, blocked bndrun resolver)
+│  - Renamed codec.value → codec.value.impl (split-package conflict with codec.api)
+│  - Moved codec.format impl classes → codec.format.impl (split-package conflict with codec.api)
+
 COMPLETED: JSON Schema EClass Handlers + allFieldsRequired + docs - ✅ (2026-02-24)
 │  - EClassValueReader / EClassValueWriter (embed single-class JSON Schema)
 │  - EClassToJsonSchemaConverter / JsonSchemaToEClassConverter (thin wrappers)
@@ -225,7 +246,9 @@ PREVIOUS: Integration Tests + PLAIN Reference Format - ✅ (2026-02-06)
 | Component | Location | Purpose |
 |-----------|----------|---------|
 | **MetadataService** | `codec.metadata` | EPackage registration, aspect creation |
+| **MetadataServiceComponent** | `model.metadata.service` | DS OSGi facade: whiteboard for EPackage/AspectProvider/MetadataHandler services |
 | **CodecAspectProvider** | `codec.metadata.provider` | Parses EAnnotations → Config objects |
+| **CodecAspectProviderComponent** | `codec.metadata.provider` | DS OSGi facade: registers `CodecAspectProvider` as `AspectProvider` service |
 | **TypeDiscriminatorService** | `codec.metadata.type` | Manages discriminator→EClass mappings |
 | **EffectiveCodecConfig** | `codec.api.config.effective` | Per-feature config resolution |
 | **CodecEObjectSerializer** | `codec.ser` | Orchestrates serialization entries |
@@ -234,8 +257,8 @@ PREVIOUS: Integration Tests + PLAIN Reference Format - ✅ (2026-02-06)
 | **DeserializationEntry** | `codec.deser` | Type/ID/Feature/Reference deserializers |
 | **FormatDelegate\<T\>** | `codec.api.format` | Format-agnostic write interface |
 | **FormatReaderDelegate\<S\>** | `codec.api.format` | Format-agnostic read interface |
-| **FormatDelegateGenerator\<T\>** | `codec.format` | Jackson bridge: wraps FormatDelegate as JsonGenerator |
-| **FormatDelegateParser\<S\>** | `codec.format` | Jackson bridge: wraps FormatReaderDelegate as JsonParser |
+| **FormatDelegateGenerator\<T\>** | `codec.format.impl` | Jackson bridge: wraps FormatDelegate as JsonGenerator |
+| **FormatDelegateParser\<S\>** | `codec.format.impl` | Jackson bridge: wraps FormatReaderDelegate as JsonParser |
 | **JacksonFormatProvider** | `codec.format.impl` | Factory for Jackson-based formats (JSON, CBOR, YAML) |
 | **BsonFormatProvider** | `codec.bson` | Factory for BSON format (in-memory BsonDocument) |
 
@@ -251,7 +274,7 @@ From highest to lowest priority:
 
 See `docs/codec-v2-spec/02-config-resolution.md` for details.
 
-## 3. Current State (2026-02-16)
+## 3. Current State (2026-02-25)
 
 ### 3.1 What Works
 
@@ -305,6 +328,13 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 - CodecResource: optional `CodecFormatProvider` field, `doSaveWithFormat()`/`doLoadWithFormat()`
 - `CodecFormatProvider.supportsArrayRoot()` — capability check (BSON returns false)
 
+✅ **OSGi Integration (2026-02-25)**
+- `MetadataServiceComponent` — DS component in `org.eclipse.fennec.model.metadata`; exposes `MetadataWhiteboard` and `MetadataService` as OSGi services; whiteboard references: `EPackage` (MULTIPLE, DYNAMIC), `AspectProvider` (MULTIPLE, DYNAMIC), `MetadataIndex` (OPTIONAL), `MetadataHandler` (MULTIPLE, DYNAMIC)
+- `CodecAspectProviderComponent` — DS component in `org.eclipse.fennec.codec.metadata`; registered as `AspectProvider` OSGi service; bound automatically by `MetadataServiceComponent`
+- `org.eclipse.fennec.codec.osgi.tests` — 15 OSGi integration tests using `@InjectService`/`@InjectBundleContext`; EPackages registered as OSGi services (`ctx.registerService(EPackage.class, pkg, null)`) rather than via `MetadataServiceFactory`
+- Package split fixes: `org.eclipse.fennec.model.metadata.service` exported; `codec.value` impl classes moved to `codec.value.impl`; `codec.format` impl classes moved to `codec.format.impl`
+- `test.bndrun` explicitly requires `org.eclipse.fennec.codec.metadata` (DYNAMIC reference not auto-resolved by bnd)
+
 ✅ **TCK Test Suite (Plan F)**
 - 18 abstract TCK classes in `org.eclipse.fennec.codec.tests` covering all codec features
 - 8 dedicated ecore test models for TCK scenarios
@@ -321,20 +351,21 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 
 ### 3.2 Test Status
 
-**Current Counts (2026-02-17, after Plan F TCK completion):**
+**Current Counts (2026-02-25, after OSGi integration work):**
 
-| Project | Tests | Suites |
-|---------|------:|-------:|
-| `org.eclipse.fennec.codec.api` | 1,039 | 179 |
-| `org.eclipse.fennec.codec` | 1,231 | 373 |
-| `org.eclipse.fennec.codec.bson` | 98 | 33 |
-| `org.eclipse.fennec.codec.cbor` | 53 | 24 |
-| `org.eclipse.fennec.codec.yaml` | 53 | 24 |
-| `org.eclipse.fennec.codec.metadata` | 255 | 61 |
-| `org.eclipse.fennec.codec.geojson` | 34 | 13 |
-| `org.eclipse.fennec.codec.jsonschema` | 101 | 30 |
-| `org.eclipse.fennec.codec.openapi` | 75 | 34 |
-| **Total** | **3,016** | **771** |
+| Project | Tests | Suites | Notes |
+|---------|------:|-------:|-------|
+| `org.eclipse.fennec.codec.api` | 1,039 | 179 | |
+| `org.eclipse.fennec.codec` | 1,231 | 373 | |
+| `org.eclipse.fennec.codec.bson` | 98 | 33 | |
+| `org.eclipse.fennec.codec.cbor` | 53 | 24 | |
+| `org.eclipse.fennec.codec.yaml` | 53 | 24 | |
+| `org.eclipse.fennec.codec.metadata` | 255 | 61 | |
+| `org.eclipse.fennec.codec.geojson` | 34 | 13 | |
+| `org.eclipse.fennec.codec.jsonschema` | 101 | 30 | |
+| `org.eclipse.fennec.codec.openapi` | 75 | 34 | |
+| `org.eclipse.fennec.codec.osgi.tests` | 15+ | 15 | OSGi integration tests |
+| **Total** | **3,016+** | **786+** | |
 
 All tests pass with 0 failures, 0 errors, 0 skipped.
 
@@ -672,11 +703,16 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 - P1: `Abstract{TypeStrategy,IdStrategy,EnumStrategy,Polymorphism,ReferenceFormat,ValueHandling,CustomKey}TCK`
 - P2: `Abstract{EMap,SuperType,Visibility,ForceReadWrite,GlobalIgnore,Strictness,ArrayRoot,LargePayload,ExtendedMetaData,CustomValue}TCK`
 
+**Completed this session:**
+- [✅] OSGi facades: `MetadataServiceComponent`, `CodecAspectProviderComponent`
+- [✅] OSGi integration tests: `org.eclipse.fennec.codec.osgi.tests` (15 test classes)
+- [✅] Package split fixes: exported `model.metadata.service`; `codec.value.impl`; `codec.format.impl`
+- [✅] DOC-001 through DOC-004: OSGi integration examples (covered by osgi.tests bundle)
+
 **Deferred:**
 - [ ] GAP-004: Diagnostic Options integration
 - [ ] GAP-013: Enum-level annotation support
 - [ ] GAP-014: inherit enum type mismatch
-- [ ] DOC-001 through DOC-004: Documentation examples
 - [ ] Smile format: `org.eclipse.fennec.codec.smile` — add when demand arises
 
 ## 10. Reference Information

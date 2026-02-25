@@ -10,7 +10,9 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.codec.format;
+package org.eclipse.fennec.codec.format.impl;
+
+import org.eclipse.fennec.codec.format.TokenType;
 
 import tools.jackson.core.JsonToken;
 
