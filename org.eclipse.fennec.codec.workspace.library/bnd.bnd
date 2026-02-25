@@ -6,9 +6,9 @@ mavendeps: ${sjoin;\n; ${template;-maven-dependencies;${@}}}
 	{template/fennecCodec.maven=resources/template/fennecCodec.maven}	
 	
 Provide-Capability: \
-	${gecko-base}
+	${fennec-base}
 
-gecko-base:\
+fennec-base:\
     bnd.library;\
         bnd.library     = fennecCodec; \
         path            = template
