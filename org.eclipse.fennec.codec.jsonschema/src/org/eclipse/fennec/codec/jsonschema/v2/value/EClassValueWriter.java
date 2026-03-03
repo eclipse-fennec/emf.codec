@@ -15,13 +15,16 @@ package org.eclipse.fennec.codec.jsonschema.v2.value;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.EClassToJsonSchemaConverter;
+import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.codec.value.ReferenceValueWriter;
+import org.osgi.service.component.annotations.Component;
 
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -35,6 +38,7 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * @see EClassValueReader
  */
+@Component(service = CodecValueWriter.class)
 public class EClassValueWriter implements ReferenceValueWriter<EClass> {
 
 	private final EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
@@ -71,8 +75,12 @@ public class EClassValueWriter implements ReferenceValueWriter<EClass> {
 		}
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		converter.convert(value, baos, false);
-
+		if(ctx.getConfig() != null) {
+			converter.convert(value, baos, false, ctx.getConfig().getCustomProperties());
+		}
+		else {
+			converter.convert(value, baos, false, Collections.emptyMap());
+		}
 		ObjectMapper mapper = JsonMapper.builder().build();
 		Object tree = mapper.readValue(baos.toString(StandardCharsets.UTF_8), Object.class);
 		ctx.getGenerator().writePOJO(tree);

@@ -2,9 +2,43 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-02-25 
+**Last Updated:** 2026-03-02
 
-**Session Summary (2026-02-25 latest):**
+**Session Summary (2026-03-02 latest):**
+
+**Custom Properties for Format-Specific Options:**
+- Introduced generic `customProperties` map on `EffectiveCodecConfig` — automatically collects all `codec.*` load/save options that don't match known `ConfigProperty` keys or runtime-only options
+- Replaced hard-coded `allFieldsRequired`, `useAnchorRefs`, `flatAllOf` boolean fields on `EffectiveCodecConfig` with the generic `customProperties` approach
+- Removed `getConverterOptions()` from the API interface in favor of `getCustomProperties()`
+- Updated `CodecResource.extractCustomProperties()` — filters options by `codec.*` prefix, excluding known `ConfigProperty` keys and runtime options
+- Updated `CodecModule` to pass `customProperties` through to `EffectiveCodecConfig.Builder`
+- Value writers (`EClassValueWriter`, `EPackageValueWriter`) now use `ctx.getConfig().getCustomProperties()`
+
+**JSON Schema Option Key Migration:**
+- Migrated all JSON Schema option constants in `CodecJsonSchemaOptions` to use `codec.jsonschema.*` prefix:
+  - `"useAnchorRefs"` → `"codec.jsonschema.useAnchorRefs"`
+  - `"allFieldsRequired"` → `"codec.jsonschema.allFieldsRequired"`
+  - `"flatAllOf"` → `"codec.jsonschema.flatAllOf"`
+- Added `OPTION_USE_NAMES_FROM_EXTENDED_METADATA` (`"codec.jsonschema.useNamesFromExtendedMetadata"`)
+- Added `OPTION_SUPPRESS_KEYWORDS` (`"codec.jsonschema.suppressKeywords"`) — `Collection<String>` of JSON Schema keywords to suppress in output
+
+**JSON Schema Bug Fix — Missing `items` for Arrays:**
+- Fixed `EPackageToJsonSchemaConverter.writeMultiValuedAttribute()` — `items` property was only written when a `@jsonschema(items="true")` annotation was present; now always emitted for multi-valued attributes
+
+**JSON Schema Keyword Suppression:**
+- `OPTION_SUPPRESS_KEYWORDS` allows suppressing specific JSON Schema keywords (e.g., `maxItems`, `minItems`, `description`, `additionalProperties`, `$comment`, `deprecated`, `writeOnly`, `uniqueItems`, `format`)
+- Useful for generating schemas compatible with AI structured-output APIs that don't support certain keywords
+- Applied `isSuppressed()` guards across all keyword write sites in `EPackageToJsonSchemaConverter`
+
+**New Tests:**
+- `MultiValuedAttributeTests` — 7 tests: string/int/boolean/double/enum arrays, bounded arrays, containment reference arrays
+- `SuppressKeywordsTests` — 6 tests: suppress maxItems, minItems, description, additionalProperties, $comment, multiple keywords
+
+**Documentation:**
+- Updated `jsonschema-architecture.md` — options table with full `codec.jsonschema.*` keys, custom properties integration section, keyword suppression section, array items section
+- Updated `codec-v2-development-guide.md` — session summary, task hierarchy, test counts
+
+**Previous Session Summary (2026-02-25):**
 
 **OSGi Integration:**
 
@@ -179,6 +213,16 @@ MAIN TASK: [description] - [status: ACTIVE/PAUSED/✅]
 
 ```
 
+COMPLETED: Custom Properties + JSON Schema Enhancements - ✅ (2026-03-02)
+│  - Generic customProperties map on EffectiveCodecConfig (replaces hard-coded format-specific fields)
+│  - CodecResource.extractCustomProperties() — auto-collects codec.* options not matching known keys
+│  - CodecModule passes customProperties through to EffectiveCodecConfig
+│  - JSON Schema option keys migrated to codec.jsonschema.* namespace
+│  - Fixed missing array items in EPackageToJsonSchemaConverter
+│  - Added OPTION_SUPPRESS_KEYWORDS for keyword suppression
+│  - 13 new tests (7 array + 6 suppression)
+│  - Updated jsonschema-architecture.md and codec-v2-development-guide.md
+
 COMPLETED: OSGi Facades + Integration Tests + Package Restructuring - ✅ (2026-02-25)
 │  - MetadataServiceComponent (org.eclipse.fennec.model.metadata): DS whiteboard for EPackage/AspectProvider/MetadataHandler
 │  - CodecAspectProviderComponent (org.eclipse.fennec.codec.metadata): DS AspectProvider service
@@ -303,7 +347,7 @@ From highest to lowest priority:
 
 See `docs/codec-v2-spec/02-config-resolution.md` for details.
 
-## 3. Current State (2026-02-25)
+## 3. Current State (2026-03-02)
 
 ### 3.1 What Works
 
@@ -357,6 +401,14 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 - CodecResource: optional `CodecFormatProvider` field, `doSaveWithFormat()`/`doLoadWithFormat()`
 - `CodecFormatProvider.supportsArrayRoot()` — capability check (BSON returns false)
 
+✅ **Custom Properties for Format-Specific Options (2026-03-02)**
+- `EffectiveCodecConfig.getCustomProperties()` — generic `Map<String, Object>` for format-specific options
+- `CodecResource.extractCustomProperties()` — auto-collects `codec.*` options not matching known `ConfigProperty` or runtime keys
+- `CodecModule.Builder.customProperties()` — passes through to `EffectiveCodecConfig`
+- JSON Schema options use `codec.jsonschema.*` namespace: `allFieldsRequired`, `useAnchorRefs`, `flatAllOf`, `useNamesFromExtendedMetadata`, `suppressKeywords`
+- `OPTION_SUPPRESS_KEYWORDS` — suppress specific JSON Schema keywords in output (e.g., `maxItems`, `description`)
+- Array `items` property now always emitted for multi-valued attributes (was previously annotation-gated)
+
 ✅ **OSGi Integration (2026-02-25)**
 - `MetadataServiceComponent` — DS component in `org.eclipse.fennec.model.metadata`; exposes `MetadataWhiteboard` and `MetadataService` as OSGi services; whiteboard references: `EPackage` (MULTIPLE, DYNAMIC), `AspectProvider` (MULTIPLE, DYNAMIC), `MetadataIndex` (OPTIONAL), `MetadataHandler` (MULTIPLE, DYNAMIC)
 - `CodecAspectProviderComponent` — DS component in `org.eclipse.fennec.codec.metadata`; registered as `AspectProvider` OSGi service; bound automatically by `MetadataServiceComponent`
@@ -380,7 +432,7 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 
 ### 3.2 Test Status
 
-**Current Counts (2026-02-25, after OSGi integration work):**
+**Current Counts (2026-03-02, after custom properties + JSON Schema enhancements):**
 
 | Project | Tests | Suites | Notes |
 |---------|------:|-------:|-------|
@@ -391,10 +443,10 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 | `org.eclipse.fennec.codec.yaml` | 53 | 24 | |
 | `org.eclipse.fennec.codec.metadata` | 255 | 61 | |
 | `org.eclipse.fennec.codec.geojson` | 34 | 13 | |
-| `org.eclipse.fennec.codec.jsonschema` | 101 | 30 | |
+| `org.eclipse.fennec.codec.jsonschema` | 146 | 43 | +13 new array/suppression tests |
 | `org.eclipse.fennec.codec.openapi` | 75 | 34 | |
 | `org.eclipse.fennec.codec.osgi.tests` | 15+ | 15 | OSGi integration tests |
-| **Total** | **3,016+** | **786+** | |
+| **Total** | **3,061+** | **799+** | |
 
 All tests pass with 0 failures, 0 errors, 0 skipped.
 
@@ -732,7 +784,16 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 - P1: `Abstract{TypeStrategy,IdStrategy,EnumStrategy,Polymorphism,ReferenceFormat,ValueHandling,CustomKey}TCK`
 - P2: `Abstract{EMap,SuperType,Visibility,ForceReadWrite,GlobalIgnore,Strictness,ArrayRoot,LargePayload,ExtendedMetaData,CustomValue}TCK`
 
-**Completed this session:**
+**Completed this session (2026-03-02):**
+- [✅] Custom properties: generic `customProperties` map on `EffectiveCodecConfig` (replaces hard-coded format fields)
+- [✅] `CodecResource.extractCustomProperties()` — auto-collects `codec.*` options
+- [✅] JSON Schema option key migration to `codec.jsonschema.*` namespace
+- [✅] Fixed missing array `items` in `EPackageToJsonSchemaConverter`
+- [✅] `OPTION_SUPPRESS_KEYWORDS` — keyword suppression for JSON Schema output
+- [✅] 13 new tests (7 array + 6 suppression)
+- [✅] Updated `jsonschema-architecture.md` and `codec-v2-development-guide.md`
+
+**Completed previous session (2026-02-25):**
 - [✅] OSGi facades: `MetadataServiceComponent`, `CodecAspectProviderComponent`
 - [✅] OSGi integration tests: `org.eclipse.fennec.codec.osgi.tests` (15 test classes)
 - [✅] Package split fixes: exported `model.metadata.service`; `codec.value.impl`; `codec.format.impl`

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="jsonschematest" nsURI="http://example.org/fennec/jsonschematest/1.0" nsPrefix="jsonschematest">
+
+  <!--
+    Test model for JSON Schema value handler integration tests.
+    SchemaHolder has a containment reference to EClass that uses
+    custom value writers/readers to serialize as inline JSON Schema.
+  -->
+
+  <eClassifiers xsi:type="ecore:EClass" name="SchemaHolder">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EClass" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueWriterName" value="eClassToJsonSchema"/>
+        <details key="valueReaderName" value="jsonSchemaToEClass"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
+</ecore:EPackage>

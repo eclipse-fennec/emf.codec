@@ -15,11 +15,14 @@ package org.eclipse.fennec.codec.jsonschema.v2.converter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
@@ -34,8 +37,8 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
-
 import org.eclipse.fennec.codec.constants.AnnotationSources;
+import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.JsonNode;
@@ -74,43 +77,14 @@ import tools.jackson.databind.json.JsonMapper;
 public class EPackageToJsonSchemaConverter {
 
 
-	/**
-	 * Option key to enable anchor-based references instead of JSON Pointer references.
-	 * <p>
-	 * When set to {@code true}, the converter will:
-	 * <ul>
-	 *   <li>Generate {@code $anchor} for each EClass definition</li>
-	 *   <li>Use {@code #anchorName} instead of {@code #/definitions/Name} for references</li>
-	 * </ul>
-	 * </p>
-	 * <p>
-	 * Default: {@code false} (use JSON Pointer references)
-	 * </p>
-	 * <p>
-	 * Can be overridden per EClass using the annotation:
-	 * {@code @http://fennec.eclipse.org/jsonschema(useAnchor="true")}
-	 * </p>
-	 */
-	public static final String OPTION_USE_ANCHOR_REFS = "useAnchorRefs";
-
-	/**
-	 * When set to {@code true}, every structural feature is added to the
-	 * {@code required} array regardless of its lowerBound.
-	 * <p>
-	 * Useful when generating schemas for AI structured-output requests, where all
-	 * fields must be declared required so the model is forced to populate them.
-	 * </p>
-	 * <p>
-	 * Default: {@code false} (only features with lowerBound &gt;= 1 are required)
-	 * </p>
-	 */
-	public static final String OPTION_ALL_FIELDS_REQUIRED = "allFieldsRequired";
+	
 
 	private EPackage currentPackage;
 	private String schemaFeature;
 	private Map<String, EClassifier> processedClassifiers = new HashMap<>();
 	private Map<String, Object> options = new HashMap<>();
 	private Map<EClassifier, String> anchorNames = new HashMap<>();  // Track generated anchors
+	private Set<String> suppressedKeywords = Set.of();
 
 	/**
 	 * Converts an EPackage to JSON Schema and writes to output stream.
@@ -154,6 +128,7 @@ public class EPackageToJsonSchemaConverter {
 		this.processedClassifiers.clear();
 		this.options = options != null ? options : new HashMap<>();
 		this.anchorNames.clear();
+		this.suppressedKeywords = resolveSuppressedKeywords(this.options);
 
 		JsonMapper.Builder mapperBuilder = JsonMapper.builder();
 		if (prettyPrint) {
@@ -215,6 +190,9 @@ public class EPackageToJsonSchemaConverter {
 	 */
 	private void writePackageMetadata(EPackage ePackage, JsonGenerator gen) throws IOException {
 		String schema = extractAnnotationDetail(ePackage, AnnotationSources.JSONSCHEMA, "schema");
+		if (schema == null) {
+			schema = resolveSchemaDraft();
+		}
 		if (schema != null) {
 			gen.writeStringProperty("$schema", schema);
 		}
@@ -262,6 +240,8 @@ public class EPackageToJsonSchemaConverter {
 		String additionalProperties = extractAnnotationDetail(rootClass, AnnotationSources.JSONSCHEMA, "additionalProperties");
 		if (additionalProperties != null) {
 			writeAdditionalProperties(additionalProperties, gen);
+		} else {
+			gen.writeBooleanProperty("additionalProperties", false);
 		}
 
 		// Collect required properties
@@ -535,6 +515,7 @@ public class EPackageToJsonSchemaConverter {
 		}
 
 		gen.writeStringProperty("type", "object");
+		gen.writeBooleanProperty("additionalProperties", false);
 
 		// Collect all properties (from base + variant)
 		List<EStructuralFeature> allFeatures = new ArrayList<>();
@@ -567,11 +548,6 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeEndArray();
 		}
 
-		String additionalProperties = extractAnnotationDetail(variant, AnnotationSources.JSONSCHEMA, "additionalProperties");
-		if (additionalProperties != null) {
-			writeAdditionalProperties(additionalProperties, gen);
-		}
-
 		gen.writeEndObject();
 	}
 
@@ -594,22 +570,26 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeStringProperty("$anchor", anchor);
 		}
 
-		if (description != null) {
+		if (description != null && !isSuppressed("description")) {
 			gen.writeStringProperty("description", description);
 		}
 
 		// Write $comment if present
-		if (comment != null) {
+		if (comment != null && !isSuppressed("$comment")) {
 			gen.writeStringProperty("$comment", comment);
 		}
 
 		// Write deprecated if true
-		if ("true".equals(deprecated)) {
+		if ("true".equals(deprecated) && !isSuppressed("deprecated")) {
 			gen.writeBooleanProperty("deprecated", true);
 		}
 
-		if (additionalProperties != null) {
-			writeAdditionalProperties(additionalProperties, gen);
+		if (!isSuppressed("additionalProperties")) {
+			if (additionalProperties != null) {
+				writeAdditionalProperties(additionalProperties, gen);
+			} else if (!"TopLevelArray".equals(topLevelArray)) {
+				gen.writeBooleanProperty("additionalProperties", false);
+			}
 		}
 
 		if ("TopLevelArray".equals(topLevelArray)) {
@@ -641,10 +621,12 @@ public class EPackageToJsonSchemaConverter {
 	 * @throws IOException if writing fails
 	 */
 	public void convertEClass(EClass eClass, OutputStream outputStream, boolean prettyPrint, Map<String, Object> options) throws IOException {
-		this.currentPackage = eClass.getEPackage();
+		this.currentPackage = resolvePackage(eClass);
+		this.schemaFeature = "$defs";
 		this.processedClassifiers.clear();
 		this.options = options != null ? options : new HashMap<>();
 		this.anchorNames.clear();
+		this.suppressedKeywords = resolveSuppressedKeywords(this.options);
 		if (currentPackage != null) {
 			precomputeAnchors(currentPackage);
 		}
@@ -656,15 +638,110 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeStartObject();
 			writeEClassDocumentMetadata(eClass, gen);
 			writeEClassContent(eClass, gen);
+
+			// Collect referenced EClasses that need $defs entries
+			List<EClass> referencedClasses = collectReferencedClasses(eClass);
+			if (!referencedClasses.isEmpty()) {
+				gen.writeObjectPropertyStart("$defs");
+				for (EClass refClass : referencedClasses) {
+					writeClassifier(refClass, gen);
+				}
+				gen.writeEndObject();
+			}
+
 			gen.writeEndObject();
 		}
 	}
 
+	/**
+	 * Resolves the EPackage for the given EClass.
+	 * <p>
+	 * When an EClass is set on a containment reference (e.g., via a custom value
+	 * writer), EMF moves it out of its original EPackage, so
+	 * {@code eClass.getEPackage()} returns {@code null}. In that case, we infer
+	 * the package from referenced types (supertypes, feature types) that are
+	 * still in their original package.
+	 */
+	private EPackage resolvePackage(EClass eClass) {
+		EPackage pkg = eClass.getEPackage();
+		if (pkg != null) {
+			return pkg;
+		}
+		// EClass was detached from its package (e.g., by containment).
+		// Try to infer the package from supertypes or referenced types.
+		for (EClass superType : eClass.getESuperTypes()) {
+			if (superType.getEPackage() != null) {
+				return superType.getEPackage();
+			}
+		}
+		for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
+			if (feature instanceof EReference eRef) {
+				EClassifier type = eRef.getEType();
+				if (type instanceof EClass refClass && refClass.getEPackage() != null) {
+					return refClass.getEPackage();
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Collects all EClasses from the same package that are referenced via {@code $ref}
+	 * (non-containment references or supertypes) by the given root EClass and need
+	 * their own definition entry in {@code $defs}.
+	 * <p>
+	 * Containment references are inlined in the schema, so they don't need a
+	 * {@code $defs} entry themselves — but they are traversed to find transitive
+	 * {@code $ref} dependencies (e.g., supertypes of inlined classes).
+	 */
+	private List<EClass> collectReferencedClasses(EClass rootClass) {
+		List<EClass> result = new ArrayList<>();
+		List<EClass> visited = new ArrayList<>();
+		visited.add(rootClass);
+		collectReferencedClasses(rootClass, result, visited);
+		return result;
+	}
+
+	private void collectReferencedClasses(EClass eClass, List<EClass> needsDef, List<EClass> visited) {
+		for (EStructuralFeature feature : eClass.getEAllStructuralFeatures()) {
+			if (feature instanceof EReference eRef) {
+				EClassifier type = eRef.getEType();
+				if (type instanceof EClass refClass && !visited.contains(refClass)) {
+					visited.add(refClass);
+					String artificial = extractAnnotationDetail(refClass, AnnotationSources.JSONSCHEMA, "artificial");
+					if (!"true".equals(artificial)) {
+						if (!eRef.isContainment()) {
+							// Non-containment: generates a $ref, needs $defs entry
+							needsDef.add(refClass);
+						}
+						// Always recurse (containment refs are inlined but may
+						// themselves reference classes that need $defs)
+						collectReferencedClasses(refClass, needsDef, visited);
+					}
+				}
+			}
+		}
+		// Supertypes generate allOf with $ref, so they need $defs entries
+		for (EClass superType : eClass.getESuperTypes()) {
+			if (!visited.contains(superType)) {
+				visited.add(superType);
+				String artificial = extractAnnotationDetail(superType, AnnotationSources.JSONSCHEMA, "artificial");
+				if (!"true".equals(artificial) && !isFlatAllOf()) {
+					needsDef.add(superType);
+					collectReferencedClasses(superType, needsDef, visited);
+				}
+			}
+		}
+	}
+
 	private void writeEClassDocumentMetadata(EClass eClass, JsonGenerator gen) throws IOException {
-		// $schema: from EClass annotation, fallback to EPackage annotation
+		// $schema: from EClass annotation, fallback to EPackage annotation, fallback to options
 		String schema = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "schema");
 		if (schema == null && currentPackage != null) {
 			schema = extractAnnotationDetail(currentPackage, AnnotationSources.JSONSCHEMA, "schema");
+		}
+		if (schema == null) {
+			schema = resolveSchemaDraft();
 		}
 		if (schema != null) {
 			gen.writeStringProperty("$schema", schema);
@@ -679,9 +756,9 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeStringProperty("$id", id);
 		}
 
-		// title: from originalTitle annotation, ExtendedMetaData name, originalName, or class name
+		// title: from originalTitle annotation, ExtendedMetaData name (if opted in), originalName, or class name
 		String title = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "originalTitle");
-		if (title == null) {
+		if (title == null && isUseNamesFromExtendedMetaData()) {
 			title = extractAnnotationDetail(eClass, AnnotationSources.EXTENDED_METADATA, "name");
 		}
 		if (title == null) {
@@ -723,18 +800,24 @@ public class EPackageToJsonSchemaConverter {
 				.filter(st -> extractAnnotationDetail(st, AnnotationSources.JSONSCHEMA, "artificial") == null)
 				.toList();
 
-		if (nonArtificialParents.isEmpty()) {
-			writeSimpleObjectClass(eClass, artificialParents, gen);
+		if (nonArtificialParents.isEmpty() || isFlatAllOf()) {
+			// When flatAllOf is enabled, treat all parents as "inline" parents
+			// so their features are flattened into the child definition
+			List<EClass> allParents = new ArrayList<>();
+			allParents.addAll(nonArtificialParents);
+			allParents.addAll(artificialParents);
+			writeSimpleObjectClass(eClass, allParents, gen);
 		} else {
 			writeInheritedObjectClass(eClass, nonArtificialParents, artificialParents, gen);
 		}
 	}
 
-	private void writeSimpleObjectClass(EClass eClass, List<EClass> artificialParents, JsonGenerator gen) throws IOException {
+	private void writeSimpleObjectClass(EClass eClass, List<EClass> parents, JsonGenerator gen) throws IOException {
 		gen.writeStringProperty("type", "object");
 
 		List<String> requiredProperties = new LinkedList<>();
 		boolean isPropertiesWritten = false;
+		java.util.Set<String> writtenFeatureNames = new java.util.LinkedHashSet<>();
 
 		// Write own features
 		for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
@@ -746,11 +829,16 @@ public class EPackageToJsonSchemaConverter {
 				requiredProperties.add(feature.getName());
 			}
 			writeFeature(feature, gen);
+			writtenFeatureNames.add(feature.getName());
 		}
 
-		// Write inherited features from artificial parents
-		for (EClass parent : artificialParents) {
-			for (EStructuralFeature feature : parent.getEStructuralFeatures()) {
+		// Write inherited features from parents (artificial or flattened non-artificial)
+		for (EClass parent : parents) {
+			// Use getEAllStructuralFeatures to include the full inheritance chain
+			for (EStructuralFeature feature : parent.getEAllStructuralFeatures()) {
+				if (writtenFeatureNames.contains(feature.getName())) {
+					continue; // skip duplicates
+				}
 				if (!isPropertiesWritten) {
 					gen.writeObjectPropertyStart("properties");
 					isPropertiesWritten = true;
@@ -759,6 +847,7 @@ public class EPackageToJsonSchemaConverter {
 					requiredProperties.add(feature.getName());
 				}
 				writeFeature(feature, gen);
+				writtenFeatureNames.add(feature.getName());
 			}
 		}
 
@@ -852,16 +941,16 @@ public class EPackageToJsonSchemaConverter {
 			String noTypeInfo, String format, String writeOnly, String uniqueItems, JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
 
-		if (documentation != null) {
+		if (documentation != null && !isSuppressed("description")) {
 			gen.writeStringProperty("description", documentation);
 		}
 		if (!"true".equals(noTypeInfo)) {
 			gen.writeStringProperty("type", "array");
 		}
-		if (writeOnly != null) {
+		if (writeOnly != null && !isSuppressed("writeOnly")) {
 			gen.writeBooleanProperty("writeOnly", Boolean.valueOf(writeOnly));
 		}
-		if (uniqueItems != null) {
+		if (uniqueItems != null && !isSuppressed("uniqueItems")) {
 			gen.writeBooleanProperty("uniqueItems", Boolean.valueOf(uniqueItems));
 		}
 
@@ -870,10 +959,7 @@ public class EPackageToJsonSchemaConverter {
 
 		writeConstValue(eAttribute, true, gen);
 
-		String itemsAnnotation = extractAnnotationDetail(eAttribute, AnnotationSources.JSONSCHEMA, "items");
-		if ("true".equals(itemsAnnotation)) {
-			writeArrayItems(eAttribute, type, gen);
-		}
+		writeArrayItems(eAttribute, type, gen);
 
 		// Write additional schema properties
 		writeAdditionalSchemaProperties(eAttribute, gen);
@@ -889,12 +975,12 @@ public class EPackageToJsonSchemaConverter {
 		int upperBound = feature.getUpperBound();
 
 		// Write minItems if lowerBound > 0
-		if (lowerBound > 0) {
+		if (lowerBound > 0 && !isSuppressed("minItems")) {
 			gen.writeNumberProperty("minItems", lowerBound);
 		}
 
 		// Write maxItems if upperBound is not unbounded (-1)
-		if (upperBound > 0 && upperBound != -1) {
+		if (upperBound > 0 && upperBound != -1 && !isSuppressed("maxItems")) {
 			gen.writeNumberProperty("maxItems", upperBound);
 		}
 	}
@@ -903,7 +989,7 @@ public class EPackageToJsonSchemaConverter {
 			String noTypeInfo, String format, String writeOnly, String uniqueItems, JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
 
-		if (documentation != null) {
+		if (documentation != null && !isSuppressed("description")) {
 			gen.writeStringProperty("description", documentation);
 		}
 
@@ -916,22 +1002,30 @@ public class EPackageToJsonSchemaConverter {
 
 		writeConstValue(eAttribute, false, gen);
 
-		if (format != null) {
+		if (format != null && !isSuppressed("format")) {
 			gen.writeStringProperty("format", format);
 		}
-		if (writeOnly != null) {
+		if (writeOnly != null && !isSuppressed("writeOnly")) {
 			gen.writeBooleanProperty("writeOnly", Boolean.valueOf(writeOnly));
 		}
-		if (uniqueItems != null) {
+		if (uniqueItems != null && !isSuppressed("uniqueItems")) {
 			gen.writeBooleanProperty("uniqueItems", Boolean.valueOf(uniqueItems));
 		}
 
 		if (!(type instanceof EEnum) && !"true".equals(noTypeInfo)) {
 			String jsonType = getJsonTypeFromEDataType(type);
 			if ("javaObject".equals(jsonType)) {
-				String dataTypeStr = extractAnnotationDetail(eAttribute, AnnotationSources.JSONSCHEMA, "dataType");
-				if (dataTypeStr != null) {
-					writeTypeArray(dataTypeStr, gen);
+				String dateFormat = getDateTimeFormat(type);
+				if (dateFormat != null) {
+					gen.writeStringProperty("type", "string");
+					if (format == null) {
+						gen.writeStringProperty("format", dateFormat);
+					}
+				} else {
+					String dataTypeStr = extractAnnotationDetail(eAttribute, AnnotationSources.JSONSCHEMA, "dataType");
+					if (dataTypeStr != null) {
+						writeTypeArray(dataTypeStr, gen);
+					}
 				}
 			} else {
 				gen.writeStringProperty("type", jsonType);
@@ -1034,6 +1128,7 @@ public class EPackageToJsonSchemaConverter {
 			}
 		} else if (variant.getEStructuralFeatures().isEmpty()) {
 			gen.writeStringProperty("type", "object");
+			gen.writeBooleanProperty("additionalProperties", false);
 		} else {
 			writeVariantWithProperties(variant, gen);
 		}
@@ -1046,6 +1141,7 @@ public class EPackageToJsonSchemaConverter {
 	 */
 	private void writeVariantWithProperties(EClass variant, JsonGenerator gen) throws IOException {
 		gen.writeStringProperty("type", "object");
+		gen.writeBooleanProperty("additionalProperties", false);
 
 		List<String> requiredProps = new ArrayList<>();
 		for (EStructuralFeature feature : variant.getEStructuralFeatures()) {
@@ -1078,7 +1174,7 @@ public class EPackageToJsonSchemaConverter {
 		gen.writeStartObject();
 
 		String description = extractAnnotationDetail(eClass, AnnotationSources.GEN_MODEL, "documentation");
-		if (description != null) {
+		if (description != null && !isSuppressed("description")) {
 			gen.writeStringProperty("description", description);
 		}
 
@@ -1110,6 +1206,8 @@ public class EPackageToJsonSchemaConverter {
 		String additionalProperties = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "additionalProperties");
 		if (additionalProperties != null) {
 			writeAdditionalProperties(additionalProperties, gen);
+		} else {
+			gen.writeBooleanProperty("additionalProperties", false);
 		}
 
 		gen.writeEndObject();
@@ -1119,16 +1217,16 @@ public class EPackageToJsonSchemaConverter {
 			String noTypeInfo, String writeOnly, String uniqueItems, JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
 
-		if (documentation != null) {
+		if (documentation != null && !isSuppressed("description")) {
 			gen.writeStringProperty("description", documentation);
 		}
 		if (!"true".equals(noTypeInfo)) {
 			gen.writeStringProperty("type", "array");
 		}
-		if (writeOnly != null) {
+		if (writeOnly != null && !isSuppressed("writeOnly")) {
 			gen.writeBooleanProperty("writeOnly", Boolean.valueOf(writeOnly));
 		}
-		if (uniqueItems != null) {
+		if (uniqueItems != null && !isSuppressed("uniqueItems")) {
 			gen.writeBooleanProperty("uniqueItems", Boolean.valueOf(uniqueItems));
 		}
 
@@ -1301,9 +1399,17 @@ public class EPackageToJsonSchemaConverter {
 		} else if (!"true".equals(noArrayItemsTypeInfo)) {
 			String jsonType = getJsonTypeFromEDataType(type);
 			if ("javaObject".equals(jsonType)) {
-				String dataTypeStr = extractAnnotationDetail(feature, AnnotationSources.JSONSCHEMA, "dataType");
-				if (dataTypeStr != null) {
-					writeTypeArray(dataTypeStr, gen);
+				String dateFormat = getDateTimeFormat(type);
+				if (dateFormat != null) {
+					gen.writeStringProperty("type", "string");
+					if (format == null) {
+						gen.writeStringProperty("format", dateFormat);
+					}
+				} else {
+					String dataTypeStr = extractAnnotationDetail(feature, AnnotationSources.JSONSCHEMA, "dataType");
+					if (dataTypeStr != null) {
+						writeTypeArray(dataTypeStr, gen);
+					}
 				}
 			} else {
 				gen.writeStringProperty("type", jsonType);
@@ -1324,15 +1430,47 @@ public class EPackageToJsonSchemaConverter {
 	private void writeEEnum(EEnum eEnum, JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
 
-		String description = extractAnnotationDetail(eEnum, AnnotationSources.GEN_MODEL, "documentation");
-		if (description != null) {
-			gen.writeStringProperty("description", description);
+		if (!isSuppressed("description")) {
+			String description = buildEnumDescription(eEnum);
+			if (description != null) {
+				gen.writeStringProperty("description", description);
+			}
 		}
 
 		writeEnumLiterals(eEnum.getELiterals(), gen);
 		gen.writeStringProperty("type", "string");
 
 		gen.writeEndObject();
+	}
+
+	/**
+	 * Builds a combined description for an EEnum from enum-level and per-literal documentation.
+	 * <p>
+	 * If enum literals have GenModel documentation, they are appended to the enum description
+	 * in the format: {@code "Enum description. LITERAL1=doc1, LITERAL2=doc2"}.
+	 * This works around JSON Schema's lack of per-value descriptions in {@code enum} arrays.
+	 * </p>
+	 */
+	private String buildEnumDescription(EEnum eEnum) {
+		String enumDoc = extractAnnotationDetail(eEnum, AnnotationSources.GEN_MODEL, "documentation");
+
+		List<String> literalDocs = new ArrayList<>();
+		for (EEnumLiteral literal : eEnum.getELiterals()) {
+			String literalDoc = extractAnnotationDetail(literal, AnnotationSources.GEN_MODEL, "documentation");
+			if (literalDoc != null) {
+				literalDocs.add(literal.getName() + "=" + literalDoc);
+			}
+		}
+
+		if (literalDocs.isEmpty()) {
+			return enumDoc;
+		}
+
+		String literalDescriptions = String.join(", ", literalDocs);
+		if (enumDoc != null) {
+			return enumDoc + ". " + literalDescriptions;
+		}
+		return literalDescriptions;
 	}
 
 	private void writeEnumLiterals(List<EEnumLiteral> literals, JsonGenerator gen) throws IOException {
@@ -1512,7 +1650,7 @@ public class EPackageToJsonSchemaConverter {
 		}
 
 		// Check global option
-		if (Boolean.TRUE.equals(options.get(OPTION_USE_ANCHOR_REFS))) {
+		if (Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_USE_ANCHOR_REFS))) {
 			return generateAnchorName(eClass);
 		}
 
@@ -1534,16 +1672,22 @@ public class EPackageToJsonSchemaConverter {
 
 	/**
 	 * Gets the original name from annotation or falls back to classifier name.
+	 * <p>
+	 * ExtendedMetaData names are only used when the
+	 * {@link CodecJsonSchemaOptions#OPTION_USE_NAMES_FROM_EXTENDED_METADATA} option is {@code true}.
+	 * </p>
 	 */
 	private String getOriginalName(EClassifier classifier) {
-		// Check ExtendedMetaData first (EMF standard)
-		String originalName = extractAnnotationDetail(classifier, AnnotationSources.EXTENDED_METADATA, "name");
-		if (originalName != null) {
-			return originalName;
+		// Check ExtendedMetaData only when explicitly opted in
+		if (isUseNamesFromExtendedMetaData()) {
+			String originalName = extractAnnotationDetail(classifier, AnnotationSources.EXTENDED_METADATA, "name");
+			if (originalName != null) {
+				return originalName;
+			}
 		}
 
 		// Fall back to JSONSCHEMA annotation
-		originalName = extractAnnotationDetail(classifier, AnnotationSources.JSONSCHEMA, "originalName");
+		String originalName = extractAnnotationDetail(classifier, AnnotationSources.JSONSCHEMA, "originalName");
 		if (originalName != null) {
 			return originalName;
 		}
@@ -1563,6 +1707,26 @@ public class EPackageToJsonSchemaConverter {
 		return "javaObject";
 	}
 
+	/**
+	 * Returns the JSON Schema format string for date/time types, or null if
+	 * the type is not a date/time type.
+	 */
+	private String getDateTimeFormat(EDataType eDataType) {
+		if (EcorePackage.Literals.EDATE.equals(eDataType)) {
+			return "date-time";
+		}
+		String instanceClassName = eDataType.getInstanceClassName();
+		if (instanceClassName == null) {
+			return null;
+		}
+		return switch (instanceClassName) {
+			case "java.util.Date", "java.time.Instant", "java.time.OffsetDateTime", "java.time.ZonedDateTime" -> "date-time";
+			case "java.time.LocalDate" -> "date";
+			case "java.time.LocalTime", "java.time.OffsetTime" -> "time";
+			default -> null;
+		};
+	}
+
 	private String getJsonTypeFromInstanceClassName(String instanceClassName) {
 		if (instanceClassName == null) return "string";
 		return switch (instanceClassName) {
@@ -1575,7 +1739,57 @@ public class EPackageToJsonSchemaConverter {
 	}
 
 	private boolean isAllFieldsRequired() {
-		return Boolean.TRUE.equals(options.get(OPTION_ALL_FIELDS_REQUIRED));
+		return Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_ALL_FIELDS_REQUIRED));
+	}
+
+	private boolean isFlatAllOf() {
+		return Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_FLAT_ALL_OF));
+	}
+
+	private boolean isUseNamesFromExtendedMetaData() {
+		return Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_USE_NAMES_FROM_EXTENDED_METADATA));
+	}
+
+	private boolean isSuppressed(String keyword) {
+		return suppressedKeywords.contains(keyword);
+	}
+
+	private static Set<String> resolveSuppressedKeywords(Map<String, Object> options) {
+		Object value = options.get(CodecJsonSchemaOptions.OPTION_SUPPRESS_KEYWORDS);
+		if (value instanceof Collection<?> collection) {
+			Set<String> result = new HashSet<>();
+			for (Object item : collection) {
+				if (item instanceof String s) {
+					result.add(s);
+				}
+			}
+			return result;
+		}
+		return Set.of();
+	}
+
+	private static final Map<String, String> DRAFT_TO_SCHEMA_URI = Map.of(
+			"draft-04", "http://json-schema.org/draft-04/schema#",
+			"draft-06", "http://json-schema.org/draft-06/schema#",
+			"draft-07", "http://json-schema.org/draft-07/schema#",
+			"2019-09", "https://json-schema.org/draft/2019-09/schema",
+			"2020-12", "https://json-schema.org/draft/2020-12/schema"
+	);
+
+	/**
+	 * Resolves the {@code $schema} URI from the options map.
+	 * <p>
+	 * Accepts either a draft shorthand (e.g., {@code "draft-07"}, {@code "2020-12"})
+	 * or a full URI. Returns {@code null} if the option is not set.
+	 * </p>
+	 */
+	private String resolveSchemaDraft() {
+		Object value = options.get(CodecJsonSchemaOptions.OPTION_SCHEMA_DRAFT);
+		if (value instanceof String draft) {
+			String uri = DRAFT_TO_SCHEMA_URI.get(draft);
+			return uri != null ? uri : draft;
+		}
+		return null;
 	}
 
 	private String extractAnnotationDetail(EModelElement modelElement, String source, String detailKey) {

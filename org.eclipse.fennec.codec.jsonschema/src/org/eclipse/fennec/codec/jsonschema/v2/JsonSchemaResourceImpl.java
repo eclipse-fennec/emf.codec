@@ -15,16 +15,27 @@ package org.eclipse.fennec.codec.jsonschema.v2;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import java.util.List;
-
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
+import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.EPackageToJsonSchemaConverter;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaConversionDiagnostic;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaToEPackageConverter;
+import org.eclipse.fennec.codec.jsonschema.v2.value.EClassValueReader;
+import org.eclipse.fennec.codec.jsonschema.v2.value.EClassValueWriter;
+import org.eclipse.fennec.codec.jsonschema.v2.value.EPackageValueReader;
+import org.eclipse.fennec.codec.jsonschema.v2.value.EPackageValueWriter;
+import org.eclipse.fennec.codec.resource.CodecResource;
+import org.eclipse.fennec.codec.value.CodecValueRegistry;
+import org.eclipse.fennec.model.metadata.api.MetadataService;
 
 /**
  * EMF Resource implementation for standalone JSON Schema files.
@@ -36,13 +47,15 @@ import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaToEPackageConv
  * </ul>
  * </p>
  * <p>
- * <b>Note:</b> This resource extends {@link ResourceImpl} directly, not {@code CodecResource},
- * because JSON Schema conversion is a meta-format operation (converting between metamodels)
- * rather than standard EObject serialization.
+ * Extends {@link CodecResource} to reuse the {@code customProperties} mechanism for
+ * format-specific options (e.g., {@code codec.jsonschema.allFieldsRequired}). Options
+ * passed to {@code load()} / {@code save()} are extracted via
+ * {@link CodecResource#extractCustomProperties(Map)} and forwarded to the converters.
  * </p>
  * <p>
- * For embedded JSON Schema support within other formats (e.g., OpenAPI), use
- * {@link EPackageValueHandler} which integrates with the codec v2 value transformation layer.
+ * For embedded JSON Schema support within other formats (e.g., OpenAPI), use the
+ * value handlers ({@link EPackageValueReader}, {@link EPackageValueWriter}) which
+ * integrate with the codec v2 value transformation layer.
  * </p>
  * <p>
  * Supports various JSON Schema conventions:
@@ -55,40 +68,45 @@ import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaToEPackageConv
  *
  * @author Mark Hoffmann
  * @since 2025
- * @see EPackageValueHandler
  * @see <a href="https://json-schema.org/">JSON Schema Specification</a>
  */
-public class JsonSchemaResourceImpl extends ResourceImpl {
+public class JsonSchemaResourceImpl extends CodecResource {
 
-	/**
-	 * Option key for the schema feature/definitions key.
-	 * Values: "definitions", "$defs", "schemas", or null for auto-detection.
-	 */
-	public static final String OPTION_SCHEMA_FEATURE = "jsonschema.feature.key";
+	
 
-	/**
-	 * Option key to enable pretty printing of output.
-	 */
-	public static final String OPTION_PRETTY_PRINT = "jsonschema.pretty.print";
-
-	/**
-	 * Option key for the JSON Schema draft version to use when serializing.
-	 * Values: "draft-04", "draft-06", "draft-07", "2019-09", "2020-12"
-	 */
-	public static final String OPTION_SCHEMA_DRAFT = "jsonschema.draft";
-
-	private final EPackageToJsonSchemaConverter toSchemaConverter;
-	private final JsonSchemaToEPackageConverter fromSchemaConverter;
+	private final EPackageToJsonSchemaConverter ePackageToSchemaConverter;
+	private final JsonSchemaToEPackageConverter schemaToEPackageConverter;
+	
 
 	/**
 	 * Creates a JSON Schema resource with the given URI.
 	 *
 	 * @param uri the resource URI
 	 */
-	public JsonSchemaResourceImpl(URI uri) {
-		super(uri);
-		this.toSchemaConverter = new EPackageToJsonSchemaConverter();
-		this.fromSchemaConverter = new JsonSchemaToEPackageConverter();
+	public JsonSchemaResourceImpl(URI uri, MetadataService metadataService) {
+		super(uri, metadataService, createResolver(), createValueRegistry(), null);
+		this.ePackageToSchemaConverter = new EPackageToJsonSchemaConverter();
+		this.schemaToEPackageConverter = new JsonSchemaToEPackageConverter();
+		
+	}
+	
+	private static ConfigurationResolver createResolver() {
+		return ConfigurationResolver.builder()
+				.typeInclude(false)  // jsonschema doesn't use _type for root				
+				.build();
+	}
+
+	private static CodecValueRegistry createValueRegistry() {
+		CodecValueRegistry registry = new CodecValueRegistry();
+
+		// Register readers and writers for EPackage <-> JsonSchema and EClass <-> JsonSchema 
+		registry.register(new EPackageValueReader());
+		registry.register(new EPackageValueWriter());
+		
+		registry.register(new EClassValueReader());
+		registry.register(new EClassValueWriter());
+
+		return registry;
 	}
 
 	/**
@@ -104,16 +122,25 @@ public class JsonSchemaResourceImpl extends ResourceImpl {
 	 */
 	@Override
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) throws IOException {
-		String schemaFeature = extractOption(options, OPTION_SCHEMA_FEATURE, null);
+		EClass rootObj = extractOption(options, CodecResource.CODEC_ROOT_TYPE, EcorePackage.Literals.EPACKAGE);
+		String schemaFeature = extractOption(options, CodecJsonSchemaOptions.OPTION_SCHEMA_FEATURE, "$defs");
+		
+		EObject eObj = null;
+		if(rootObj == EcorePackage.Literals.EPACKAGE) {
+			eObj = schemaToEPackageConverter.convert(inputStream, schemaFeature);
 
-		EPackage ePackage = fromSchemaConverter.convert(inputStream, schemaFeature);
-
-		if (ePackage != null) {
-			getContents().add(ePackage);
+			
+		} else if(rootObj == EcorePackage.Literals.ECLASS) {
+			String className = extractOption(options, "codec.jsonschemaClassName", null);
+			eObj = schemaToEPackageConverter.convertToEClass(inputStream, className);
+			
+		}
+		if (eObj != null) {
+			getContents().add(eObj);
 		}
 
 		// Transfer conversion diagnostics to resource warnings
-		List<JsonSchemaConversionDiagnostic> conversionDiagnostics = fromSchemaConverter.getDiagnostics();
+		List<JsonSchemaConversionDiagnostic> conversionDiagnostics = schemaToEPackageConverter.getDiagnostics();
 		getWarnings().addAll(conversionDiagnostics);
 	}
 
@@ -130,15 +157,19 @@ public class JsonSchemaResourceImpl extends ResourceImpl {
 			return;
 		}
 
-		if (!(getContents().get(0) instanceof EPackage ePackage)) {
-			throw new IOException("JSON Schema resource can only save EPackage instances, " +
+		if (!(getContents().get(0) instanceof EPackage) && !(getContents().get(0) instanceof EClass)) {
+			throw new IOException("JSON Schema resource can only save EPackage or EClass instances, " +
 					"found: " + getContents().get(0).getClass().getName());
 		}
+		String schemaFeature = extractOption(options, CodecJsonSchemaOptions.OPTION_SCHEMA_FEATURE, "$defs");
+		boolean prettyPrint = extractOption(options, CodecJsonSchemaOptions.OPTION_PRETTY_PRINT, Boolean.TRUE);
+		Map<String, Object> customProperties = extractCustomProperties(toStringKeyMap(options));
+		if(getContents().get(0) instanceof EPackage ePackage) {
+			ePackageToSchemaConverter.convert(ePackage, outputStream, schemaFeature, prettyPrint, customProperties);
+		} else if(getContents().get(0) instanceof EClass eClass){
+			ePackageToSchemaConverter.convertEClass(eClass, outputStream, prettyPrint, customProperties);
+		}
 
-		String schemaFeature = extractOption(options, OPTION_SCHEMA_FEATURE, null);
-		boolean prettyPrint = extractOption(options, OPTION_PRETTY_PRINT, Boolean.TRUE);
-
-		toSchemaConverter.convert(ePackage, outputStream, schemaFeature, prettyPrint);
 	}
 
 	/**
@@ -166,5 +197,27 @@ public class JsonSchemaResourceImpl extends ResourceImpl {
 		} catch (ClassCastException e) {
 			return defaultValue;
 		}
+	}
+
+	/**
+	 * Converts a {@code Map<?, ?>} to {@code Map<String, Object>} by filtering
+	 * for entries whose key is a String.
+	 */
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> toStringKeyMap(Map<?, ?> options) {
+		if (options == null || options.isEmpty()) {
+			return Map.of();
+		}
+		// EMF option maps always have String keys in practice
+		if (options.keySet().stream().allMatch(k -> k instanceof String)) {
+			return (Map<String, Object>) options;
+		}
+		Map<String, Object> result = new HashMap<>();
+		for (Map.Entry<?, ?> entry : options.entrySet()) {
+			if (entry.getKey() instanceof String key) {
+				result.put(key, entry.getValue());
+			}
+		}
+		return result;
 	}
 }

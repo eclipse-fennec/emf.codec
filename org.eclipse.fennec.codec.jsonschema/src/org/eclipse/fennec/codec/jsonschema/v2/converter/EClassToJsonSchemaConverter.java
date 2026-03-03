@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.util.Map;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
 
 /**
  * Converts a single EMF EClass to a standalone JSON Schema document.
@@ -85,7 +86,7 @@ public class EClassToJsonSchemaConverter {
 	 */
 	public void convert(EClass eClass, OutputStream out, boolean prettyPrint, boolean allFieldsRequired) throws IOException {
 		Map<String, Object> options = allFieldsRequired
-				? Map.of(EPackageToJsonSchemaConverter.OPTION_ALL_FIELDS_REQUIRED, Boolean.TRUE)
+				? Map.of(CodecJsonSchemaOptions.OPTION_ALL_FIELDS_REQUIRED, Boolean.TRUE)
 				: Map.of();
 		delegate.convertEClass(eClass, out, prettyPrint, options);
 	}

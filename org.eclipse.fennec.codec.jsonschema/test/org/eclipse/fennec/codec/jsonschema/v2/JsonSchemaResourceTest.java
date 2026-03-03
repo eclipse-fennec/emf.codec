@@ -35,6 +35,9 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
+import org.eclipse.fennec.codec.util.MetadataServiceFactory;
+import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,17 +49,20 @@ import org.junit.jupiter.api.Test;
 class JsonSchemaResourceTest {
 
     private static final String JSONSCHEMA_ANNOTATION_SOURCE = "http://fennec.eclipse.org/jsonschema";
-
+    private MetadataWhiteboard metadataService;
     /**
      * Loads JSON Schema and converts to EPackage.
      */
     private EPackage loadJsonSchema(String json, String schemaFeature) throws IOException {
+    	
+    	metadataService = MetadataServiceFactory.create();
+    	
         JsonSchemaResourceImpl resource = new JsonSchemaResourceImpl(
-                URI.createURI("test://schema.jsonschema"));
+                URI.createURI("schema.jsonschema"), metadataService);
 
         Map<String, Object> options = new HashMap<>();
         if (schemaFeature != null) {
-            options.put(JsonSchemaResourceImpl.OPTION_SCHEMA_FEATURE, schemaFeature);
+            options.put(CodecJsonSchemaOptions.OPTION_SCHEMA_FEATURE, schemaFeature);
         }
 
         try (var is = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))) {
@@ -72,14 +78,16 @@ class JsonSchemaResourceTest {
      * Saves EPackage as JSON Schema.
      */
     private String saveJsonSchema(EPackage ePackage, String schemaFeature) throws IOException {
+    	metadataService = MetadataServiceFactory.create();
+    	
         JsonSchemaResourceImpl resource = new JsonSchemaResourceImpl(
-                URI.createURI("test://schema.jsonschema"));
+                URI.createURI("schema.jsonschema"), metadataService);
 
         resource.getContents().add(ePackage);
 
         Map<String, Object> options = new HashMap<>();
         if (schemaFeature != null) {
-            options.put(JsonSchemaResourceImpl.OPTION_SCHEMA_FEATURE, schemaFeature);
+            options.put(CodecJsonSchemaOptions.OPTION_SCHEMA_FEATURE, schemaFeature);
         }
 
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {

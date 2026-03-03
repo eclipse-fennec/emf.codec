@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.value;
 
+import java.util.Map;
+
 import org.eclipse.fennec.codec.config.DiscriminatorConfig;
 import org.eclipse.fennec.codec.config.IdConfig;
 import org.eclipse.fennec.codec.config.SuperTypeConfig;
@@ -81,4 +83,18 @@ public interface EffectiveCodecConfig {
      * @return true if smart compression is enabled
      */
     boolean isSmartCompressionEnabled();
+
+    /**
+     * Returns custom properties collected from load/save options.
+     * <p>
+     * Custom properties are {@code codec.*} options that do not match any known
+     * {@link org.eclipse.fennec.codec.config.ConfigProperty} key. Format-specific
+     * extensions use a sub-namespace (e.g., {@code codec.jsonschema.*}).
+     * </p>
+     *
+     * @return an immutable map of custom properties, never null
+     */
+    default Map<String, Object> getCustomProperties() {
+        return Map.of();
+    }
 }

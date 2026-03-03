@@ -16,6 +16,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.emf.ecore.EClass;
@@ -82,6 +83,7 @@ public final class EffectiveCodecConfig
     private final boolean sortPropertiesAlphabetically;
     private final boolean smartCompression;
     private final boolean useNamesFromExtendedMetaData;
+    private final Map<String, Object> customProperties;
 
     // Expand settings
     private final boolean expandGlobal;
@@ -101,6 +103,8 @@ public final class EffectiveCodecConfig
         this.sortPropertiesAlphabetically = builder.sortPropertiesAlphabetically;
         this.smartCompression = builder.smartCompression;
         this.useNamesFromExtendedMetaData = builder.useNamesFromExtendedMetaData;
+        this.customProperties = builder.customProperties != null
+                ? Map.copyOf(builder.customProperties) : Map.of();
         this.expandGlobal = builder.expandGlobal;
         this.expandReferences = builder.expandReferences != null
                 ? Set.copyOf(builder.expandReferences) : Collections.emptySet();
@@ -465,6 +469,13 @@ public final class EffectiveCodecConfig
     public boolean isUseNamesFromExtendedMetaData() {
         return useNamesFromExtendedMetaData;
     }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<String, Object> getCustomProperties() {
+        return customProperties;
+    }
 
     // ========================================================================
     // Expand Settings
@@ -559,6 +570,7 @@ public final class EffectiveCodecConfig
         private boolean sortPropertiesAlphabetically = false;
         private boolean smartCompression = false;
         private boolean useNamesFromExtendedMetaData = false;
+        private Map<String, Object> customProperties;
         private boolean expandGlobal = false;
         private Set<EReference> expandReferences;
         private Set<String> expandReferenceNames;
@@ -609,6 +621,11 @@ public final class EffectiveCodecConfig
 
         public Builder useNamesFromExtendedMetaData(boolean useNamesFromExtendedMetaData) {
             this.useNamesFromExtendedMetaData = useNamesFromExtendedMetaData;
+            return this;
+        }
+
+        public Builder customProperties(Map<String, Object> customProperties) {
+            this.customProperties = customProperties;
             return this;
         }
 
