@@ -141,6 +141,88 @@ public class ExtendedMetaDataExample {
     }
 
     @Test
+    @DisplayName("useExtendedMetaData via save options — uses annotation names as JSON keys")
+    void useExtendedMetaDataNamesViaSaveOptions() throws IOException {
+        // Use defaults() on the resolver — pass the flag via save options instead
+        CodecResource saveResource = new CodecResource(
+                URI.createURI("test://extmeta.json"), metadataService,
+                ConfigurationResolver.defaults(), null);
+        saveResource.getContents().add(createArticle());
+
+        Map<String, Object> saveOptions = new HashMap<>();
+        saveOptions.put("useNamesFromExtendedMetadata", true);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        saveResource.save(out, saveOptions);
+        String json = out.toString(StandardCharsets.UTF_8);
+
+        assertTrue(json.contains("\"title\""), "Should use ExtendedMetaData name 'title'");
+        assertTrue(json.contains("\"body\""), "Should use ExtendedMetaData name 'body'");
+        assertFalse(json.contains("\"articleTitle\""), "Should NOT use EMF feature name 'articleTitle'");
+        assertFalse(json.contains("\"articleBody\""), "Should NOT use EMF feature name 'articleBody'");
+    }
+
+    @Test
+    @DisplayName("useExtendedMetaData via load options — deserializes annotation-keyed JSON")
+    void useExtendedMetaDataNamesViaLoadOptions() throws IOException {
+        // JSON uses ExtendedMetaData names
+        String json = """
+                {
+                  "title": "EMF Codec Guide",
+                  "body": "A comprehensive guide to codec features.",
+                  "pageCount": 42
+                }""";
+
+        CodecResource loadResource = new CodecResource(
+                URI.createURI("test://extmeta.json"), metadataService,
+                ConfigurationResolver.defaults(), null);
+        Map<String, Object> loadOptions = new HashMap<>();
+        loadOptions.put(CodecResource.CODEC_ROOT_TYPE, articleClass);
+        loadOptions.put("useNamesFromExtendedMetadata", true);
+        loadResource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), loadOptions);
+
+        EObject loaded = loadResource.getContents().get(0);
+        assertNotNull(loaded);
+        assertEquals("EMF Codec Guide", loaded.eGet(articleTitleAttr));
+        assertEquals("A comprehensive guide to codec features.", loaded.eGet(articleBodyAttr));
+        assertEquals(42, loaded.eGet(pageCountAttr));
+    }
+
+    @Test
+    @DisplayName("useExtendedMetaData via options — full round-trip")
+    void useExtendedMetaDataNamesViaOptionsRoundTrip() throws IOException {
+        Map<String, Object> options = new HashMap<>();
+        options.put("useNamesFromExtendedMetadata", true);
+
+        // Serialize with option
+        CodecResource saveResource = new CodecResource(
+                URI.createURI("test://extmeta.json"), metadataService,
+                ConfigurationResolver.defaults(), null);
+        saveResource.getContents().add(createArticle());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        saveResource.save(out, options);
+        String json = out.toString(StandardCharsets.UTF_8);
+
+        assertTrue(json.contains("\"title\""), "Should use ExtendedMetaData name 'title'");
+
+        // Deserialize with same option
+        Map<String, Object> loadOptions = new HashMap<>(options);
+        loadOptions.put(CodecResource.CODEC_ROOT_TYPE, articleClass);
+
+        CodecResource loadResource = new CodecResource(
+                URI.createURI("test://extmeta.json"), metadataService,
+                ConfigurationResolver.defaults(), null);
+        loadResource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), loadOptions);
+
+        EObject loaded = loadResource.getContents().get(0);
+        assertNotNull(loaded);
+        assertEquals("EMF Codec Guide", loaded.eGet(articleTitleAttr));
+        assertEquals("A comprehensive guide to codec features.", loaded.eGet(articleBodyAttr));
+        assertEquals(42, loaded.eGet(pageCountAttr));
+    }
+
+    @Test
     @DisplayName("Default names (no ExtendedMetaData) — uses EMF feature names")
     void defaultNamesWithoutExtendedMetaData() throws IOException {
         ConfigurationResolver resolver = ConfigurationResolver.defaults();

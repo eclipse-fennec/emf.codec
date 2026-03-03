@@ -21,11 +21,15 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.codec.jsonschema.v2.JsonSchemaResourceImpl;
+import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
+import org.eclipse.fennec.codec.util.MetadataServiceFactory;
+import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -39,6 +43,8 @@ import org.junit.jupiter.api.Test;
  */
 @DisplayName("JSON Schema Diagnostics Tests")
 class JsonSchemaDiagnosticsTest {
+	
+	private MetadataWhiteboard metadataService;
 
 	// ========================================================================
 	// JsonSchemaKeywords Tests
@@ -315,10 +321,10 @@ class JsonSchemaDiagnosticsTest {
 					}
 				}
 				""";
-
+			metadataService = MetadataServiceFactory.create();
 			JsonSchemaResourceImpl resource = new JsonSchemaResourceImpl(
-				URI.createURI("test.jsonschema"));
-			resource.load(toInputStream(json), null);
+				URI.createURI("test.jsonschema"), metadataService);
+			resource.load(toInputStream(json), Map.of(CodecJsonSchemaOptions.OPTION_SCHEMA_FEATURE, "definitions"));
 
 			// Diagnostics should be in resource warnings
 			assertFalse(resource.getWarnings().isEmpty(),
@@ -348,9 +354,9 @@ class JsonSchemaDiagnosticsTest {
 					}
 				}
 				""";
-
+			metadataService = MetadataServiceFactory.create();
 			JsonSchemaResourceImpl resource = new JsonSchemaResourceImpl(
-				URI.createURI("test.jsonschema"));
+				URI.createURI("test.jsonschema"), metadataService);
 			resource.load(toInputStream(json), null);
 
 			assertTrue(resource.getWarnings().isEmpty(),

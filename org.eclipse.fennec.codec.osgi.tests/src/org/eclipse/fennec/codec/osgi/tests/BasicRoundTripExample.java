@@ -31,7 +31,8 @@ import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
@@ -71,8 +72,8 @@ public class BasicRoundTripExample {
 
     private static final String ECORE = "/org/eclipse/fennec/codec/osgi/tests/example-basic.ecore";
 
-    @InjectService
-    MetadataService metadataService;
+    @InjectService(filter = ("(emf.fileExtension=json)"))
+    ResourceSet resourceSet;  
 
     private EcoreHelper ecoreHelper;
     private EPackage pkg;
@@ -140,18 +141,14 @@ public class BasicRoundTripExample {
     // ========================================================================
 
     private EObject roundTrip(EObject object, EClass rootType) throws IOException {
-        CodecResource saveResource = new CodecResource(
-                URI.createURI("test://example.json"), metadataService,
-                ConfigurationResolver.defaults(), null);
+        Resource saveResource = resourceSet.createResource(URI.createURI("example.json"));
         saveResource.getContents().add(object);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         saveResource.save(out, null);
         String json = out.toString(StandardCharsets.UTF_8);
 
-        CodecResource loadResource = new CodecResource(
-                URI.createURI("test://example.json"), metadataService,
-                ConfigurationResolver.defaults(), null);
+        Resource loadResource = resourceSet.createResource(URI.createURI("example.json"));
         Map<String, Object> options = new HashMap<>();
         options.put(CodecResource.CODEC_ROOT_TYPE, rootType);
         loadResource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), options);

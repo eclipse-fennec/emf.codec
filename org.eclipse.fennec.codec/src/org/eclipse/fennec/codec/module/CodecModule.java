@@ -14,6 +14,7 @@ package org.eclipse.fennec.codec.module;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -65,6 +66,7 @@ public class CodecModule extends SimpleModule {
     private final boolean sortPropertiesAlphabetically;
     private final boolean smartCompression;
     private final boolean useNamesFromExtendedMetaData;
+    private final Map<String, Object> customProperties;
 
     // Expand settings
     private final boolean expandGlobal;
@@ -84,6 +86,8 @@ public class CodecModule extends SimpleModule {
         this.sortPropertiesAlphabetically = builder.sortPropertiesAlphabetically;
         this.smartCompression = builder.smartCompression;
         this.useNamesFromExtendedMetaData = builder.useNamesFromExtendedMetaData;
+        this.customProperties = builder.customProperties != null
+                ? Map.copyOf(builder.customProperties) : Map.of();
         this.expandGlobal = builder.expandGlobal;
         this.expandReferences = builder.expandReferences != null
                 ? Set.copyOf(builder.expandReferences) : Set.of();
@@ -140,6 +144,7 @@ public class CodecModule extends SimpleModule {
                 .sortPropertiesAlphabetically(sortPropertiesAlphabetically)
                 .smartCompression(smartCompression)
                 .useNamesFromExtendedMetaData(useNamesFromExtendedMetaData)
+                .customProperties(customProperties)
                 .expandGlobal(expandGlobal)
                 .expandReferences(expandReferences)
                 .expandReferenceNames(expandReferenceNames)
@@ -165,6 +170,7 @@ public class CodecModule extends SimpleModule {
                 .sortPropertiesAlphabetically(sortPropertiesAlphabetically)
                 .smartCompression(smartCompression)
                 .useNamesFromExtendedMetaData(useNamesFromExtendedMetaData)
+                .customProperties(customProperties)
                 .expandGlobal(expandGlobal)
                 .expandReferences(expandReferences)
                 .expandReferenceNames(expandReferenceNames)
@@ -293,6 +299,7 @@ public class CodecModule extends SimpleModule {
         private boolean sortPropertiesAlphabetically = false;
         private boolean smartCompression = false;
         private boolean useNamesFromExtendedMetaData = false;
+        private Map<String, Object> customProperties;
         private boolean expandGlobal = false;
         private Set<EReference> expandReferences;
         private Set<String> expandReferenceNames;
@@ -344,6 +351,11 @@ public class CodecModule extends SimpleModule {
 
         public Builder useNamesFromExtendedMetaData(boolean useNamesFromExtendedMetaData) {
             this.useNamesFromExtendedMetaData = useNamesFromExtendedMetaData;
+            return this;
+        }
+
+        public Builder customProperties(Map<String, Object> customProperties) {
+            this.customProperties = customProperties;
             return this;
         }
 

@@ -15,6 +15,7 @@ package org.eclipse.fennec.codec.jsonschema.v2.value;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.emf.ecore.EPackage;
@@ -137,7 +138,12 @@ public class EPackageValueWriter implements ReferenceValueWriter<EPackage> {
 
 		// Convert EPackage to JSON Schema
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		converter.convert(value, baos, schemaFeature, false);
+		if(ctx.getConfig() != null) {
+			converter.convert(value, baos, schemaFeature, false, ctx.getConfig().getCustomProperties());
+		}
+		else {
+			converter.convert(value, baos, schemaFeature, false, Collections.emptyMap());
+		}
 
 		String jsonSchema = baos.toString(StandardCharsets.UTF_8);
 

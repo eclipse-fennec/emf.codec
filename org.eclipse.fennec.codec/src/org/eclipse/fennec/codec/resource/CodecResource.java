@@ -20,11 +20,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
@@ -309,6 +312,7 @@ public class CodecResource extends ResourceImpl {
                 .diagnostics(diagnosticCollector)
                 .metadataService(metadataService)
                 .valueRegistry(valueRegistry != null ? valueRegistry : new CodecValueRegistry())
+                .customProperties(extractCustomProperties(mergedOptions))
                 .build();
 
         CodecJsonFactory codecFactory = new CodecJsonFactory(effectiveConfig);
@@ -646,6 +650,8 @@ public class CodecResource extends ResourceImpl {
         // Note: EXPAND property returns null when not set (unlike EXPAND_GLOBAL which returns false)
         List<Object> expandList = operationResolver.getGlobalProperty(ConfigProperty.EXPAND);
 
+        Map<String, Object> customProperties = extractCustomProperties(options);
+
         CodecModule.Builder moduleBuilder = CodecModule.builder()
                 .resolver(operationResolver)
                 .metadataService(metadataService)
@@ -653,6 +659,7 @@ public class CodecResource extends ResourceImpl {
                 .globalIgnoreFeatures(ignoreFeatures)
                 .smartCompression(smartCompression)
                 .useNamesFromExtendedMetaData(useNamesFromExtendedMetaData)
+                .customProperties(customProperties)
                 .expandGlobal(expandGlobal)
                 .expandDepth(expandDepth)
                 .expandIgnoreBidirectional(expandIgnoreBidirectional)
@@ -747,6 +754,59 @@ public class CodecResource extends ResourceImpl {
             targetUri = targetUri.resolve(getURI());
         }
         return targetUri;
+    }
+
+    /** Runtime-only codec options that are NOT ConfigProperty keys and should NOT be treated as custom properties. */
+    private static final Set<String> KNOWN_RUNTIME_OPTIONS = Set.of(
+            CodecOptions.CODEC_ROOT_TYPE,
+            CodecOptions.CODEC_ROOT_SCHEMA,
+            CodecOptions.CODEC_FEATURE_TYPE_HINTS,
+            CodecOptions.CODEC_TYPE_HINT_MODE,
+            CodecOptions.CODEC_DESERIALIZATION_MODE,
+            CodecOptions.CODEC_VALUE_READERS,
+            CodecOptions.CODEC_VALUE_WRITERS,
+            CodecOptions.CODEC_FEATURE_VALUE_READERS,
+            CodecOptions.CODEC_FEATURE_VALUE_WRITERS,
+            CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES,
+            CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES,
+            CodecOptions.CODEC_FAIL_FAST,
+            CodecOptions.CODEC_SUPPRESS_WARNINGS,
+            CodecOptions.CODEC_SUPPRESS_WARNING_SOURCES,
+            CodecOptions.CODEC_DIAGNOSTIC_HANDLER,
+            CodecOptions.CODEC_ECLASS_CONFIG,
+            CodecOptions.CODEC_EREFERENCE_CONFIG,
+            CodecOptions.CODEC_EATTRIBUTE_CONFIG
+    );
+
+    private static final Set<String> KNOWN_CONFIG_PROPERTY_KEYS = Arrays.stream(ConfigProperty.values())
+            .map(ConfigProperty::getPropertyKey)
+            .collect(Collectors.toUnmodifiableSet());
+
+    /**
+     * Extracts custom properties from options — all {@code codec.*} keys that are not
+     * known {@link ConfigProperty} keys and not known runtime-only options.
+     * <p>
+     * Subclasses (e.g., {@code JsonSchemaResourceImpl}) can use this to extract
+     * format-specific options from load/save option maps.
+     * </p>
+     *
+     * @param options the raw options map (may be null)
+     * @return an immutable map of custom properties, never null
+     */
+    protected static Map<String, Object> extractCustomProperties(Map<String, Object> options) {
+        if (options == null || options.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, Object> custom = new HashMap<>();
+        for (Map.Entry<String, Object> entry : options.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(CodecOptions.CODEC_PREFIX)
+                    && !KNOWN_CONFIG_PROPERTY_KEYS.contains(key)
+                    && !KNOWN_RUNTIME_OPTIONS.contains(key)) {
+                custom.put(key, entry.getValue());
+            }
+        }
+        return custom.isEmpty() ? Map.of() : Map.copyOf(custom);
     }
 
     private EObject resolveReference(String uri) {

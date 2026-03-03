@@ -405,6 +405,21 @@ public class JsonSchemaToEPackageConverter {
 	public List<JsonSchemaConversionDiagnostic> getDiagnostics() {
 		return diagnostics != null ? new ArrayList<>(diagnostics) : new ArrayList<>();
 	}
+	
+	/**
+	 * Converts a JSON Schema document to a single EClass.
+	 *
+	 * @param schemaNode the JSON Schema node representing the class
+	 * @param name the name for the EClass; if null, derived from the "title" field or defaults to "EClass"
+	 * @return the created EClass, or null if conversion yields a non-class classifier
+	 */
+	public EClass convertToEClass(InputStream inputStream, String name) {
+		resetState();
+
+		ObjectMapper mapper = JsonMapper.builder().build();
+		JsonNode rootNode = mapper.readTree(inputStream);
+		return convertToEClass(rootNode, name);
+	}
 
 	/**
 	 * Converts a JSON Schema document to a single EClass.
