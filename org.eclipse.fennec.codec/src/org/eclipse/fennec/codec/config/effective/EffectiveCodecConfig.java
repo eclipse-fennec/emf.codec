@@ -129,6 +129,17 @@ public final class EffectiveCodecConfig
     }
 
     /**
+     * Resolves effective TypeConfig for an EClass in the context of a containing feature.
+     *
+     * @param eClass the EClass
+     * @param feature the containing feature (e.g., EReference), or null for class-only resolution
+     * @return the effective TypeConfig with feature-level overrides applied
+     */
+    public TypeConfig resolveTypeConfig(EClass eClass, EStructuralFeature feature) {
+        return resolver.resolveTypeConfig(eClass, feature, diagnostics);
+    }
+
+    /**
      * Resolves global TypeConfig (no EClass context).
      *
      * @return the effective global TypeConfig

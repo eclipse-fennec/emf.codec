@@ -1,42 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="discriminator" nsURI="http://example.org/fennec/discriminator/1.0" nsPrefix="discriminator">
-
-  <!--
-    Discriminator model for MAPPED TypeStrategy examples.
-    Uses dedicated typeMapping/sensor-types annotation source.
-  -->
-
-  <!-- Sensor - abstract base class -->
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="discriminator" nsURI="http://example.org/fennec/discriminator/1.0"
+    nsPrefix="discriminator">
   <eClassifiers xsi:type="ecore:EClass" name="Sensor" abstract="true">
     <eAnnotations source="http://eclipse.org/fennec/codec">
       <details key="typeKey" value="_type"/>
     </eAnnotations>
     <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/sensor-types"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sensorId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sensorId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        iD="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="location" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
-
-  <!-- TemperatureSensor - discriminator: "temp" -->
   <eClassifiers xsi:type="ecore:EClass" name="TemperatureSensor" eSuperTypes="#//Sensor">
     <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/sensor-types">
       <details key="typeDiscriminator" value="temp"/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="temperature" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
   </eClassifiers>
-
-  <!-- HumiditySensor - discriminator: "humidity" -->
   <eClassifiers xsi:type="ecore:EClass" name="HumiditySensor" eSuperTypes="#//Sensor">
     <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/sensor-types">
       <details key="typeDiscriminator" value="humidity"/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="humidity" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
   </eClassifiers>
-
-  <!-- SensorNetwork - container -->
   <eClassifiers xsi:type="ecore:EClass" name="SensorNetwork">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="sensors" upperBound="-1" eType="#//Sensor" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sensors" upperBound="-1"
+        eType="#//Sensor" containment="true"/>
   </eClassifiers>
-
+  <eClassifiers xsi:type="ecore:EClass" name="ContentBlock" abstract="true">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="typeKey" value="type"/>
+    </eAnnotations>
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/content-block"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TextBlock" eSuperTypes="#//ContentBlock">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/content-block">
+      <details key="typeDiscriminator" value="text"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="text" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ToolUseBlock" eSuperTypes="#//ContentBlock">
+    <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/content-block">
+      <details key="typeDiscriminator" value="tool_use"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="toolId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Content">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contents" upperBound="-1"
+        eType="#//ContentBlock" containment="true"/>
+  </eClassifiers>
 </ecore:EPackage>

@@ -14,6 +14,7 @@ package org.eclipse.fennec.codec.osgi.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -31,10 +32,10 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,8 +60,8 @@ public class DiscriminatorMappingExample {
 
     private static final String ECORE = "/org/eclipse/fennec/codec/osgi/tests/example-discriminator.ecore";
 
-    @InjectService
-    MetadataService metadataService;
+    @InjectService(filter = "(emf.fileExtension=json)")
+    ResourceSet resourceSet;
 
     private EcoreHelper ecoreHelper;
     private EPackage pkg;
@@ -72,6 +73,17 @@ public class DiscriminatorMappingExample {
 
     private EAttribute networkNameAttr;
     private EReference sensorsRef;
+    
+    private EClass textBlockClass;
+    private EClass toolUseBlockClass;
+    
+    private EAttribute textAttr;
+    
+    private EAttribute toolIdAttr;
+    
+    private EClass contentClass;
+    
+    private EReference contentsRef;
 
     @BeforeEach
     public void setUp(@InjectBundleContext BundleContext ctx) throws IOException {
@@ -86,6 +98,16 @@ public class DiscriminatorMappingExample {
 
         networkNameAttr = (EAttribute) EcoreHelper.getFeature(sensorNetworkClass, "name");
         sensorsRef = (EReference) EcoreHelper.getFeature(sensorNetworkClass, "sensors");
+        
+        textBlockClass = EcoreHelper.getEClass(pkg, "TextBlock");
+        toolUseBlockClass = EcoreHelper.getEClass(pkg, "ToolUseBlock");
+        
+        textAttr = (EAttribute) EcoreHelper.getFeature(textBlockClass, "text");
+        
+        toolIdAttr = (EAttribute) EcoreHelper.getFeature(toolUseBlockClass, "toolId");
+        
+        contentClass = EcoreHelper.getEClass(pkg, "Content");
+        contentsRef = (EReference) EcoreHelper.getFeature(contentClass, "contents");
     }
 
     @AfterEach
@@ -96,11 +118,9 @@ public class DiscriminatorMappingExample {
     }
 
     private CodecResource createResource() {
-        return new CodecResource(
-                URI.createURI("test://discriminator.json"),
-                metadataService,
-                ConfigurationResolver.defaults(),
-                null);
+    	Resource resource = resourceSet.createResource(URI.createURI("discriminator.json"));
+    	assertInstanceOf(CodecResource.class, resource, "Created Resource should be a CodecResource");
+        return (CodecResource) resource;
     }
 
     private String serialize(EObject object) throws IOException {
@@ -111,6 +131,8 @@ public class DiscriminatorMappingExample {
         resource.save(out, Map.of());
         return out.toString(StandardCharsets.UTF_8);
     }
+    
+
 
     private EObject deserialize(String json, EClass rootType) throws IOException {
         CodecResource resource = createResource();
@@ -119,6 +141,8 @@ public class DiscriminatorMappingExample {
         resource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), options);
         return resource.getContents().isEmpty() ? null : resource.getContents().get(0);
     }
+    
+ 
 
     @Test
     @DisplayName("Discriminator-based type resolution — round-trip with mixed sensor types")
@@ -162,7 +186,7 @@ public class DiscriminatorMappingExample {
     @Test
     @DisplayName("Discriminator values in JSON — _type contains 'temp'/'humidity' not URIs")
     @SuppressWarnings("unchecked")
-    void discriminatorWithCustomTypeKey() throws IOException {
+    void discriminatorWithCustomTypeValues() throws IOException {
         EObject network = pkg.getEFactoryInstance().create(sensorNetworkClass);
         network.eSet(networkNameAttr, "Test Network");
 
@@ -186,5 +210,36 @@ public class DiscriminatorMappingExample {
                 "Should NOT contain EClass name 'TemperatureSensor' as type");
         assertFalse(json.contains("HumiditySensor"),
                 "Should NOT contain EClass name 'HumiditySensor' as type");
+    }
+    
+
+    
+    @SuppressWarnings("unchecked")
+	@Test
+    @DisplayName("Discriminator key in JSON - type instead of _type")
+    void discriminatorWithCustomTypeKey() throws IOException {
+        EObject textBlock = pkg.getEFactoryInstance().create(textBlockClass);
+        textBlock.eSet(textAttr, "Some Text");
+        
+        EObject toolUseBlock = pkg.getEFactoryInstance().create(toolUseBlockClass);
+        toolUseBlock.eSet(toolIdAttr, "1234");
+        
+        EObject content = pkg.getEFactoryInstance().create(contentClass);
+        
+		List<EObject> contents = (List<EObject>) content.eGet(contentsRef);
+        contents.add(textBlock);
+        contents.add(toolUseBlock);
+
+        String json = serialize(content);
+        EObject loaded = deserialize(json, contentClass);
+        
+        assertNotNull(loaded);
+        assertEquals(contentClass, loaded.eClass());
+        assertNotNull(loaded.eGet(contentsRef), "contents ref should not be null");
+        List<EObject> loadedContents = (List<EObject>) loaded.eGet(contentsRef);
+        assertEquals(2, loadedContents.size());
+
+        assertEquals(textBlockClass, loadedContents.get(0).eClass());
+        assertEquals(toolUseBlockClass, loadedContents.get(1).eClass());
     }
 }

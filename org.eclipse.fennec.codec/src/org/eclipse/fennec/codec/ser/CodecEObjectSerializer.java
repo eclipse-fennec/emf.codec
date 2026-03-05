@@ -112,8 +112,11 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
         // Set context schema for smart compression (only for root object)
         initializeContextSchemaIfNeeded(eClass, ctxt);
 
-        // Resolve configurations for this EClass
-        TypeConfig typeConfig = config.resolveTypeConfig(eClass);
+        // Resolve configurations for this EClass, considering per-reference overrides
+        EReference currentRef = ContextHelper.getCurrentSerializationReference(ctxt);
+        TypeConfig typeConfig = currentRef != null
+                ? config.resolveTypeConfig(eClass, currentRef)
+                : config.resolveTypeConfig(eClass);
         IdConfig idConfig = config.resolveIdConfig(eClass);
         SuperTypeConfig superTypeConfig = config.resolveSuperTypeConfig(eClass);
 

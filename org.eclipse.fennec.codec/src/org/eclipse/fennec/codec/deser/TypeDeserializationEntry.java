@@ -550,7 +550,8 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             case CLASS:
                 return TypeResolutionHelper.resolveFromClassName(typeValue);
             case NUMERIC:
-                return TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass);
+                String numericContextSchema = ctxt != null ? ContextHelper.getContextSchemaUri(ctxt) : null;
+                return TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass, numericContextSchema);
             case SCHEMA_AND_TYPE:
                 // TODO: Implement SCHEMA_AND_TYPE resolution
                 return TypeResolutionHelper.resolveFromSimpleName(typeValue);

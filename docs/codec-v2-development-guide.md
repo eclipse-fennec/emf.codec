@@ -2,7 +2,89 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-05
+
+**Session Summary (2026-03-05 latest):**
+
+**Type Serialization Integration Tests & Bug Fixes:**
+
+Created `CodecResourceTypeOptionsTest.java` (`org.eclipse.fennec.codec/test/org/eclipse/fennec/codec/resource/`) — a comprehensive integration test suite exercising type serialization/deserialization through `CodecResource` save/load. The test file has 9 `@Nested` groups: NoneStrategy, NameStrategy, NumericStrategy, SchemaAndTypeStrategy, CustomTypeKey, StructuredFormat, PerClassTypeConfig, TypeScope (`@Disabled`), and PerReferenceTypeConfig. Uses `test-roundtrip.ecore` (Person, Address, Company) and `test-type-strategy.ecore`.
+
+The tests exposed 5 bugs in the configuration and serialization/deserialization layers:
+
+*Bug 1 — Per-EClass config not overriding global type strategy:*
+- **Root cause:** `ConfigurationResolver.extractClassProperties()` only looked up `ConfigProperty.ECLASS_CONFIG.getKey()` (`"eClassConfig"`), but options passed via `CodecOptions.CODEC_ECLASS_CONFIG` use the prefixed key `"codec.eClassConfig"`. Same issue for `EREFERENCE_CONFIG` and `EATTRIBUTE_CONFIG` in `extractFeatureProperties()`.
+- **Fix:** Added fallback to try `ConfigProperty.*.getPropertyKey()` (prefixed key) when the short key yields no result, in both `extractClassProperties` and `extractFeatureProperties`.
+- **Files:** `ConfigurationResolver.java`
+
+*Bug 2 — CODEC_ROOT_SCHEMA load option not working:*
+- **Root cause:** `CodecResource.enrichWithOptions()` called `resolver.toBuilder().optionsProperties(options).build()`, which **replaced** the existing optionsProperties (containing typeKey, typeStrategy, etc.) with just the load options (containing only CODEC_ROOT_SCHEMA). All original type configuration was lost on load.
+- **Fix:** Added `getOptionsProperties()` getter to `ConfigurationResolver`. Changed `enrichWithOptions` to **merge** existing options with load/save options (load options take precedence via `Map.putAll`).
+- **Files:** `ConfigurationResolver.java`, `CodecResource.java`
+
+*Bug 3 — NUMERIC strategy ignoring context schema hint:*
+- **Root cause:** `TypeResolutionHelper.resolveFromNumeric(String, EClass)` only used `hintEClass` for EPackage lookup. When no hint class was provided (common case with CODEC_ROOT_SCHEMA), it fell through to scanning all registered packages — which is unreliable. The context schema URI from `CODEC_ROOT_SCHEMA` was never consulted.
+- **Fix:** Added overload `resolveFromNumeric(String, EClass, String contextSchemaUri)` that tries: (1) hint class package, (2) context schema package, (3) all registered packages. Updated `TypeDeserializationEntry` NUMERIC case to pass `ContextHelper.getContextSchemaUri(ctxt)`.
+- **Files:** `TypeResolutionHelper.java`, `TypeDeserializationEntry.java`
+
+*Bug 4 — STRUCTURED format deserialization dropping all properties:*
+- **Root cause:** `CodecEObjectDeserializer.readTypeValueAsString()` returned `null` when encountering `START_OBJECT` (a structured type value like `{"type":"Person","schema":"..."}`), without consuming the nested object. This left the Jackson parser positioned **inside** the type object, causing all subsequent top-level fields (name, age, etc.) to be misinterpreted or skipped.
+- **Fix:** Added `readStructuredTypeObject()` method that properly parses the inner object, extracts `type`/`schema`/`classifier` values using configured inner keys, composes full URIs when schema is present (`nsURI#//ClassName`), handles `classifier` via `TypeResolutionHelper.resolveFromNumeric`, and correctly consumes the entire nested object. Also added `VALUE_NUMBER_INT` handling for plain numeric type values.
+- **Files:** `CodecEObjectDeserializer.java`
+
+*Bug 5 — Per-reference type config not overriding global:*
+- **Root cause:** `resolveTypeConfig(EClass)` only merged GLOBAL and ECLASS level properties. No code path existed to layer feature-scoped properties from `CODEC_EREFERENCE_CONFIG` into type config resolution, even though `typeStrategy` is valid at FEATURE level per `ConfigProperty`.
+- **Fix:** Added `resolveTypeConfig(EClass, EStructuralFeature, DiagnosticCollector)` to `ConfigurationResolver` that layers feature overrides on top of EClass-level resolution. Added `resolveTypeConfig(EClass, EStructuralFeature)` to `EffectiveCodecConfig`. Updated `CodecEObjectSerializer.serialize()` to read `ContextHelper.getCurrentSerializationReference(ctxt)` and use the feature-aware overload when a reference context exists.
+- **Files:** `ConfigurationResolver.java`, `EffectiveCodecConfig.java`, `CodecEObjectSerializer.java`
+
+---
+
+**Session Summary (2026-03-04):**
+
+**JSON Schema Deserialization Fixes (`JsonSchemaToEPackageConverter`):**
+
+Comparison with gecko-codec's `EnhancedJsonSchemaToEPackageDeserializer` revealed several issues in the JSON Schema → EPackage deserialization. Full findings documented in `org.eclipse.fennec.codec.jsonschema/jsonschema-deserialization-findings.md`.
+
+*Fix 1 — `allOf` inline property merging (data loss):*
+- `createClassWithAllOf` only used the first non-`$ref` inline schema, silently dropping properties from subsequent inline schemas
+- Now properly iterates ALL `allOf` elements, merges properties with deduplication, and accumulates `required` fields across all inline schemas
+- Example: `allOf: [{$ref: Base}, {properties: {street}}, {properties: {city}}]` now correctly produces an EClass with both `street` and `city`
+
+*Fix 2 — `anyOf` property-level reference resolution (class bloat + broken hierarchy):*
+- Old approach (`createMultiValueReference` + `createParentFromCommonProperties`) eagerly created artificial parent classes from raw JSON nodes during initial processing, which:
+  - Ignored existing common supertypes (e.g., Cat/Dog both extending Animal via `allOf`)
+  - Created empty artificial classes when referenced schemas used `allOf` (no top-level `properties`)
+  - Used `parentClassMaps` with fragile `Map<String, JsonNode>` cache key
+  - Never populated `anyOfRefMap`, leaving artificial parents disconnected from the type hierarchy
+- New deferred approach:
+  - `createMultiValueReference` now records `DeferredAnyOfReference` entries instead of eagerly resolving
+  - `resolveAnyOfPropertyReferences()` runs AFTER `resolveAllOfReferences()` so the full inheritance hierarchy is available
+  - Walks the supertype chains to find the **lowest common supertype** via `findLowestCommonSupertype()`
+  - If a common supertype exists (e.g., Animal), uses it directly — no artificial class created
+  - If no common supertype exists, creates an artificial parent, extracts common features (by name + type) from the target classes into it, removes the originals from target classes, and wires target classes as subtypes
+  - Uses sorted target name list as cache key for order-independent reuse across identical `anyOf` sets
+- Removed `parentClassMaps` field and `createParentFromCommonProperties` method
+
+*Use cases now covered (with tests in `NewFeaturesTest`):*
+
+| Test | Scenario |
+|------|----------|
+| `allOfMergesMultipleInlineSchemas` | allOf with 3 inline schemas — all properties merged, required accumulated |
+| `allOfMergesInlineSchemasWithRefs` | allOf with $ref parent + 2 inline schemas — supertype resolved, properties merged |
+| `allOfDeduplicatesProperties` | allOf with overlapping property names — no duplicate features |
+| `anyOfSameRefsReusesType` | Two properties with identical anyOf [Cat, Dog] — same type reused |
+| `anyOfCommonPropertiesInDifferentOrderReusesType` | Cat defines {name, age, purrs}, Dog defines {age, name, barks} — common features {name, age} extracted regardless of property order |
+| `anyOfResolvesToExistingCommonSupertype` | Cat/Dog extend Animal via allOf — anyOf resolves to Animal, no artificial class |
+| `anyOfResolvesToCommonSupertypeDefinedAfterSubtypes` | Animal defined AFTER Cat/Dog in schema — deferred resolution still finds Animal |
+| `anyOfNoCommonSupertypeCreatesArtificialParent` | Circle/Rectangle with no shared supertype — artificial parent created, both wired as subtypes |
+| `anyOfFindsLowestCommonAncestor` | Animal → Mammal → Cat/Dog — anyOf resolves to Mammal (lowest), not Animal |
+
+*Remaining known issues (documented in findings, not yet fixed):*
+- Issue 3: Multi-type `"null"` (e.g., `"type": ["string", "null"]`) creates 3 artificial classes instead of a nullable EAttribute
+- Issue 4: Context-specific variant base class always created even with 0 common properties
+- Issue 5: `$ref` default containment is `false` (should be `true` to match typical JSON Schema semantics)
+
+---
 
 **Session Summary (2026-03-02 latest):**
 
