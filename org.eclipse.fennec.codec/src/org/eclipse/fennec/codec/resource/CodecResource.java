@@ -625,9 +625,18 @@ public class CodecResource extends ResourceImpl {
         if (isNull(options) || options.isEmpty()) {
             return resolver;
         }
-        return resolver.toBuilder()
-                .optionsProperties(options)
-                .build();
+        // Merge load/save options with existing options properties.
+        // The load/save options take precedence over previously configured options.
+        ConfigurationResolver.Builder builder = resolver.toBuilder();
+        Map<String, Object> existingOptions = resolver.getOptionsProperties();
+        if (nonNull(existingOptions) && !existingOptions.isEmpty()) {
+            Map<String, Object> merged = new HashMap<>(existingOptions);
+            merged.putAll(options);
+            builder.optionsProperties(merged);
+        } else {
+            builder.optionsProperties(options);
+        }
+        return builder.build();
     }
 
     private ObjectMapper createObjectMapper(Map<String, Object> options, ConfigurationResolver operationResolver) {

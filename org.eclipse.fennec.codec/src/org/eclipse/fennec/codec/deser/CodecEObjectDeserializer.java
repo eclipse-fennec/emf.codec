@@ -38,6 +38,7 @@ import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
+import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -180,7 +181,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 
         if (FeaturePathTypeResolver.hasDiscriminatorPath(discriminatorPath)
                 && config.getTypeDiscriminatorReader() != null
-                && !isTypeKey(discriminatorPath)) {
+                && !isTypeKey(discriminatorPath, hintEClass)) {
             return deserializeWithFeaturePath(parser, ctxt, state, hintEClass, discriminatorPath);
         }
 
@@ -203,7 +204,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             }
 
             // Check if this is the type property - ALWAYS process it when present
-            if (isTypeKey(propertyName)) {
+            if (isTypeKey(propertyName, hintEClass)) {
                 // Read the raw type value BEFORE consuming it for type resolution
                 String rawTypeValue = readTypeValueAsString(parser, ctxt);
 
@@ -267,18 +268,36 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 
     /**
      * Checks if the property name is a type key.
+     * <p>
+     * Priority order (most specific first):
+     * <ol>
+     *   <li>Class-level typeKey from hint EClass annotation</li>
+     *   <li>Global typeKey from configuration</li>
+     *   <li>Hardcoded defaults ({@code _type}, {@code _class}, {@code @type}, {@code eClass})</li>
+     * </ol>
      */
-    private boolean isTypeKey(String propertyName) {
-        if (DEFAULT_TYPE_KEY.equals(propertyName)
-            || "_class".equals(propertyName)
-            || "@type".equals(propertyName)
-            || "eClass".equals(propertyName)) {
-            return true;
+    private boolean isTypeKey(String propertyName, EClass hintEClass) {
+        // 1. Check class-level type key from hint (most specific)
+        if (hintEClass != null) {
+            TypeConfig classTypeConfig = config.resolveTypeConfig(hintEClass);
+            if (classTypeConfig != null) {
+                String classTypeKey = classTypeConfig.getTypeKey();
+                if (classTypeKey != null) {
+                    return classTypeKey.equals(propertyName);
+                }
+            }
         }
-        // Check against resolved global type key
+        // 2. Check global type key from configuration
         TypeConfig globalTypeConfig = config.resolveGlobalTypeConfig();
         String configuredTypeKey = globalTypeConfig != null ? globalTypeConfig.getTypeKey() : null;
-        return configuredTypeKey != null && configuredTypeKey.equals(propertyName);
+        if (configuredTypeKey != null) {
+            return configuredTypeKey.equals(propertyName);
+        }
+        // 3. Fall back to hardcoded defaults
+        return DEFAULT_TYPE_KEY.equals(propertyName)
+            || "_class".equals(propertyName)
+            || "@type".equals(propertyName)
+            || "eClass".equals(propertyName);
     }
 
     /**
@@ -301,12 +320,18 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         if (token == JsonToken.VALUE_STRING) {
             return parser.getString();
         }
-        if (token == JsonToken.START_OBJECT) {
-            // For STRUCTURED format, we can't easily extract - return null
-            // The TypeDeserializationEntry will handle structured format parsing
-            return null;
+        if (token == JsonToken.VALUE_NUMBER_INT) {
+            return String.valueOf(parser.getIntValue());
         }
-        // Unexpected token (e.g., number, boolean, etc.) - report based on mode
+        if (token == JsonToken.START_OBJECT) {
+            // STRUCTURED format: parse inner object to extract type value.
+            // Expected shapes:
+            //   URI/NAME/CLASS: {"type": "<value>"}
+            //   SCHEMA_AND_TYPE: {"schema": "<nsURI>", "type": "<name>"}
+            //   NUMERIC: {"schema": "<nsURI>", "classifier": <id>}
+            return readStructuredTypeObject(parser, ctxt);
+        }
+        // Unexpected token (e.g., boolean, null, etc.) - report based on mode
         String msg = "Unexpected token for _type field: " + token + ". Expected STRING or OBJECT.";
         if (ContextHelper.isStrictMode(ctxt)) {
             LOGGER.severe(msg);
@@ -316,6 +341,63 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             ContextHelper.addWarning(ctxt, msg, parser, "CodecEObjectDeserializer");
         }
         return null;
+    }
+
+    /**
+     * Reads a STRUCTURED format type object and extracts the type value.
+     * <p>
+     * Recognizes inner keys from TypeConfig defaults:
+     * <ul>
+     *   <li>{@code "type"} (nameKey) — the type value (URI, name, class name)</li>
+     *   <li>{@code "schema"} (schemaKey) — the schema URI</li>
+     *   <li>{@code "classifier"} — numeric classifier ID</li>
+     * </ul>
+     * When both schema and type/classifier are present, composes a full URI.
+     * Consumes the entire nested object so the parser is correctly positioned.
+     */
+    private String readStructuredTypeObject(JsonParser parser, DeserializationContext ctxt) {
+        TypeConfig globalTypeConfig = config.resolveGlobalTypeConfig();
+        String nameKey = globalTypeConfig != null ? globalTypeConfig.getNameKey() : "type";
+        String schemaKey = globalTypeConfig != null ? globalTypeConfig.getSchemaKey() : "schema";
+
+        String typeValue = null;
+        String schemaValue = null;
+        String classifierValue = null;
+
+        while (parser.nextToken() != JsonToken.END_OBJECT) {
+            String fieldName = parser.currentName();
+            parser.nextToken(); // move to value
+
+            if (nameKey.equals(fieldName)) {
+                typeValue = parser.getString();
+            } else if (schemaKey.equals(fieldName)) {
+                schemaValue = parser.getString();
+            } else if ("classifier".equals(fieldName)) {
+                classifierValue = parser.currentToken() == JsonToken.VALUE_NUMBER_INT
+                        ? String.valueOf(parser.getIntValue())
+                        : parser.getString();
+            }
+            // ignore unknown inner keys
+        }
+
+        // Compose full URI when schema is present
+        if (schemaValue != null && !schemaValue.isEmpty()) {
+            if (classifierValue != null) {
+                // NUMERIC STRUCTURED: resolve classifier ID within the embedded schema package.
+                // Look up the EClass directly and return its full URI for downstream resolution.
+                EClass resolved = TypeResolutionHelper.resolveFromNumeric(classifierValue, null, schemaValue);
+                if (resolved != null && resolved.getEPackage() != null) {
+                    return resolved.getEPackage().getNsURI() + "#//" + resolved.getName();
+                }
+                return classifierValue;
+            }
+            if (typeValue != null && !typeValue.contains("#//")) {
+                // SCHEMA_AND_TYPE or NAME with schema: compose full URI
+                return schemaValue + "#//" + typeValue;
+            }
+        }
+
+        return typeValue;
     }
 
     /**

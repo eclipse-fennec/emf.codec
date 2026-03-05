@@ -155,6 +155,38 @@ public final class ConfigurationResolver {
     }
 
     /**
+     * Resolves effective TypeConfig for an EClass in the context of a containing feature.
+     * <p>
+     * Extends the standard EClass-level resolution by also merging feature-scoped
+     * properties (e.g., per-EReference type strategy overrides via {@code CODEC_EREFERENCE_CONFIG}).
+     * The feature-level properties have the highest priority within each configuration source.
+     * </p>
+     *
+     * @param eClass the EClass to resolve config for
+     * @param feature the containing feature (e.g., the EReference through which this object is accessed)
+     * @param diagnostics collector for validation diagnostics
+     * @return the effective TypeConfig with feature-level overrides applied
+     */
+    public TypeConfig resolveTypeConfig(EClass eClass, EStructuralFeature feature, DiagnosticCollector diagnostics) {
+        Objects.requireNonNull(eClass, "eClass must not be null");
+        Objects.requireNonNull(diagnostics, "diagnostics must not be null");
+
+        if (feature == null) {
+            return resolveTypeConfig(eClass, diagnostics);
+        }
+
+        // Start from the EClass-level resolved config, then layer feature overrides on top.
+        // Feature-level properties have highest priority within each source.
+        return resolveTypeConfig(eClass, diagnostics)
+                .mergeWith(extractFeatureProperties(annotationProperties, feature))
+                .mergeWith(extractFeatureProperties(moduleProperties, feature))
+                .mergeWith(extractFeatureProperties(factoryProperties, feature))
+                .mergeWith(extractFeatureProperties(resourceProperties, feature))
+                .mergeWith(extractFeatureProperties(optionsProperties, feature))
+                .validate(diagnostics);
+    }
+
+    /**
      * Resolves global TypeConfig (no EClass context).
      *
      * @param diagnostics collector for validation diagnostics
@@ -728,8 +760,17 @@ public final class ConfigurationResolver {
     }
 
     // ========================================================================
-    // Global Property Access
+    // Source Property Access
     // ========================================================================
+
+    /**
+     * Returns the options properties map (highest priority configuration source).
+     *
+     * @return the options properties map, or null if not set
+     */
+    public Map<String, Object> getOptionsProperties() {
+        return optionsProperties;
+    }
 
     /**
      * Retrieves a global property value by searching all configuration sources
@@ -801,7 +842,11 @@ public final class ConfigurationResolver {
         }
 
         // Pattern 1: Check for CODEC_ECLASS_CONFIG (Map<EClass, Map<String, Object>>)
+        // Try both short key ("eClassConfig") and prefixed key ("codec.eClassConfig")
         Object eClassConfigMap = source.get(ConfigProperty.ECLASS_CONFIG.getKey());
+        if (eClassConfigMap == null) {
+            eClassConfigMap = source.get(ConfigProperty.ECLASS_CONFIG.getPropertyKey());
+        }
         if (eClassConfigMap instanceof Map<?, ?> eClassMap) {
             Object classProps = eClassMap.get(eClass);
             if (classProps instanceof Map) {
@@ -840,8 +885,12 @@ public final class ConfigurationResolver {
         }
 
         // Pattern 1: Check for CODEC_EREFERENCE_CONFIG or CODEC_EATTRIBUTE_CONFIG
+        // Try both short key and prefixed key for each
         if (feature instanceof EReference) {
             Object eRefConfigMap = source.get(ConfigProperty.EREFERENCE_CONFIG.getKey());
+            if (eRefConfigMap == null) {
+                eRefConfigMap = source.get(ConfigProperty.EREFERENCE_CONFIG.getPropertyKey());
+            }
             if (eRefConfigMap instanceof Map<?, ?> refMap) {
                 Object featureProps = refMap.get(feature);
                 if (featureProps instanceof Map) {
@@ -850,6 +899,9 @@ public final class ConfigurationResolver {
             }
         } else if (feature instanceof EAttribute) {
             Object eAttrConfigMap = source.get(ConfigProperty.EATTRIBUTE_CONFIG.getKey());
+            if (eAttrConfigMap == null) {
+                eAttrConfigMap = source.get(ConfigProperty.EATTRIBUTE_CONFIG.getPropertyKey());
+            }
             if (eAttrConfigMap instanceof Map<?, ?> attrMap) {
                 Object featureProps = attrMap.get(feature);
                 if (featureProps instanceof Map) {

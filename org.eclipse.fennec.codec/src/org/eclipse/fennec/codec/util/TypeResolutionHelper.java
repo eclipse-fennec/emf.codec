@@ -116,6 +116,28 @@ public final class TypeResolutionHelper {
      * @return the resolved EClass, or null if not found or not a valid number
      */
     public static EClass resolveFromNumeric(String numericValue, EClass hintEClass) {
+        return resolveFromNumeric(numericValue, hintEClass, null);
+    }
+
+    /**
+     * Resolves an EClass by its classifier ID using hint EClass or context schema.
+     * <p>
+     * Resolution order:
+     * <ol>
+     *   <li>Hint EClass package (if provided)</li>
+     *   <li>Context schema URI (if provided) — looks up EPackage by nsURI</li>
+     *   <li>Search all registered packages (fallback, non-deterministic)</li>
+     * </ol>
+     * Per the spec (§1.7), NUMERIC strategy <b>requires</b> a schema hint
+     * ({@code CODEC_ROOT_SCHEMA} or {@code CODEC_ROOT_TYPE}) for deserialization.
+     * </p>
+     *
+     * @param numericValue the classifier ID as string
+     * @param hintEClass optional hint EClass for package context (may be null)
+     * @param contextSchemaUri optional context schema URI for package lookup (may be null)
+     * @return the resolved EClass, or null if not found or not a valid number
+     */
+    public static EClass resolveFromNumeric(String numericValue, EClass hintEClass, String contextSchemaUri) {
         if (numericValue == null || numericValue.isEmpty()) {
             return null;
         }
@@ -127,6 +149,17 @@ public final class TypeResolutionHelper {
                 EClass resolved = findClassifierInPackage(hintEClass.getEPackage(), classifierId);
                 if (resolved != null) {
                     return resolved;
+                }
+            }
+
+            // Try context schema URI to locate the package
+            if (contextSchemaUri != null && !contextSchemaUri.isEmpty()) {
+                EPackage pkg = EPackage.Registry.INSTANCE.getEPackage(contextSchemaUri);
+                if (pkg != null) {
+                    EClass resolved = findClassifierInPackage(pkg, classifierId);
+                    if (resolved != null) {
+                        return resolved;
+                    }
                 }
             }
 

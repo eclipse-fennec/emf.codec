@@ -64,6 +64,17 @@ class DiscriminatorMappingExample {
 
     private EAttribute networkNameAttr;
     private EReference sensorsRef;
+    
+    private EClass textBlockClass;
+    private EClass toolUseBlockClass;
+    
+    private EAttribute textAttr;
+    
+    private EAttribute toolIdAttr;
+    
+    private EClass contentClass;
+    
+    private EReference contentsRef;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -80,6 +91,16 @@ class DiscriminatorMappingExample {
 
         networkNameAttr = (EAttribute) EcoreHelper.getFeature(sensorNetworkClass, "name");
         sensorsRef = (EReference) EcoreHelper.getFeature(sensorNetworkClass, "sensors");
+        
+        textBlockClass = EcoreHelper.getEClass(pkg, "TextBlock");
+        toolUseBlockClass = EcoreHelper.getEClass(pkg, "ToolUseBlock");
+        
+        textAttr = (EAttribute) EcoreHelper.getFeature(textBlockClass, "text");
+        
+        toolIdAttr = (EAttribute) EcoreHelper.getFeature(toolUseBlockClass, "toolId");
+        
+        contentClass = EcoreHelper.getEClass(pkg, "Content");
+        contentsRef = (EReference) EcoreHelper.getFeature(contentClass, "contents");
     }
 
     @AfterEach
@@ -159,7 +180,7 @@ class DiscriminatorMappingExample {
     @Test
     @DisplayName("Discriminator values in JSON — _type contains 'temp'/'humidity' not URIs")
     @SuppressWarnings("unchecked")
-    void discriminatorWithCustomTypeKey() throws IOException {
+    void discriminatorWithCustomTypeValues() throws IOException {
         EObject network = pkg.getEFactoryInstance().create(sensorNetworkClass);
         network.eSet(networkNameAttr, "Test Network");
 
@@ -186,4 +207,33 @@ class DiscriminatorMappingExample {
         assertFalse(json.contains("HumiditySensor"),
                 "Should NOT contain EClass name 'HumiditySensor' as type");
     }
+    
+    @SuppressWarnings("unchecked")
+   	@Test
+       @DisplayName("Discriminator key in JSON - type instead of _type")
+       void discriminatorWithCustomTypeKey() throws IOException {
+           EObject textBlock = pkg.getEFactoryInstance().create(textBlockClass);
+           textBlock.eSet(textAttr, "Some Text");
+           
+           EObject toolUseBlock = pkg.getEFactoryInstance().create(toolUseBlockClass);
+           toolUseBlock.eSet(toolIdAttr, "1234");
+           
+           EObject content = pkg.getEFactoryInstance().create(contentClass);
+           
+   		List<EObject> contents = (List<EObject>) content.eGet(contentsRef);
+           contents.add(textBlock);
+           contents.add(toolUseBlock);
+
+           String json = serialize(content);
+           EObject loaded = deserialize(json, contentClass);
+           
+           assertNotNull(loaded);
+           assertEquals(contentClass, loaded.eClass());
+           assertNotNull(loaded.eGet(contentsRef), "contents ref should not be null");
+           List<EObject> loadedContents = (List<EObject>) loaded.eGet(contentsRef);
+           assertEquals(2, loadedContents.size());
+
+           assertEquals(textBlockClass, loadedContents.get(0).eClass());
+           assertEquals(toolUseBlockClass, loadedContents.get(1).eClass());
+       }
 }
