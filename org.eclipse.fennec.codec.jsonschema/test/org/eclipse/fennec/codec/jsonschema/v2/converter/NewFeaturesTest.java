@@ -27,8 +27,10 @@ import java.util.Map;
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.jsonschema.v2.JsonSchemaResourceImpl;
@@ -1624,8 +1626,8 @@ class NewFeaturesTest {
 		}
 
 		@Test
-		@DisplayName("multi-valued containment reference produces array with inlined object items")
-		void multiValuedContainmentRef_hasInlinedItems() throws IOException {
+		@DisplayName("multi-valued containment reference produces array with $ref items and x-containment")
+		void multiValuedContainmentRef_hasRefItemsWithXContainment() throws IOException {
 			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
 			pkg.setName("test");
 			pkg.setNsPrefix("test");
@@ -1661,9 +1663,11 @@ class NewFeaturesTest {
 			assertNotNull(childrenProp, "children property should exist");
 			assertEquals("array", childrenProp.get("type").asString());
 			assertNotNull(childrenProp.get("items"), "items must be present for array reference");
-			// Containment references inline the child object, not $ref
-			assertEquals("object", childrenProp.get("items").get("type").asString(),
-					"containment items should be inlined object, not $ref");
+			// Containment references use $ref with x-containment marker
+			assertNotNull(childrenProp.get("items").get("$ref"),
+					"containment items should use $ref");
+			assertTrue(childrenProp.get("x-containment").asBoolean(),
+					"containment reference should have x-containment: true");
 		}
 
 		private JsonNode convertEClass(EClass eClass) throws IOException {
@@ -2099,6 +2103,249 @@ class NewFeaturesTest {
 	}
 
 	// ========================================================================
+	// oneOf for abstract EClass references
+	// ========================================================================
+
+	@Nested
+	@DisplayName("oneOf for abstract EClass references")
+	class OneOfAbstractRefTests {
+
+		@Test
+		@DisplayName("non-containment ref to abstract EClass uses oneOf by default")
+		void nonContainmentAbstractRef_usesOneOfByDefault() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass abstractResult = EcoreFactory.eINSTANCE.createEClass();
+			abstractResult.setName("AbstractSearchResult");
+			abstractResult.setAbstract(true);
+			pkg.getEClassifiers().add(abstractResult);
+
+			EClass resultA = EcoreFactory.eINSTANCE.createEClass();
+			resultA.setName("SearchResultA");
+			resultA.getESuperTypes().add(abstractResult);
+			EAttribute nameA = EcoreFactory.eINSTANCE.createEAttribute();
+			nameA.setName("nameA");
+			nameA.setEType(EcorePackage.Literals.ESTRING);
+			resultA.getEStructuralFeatures().add(nameA);
+			pkg.getEClassifiers().add(resultA);
+
+			EClass resultB = EcoreFactory.eINSTANCE.createEClass();
+			resultB.setName("SearchResultB");
+			resultB.getESuperTypes().add(abstractResult);
+			EAttribute nameB = EcoreFactory.eINSTANCE.createEAttribute();
+			nameB.setName("nameB");
+			nameB.setEType(EcorePackage.Literals.ESTRING);
+			resultB.getEStructuralFeatures().add(nameB);
+			pkg.getEClassifiers().add(resultB);
+
+			EClass container = EcoreFactory.eINSTANCE.createEClass();
+			container.setName("SearchResponse");
+			EReference resultsRef = EcoreFactory.eINSTANCE.createEReference();
+			resultsRef.setName("results");
+			resultsRef.setEType(abstractResult);
+			resultsRef.setContainment(false);
+			resultsRef.setUpperBound(-1);
+			container.getEStructuralFeatures().add(resultsRef);
+			pkg.getEClassifiers().add(container);
+
+			JsonNode schema = convertPackage(pkg);
+			JsonNode responseDef = schema.get("$defs").get("SearchResponse");
+			JsonNode resultsProp = responseDef.get("properties").get("results");
+			JsonNode items = resultsProp.get("items");
+
+			assertNotNull(items.get("oneOf"), "should use oneOf for abstract ref: " + items);
+			assertNull(items.get("anyOf"), "should not use anyOf by default");
+			assertEquals(2, items.get("oneOf").size());
+		}
+
+		@Test
+		@DisplayName("containment ref to abstract EClass uses oneOf with inlined definitions")
+		void containmentAbstractRef_usesOneOfWithInlinedDefs() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass abstractShape = EcoreFactory.eINSTANCE.createEClass();
+			abstractShape.setName("Shape");
+			abstractShape.setAbstract(true);
+			pkg.getEClassifiers().add(abstractShape);
+
+			EClass circle = EcoreFactory.eINSTANCE.createEClass();
+			circle.setName("Circle");
+			circle.getESuperTypes().add(abstractShape);
+			EAttribute radius = EcoreFactory.eINSTANCE.createEAttribute();
+			radius.setName("radius");
+			radius.setEType(EcorePackage.Literals.EDOUBLE);
+			circle.getEStructuralFeatures().add(radius);
+			pkg.getEClassifiers().add(circle);
+
+			EClass rect = EcoreFactory.eINSTANCE.createEClass();
+			rect.setName("Rectangle");
+			rect.getESuperTypes().add(abstractShape);
+			EAttribute width = EcoreFactory.eINSTANCE.createEAttribute();
+			width.setName("width");
+			width.setEType(EcorePackage.Literals.EDOUBLE);
+			rect.getEStructuralFeatures().add(width);
+			pkg.getEClassifiers().add(rect);
+
+			EClass canvas = EcoreFactory.eINSTANCE.createEClass();
+			canvas.setName("Canvas");
+			EReference shapesRef = EcoreFactory.eINSTANCE.createEReference();
+			shapesRef.setName("shapes");
+			shapesRef.setEType(abstractShape);
+			shapesRef.setContainment(true);
+			shapesRef.setUpperBound(-1);
+			canvas.getEStructuralFeatures().add(shapesRef);
+			pkg.getEClassifiers().add(canvas);
+
+			JsonNode schema = convertPackage(pkg);
+			JsonNode canvasDef = schema.get("$defs").get("Canvas");
+			JsonNode shapesProp = canvasDef.get("properties").get("shapes");
+			JsonNode items = shapesProp.get("items");
+
+			assertNotNull(items.get("oneOf"), "should use oneOf for abstract containment: " + items);
+			assertNull(items.get("anyOf"), "should not use anyOf by default");
+			assertEquals(2, items.get("oneOf").size());
+
+			// Containment refs use $ref to subclass definitions
+			for (JsonNode entry : items.get("oneOf")) {
+				assertNotNull(entry.get("$ref"), "should use $ref for subclass: " + entry);
+			}
+		}
+
+		@Test
+		@DisplayName("single-valued containment ref to abstract EClass uses oneOf")
+		void singleValuedContainmentAbstractRef_usesOneOf() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass abstractShape = EcoreFactory.eINSTANCE.createEClass();
+			abstractShape.setName("Shape");
+			abstractShape.setAbstract(true);
+			pkg.getEClassifiers().add(abstractShape);
+
+			EClass circle = EcoreFactory.eINSTANCE.createEClass();
+			circle.setName("Circle");
+			circle.getESuperTypes().add(abstractShape);
+			EAttribute radius = EcoreFactory.eINSTANCE.createEAttribute();
+			radius.setName("radius");
+			radius.setEType(EcorePackage.Literals.EDOUBLE);
+			circle.getEStructuralFeatures().add(radius);
+			pkg.getEClassifiers().add(circle);
+
+			EClass canvas = EcoreFactory.eINSTANCE.createEClass();
+			canvas.setName("Canvas");
+			EReference shapeRef = EcoreFactory.eINSTANCE.createEReference();
+			shapeRef.setName("mainShape");
+			shapeRef.setEType(abstractShape);
+			shapeRef.setContainment(true);
+			canvas.getEStructuralFeatures().add(shapeRef);
+			pkg.getEClassifiers().add(canvas);
+
+			JsonNode schema = convertPackage(pkg);
+			JsonNode canvasDef = schema.get("$defs").get("Canvas");
+			JsonNode shapeProp = canvasDef.get("properties").get("mainShape");
+
+			assertNotNull(shapeProp.get("oneOf"), "should use oneOf for single-valued abstract containment: " + shapeProp);
+			assertNull(shapeProp.get("anyOf"), "should not use anyOf by default");
+		}
+
+		@Test
+		@DisplayName("option reverts to anyOf for abstract refs")
+		void optionRevertsToAnyOf() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass abstractResult = EcoreFactory.eINSTANCE.createEClass();
+			abstractResult.setName("AbstractResult");
+			abstractResult.setAbstract(true);
+			pkg.getEClassifiers().add(abstractResult);
+
+			EClass resultA = EcoreFactory.eINSTANCE.createEClass();
+			resultA.setName("ResultA");
+			resultA.getESuperTypes().add(abstractResult);
+			pkg.getEClassifiers().add(resultA);
+
+			EClass container = EcoreFactory.eINSTANCE.createEClass();
+			container.setName("Container");
+			EReference ref = EcoreFactory.eINSTANCE.createEReference();
+			ref.setName("items");
+			ref.setEType(abstractResult);
+			ref.setContainment(false);
+			ref.setUpperBound(-1);
+			container.getEStructuralFeatures().add(ref);
+			pkg.getEClassifiers().add(container);
+
+			Map<String, Object> options = Map.of(
+					CodecJsonSchemaOptions.OPTION_USE_ANY_OF_FOR_ABSTRACT, Boolean.TRUE);
+
+			EPackageToJsonSchemaConverter converter = new EPackageToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(pkg, baos, "$defs", false, options);
+			JsonNode schema = JsonMapper.builder().build().readTree(baos.toByteArray());
+
+			JsonNode containerDef = schema.get("$defs").get("Container");
+			JsonNode itemsProp = containerDef.get("properties").get("items");
+			JsonNode items = itemsProp.get("items");
+
+			assertNotNull(items.get("anyOf"), "should use anyOf when option is set: " + items);
+			assertNull(items.get("oneOf"), "should not use oneOf when anyOf option is set");
+		}
+
+		@Test
+		@DisplayName("concrete type reference uses $ref with x-containment — no oneOf/anyOf wrapper")
+		void concreteTypeRef_unchanged() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass address = EcoreFactory.eINSTANCE.createEClass();
+			address.setName("Address");
+			EAttribute street = EcoreFactory.eINSTANCE.createEAttribute();
+			street.setName("street");
+			street.setEType(EcorePackage.Literals.ESTRING);
+			address.getEStructuralFeatures().add(street);
+			pkg.getEClassifiers().add(address);
+
+			EClass person = EcoreFactory.eINSTANCE.createEClass();
+			person.setName("Person");
+			EReference homeRef = EcoreFactory.eINSTANCE.createEReference();
+			homeRef.setName("home");
+			homeRef.setEType(address);
+			homeRef.setContainment(true);
+			person.getEStructuralFeatures().add(homeRef);
+			pkg.getEClassifiers().add(person);
+
+			JsonNode schema = convertPackage(pkg);
+			JsonNode personDef = schema.get("$defs").get("Person");
+			JsonNode homeProp = personDef.get("properties").get("home");
+
+			assertNull(homeProp.get("oneOf"), "concrete containment ref should not have oneOf");
+			assertNull(homeProp.get("anyOf"), "concrete containment ref should not have anyOf");
+			assertNotNull(homeProp.get("$ref"),
+					"concrete containment ref should use $ref");
+			assertTrue(homeProp.get("x-containment").asBoolean(),
+					"concrete containment ref should have x-containment: true");
+		}
+
+		private JsonNode convertPackage(EPackage pkg) throws IOException {
+			EPackageToJsonSchemaConverter converter = new EPackageToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(pkg, baos, "$defs", false, Map.of(CodecJsonSchemaOptions.OPTION_FLAT_ALL_OF, true));
+			return JsonMapper.builder().build().readTree(baos.toByteArray());
+		}
+	}
+
+	// ========================================================================
 	// Resource-level option flow tests
 	// ========================================================================
 
@@ -2213,6 +2460,606 @@ class NewFeaturesTest {
 			pkg.setNsPrefix("tp");
 			pkg.getEClassifiers().add(eClass);
 			return pkg;
+		}
+	}
+
+	// ========================================================================
+	// allOf inline property merging Tests
+	// ========================================================================
+
+	@Nested
+	@DisplayName("allOf inline property merging")
+	class AllOfInlinePropertyMergingTests {
+
+		@Test
+		@DisplayName("allOf merges properties from multiple inline schemas")
+		void allOfMergesMultipleInlineSchemas() throws IOException {
+			String schema = """
+				{
+				  "$schema": "https://json-schema.org/draft/2020-12/schema",
+				  "$id": "http://example.org/allof-merge",
+				  "title": "allofMerge",
+				  "$defs": {
+				    "FullAddress": {
+				      "allOf": [
+				        { "properties": { "street": { "type": "string" } }, "required": ["street"] },
+				        { "properties": { "city": { "type": "string" } }, "required": ["city"] },
+				        { "properties": { "zip": { "type": "string" } } }
+				      ]
+				    }
+				  }
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage ePackage = converter.convert(
+				new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8)), "$defs");
+
+			assertNotNull(ePackage);
+
+			EClass fullAddress = (EClass) ePackage.getEClassifier("FullAddress");
+			assertNotNull(fullAddress, "FullAddress EClass should exist");
+
+			// All three properties from all inline schemas must be present
+			assertNotNull(fullAddress.getEStructuralFeature("street"),
+				"street from first inline schema should be present");
+			assertNotNull(fullAddress.getEStructuralFeature("city"),
+				"city from second inline schema should be present");
+			assertNotNull(fullAddress.getEStructuralFeature("zip"),
+				"zip from third inline schema should be present");
+
+			assertEquals(3, fullAddress.getEStructuralFeatures().size(),
+				"Should have exactly 3 features merged from all inline schemas");
+
+			// Required properties from all elements should be applied
+			assertEquals(1, fullAddress.getEStructuralFeature("street").getLowerBound(),
+				"street should be required (lowerBound=1)");
+			assertEquals(1, fullAddress.getEStructuralFeature("city").getLowerBound(),
+				"city should be required (lowerBound=1)");
+			assertEquals(0, fullAddress.getEStructuralFeature("zip").getLowerBound(),
+				"zip should be optional (lowerBound=0)");
+		}
+
+		@Test
+		@DisplayName("allOf merges inline schemas alongside $ref parents")
+		void allOfMergesInlineSchemasWithRefs() throws IOException {
+			String schema = """
+				{
+				  "$schema": "https://json-schema.org/draft/2020-12/schema",
+				  "$id": "http://example.org/allof-ref-merge",
+				  "title": "allofRefMerge",
+				  "$defs": {
+				    "BaseAddress": {
+				      "type": "object",
+				      "properties": {
+				        "country": { "type": "string" }
+				      }
+				    },
+				    "DetailedAddress": {
+				      "allOf": [
+				        { "$ref": "#/$defs/BaseAddress" },
+				        { "properties": { "street": { "type": "string" } }, "required": ["street"] },
+				        { "properties": { "city": { "type": "string" }, "zip": { "type": "string" } }, "required": ["city"] }
+				      ]
+				    }
+				  }
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage ePackage = converter.convert(
+				new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8)), "$defs");
+
+			assertNotNull(ePackage);
+
+			EClass detailedAddress = (EClass) ePackage.getEClassifier("DetailedAddress");
+			assertNotNull(detailedAddress, "DetailedAddress EClass should exist");
+
+			// Should have BaseAddress as supertype
+			assertEquals(1, detailedAddress.getESuperTypes().size(),
+				"Should have one supertype (BaseAddress)");
+			assertEquals("BaseAddress", detailedAddress.getESuperTypes().get(0).getName());
+
+			// Own features from both inline schemas should be merged
+			assertNotNull(detailedAddress.getEStructuralFeature("street"),
+				"street from first inline schema should be present");
+			assertNotNull(detailedAddress.getEStructuralFeature("city"),
+				"city from second inline schema should be present");
+			assertNotNull(detailedAddress.getEStructuralFeature("zip"),
+				"zip from second inline schema should be present");
+
+			assertEquals(3, detailedAddress.getEStructuralFeatures().size(),
+				"Should have 3 own features (street, city, zip)");
+
+			// Required from both inline schemas should be applied
+			assertEquals(1, detailedAddress.getEStructuralFeature("street").getLowerBound(),
+				"street should be required");
+			assertEquals(1, detailedAddress.getEStructuralFeature("city").getLowerBound(),
+				"city should be required");
+			assertEquals(0, detailedAddress.getEStructuralFeature("zip").getLowerBound(),
+				"zip should be optional");
+		}
+
+		@Test
+		@DisplayName("allOf deduplicates properties across inline schemas")
+		void allOfDeduplicatesProperties() throws IOException {
+			String schema = """
+				{
+				  "$schema": "https://json-schema.org/draft/2020-12/schema",
+				  "$id": "http://example.org/allof-dedup",
+				  "title": "allofDedup",
+				  "$defs": {
+				    "MergedClass": {
+				      "allOf": [
+				        { "properties": { "name": { "type": "string" }, "age": { "type": "integer" } } },
+				        { "properties": { "name": { "type": "string" }, "email": { "type": "string" } } }
+				      ]
+				    }
+				  }
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage ePackage = converter.convert(
+				new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8)), "$defs");
+
+			assertNotNull(ePackage);
+
+			EClass mergedClass = (EClass) ePackage.getEClassifier("MergedClass");
+			assertNotNull(mergedClass, "MergedClass EClass should exist");
+
+			// name should appear only once (deduplicated), plus age and email
+			assertEquals(3, mergedClass.getEStructuralFeatures().size(),
+				"Should have 3 features: name (deduplicated), age, email");
+			assertNotNull(mergedClass.getEStructuralFeature("name"));
+			assertNotNull(mergedClass.getEStructuralFeature("age"));
+			assertNotNull(mergedClass.getEStructuralFeature("email"));
+		}
+	}
+
+	// ========================================================================
+	// anyOf property-level reference resolution Tests
+	// ========================================================================
+
+	@Nested
+	@DisplayName("anyOf property-level reference resolution")
+	class AnyOfPropertyReferenceTests {
+
+		@Test
+		@DisplayName("anyOf with same refs used on two properties should reuse the same type")
+		void anyOfSameRefsReusesType() throws IOException {
+			String schema = """
+				{
+				  "$schema": "https://json-schema.org/draft/2020-12/schema",
+				  "$id": "http://example.org/anyof-reuse",
+				  "title": "anyofReuse",
+				  "$defs": {
+				    "Cat": {
+				      "type": "object",
+				      "properties": {
+				        "name": { "type": "string" },
+				        "purrs": { "type": "boolean" }
+				      }
+				    },
+				    "Dog": {
+				      "type": "object",
+				      "properties": {
+				        "name": { "type": "string" },
+				        "barks": { "type": "boolean" }
+				      }
+				    },
+				    "Owner": {
+				      "type": "object",
+				      "properties": {
+				        "favoritePet": { "anyOf": [{"$ref": "#/$defs/Cat"}, {"$ref": "#/$defs/Dog"}] },
+				        "secondPet":   { "anyOf": [{"$ref": "#/$defs/Cat"}, {"$ref": "#/$defs/Dog"}] }
+				      }
+				    }
+				  }
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage ePackage = converter.convert(
+				new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8)), "$defs");
+
+			assertNotNull(ePackage);
+
+			EClass owner = (EClass) ePackage.getEClassifier("Owner");
+			assertNotNull(owner, "Owner EClass should exist");
+
+			EStructuralFeature favoritePet = owner.getEStructuralFeature("favoritePet");
+			EStructuralFeature secondPet = owner.getEStructuralFeature("secondPet");
+			assertNotNull(favoritePet, "favoritePet feature should exist");
+			assertNotNull(secondPet, "secondPet feature should exist");
+
+			// Both properties reference the same anyOf [Cat, Dog], so they should
+			// resolve to the same EType — no duplicate artificial classes
+			assertEquals(favoritePet.getEType(), secondPet.getEType(),
+				"Both anyOf [Cat, Dog] properties should resolve to the same type");
+
+			// Count how many artificial classifiers were created — should be at most 1
+			long artificialCount = ePackage.getEClassifiers().stream()
+				.filter(c -> {
+					EAnnotation ann = c.getEAnnotation("http://fennec.eclipse.org/jsonschema");
+					return ann != null && "true".equals(ann.getDetails().get("artificial"));
+				})
+				.count();
+			assertTrue(artificialCount <= 1,
+				"Should create at most 1 artificial class for identical anyOf refs, but found " + artificialCount);
+		}
+
+		@Test
+		@DisplayName("anyOf resolves to same type when common properties are defined in different order")
+		void anyOfCommonPropertiesInDifferentOrderReusesType() throws IOException {
+			// Cat defines common properties as {name, age, purrs}
+			// Dog defines common properties as {age, name, barks}
+			// "name" and "age" are common but appear in different order.
+			// Two anyOf [Cat, Dog] properties should still resolve to the same type.
+			String schema = """
+				{
+				  "$schema": "https://json-schema.org/draft/2020-12/schema",
+				  "$id": "http://example.org/anyof-prop-order",
+				  "title": "anyofPropOrder",
+				  "$defs": {
+				    "Cat": {
+				      "type": "object",
+				      "properties": {
+				        "name": { "type": "string" },
+				        "age": { "type": "integer" },
+				        "purrs": { "type": "boolean" }
+				      }
+				    },
+				    "Dog": {
+				      "type": "object",
+				      "properties": {
+				        "age": { "type": "integer" },
+				        "name": { "type": "string" },
+				        "barks": { "type": "boolean" }
+				      }
+				    },
+				    "Owner": {
+				      "type": "object",
+				      "properties": {
+				        "favoritePet": { "anyOf": [{"$ref": "#/$defs/Cat"}, {"$ref": "#/$defs/Dog"}] },
+				        "secondPet":   { "anyOf": [{"$ref": "#/$defs/Cat"}, {"$ref": "#/$defs/Dog"}] }
+				      }
+				    }
+				  }
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage ePackage = converter.convert(
+				new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8)), "$defs");
+
+			assertNotNull(ePackage);
+
+			EClass owner = (EClass) ePackage.getEClassifier("Owner");
+			assertNotNull(owner, "Owner EClass should exist");
+
+			EStructuralFeature favoritePet = owner.getEStructuralFeature("favoritePet");
+			EStructuralFeature secondPet = owner.getEStructuralFeature("secondPet");
+			assertNotNull(favoritePet, "favoritePet feature should exist");
+			assertNotNull(secondPet, "secondPet feature should exist");
+
+			// The common properties {name, age} are the same set regardless of
+			// definition order in Cat vs Dog — both anyOf refs should resolve to the same type
+			assertEquals(favoritePet.getEType(), secondPet.getEType(),
+				"anyOf [Cat, Dog] should resolve to the same type regardless of property definition order in the referenced classes");
+
+			// The resolved type should have both common properties
+			EClassifier resolvedType = favoritePet.getEType();
+			assertNotNull(resolvedType, "resolved type should not be null");
+			assertTrue(resolvedType instanceof EClass, "resolved type should be an EClass");
+			EClass resolvedClass = (EClass) resolvedType;
+			assertNotNull(resolvedClass.getEStructuralFeature("name"),
+				"resolved common type should have 'name' feature");
+			assertNotNull(resolvedClass.getEStructuralFeature("age"),
+				"resolved common type should have 'age' feature");
+
+			// Should create at most 1 artificial class, not 2
+			long artificialCount = ePackage.getEClassifiers().stream()
+				.filter(c -> {
+					EAnnotation ann = c.getEAnnotation("http://fennec.eclipse.org/jsonschema");
+					return ann != null && "true".equals(ann.getDetails().get("artificial"));
+				})
+				.count();
+			assertTrue(artificialCount <= 1,
+				"Should create at most 1 artificial class even when common properties are in different order, but found " + artificialCount);
+		}
+
+		@Test
+		@DisplayName("anyOf refs to classes that share a common supertype via allOf should resolve to that supertype")
+		void anyOfResolvesToExistingCommonSupertype() throws IOException {
+			String schema = """
+				{
+				  "$schema": "https://json-schema.org/draft/2020-12/schema",
+				  "$id": "http://example.org/anyof-supertype",
+				  "title": "anyofSupertype",
+				  "$defs": {
+				    "Animal": {
+				      "type": "object",
+				      "properties": {
+				        "name": { "type": "string" }
+				      }
+				    },
+				    "Cat": {
+				      "allOf": [
+				        { "$ref": "#/$defs/Animal" },
+				        { "properties": { "purrs": { "type": "boolean" } } }
+				      ]
+				    },
+				    "Dog": {
+				      "allOf": [
+				        { "$ref": "#/$defs/Animal" },
+				        { "properties": { "barks": { "type": "boolean" } } }
+				      ]
+				    },
+				    "Owner": {
+				      "type": "object",
+				      "properties": {
+				        "pet": { "anyOf": [{"$ref": "#/$defs/Cat"}, {"$ref": "#/$defs/Dog"}] }
+				      }
+				    }
+				  }
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage ePackage = converter.convert(
+				new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8)), "$defs");
+
+			assertNotNull(ePackage);
+
+			EClass animal = (EClass) ePackage.getEClassifier("Animal");
+			EClass cat = (EClass) ePackage.getEClassifier("Cat");
+			EClass dog = (EClass) ePackage.getEClassifier("Dog");
+			EClass owner = (EClass) ePackage.getEClassifier("Owner");
+			assertNotNull(animal, "Animal EClass should exist");
+			assertNotNull(cat, "Cat EClass should exist");
+			assertNotNull(dog, "Dog EClass should exist");
+			assertNotNull(owner, "Owner EClass should exist");
+
+			// Cat and Dog should both extend Animal
+			assertTrue(cat.getESuperTypes().contains(animal),
+				"Cat should extend Animal");
+			assertTrue(dog.getESuperTypes().contains(animal),
+				"Dog should extend Animal");
+
+			// The pet reference should resolve to Animal (the common supertype),
+			// NOT to an artificial class
+			EStructuralFeature petFeature = owner.getEStructuralFeature("pet");
+			assertNotNull(petFeature, "pet feature should exist");
+			assertTrue(petFeature instanceof EReference, "pet should be an EReference");
+
+			EClassifier petType = petFeature.getEType();
+			assertNotNull(petType, "pet reference type should be resolved");
+			assertEquals("Animal", petType.getName(),
+				"pet type should be Animal (the common supertype), not an artificial class");
+
+			// No artificial classes should be created for this case
+			long artificialCount = ePackage.getEClassifiers().stream()
+				.filter(c -> {
+					EAnnotation ann = c.getEAnnotation("http://fennec.eclipse.org/jsonschema");
+					return ann != null && "true".equals(ann.getDetails().get("artificial"));
+				})
+				.count();
+			assertEquals(0, artificialCount,
+				"No artificial classes should be created when a common supertype exists");
+		}
+
+		@Test
+		@DisplayName("anyOf resolves to common supertype even when supertype is defined AFTER subtypes")
+		void anyOfResolvesToCommonSupertypeDefinedAfterSubtypes() throws IOException {
+			// Animal is defined AFTER Cat and Dog — tests that deferred resolution
+			// correctly handles forward references before resolving anyOf types
+			String schema = """
+				{
+				  "$schema": "https://json-schema.org/draft/2020-12/schema",
+				  "$id": "http://example.org/anyof-forward-ref",
+				  "title": "anyofForwardRef",
+				  "$defs": {
+				    "Cat": {
+				      "allOf": [
+				        { "$ref": "#/$defs/Animal" },
+				        { "properties": { "purrs": { "type": "boolean" } } }
+				      ]
+				    },
+				    "Dog": {
+				      "allOf": [
+				        { "$ref": "#/$defs/Animal" },
+				        { "properties": { "barks": { "type": "boolean" } } }
+				      ]
+				    },
+				    "Owner": {
+				      "type": "object",
+				      "properties": {
+				        "pet": { "anyOf": [{"$ref": "#/$defs/Cat"}, {"$ref": "#/$defs/Dog"}] }
+				      }
+				    },
+				    "Animal": {
+				      "type": "object",
+				      "properties": {
+				        "name": { "type": "string" }
+				      }
+				    }
+				  }
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage ePackage = converter.convert(
+				new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8)), "$defs");
+
+			assertNotNull(ePackage);
+
+			EClass animal = (EClass) ePackage.getEClassifier("Animal");
+			EClass cat = (EClass) ePackage.getEClassifier("Cat");
+			EClass dog = (EClass) ePackage.getEClassifier("Dog");
+			EClass owner = (EClass) ePackage.getEClassifier("Owner");
+			assertNotNull(animal, "Animal EClass should exist");
+			assertNotNull(cat, "Cat EClass should exist");
+			assertNotNull(dog, "Dog EClass should exist");
+			assertNotNull(owner, "Owner EClass should exist");
+
+			// Cat and Dog should both extend Animal (even though Animal is defined after)
+			assertTrue(cat.getESuperTypes().contains(animal),
+				"Cat should extend Animal");
+			assertTrue(dog.getESuperTypes().contains(animal),
+				"Dog should extend Animal");
+
+			// The pet reference should resolve to Animal (the common supertype)
+			EStructuralFeature petFeature = owner.getEStructuralFeature("pet");
+			assertNotNull(petFeature, "pet feature should exist");
+			assertTrue(petFeature instanceof EReference, "pet should be an EReference");
+
+			EClassifier petType = petFeature.getEType();
+			assertNotNull(petType, "pet reference type should be resolved");
+			assertEquals("Animal", petType.getName(),
+				"pet type should be Animal even when Animal is defined after Cat/Dog");
+
+			// No artificial classes should be created
+			long artificialCount = ePackage.getEClassifiers().stream()
+				.filter(c -> {
+					EAnnotation ann = c.getEAnnotation("http://fennec.eclipse.org/jsonschema");
+					return ann != null && "true".equals(ann.getDetails().get("artificial"));
+				})
+				.count();
+			assertEquals(0, artificialCount,
+				"No artificial classes should be created when a common supertype exists");
+		}
+
+		@Test
+		@DisplayName("anyOf refs with no common supertype creates artificial parent and wires subtypes")
+		void anyOfNoCommonSupertypeCreatesArtificialParent() throws IOException {
+			String schema = """
+				{
+				  "$schema": "https://json-schema.org/draft/2020-12/schema",
+				  "$id": "http://example.org/anyof-no-common",
+				  "title": "anyofNoCommon",
+				  "$defs": {
+				    "Circle": {
+				      "type": "object",
+				      "properties": {
+				        "radius": { "type": "number" }
+				      }
+				    },
+				    "Rectangle": {
+				      "type": "object",
+				      "properties": {
+				        "width": { "type": "number" },
+				        "height": { "type": "number" }
+				      }
+				    },
+				    "Canvas": {
+				      "type": "object",
+				      "properties": {
+				        "shape": { "anyOf": [{"$ref": "#/$defs/Circle"}, {"$ref": "#/$defs/Rectangle"}] }
+				      }
+				    }
+				  }
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage ePackage = converter.convert(
+				new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8)), "$defs");
+
+			assertNotNull(ePackage);
+
+			EClass circle = (EClass) ePackage.getEClassifier("Circle");
+			EClass rectangle = (EClass) ePackage.getEClassifier("Rectangle");
+			EClass canvas = (EClass) ePackage.getEClassifier("Canvas");
+			assertNotNull(circle, "Circle EClass should exist");
+			assertNotNull(rectangle, "Rectangle EClass should exist");
+			assertNotNull(canvas, "Canvas EClass should exist");
+
+			EStructuralFeature shapeFeature = canvas.getEStructuralFeature("shape");
+			assertNotNull(shapeFeature, "shape feature should exist");
+			assertTrue(shapeFeature instanceof EReference, "shape should be an EReference");
+
+			EClassifier shapeType = shapeFeature.getEType();
+			assertNotNull(shapeType, "shape reference type should be resolved");
+
+			// The artificial parent should be a proper supertype of both Circle and Rectangle
+			assertTrue(shapeType instanceof EClass, "shape type should be an EClass");
+			EClass shapeTypeClass = (EClass) shapeType;
+
+			assertTrue(circle.getESuperTypes().contains(shapeTypeClass),
+				"Circle should extend the anyOf parent type");
+			assertTrue(rectangle.getESuperTypes().contains(shapeTypeClass),
+				"Rectangle should extend the anyOf parent type");
+		}
+
+		@Test
+		@DisplayName("anyOf with deep inheritance finds lowest common ancestor")
+		void anyOfFindsLowestCommonAncestor() throws IOException {
+			// Hierarchy: Animal -> Mammal -> Cat/Dog
+			// anyOf [Cat, Dog] should resolve to Mammal (lowest common ancestor),
+			// not Animal (which is also a common ancestor but higher up)
+			String schema = """
+				{
+				  "$schema": "https://json-schema.org/draft/2020-12/schema",
+				  "$id": "http://example.org/anyof-lca",
+				  "title": "anyofLca",
+				  "$defs": {
+				    "Animal": {
+				      "type": "object",
+				      "properties": {
+				        "name": { "type": "string" }
+				      }
+				    },
+				    "Mammal": {
+				      "allOf": [
+				        { "$ref": "#/$defs/Animal" },
+				        { "properties": { "warmBlooded": { "type": "boolean" } } }
+				      ]
+				    },
+				    "Cat": {
+				      "allOf": [
+				        { "$ref": "#/$defs/Mammal" },
+				        { "properties": { "purrs": { "type": "boolean" } } }
+				      ]
+				    },
+				    "Dog": {
+				      "allOf": [
+				        { "$ref": "#/$defs/Mammal" },
+				        { "properties": { "barks": { "type": "boolean" } } }
+				      ]
+				    },
+				    "Owner": {
+				      "type": "object",
+				      "properties": {
+				        "pet": { "anyOf": [{"$ref": "#/$defs/Cat"}, {"$ref": "#/$defs/Dog"}] }
+				      }
+				    }
+				  }
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage ePackage = converter.convert(
+				new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8)), "$defs");
+
+			assertNotNull(ePackage);
+
+			EClass mammal = (EClass) ePackage.getEClassifier("Mammal");
+			EClass cat = (EClass) ePackage.getEClassifier("Cat");
+			EClass dog = (EClass) ePackage.getEClassifier("Dog");
+			EClass owner = (EClass) ePackage.getEClassifier("Owner");
+			assertNotNull(mammal, "Mammal EClass should exist");
+			assertNotNull(cat, "Cat EClass should exist");
+			assertNotNull(dog, "Dog EClass should exist");
+			assertNotNull(owner, "Owner EClass should exist");
+
+			EStructuralFeature petFeature = owner.getEStructuralFeature("pet");
+			assertNotNull(petFeature, "pet feature should exist");
+
+			EClassifier petType = petFeature.getEType();
+			assertNotNull(petType, "pet reference type should be resolved");
+			assertEquals("Mammal", petType.getName(),
+				"pet type should be Mammal (the lowest common ancestor), not Animal");
 		}
 	}
 }

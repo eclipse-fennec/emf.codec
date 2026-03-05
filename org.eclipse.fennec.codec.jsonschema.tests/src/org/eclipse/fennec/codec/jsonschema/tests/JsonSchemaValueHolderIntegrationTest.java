@@ -67,9 +67,9 @@ import org.osgi.test.junit5.service.ServiceExtension;
 @ExtendWith(BundleContextExtension.class)
 @ExtendWith(ServiceExtension.class)
 @DisplayName("JSON Schema Value Handler Integration Tests")
-public class JsonSchemaValueHandlerIntegrationTest {
+public class JsonSchemaValueHolderIntegrationTest {
 
-	private static final String ECORE = "/org/eclipse/fennec/codec/jsonschema/tests/example-jsonschema.ecore";
+	private static final String ECORE = "/org/eclipse/fennec/codec/jsonschema/tests/example-jsonschema-value-holder.ecore";
 
 	@InjectService
 	MetadataService metadataService;
@@ -88,7 +88,7 @@ public class JsonSchemaValueHandlerIntegrationTest {
 	@BeforeEach
 	public void setUp(@InjectBundleContext BundleContext ctx) throws IOException {
 		ecoreHelper = new EcoreHelper();
-		pkg = ecoreHelper.loadEcore(ECORE, JsonSchemaValueHandlerIntegrationTest.class);
+		pkg = ecoreHelper.loadEcore(ECORE, JsonSchemaValueHolderIntegrationTest.class);
 		EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
 		pkgReg = ctx.registerService(EPackage.class, pkg, null);
 
@@ -345,7 +345,7 @@ public class JsonSchemaValueHandlerIntegrationTest {
 	}
 	
 	@Test
-	@DisplayName("Serialization — EClass with inheritance but flatAllOf shoulf not have $defs for supertype")
+	@DisplayName("Serialization — EClass with inheritance but flatAllOf should not have $defs for supertype")
 	void serializationWithInheritanceFlatAllEnabled() throws IOException {
 		EClass trendAnalysis = createTrendAnalysisEClass();
 
@@ -366,14 +366,8 @@ public class JsonSchemaValueHandlerIntegrationTest {
 		assertNotNull(json);
 
 		// The schema should NOT contain $defs with CompactTrend definition
-		assertFalse(json.contains("\"$defs\""),
-				"Schema should NOT contain $defs section for referenced supertypes. Got: " + json);
 		assertFalse(json.contains("\"CompactTrend\""),
 				"$defs should NOT contain CompactTrend definition. Got: " + json);
-
-		// The Trend items should NOT use allOf because flatAllOf is enabled
-		assertFalse(json.contains("\"$ref\""),
-				"Schema should NOT contain $ref for inheritance. Got: " + json);
 
 
 		// CompactTrend's own properties should appear in the Trend object

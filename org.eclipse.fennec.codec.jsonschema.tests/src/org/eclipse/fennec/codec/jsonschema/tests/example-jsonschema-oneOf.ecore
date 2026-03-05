@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="jsonschemaoneof" nsURI="http://example.org/fennec/jsonschemaoneof/1.0"
+    nsPrefix="jsonschemaoneof">
+  <eClassifiers xsi:type="ecore:EClass" name="AbstractAddress" abstract="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Address" eSuperTypes="#//AbstractAddress">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="address" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BusinessAddress" eSuperTypes="#//AbstractAddress">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="businessAddress" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AbstractName" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MiddleName" eSuperTypes="#//AbstractName">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="middleName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="LastName" eSuperTypes="#//AbstractName">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MyClass">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//AbstractAddress"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="name" eType="#//AbstractName"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nonContainedAddress" eType="#//AbstractAddress"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nonContainedName" eType="#//AbstractName"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="addresses" upperBound="-1"
+        eType="#//AbstractAddress" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="names" upperBound="-1"
+        eType="#//AbstractName" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nonContainedAddresses"
+        upperBound="-1" eType="#//AbstractAddress"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nonContainedNames" upperBound="-1"
+        eType="#//AbstractName"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="VerySpecificAddress" eSuperTypes="#//BusinessAddress">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="verySpecificAddress" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+</ecore:EPackage>

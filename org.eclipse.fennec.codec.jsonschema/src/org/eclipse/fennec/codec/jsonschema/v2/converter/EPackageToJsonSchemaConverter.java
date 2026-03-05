@@ -85,6 +85,7 @@ public class EPackageToJsonSchemaConverter {
 	private Map<String, Object> options = new HashMap<>();
 	private Map<EClassifier, String> anchorNames = new HashMap<>();  // Track generated anchors
 	private Set<String> suppressedKeywords = Set.of();
+	private boolean suppressVendorExtensions = false;
 
 	/**
 	 * Converts an EPackage to JSON Schema and writes to output stream.
@@ -129,6 +130,7 @@ public class EPackageToJsonSchemaConverter {
 		this.options = options != null ? options : new HashMap<>();
 		this.anchorNames.clear();
 		this.suppressedKeywords = resolveSuppressedKeywords(this.options);
+		this.suppressVendorExtensions = Boolean.TRUE.equals(this.options.get(CodecJsonSchemaOptions.OPTION_SUPPRESS_VENDOR_EXTENSIONS));
 
 		JsonMapper.Builder mapperBuilder = JsonMapper.builder();
 		if (prettyPrint) {
@@ -584,6 +586,16 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeBooleanProperty("deprecated", true);
 		}
 
+		// Write x-abstract if class is abstract
+		if (eClass.isAbstract() && !suppressVendorExtensions) {
+			gen.writeBooleanProperty("x-abstract", true);
+		}
+
+		// Write x-interface if class is an interface
+		if (eClass.isInterface() && !suppressVendorExtensions) {
+			gen.writeBooleanProperty("x-interface", true);
+		}
+
 		if (!isSuppressed("additionalProperties")) {
 			if (additionalProperties != null) {
 				writeAdditionalProperties(additionalProperties, gen);
@@ -627,6 +639,7 @@ public class EPackageToJsonSchemaConverter {
 		this.options = options != null ? options : new HashMap<>();
 		this.anchorNames.clear();
 		this.suppressedKeywords = resolveSuppressedKeywords(this.options);
+		this.suppressVendorExtensions = Boolean.TRUE.equals(this.options.get(CodecJsonSchemaOptions.OPTION_SUPPRESS_VENDOR_EXTENSIONS));
 		if (currentPackage != null) {
 			precomputeAnchors(currentPackage);
 		}
@@ -710,12 +723,8 @@ public class EPackageToJsonSchemaConverter {
 					visited.add(refClass);
 					String artificial = extractAnnotationDetail(refClass, AnnotationSources.JSONSCHEMA, "artificial");
 					if (!"true".equals(artificial)) {
-						if (!eRef.isContainment()) {
-							// Non-containment: generates a $ref, needs $defs entry
-							needsDef.add(refClass);
-						}
-						// Always recurse (containment refs are inlined but may
-						// themselves reference classes that need $defs)
+						// Both containment and non-containment use $ref, need $defs entry
+						needsDef.add(refClass);
 						collectReferencedClasses(refClass, needsDef, visited);
 					}
 				}
@@ -1235,9 +1244,26 @@ public class EPackageToJsonSchemaConverter {
 
 		gen.writeName("items");
 		if (eReference.isContainment()) {
-			writeEClass((EClass) type, gen);
+			if (((EClass) type).isAbstract()) {
+				gen.writeStartObject();
+				gen.writeName(abstractRefKeyword());
+				gen.writeStartArray();
+				writeSubclassRefs(type, gen);
+				gen.writeEndArray();
+				gen.writeEndObject();
+			} else {
+				gen.writeStartObject();
+				String refPath = buildRefForType(eReference, type);
+				gen.writeStringProperty("$ref", refPath);
+				gen.writeEndObject();
+			}
 		} else {
 			writeNonContainmentReferenceItems(eReference, type, gen);
+		}
+
+		// Write x-containment extension
+		if (!suppressVendorExtensions) {
+			gen.writeBooleanProperty("x-containment", eReference.isContainment());
 		}
 
 		// Write additional schema properties
@@ -1248,14 +1274,39 @@ public class EPackageToJsonSchemaConverter {
 
 	private void writeSingleValuedReference(EReference eReference, EClassifier type, JsonGenerator gen) throws IOException {
 		if (eReference.isContainment()) {
-			writeEClass((EClass) type, gen);
+			if (((EClass) type).isAbstract()) {
+				gen.writeStartObject();
+				gen.writeName(abstractRefKeyword());
+				gen.writeStartArray();
+				writeSubclassRefs(type, gen);
+				gen.writeEndArray();
+				if (!suppressVendorExtensions) {
+					gen.writeBooleanProperty("x-containment", true);
+				}
+				gen.writeEndObject();
+			} else {
+				gen.writeStartObject();
+				String refPath = buildRefForType(eReference, type);
+				gen.writeStringProperty("$ref", refPath);
+				if (!suppressVendorExtensions) {
+					gen.writeBooleanProperty("x-containment", true);
+				}
+				gen.writeEndObject();
+			}
 		} else {
-			gen.writeStartObject();
-			// Check if we should use anchor-based refs (option or annotation)
-			// If so, ignore stored ref annotation and generate new one
-			String refPath = buildRefForType(eReference, type);
-			gen.writeStringProperty("$ref", refPath);
-			gen.writeEndObject();
+			if (type instanceof EClass eClass && eClass.isAbstract()) {
+				gen.writeStartObject();
+				gen.writeName(abstractRefKeyword());
+				gen.writeStartArray();
+				writeSubclassRefs(type, gen);
+				gen.writeEndArray();
+				gen.writeEndObject();
+			} else {
+				gen.writeStartObject();
+				String refPath = buildRefForType(eReference, type);
+				gen.writeStringProperty("$ref", refPath);
+				gen.writeEndObject();
+			}
 		}
 	}
 
@@ -1318,7 +1369,7 @@ public class EPackageToJsonSchemaConverter {
 		} else if (refs != null) {
 			gen.writeStringProperty("$ref", refs);
 		} else {
-			gen.writeName("anyOf");
+			gen.writeName(abstractRefKeyword());
 			gen.writeStartArray();
 			writeSubclassRefs(type, gen);
 			gen.writeEndArray();
@@ -1330,10 +1381,20 @@ public class EPackageToJsonSchemaConverter {
 	private void writeSubclassRefs(EClassifier type, JsonGenerator gen) throws IOException {
 		for (EClassifier classifier : currentPackage.getEClassifiers()) {
 			if (classifier instanceof EClass eClass) {
-				if (eClass.getESuperTypes().contains(type)) {
+				if (eClass.getEAllSuperTypes().contains(type)) {
 					gen.writeStartObject();
 					gen.writeStringProperty("$ref", buildRef(getOriginalName(eClass), null, eClass));
 					gen.writeEndObject();
+				}
+			}
+		}
+	}
+
+	private void writeInlinedSubclassDefinitions(EClassifier type, JsonGenerator gen) throws IOException {
+		for (EClassifier classifier : currentPackage.getEClassifiers()) {
+			if (classifier instanceof EClass eClass && !eClass.isAbstract()) {
+				if (eClass.getEAllSuperTypes().contains(type)) {
+					writeEClass(eClass, gen);
 				}
 			}
 		}
@@ -1748,6 +1809,14 @@ public class EPackageToJsonSchemaConverter {
 
 	private boolean isUseNamesFromExtendedMetaData() {
 		return Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_USE_NAMES_FROM_EXTENDED_METADATA));
+	}
+
+	private boolean isUseAnyOfForAbstract() {
+		return Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_USE_ANY_OF_FOR_ABSTRACT));
+	}
+
+	private String abstractRefKeyword() {
+		return isUseAnyOfForAbstract() ? "anyOf" : "oneOf";
 	}
 
 	private boolean isSuppressed(String keyword) {

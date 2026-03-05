@@ -81,6 +81,11 @@ public final class JsonSchemaKeywords {
 		"readOnly", "writeOnly", "deprecated", "$comment"
 	);
 
+	/** Vendor extension keywords fully supported */
+	public static final Set<String> EXTENSION_SUPPORTED = Set.of(
+		"x-abstract", "x-interface", "x-containment"
+	);
+
 	/** Content keywords fully supported (preserved as annotations) */
 	public static final Set<String> CONTENT_SUPPORTED = Set.of(
 		"contentEncoding", "contentMediaType"
@@ -179,7 +184,8 @@ public final class JsonSchemaKeywords {
 			|| COMPOSITION_SUPPORTED.contains(keyword)
 			|| VALIDATION_SUPPORTED.contains(keyword)
 			|| ANNOTATION_SUPPORTED.contains(keyword)
-			|| CONTENT_SUPPORTED.contains(keyword);
+			|| CONTENT_SUPPORTED.contains(keyword)
+			|| EXTENSION_SUPPORTED.contains(keyword);
 	}
 
 	/**

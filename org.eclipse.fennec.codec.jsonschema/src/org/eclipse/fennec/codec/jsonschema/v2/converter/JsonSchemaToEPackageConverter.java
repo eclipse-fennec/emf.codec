@@ -85,9 +85,9 @@ public class JsonSchemaToEPackageConverter {
 	private Map<EClassifier, List<String>> anyOfRefMap;
 	private Map<EClass, List<String>> allOfRefMap;
 	private Map<String, EClassifier> cachedClassifiers;
-	private Map<Map<String, JsonNode>, EClass> parentClassMaps;
 	private Map<String, EClassifier> anchorMap;  // Maps $anchor names to EClassifiers
 	private List<DeferredReference> deferredReferences;
+	private List<DeferredAnyOfReference> deferredAnyOfReferences;
 	private List<JsonSchemaConversionDiagnostic> diagnostics;
 	private int artificialClassifierCounter;
 	private String schemaFeature;
@@ -172,6 +172,7 @@ public class JsonSchemaToEPackageConverter {
 		resolveMissingReferences();
 		resolveAnyOfReferences();
 		resolveAllOfReferences();
+		resolveAnyOfPropertyReferences();
 
 		return ePackage;
 	}
@@ -386,9 +387,9 @@ public class JsonSchemaToEPackageConverter {
 		anyOfRefMap = new HashMap<>();
 		allOfRefMap = new HashMap<>();
 		cachedClassifiers = new HashMap<>();
-		parentClassMaps = new HashMap<>();
 		anchorMap = new HashMap<>();
 		deferredReferences = new ArrayList<>();
+		deferredAnyOfReferences = new ArrayList<>();
 		diagnostics = new ArrayList<>();
 		artificialClassifierCounter = 0;
 	}
@@ -433,11 +434,32 @@ public class JsonSchemaToEPackageConverter {
 		if (name == null) {
 			name = schemaNode.has("title") ? schemaNode.get("title").asString() : "EClass";
 		}
+		// Process $defs first so $ref entries can be resolved
+		JsonNode defsNode = schemaFeature != null ? schemaNode.get(schemaFeature) : null;
+		if (defsNode == null) {
+			for (String feature : new String[]{"$defs", "definitions", "schemas"}) {
+				defsNode = schemaNode.get(feature);
+				if (defsNode != null) {
+					this.schemaFeature = feature;
+					break;
+				}
+			}
+		}
+		if (defsNode != null) {
+			for (String defName : defsNode.propertyNames()) {
+				JsonNode defNode = defsNode.get(defName);
+				EClassifier defClassifier = processSchemaDefinition(defNode, defName, defName);
+				if (defClassifier != null) {
+					classifierMap.put(defName, defClassifier);
+				}
+			}
+		}
 		EClassifier classifier = processSchemaDefinition(schemaNode, name, name);
 		resolveDeferredReferences();
 		resolveMissingReferences();
 		resolveAnyOfReferences();
 		resolveAllOfReferences();
+		resolveAnyOfPropertyReferences();
 		if (!(classifier instanceof EClass eClass)) {
 			return null;
 		}
@@ -522,6 +544,8 @@ public class JsonSchemaToEPackageConverter {
 		resolveMissingReferences();
 		resolveAnyOfReferences();
 		resolveAllOfReferences();
+		// Must run after resolveAllOfReferences so inheritance hierarchy is fully resolved
+		resolveAnyOfPropertyReferences();
 
 		// Add all classifiers from classifierMap to the package
 		for (EClassifier classifier : classifierMap.values()) {
@@ -1152,6 +1176,17 @@ public class JsonSchemaToEPackageConverter {
 			addEAnnotation(eClass, AnnotationSources.GEN_MODEL, "documentation", classNode.get("description").asString());
 		}
 
+		// Handle x-abstract extension
+		if (classNode.has("x-abstract") && classNode.get("x-abstract").asBoolean()) {
+			eClass.setAbstract(true);
+		}
+
+		// Handle x-interface extension
+		if (classNode.has("x-interface") && classNode.get("x-interface").asBoolean()) {
+			eClass.setInterface(true);
+			eClass.setAbstract(true); // Interfaces are implicitly abstract in EMF
+		}
+
 		JsonNode requiredNode = classNode.get("required");
 		JsonNode propertiesNode = classNode.get("properties");
 
@@ -1198,17 +1233,52 @@ public class JsonSchemaToEPackageConverter {
 		JsonNode allOfNode = classNode.get("allOf");
 		List<String> parentNames = new LinkedList<>();
 		EClass eClass = null;
+		Set<String> allRequiredProps = new HashSet<>();
 
 		if (allOfNode.isArray()) {
 			for (int i = 0; i < allOfNode.size(); i++) {
 				JsonNode allOf = allOfNode.get(i);
+
+				// Collect $ref entries as parent supertypes
 				if (allOf.has("$ref")) {
 					String refPath = allOf.get("$ref").asString();
 					String referencedSchemaName = extractSchemaNameFromRef(refPath);
 					parentNames.add(referencedSchemaName);
-				} else {
+				}
+
+				// Merge properties from ALL inline schemas (not just the first one)
+				if (allOf.has("properties")) {
 					if (eClass == null) {
+						// First inline schema with properties — create the EClass from it
 						eClass = createEClass(allOf, name, qualifiedName);
+					} else {
+						// Subsequent inline schemas — merge their properties into the existing class
+						JsonNode propsNode = allOf.get("properties");
+						for (String propName : propsNode.propertyNames()) {
+							// Skip if property already exists (avoid duplicates)
+							boolean exists = false;
+							for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
+								if (feature.getName().equals(propName)) {
+									exists = true;
+									break;
+								}
+							}
+							if (!exists) {
+								EStructuralFeature feature = createStructuralFeature(
+									propsNode.get(propName), propName, qualifiedName);
+								if (feature != null) {
+									eClass.getEStructuralFeatures().add(feature);
+								}
+							}
+						}
+					}
+				}
+
+				// Accumulate required properties from all allOf elements
+				if (allOf.has("required")) {
+					ArrayNode reqArray = (ArrayNode) allOf.get("required");
+					for (JsonNode req : reqArray) {
+						allRequiredProps.add(req.asString());
 					}
 				}
 			}
@@ -1227,6 +1297,27 @@ public class JsonSchemaToEPackageConverter {
 			String namespacePath = extractNamespacePath(qualifiedName);
 			if (namespacePath != null && !namespacePath.isEmpty()) {
 				addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "namespacePath", namespacePath);
+			}
+		}
+
+		// Handle x-abstract extension on the top-level classNode
+		if (classNode.has("x-abstract") && classNode.get("x-abstract").asBoolean()) {
+			eClass.setAbstract(true);
+		}
+
+		// Handle x-interface extension on the top-level classNode
+		if (classNode.has("x-interface") && classNode.get("x-interface").asBoolean()) {
+			eClass.setInterface(true);
+			eClass.setAbstract(true);
+		}
+
+		// Apply combined required properties from all allOf elements
+		for (String requiredProp : allRequiredProps) {
+			for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
+				if (feature.getName().equals(requiredProp)) {
+					feature.setLowerBound(1);
+					break;
+				}
 			}
 		}
 
@@ -1388,6 +1479,11 @@ public class JsonSchemaToEPackageConverter {
 			feature = createOneOfFeature(propertyNode, name, contextPath);
 		}
 
+		// Handle x-containment extension
+		if (feature instanceof EReference ref && propertyNode.has("x-containment")) {
+			ref.setContainment(propertyNode.get("x-containment").asBoolean());
+		}
+
 		// Add common annotations
 		if (feature != null) {
 			addCommonAnnotations(feature, propertyNode, false);
@@ -1431,6 +1527,16 @@ public class JsonSchemaToEPackageConverter {
 	}
 
 	private EStructuralFeature createOneOfFeature(JsonNode propertyNode, String name, String contextPath) {
+		// Check if all oneOf entries are $ref to known classes with a common abstract supertype
+		EClass commonSuperType = resolveCommonSuperTypeFromRefs(propertyNode.get("oneOf"));
+		if (commonSuperType != null) {
+			EReference reference = ecoreFactory.createEReference();
+			reference.setName(name);
+			reference.setEType(commonSuperType);
+			// Containment will be set by x-containment handling in createStructuralFeature
+			return reference;
+		}
+
 		String unionName = ARTIFICIAL_CLASSIFIER_PREFIX + (artificialClassifierCounter++);
 		EClass unionClass = (EClass) processOneOf(propertyNode, unionName, contextPath + "/" + unionName);
 		if (unionClass != null) {
@@ -1456,6 +1562,72 @@ public class JsonSchemaToEPackageConverter {
 			reference.setContainment(true);
 			return reference;
 		}
+		return null;
+	}
+
+	/**
+	 * Checks if all entries in a oneOf/anyOf array are $ref to known classes
+	 * that share a common abstract supertype. Returns that supertype, or null.
+	 * <p>
+	 * Checks both resolved ESuperTypes and unresolved allOfRefMap entries,
+	 * since supertypes may not be resolved yet during definition processing.
+	 */
+	private EClass resolveCommonSuperTypeFromRefs(JsonNode arrayNode) {
+		if (arrayNode == null || !arrayNode.isArray() || arrayNode.isEmpty()) {
+			return null;
+		}
+
+		List<EClass> referencedClasses = new ArrayList<>();
+		for (JsonNode entry : arrayNode) {
+			if (!entry.has("$ref")) {
+				return null; // Not all entries are $ref
+			}
+			String refPath = entry.get("$ref").asString();
+			String refName = extractSchemaNameFromRef(refPath);
+			EClassifier classifier = classifierMap.get(refName);
+			if (!(classifier instanceof EClass eClass)) {
+				return null; // Referenced class not found or not an EClass
+			}
+			referencedClasses.add(eClass);
+		}
+
+		if (referencedClasses.size() < 2) {
+			return null;
+		}
+
+		// Collect parent names for each class (from allOfRefMap or resolved supertypes)
+		Set<String> commonParentNames = null;
+		for (EClass eClass : referencedClasses) {
+			Set<String> parentNames = new HashSet<>();
+			// Check unresolved allOf references
+			List<String> allOfParents = allOfRefMap.get(eClass);
+			if (allOfParents != null) {
+				parentNames.addAll(allOfParents);
+			}
+			// Check already resolved supertypes
+			for (EClass superType : eClass.getESuperTypes()) {
+				parentNames.add(superType.getName());
+			}
+
+			if (commonParentNames == null) {
+				commonParentNames = parentNames;
+			} else {
+				commonParentNames.retainAll(parentNames);
+			}
+		}
+
+		if (commonParentNames == null || commonParentNames.isEmpty()) {
+			return null;
+		}
+
+		// Find the first common parent that is abstract in classifierMap
+		for (String parentName : commonParentNames) {
+			EClassifier parent = classifierMap.get(parentName);
+			if (parent instanceof EClass parentClass && parentClass.isAbstract()) {
+				return parentClass;
+			}
+		}
+
 		return null;
 	}
 
@@ -1562,19 +1734,15 @@ public class JsonSchemaToEPackageConverter {
 		reference.setName(name);
 		reference.setContainment(false);
 
+		List<String> refTargetNames = new ArrayList<>();
 		StringBuilder refAnnotation = new StringBuilder();
-		Map<String, JsonNode> refClassesNodes = new HashMap<>();
 
 		for (int i = 0; i < jsonNode.size(); i++) {
 			JsonNode subNode = jsonNode.get(i);
 			if (subNode.has("$ref")) {
 				String refPath = subNode.get("$ref").asString();
 				refAnnotation.append(refPath).append(",");
-				String refClassName = extractSchemaNameFromRef(refPath);
-				JsonNode schemaNode = schemaDefinitions.get(refClassName);
-				if (schemaNode != null) {
-					refClassesNodes.put(refClassName, schemaNode);
-				}
+				refTargetNames.add(extractSchemaNameFromRef(refPath));
 			}
 		}
 
@@ -1582,61 +1750,13 @@ public class JsonSchemaToEPackageConverter {
 			addEAnnotation(reference, AnnotationSources.JSONSCHEMA, "ref", refAnnotation.substring(0, refAnnotation.length() - 1));
 		}
 
-		// Create parent class from common properties
-		EClass parent = createParentFromCommonProperties(refClassesNodes, contextPath);
-		reference.setEType(parent);
+		// Defer type resolution — we need allOf supertypes to be resolved first
+		// so we can find a common supertype instead of creating an artificial class
+		if (!refTargetNames.isEmpty()) {
+			deferredAnyOfReferences.add(new DeferredAnyOfReference(reference, refTargetNames));
+		}
 
 		return reference;
-	}
-
-	private EClass createParentFromCommonProperties(Map<String, JsonNode> refClassesNodes, String contextPath) {
-		boolean haveAllProperties = refClassesNodes.values().stream().allMatch(jn -> jn.has("properties"));
-
-		Map<String, JsonNode> commonProperties = new HashMap<>();
-		List<String> commonRequiredProperties = new ArrayList<>();
-
-		if (haveAllProperties) {
-			List<JsonNode> propertiesNodes = refClassesNodes.values().stream().map(jn -> jn.get("properties")).toList();
-			commonProperties = getCommonSubNodes(propertiesNodes);
-
-			List<ArrayNode> requiredNodes = refClassesNodes.values().stream()
-					.filter(jn -> jn.has("required"))
-					.map(jn -> (ArrayNode) jn.get("required"))
-					.toList();
-			commonRequiredProperties = getCommonRequiredFields(requiredNodes);
-		}
-
-		// Check if we already have a parent for these common properties
-		if (!commonProperties.isEmpty() && parentClassMaps.containsKey(commonProperties)) {
-			return parentClassMaps.get(commonProperties);
-		}
-
-		// Create new parent
-		EClass parent = ecoreFactory.createEClass();
-		String parentName = getCommonSuffix(refClassesNodes.keySet().toArray(new String[0]));
-		if (parentName == null) {
-			parentName = ARTIFICIAL_CLASSIFIER_PREFIX + (artificialClassifierCounter++);
-		}
-		parent.setName(parentName);
-		addEAnnotation(parent, AnnotationSources.JSONSCHEMA, "artificial", "true");
-
-		// Add common features
-		for (Map.Entry<String, JsonNode> entry : commonProperties.entrySet()) {
-			EStructuralFeature feature = createStructuralFeature(entry.getValue(), entry.getKey(), contextPath);
-			if (feature != null) {
-				if (commonRequiredProperties.contains(feature.getName())) {
-					feature.setLowerBound(1);
-				}
-				parent.getEStructuralFeatures().add(feature);
-			}
-		}
-
-		if (!commonProperties.isEmpty()) {
-			parentClassMaps.put(commonProperties, parent);
-		}
-		classifierMap.put(parent.getName(), parent);
-
-		return parent;
 	}
 
 	/**
@@ -1817,6 +1937,212 @@ public class JsonSchemaToEPackageConverter {
 				}
 			});
 		});
+	}
+
+	/**
+	 * Resolves deferred anyOf property references.
+	 * <p>
+	 * This must run AFTER {@link #resolveAllOfReferences()} so that the full
+	 * inheritance hierarchy is available. For each deferred anyOf reference, it:
+	 * <ol>
+	 *   <li>Resolves the target EClasses from the classifierMap</li>
+	 *   <li>Walks up their supertype chains to find the lowest common supertype</li>
+	 *   <li>If a common supertype exists, uses it as the reference type</li>
+	 *   <li>If no common supertype exists, creates an artificial parent and wires
+	 *       the referenced classes as subtypes</li>
+	 * </ol>
+	 */
+	private void resolveAnyOfPropertyReferences() {
+		// Cache: sorted ref target names → resolved EClass, to reuse across identical anyOf sets
+		Map<List<String>, EClass> resolvedAnyOfCache = new HashMap<>();
+
+		for (DeferredAnyOfReference deferred : deferredAnyOfReferences) {
+			// Build a canonical (sorted) key so order of refs doesn't matter
+			List<String> sortedTargets = new ArrayList<>(deferred.targetSchemaNames);
+			sortedTargets.sort(String::compareTo);
+
+			// Check cache first
+			EClass resolved = resolvedAnyOfCache.get(sortedTargets);
+			if (resolved != null) {
+				deferred.reference.setEType(resolved);
+				continue;
+			}
+
+			// Resolve target EClasses
+			List<EClass> targetClasses = new ArrayList<>();
+			for (String targetName : deferred.targetSchemaNames) {
+				EClassifier classifier = classifierMap.get(targetName);
+				if (classifier instanceof EClass eClass) {
+					targetClasses.add(eClass);
+				}
+			}
+
+			if (targetClasses.isEmpty()) {
+				diagnostics.add(JsonSchemaConversionDiagnostic.unresolvedReference(
+					String.join(", ", deferred.targetSchemaNames)));
+				continue;
+			}
+
+			// Find the lowest common supertype
+			EClass commonSupertype = findLowestCommonSupertype(targetClasses);
+
+			if (commonSupertype != null) {
+				// Use the existing common supertype — no artificial class needed
+				deferred.reference.setEType(commonSupertype);
+				resolvedAnyOfCache.put(sortedTargets, commonSupertype);
+			} else {
+				// No common supertype — create an artificial parent
+				EClass artificialParent = createArtificialAnyOfParent(targetClasses);
+				deferred.reference.setEType(artificialParent);
+				resolvedAnyOfCache.put(sortedTargets, artificialParent);
+			}
+		}
+	}
+
+	/**
+	 * Finds the lowest common supertype of the given EClasses by walking up
+	 * each class's supertype chain and finding the deepest shared ancestor.
+	 *
+	 * @return the lowest common supertype, or null if no common supertype exists
+	 */
+	private EClass findLowestCommonSupertype(List<EClass> classes) {
+		if (classes.size() < 2) {
+			return classes.isEmpty() ? null : classes.get(0);
+		}
+
+		// Collect the full ancestor chain for the first class (ordered from most specific to most general)
+		List<EClass> firstAncestors = collectAncestors(classes.get(0));
+
+		// For each ancestor of the first class (starting from the most specific),
+		// check if it is an ancestor of ALL other classes
+		for (EClass candidate : firstAncestors) {
+			boolean isCommonAncestor = true;
+			for (int i = 1; i < classes.size(); i++) {
+				if (!isAncestorOf(candidate, classes.get(i))) {
+					isCommonAncestor = false;
+					break;
+				}
+			}
+			if (isCommonAncestor) {
+				return candidate;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Collects all ancestors of the given class in breadth-first order
+	 * (direct supertypes first, then their supertypes, etc.).
+	 */
+	private List<EClass> collectAncestors(EClass eClass) {
+		List<EClass> ancestors = new ArrayList<>();
+		List<EClass> queue = new ArrayList<>(eClass.getESuperTypes());
+		Set<EClass> visited = new HashSet<>();
+
+		while (!queue.isEmpty()) {
+			EClass current = queue.remove(0);
+			if (visited.add(current)) {
+				ancestors.add(current);
+				queue.addAll(current.getESuperTypes());
+			}
+		}
+
+		return ancestors;
+	}
+
+	/**
+	 * Checks whether {@code candidate} is an ancestor (direct or transitive supertype) of {@code eClass}.
+	 */
+	private boolean isAncestorOf(EClass candidate, EClass eClass) {
+		List<EClass> queue = new ArrayList<>(eClass.getESuperTypes());
+		Set<EClass> visited = new HashSet<>();
+
+		while (!queue.isEmpty()) {
+			EClass current = queue.remove(0);
+			if (current == candidate) {
+				return true;
+			}
+			if (visited.add(current)) {
+				queue.addAll(current.getESuperTypes());
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Creates an artificial parent class for an anyOf where no common supertype exists.
+	 * Extracts common features from the target classes into the parent and wires
+	 * the target classes as subtypes.
+	 */
+	private EClass createArtificialAnyOfParent(List<EClass> targetClasses) {
+		String parentName = ARTIFICIAL_CLASSIFIER_PREFIX + (artificialClassifierCounter++);
+
+		EClass parent = ecoreFactory.createEClass();
+		parent.setName(parentName);
+		parent.setAbstract(true);
+		addEAnnotation(parent, AnnotationSources.JSONSCHEMA, "artificial", "true");
+		addEAnnotation(parent, AnnotationSources.JSONSCHEMA, "source", "anyOf");
+
+		// Extract common features: features that exist (by name and type) in ALL target classes
+		if (targetClasses.size() >= 2) {
+			List<EStructuralFeature> firstFeatures = targetClasses.get(0).getEStructuralFeatures();
+			for (EStructuralFeature candidate : firstFeatures) {
+				boolean commonToAll = true;
+				for (int i = 1; i < targetClasses.size(); i++) {
+					EStructuralFeature match = targetClasses.get(i).getEStructuralFeature(candidate.getName());
+					if (match == null || match.getEType() != candidate.getEType()) {
+						commonToAll = false;
+						break;
+					}
+				}
+				if (commonToAll) {
+					// Move the common feature to the parent: create a copy on the parent
+					// and remove originals from each target class
+					EStructuralFeature parentFeature;
+					if (candidate instanceof EReference ref) {
+						EReference copy = ecoreFactory.createEReference();
+						copy.setName(ref.getName());
+						copy.setEType(ref.getEType());
+						copy.setContainment(ref.isContainment());
+						copy.setLowerBound(ref.getLowerBound());
+						copy.setUpperBound(ref.getUpperBound());
+						parentFeature = copy;
+					} else {
+						EAttribute copy = ecoreFactory.createEAttribute();
+						copy.setName(candidate.getName());
+						copy.setEType(candidate.getEType());
+						copy.setLowerBound(candidate.getLowerBound());
+						copy.setUpperBound(candidate.getUpperBound());
+						parentFeature = copy;
+					}
+					parent.getEStructuralFeatures().add(parentFeature);
+				}
+			}
+
+			// Remove the now-inherited features from each target class
+			for (EClass targetClass : targetClasses) {
+				List<EStructuralFeature> toRemove = new ArrayList<>();
+				for (EStructuralFeature parentFeature : parent.getEStructuralFeatures()) {
+					EStructuralFeature existing = targetClass.getEStructuralFeature(parentFeature.getName());
+					if (existing != null) {
+						toRemove.add(existing);
+					}
+				}
+				targetClass.getEStructuralFeatures().removeAll(toRemove);
+			}
+		}
+
+		// Wire target classes as subtypes
+		for (EClass targetClass : targetClasses) {
+			if (!targetClass.getESuperTypes().contains(parent)) {
+				targetClass.getESuperTypes().add(parent);
+			}
+		}
+
+		classifierMap.put(parentName, parent);
+		return parent;
 	}
 
 	// Helper methods
@@ -2086,6 +2412,16 @@ public class JsonSchemaToEPackageConverter {
 			super(targetSchemaName);
 			this.owningClass = owningClass;
 			this.featureName = featureName;
+		}
+	}
+
+	private static class DeferredAnyOfReference {
+		EReference reference;
+		List<String> targetSchemaNames;
+
+		DeferredAnyOfReference(EReference reference, List<String> targetSchemaNames) {
+			this.reference = reference;
+			this.targetSchemaNames = targetSchemaNames;
 		}
 	}
 }

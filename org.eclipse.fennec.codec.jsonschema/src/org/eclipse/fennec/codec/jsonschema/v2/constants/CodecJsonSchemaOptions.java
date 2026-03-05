@@ -114,4 +114,27 @@ public interface CodecJsonSchemaOptions {
 	 */
 	public static final String OPTION_SCHEMA_DRAFT = "codec.jsonschema.draft";
 
+	/**
+	 * When set to {@code true}, references to abstract EClasses use {@code anyOf}
+	 * instead of the default {@code oneOf} for polymorphic subclass references.
+	 * <p>
+	 * Default: {@code false} (use {@code oneOf})
+	 * </p>
+	 */
+	public static final String OPTION_USE_ANY_OF_FOR_ABSTRACT = "codec.jsonschema.useAnyOfForAbstract";
+
+	/**
+	 * When set to {@code true}, vendor extension properties ({@code x-abstract},
+	 * {@code x-interface}, {@code x-containment}) are suppressed from the output.
+	 * <p>
+	 * Use this when the target API or validator does not accept vendor extensions.
+	 * Note that suppressing these properties means some EMF metadata will be lost
+	 * during round-trip (abstract/interface flags, containment vs non-containment).
+	 * </p>
+	 * <p>
+	 * Default: {@code false} (vendor extensions are written)
+	 * </p>
+	 */
+	public static final String OPTION_SUPPRESS_VENDOR_EXTENSIONS = "codec.jsonschema.suppressVendorExtensions";
+
 }

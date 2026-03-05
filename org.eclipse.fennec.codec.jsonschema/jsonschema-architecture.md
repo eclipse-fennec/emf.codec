@@ -106,6 +106,7 @@ Options are passed via `CodecJsonSchemaOptions` constants from `org.eclipse.fenn
 | `OPTION_FLAT_ALL_OF` | `"codec.jsonschema.flatAllOf"` | `Boolean` | Flatten `allOf`/`$ref` inheritance — inline parent properties directly into child definitions. |
 | `OPTION_USE_NAMES_FROM_EXTENDED_METADATA` | `"codec.jsonschema.useNamesFromExtendedMetadata"` | `Boolean` | Resolve property names from ExtendedMetaData annotations instead of EMF feature names. |
 | `OPTION_SUPPRESS_KEYWORDS` | `"codec.jsonschema.suppressKeywords"` | `Collection<String>` | Set of JSON Schema keywords to suppress in the output (e.g., `"maxItems"`, `"description"`, `"additionalProperties"`). |
+| `OPTION_SUPPRESS_VENDOR_EXTENSIONS` | `"codec.jsonschema.suppressVendorExtensions"` | `Boolean` | Suppress all `x-*` vendor extension properties (`x-abstract`, `x-interface`, `x-containment`). Use when the target API does not accept vendor extensions. |
 
 ### `JsonSchemaToEPackageConverter`
 
@@ -185,6 +186,60 @@ The converters read and write the following EAnnotation sources.
 | EAnnotation detail key | Effect |
 |------------------------|--------|
 | `name` | Used as original (pre-capitalization) name for the title field |
+
+---
+
+## Vendor Extensions (`x-*` Properties)
+
+The converters use JSON Schema vendor extension properties to preserve EMF metadata that has no native JSON Schema equivalent. These are written during serialization and consumed during deserialization for lossless round-trips.
+
+| Extension | Type | Applies to | Description |
+|-----------|------|------------|-------------|
+| `x-abstract` | `boolean` | Class definition | `true` when `EClass.isAbstract()`. Read back as `eClass.setAbstract(true)`. |
+| `x-interface` | `boolean` | Class definition | `true` when `EClass.isInterface()`. Read back as `eClass.setInterface(true)` (also sets abstract). |
+| `x-containment` | `boolean` | Reference property | `true` for containment references, absent for non-containment. Overrides the default heuristic (inline object = containment, `$ref` = non-containment). |
+
+**Serialization example:**
+
+```json
+{
+  "Shape": {
+    "x-abstract": true,
+    "type": "object",
+    "properties": { "color": { "type": "string" } },
+    "additionalProperties": false
+  },
+  "Canvas": {
+    "type": "object",
+    "properties": {
+      "shapes": {
+        "type": "array",
+        "items": {
+          "oneOf": [
+            { "$ref": "#/definitions/Circle" },
+            { "$ref": "#/definitions/Rectangle" }
+          ]
+        },
+        "x-containment": true
+      }
+    }
+  }
+}
+```
+
+**Reference handling:** Both containment and non-containment references to concrete types use `$ref`. The `x-containment` flag distinguishes them. For abstract types, containment references produce `oneOf`/`anyOf` with `$ref` entries to concrete subclasses plus `x-containment: true`. Non-containment abstract references produce `oneOf`/`anyOf` without `x-containment`.
+
+**Deserialization:** When a property-level `oneOf`/`anyOf` contains only `$ref` entries that all resolve to classes sharing a common abstract supertype, the deserializer creates an `EReference` to that supertype directly — no artificial classes are generated. The `x-containment` flag is applied after feature creation to set the correct containment mode.
+
+These extensions are registered in `JsonSchemaKeywords.EXTENSION_SUPPORTED` and classified as `SupportLevel.FULL`.
+
+**Suppression:** Set `OPTION_SUPPRESS_VENDOR_EXTENSIONS` to `true` to omit all `x-*` properties from the output. This is useful when generating schemas for APIs or validators that reject vendor extensions. Note that round-trip fidelity is reduced: abstract/interface flags and containment mode will be lost.
+
+```java
+converter.convert(ePackage, out, "$defs", true, Map.of(
+    CodecJsonSchemaOptions.OPTION_SUPPRESS_VENDOR_EXTENSIONS, Boolean.TRUE
+));
+```
 
 ---
 
@@ -300,7 +355,7 @@ Multi-valued EMF features (`isMany() == true`) always produce a JSON Schema `arr
 The element type is derived from:
 - **EAttribute**: the EDataType is mapped to a JSON Schema type (`string`, `integer`, `number`, `boolean`)
 - **EEnum**: `"type": "string"` with `"enum"` constraint listing all literals
-- **EReference (containment)**: the referenced EClass is inlined as an object
+- **EReference (containment)**: a `$ref` to the referenced EClass definition, with `"x-containment": true`
 - **EReference (non-containment)**: a `$ref` to the referenced EClass definition
 
 ---
