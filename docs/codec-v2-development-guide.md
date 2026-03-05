@@ -6,6 +6,51 @@ This document provides context for continuing codec development across sessions.
 
 **Session Summary (2026-03-05 latest):**
 
+**JSON Schema Vendor Extensions & Reference Handling Overhaul:**
+
+Added `x-*` vendor extension properties to JSON Schema converters for lossless EMF round-trips, and changed containment reference serialization from inline objects to `$ref`.
+
+*Change 1 — Vendor extensions for class metadata (`x-abstract`, `x-interface`):*
+- **Root cause:** Abstract and interface flags on EClasses were lost during JSON Schema round-trip. The serializer never wrote them; the deserializer only inferred abstractness from `oneOf`/`anyOf` patterns (discriminated unions).
+- **Fix (serialization):** `EPackageToJsonSchemaConverter.writeEClassContent()` now writes `"x-abstract": true` when `eClass.isAbstract()` and `"x-interface": true` when `eClass.isInterface()`.
+- **Fix (deserialization):** `JsonSchemaToEPackageConverter.createEClass()` and `createClassWithAllOf()` read `x-abstract` and `x-interface` and set the corresponding flags. Interface also implies abstract in EMF.
+- **Files:** `EPackageToJsonSchemaConverter.java`, `JsonSchemaToEPackageConverter.java`, `JsonSchemaKeywords.java`
+
+*Change 2 — Containment references use `$ref` instead of inlining (`x-containment`):*
+- **Root cause:** Containment references to concrete types inlined the full class definition inside the property. When the same class was also referenced non-containment (via `$ref` in `$defs`), the deserializer created duplicate artificial classes instead of reusing the existing definition.
+- **Fix (serialization):** `writeSingleValuedReference()` and `writeMultiValuedReference()` now use `$ref` + `"x-containment": true` for containment references to concrete types, instead of inlining. Abstract containment also changed from `writeInlinedSubclassDefinitions` to `writeSubclassRefs` (using `$ref` in `oneOf`). `collectReferencedClasses()` now includes containment references in `$defs`.
+- **Fix (deserialization):** `createStructuralFeature()` reads `x-containment` from the property node and overrides the default containment flag on `EReference`.
+- **Files:** `EPackageToJsonSchemaConverter.java`, `JsonSchemaToEPackageConverter.java`
+
+*Change 3 — `oneOf` with `$ref` entries resolves to common abstract supertype:*
+- **Root cause:** When a property had `oneOf` with `$ref` entries pointing to classes sharing a common abstract supertype, `createOneOfFeature()` created new artificial classes via `processOneOf()` instead of resolving to the existing supertype.
+- **Fix:** Added `resolveCommonSuperTypeFromRefs()` that checks if all `oneOf` entries are `$ref` to known classes with a shared abstract supertype (checking both resolved `ESuperTypes` and unresolved `allOfRefMap` entries). When found, creates an `EReference` directly to the supertype. Falls back to the original artificial class creation otherwise.
+- **Files:** `JsonSchemaToEPackageConverter.java`
+
+*Change 4 — `convertToEClass` now processes `$defs` before root definition:*
+- **Root cause:** In the single-class conversion path (`convertToEClass`), containment references now use `$ref` to classes in `$defs`. But `$defs` entries were never processed, so `$ref` resolution failed (referenced class not in `classifierMap`).
+- **Fix:** `convertToEClass()` now processes `$defs`/`definitions`/`schemas` entries before the root schema definition, populating `classifierMap` first. Also sets `schemaFeature` so `extractSchemaNameFromRef()` can strip the definitions prefix correctly.
+- **Files:** `JsonSchemaToEPackageConverter.java`
+
+*Tests added:*
+- `JsonSchemaResourceTest.RoundTripTests`: `epackageWithInterface()`, `epackageWithNonContainmentReference()`, `epackageWithMixedReferences()`, `epackageWithAbstractContainmentReference()`
+- `JsonSchemaResourceTest.EClassRoundTripTests` (new `@Nested` class): `simpleEClass()`, `eClassWithContainmentReference()`, `eClassWithNonContainmentReference()`, `eClassWithMixedReferences()`, `eClassWithMultiValuedContainment()`
+- Updated `NewFeaturesTest`: `multiValuedContainmentRef_hasRefItemsWithXContainment()`, `concreteTypeRef_unchanged()`, `containmentAbstractRef_usesOneOfWithInlinedDefs()` — all updated to expect `$ref` + `x-containment` instead of inlined objects.
+
+*Change 5 — `OPTION_SUPPRESS_VENDOR_EXTENSIONS` option:*
+- Added `CodecJsonSchemaOptions.OPTION_SUPPRESS_VENDOR_EXTENSIONS` (`"codec.jsonschema.suppressVendorExtensions"`) — when `true`, all `x-*` properties (`x-abstract`, `x-interface`, `x-containment`) are omitted from serialized output. Useful when target APIs/validators reject vendor extensions.
+- All `x-*` writes in `EPackageToJsonSchemaConverter` are guarded by `!suppressVendorExtensions`, resolved from options at init time alongside `suppressedKeywords`.
+- **Files:** `CodecJsonSchemaOptions.java`, `EPackageToJsonSchemaConverter.java`
+
+*Tests added (suppression):*
+- `JsonSchemaResourceTest.SuppressVendorExtensionsTests` (new `@Nested` class): 4 EPackage tests (`epackage_abstractClass_noXAbstract`, `epackage_interfaceClass_noXInterface`, `epackage_containmentRef_noXContainment`, `epackage_multiValuedContainment_noXContainment`) + 2 EClass tests (`eclass_abstractClass_noXAbstract`, `eclass_containmentRef_noXContainment`).
+
+*Documentation:* Updated `jsonschema-architecture.md` — added "Vendor Extensions" section with suppression note, added `OPTION_SUPPRESS_VENDOR_EXTENSIONS` to options table, updated "Array Items" section to reflect `$ref` for containment references.
+
+---
+
+**Session Summary (2026-03-05):**
+
 **Type Serialization Integration Tests & Bug Fixes:**
 
 Created `CodecResourceTypeOptionsTest.java` (`org.eclipse.fennec.codec/test/org/eclipse/fennec/codec/resource/`) — a comprehensive integration test suite exercising type serialization/deserialization through `CodecResource` save/load. The test file has 9 `@Nested` groups: NoneStrategy, NameStrategy, NumericStrategy, SchemaAndTypeStrategy, CustomTypeKey, StructuredFormat, PerClassTypeConfig, TypeScope (`@Disabled`), and PerReferenceTypeConfig. Uses `test-roundtrip.ecore` (Person, Address, Company) and `test-type-strategy.ecore`.
