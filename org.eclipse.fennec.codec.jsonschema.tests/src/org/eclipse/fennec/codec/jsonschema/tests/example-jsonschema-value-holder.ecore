@@ -13,5 +13,11 @@
         <details key="valueReaderName" value="jsonSchemaToEClass"/>
       </eAnnotations>
     </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nonContainedSchema" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EClass">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueWriterName" value="eClassToJsonSchema"/>
+        <details key="valueReaderName" value="jsonSchemaToEClass"/>
+      </eAnnotations>
+    </eStructuralFeatures>
   </eClassifiers>
 </ecore:EPackage>

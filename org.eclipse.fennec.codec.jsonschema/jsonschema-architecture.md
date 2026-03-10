@@ -107,6 +107,7 @@ Options are passed via `CodecJsonSchemaOptions` constants from `org.eclipse.fenn
 | `OPTION_USE_NAMES_FROM_EXTENDED_METADATA` | `"codec.jsonschema.useNamesFromExtendedMetadata"` | `Boolean` | Resolve property names from ExtendedMetaData annotations instead of EMF feature names. |
 | `OPTION_SUPPRESS_KEYWORDS` | `"codec.jsonschema.suppressKeywords"` | `Collection<String>` | Set of JSON Schema keywords to suppress in the output (e.g., `"maxItems"`, `"description"`, `"additionalProperties"`). |
 | `OPTION_SUPPRESS_VENDOR_EXTENSIONS` | `"codec.jsonschema.suppressVendorExtensions"` | `Boolean` | Suppress all `x-*` vendor extension properties (`x-abstract`, `x-interface`, `x-containment`). Use when the target API does not accept vendor extensions. |
+| `OPTION_INLINE_REFS` | `"codec.jsonschema.inlineRefs"` | `Boolean` | Inline all `$ref` references — write full object definitions at the reference site and omit the `$defs`/`definitions` section. Use when the target API does not support `$ref`. |
 
 ### `JsonSchemaToEPackageConverter`
 
@@ -337,6 +338,34 @@ converter.convert(ePackage, out, "$defs", true, options);
 ```
 
 Structural keywords (`type`, `properties`, `required`, `items`, `$ref`, `allOf`, `oneOf`) are not suppressible — they define the schema's shape.
+
+---
+
+## Inline Refs
+
+The `OPTION_INLINE_REFS` option replaces all `$ref` references with inlined object definitions and omits the `$defs`/`definitions` section entirely. This is required for APIs that do not accept JSON Schema with `$ref` references (e.g., some AI structured-output endpoints).
+
+**What changes when `inlineRefs` is enabled:**
+
+| Aspect | Default (`$ref`) | Inline mode |
+|--------|------------------|-------------|
+| Containment ref (concrete) | `{"$ref": "#/$defs/Address"}` | Full `Address` definition inlined |
+| Non-containment ref (concrete) | `{"$ref": "#/$defs/Address"}` | Full `Address` definition inlined |
+| Abstract ref | `{"oneOf": [{"$ref": "..."}]}` | `{"oneOf": [{type: "object", ...}]}` with inlined subclasses |
+| Inheritance (`allOf`) | `{"allOf": [{"$ref": "#/$defs/Parent"}, ...]}` | Parent properties flattened into child (same as `flatAllOf`) |
+| `$defs`/`definitions` section | Written with all class definitions | Omitted |
+
+**Circular references:** Self-referencing types (e.g., `TreeNode` with `children: TreeNode[]`) are detected via a stack-based cycle guard. When a cycle is detected, the recursive reference is replaced with a minimal `{"type": "object"}` to break the recursion.
+
+**Example:**
+
+```java
+converter.convert(ePackage, out, "$defs", true, Map.of(
+    CodecJsonSchemaOptions.OPTION_INLINE_REFS, Boolean.TRUE
+));
+```
+
+**Note:** This option implies `flatAllOf` behavior for inheritance, since `allOf` with `$ref` to parent definitions would be unresolvable without a `$defs` section.
 
 ---
 

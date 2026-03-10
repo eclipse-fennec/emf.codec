@@ -2,7 +2,47 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-03-05
+**Last Updated:** 2026-03-10
+
+**Session Summary (2026-03-10 latest):**
+
+**JSON Schema Inline Refs Option (`OPTION_INLINE_REFS`):**
+
+Added `CodecJsonSchemaOptions.OPTION_INLINE_REFS` (`"codec.jsonschema.inlineRefs"`) — when `true`, all `$ref` references are replaced with inlined object definitions, and the `$defs`/`definitions` section is omitted entirely. This is required for APIs (e.g., some AI structured-output endpoints) that do not accept JSON Schema with `$ref` references.
+
+*Implementation details:*
+- **Containment & non-containment references:** Both single-valued and multi-valued references inline the full class definition at the reference site instead of writing `{"$ref": "..."}`.
+- **Abstract type references:** `oneOf`/`anyOf` arrays contain inlined concrete subclass definitions instead of `$ref` entries.
+- **Inheritance flattening:** When `inlineRefs` is enabled, `allOf` with `$ref` to parent definitions is automatically flattened (same as `flatAllOf`), since parent `$ref` would be unresolvable without `$defs`.
+- **Cycle detection:** A stack-based guard (`inlineStack`) detects self-referencing types (e.g., `TreeNode` with `children: TreeNode[]`) and breaks recursion by emitting `{"type": "object"}` for the cyclic reference.
+- **$defs omission:** Both `writePackage()` (EPackage mode) and `convertEClass()` (single-class mode) skip writing the definitions section.
+
+*Files changed:*
+- `CodecJsonSchemaOptions.java` — added `OPTION_INLINE_REFS` constant
+- `EPackageToJsonSchemaConverter.java` — added `isInlineRefs()`, `writeSubclassRefsOrInline()`, `writeInlinedRefOrCycleGuard()` methods; modified `writeSingleValuedReference()`, `writeMultiValuedReference()`, `writeObjectClass()`, `writePackage()`, `convertEClass()`
+
+*Tests added:*
+- `NewFeaturesTest.InlineRefsTests` (new `@Nested` class): `inlinesContainmentReference()`, `inlinesNonContainmentReference()`, `inlinesMultiValuedContainmentReference()`, `inlinesAbstractTypeWithOneOf()`, `handlesCircularReferences()`, `flattensInheritance()`, `packageConverterOmitsDefinitions()`, `inlinesSingleValuedAbstractNonContainment()`
+
+*Documentation:* Updated `jsonschema-architecture.md` — added `OPTION_INLINE_REFS` to options table, added "Inline Refs" section.
+
+**ReferenceValueWriter/Reader honoured for non-containment references:**
+
+When a `ReferenceValueWriter` (or `ReferenceValueReader`) is configured via `valueWriterName` / `valueReaderName` EAnnotation on a non-containment reference, it is now used for inline serialization/deserialization — the same as for containment references. Previously, the custom handler was resolved and stored but silently ignored at runtime because the dispatch logic only checked `reference.isContainment()`.
+
+*Serialization fix (`ReferenceSerializationEntry.java`):*
+- Added a new branch in `serializeReference()`: after the containment path but before `shouldExpandReference()`, check if `referenceWriter != null`. If so, delegate to the custom writer even for non-containment references.
+
+*Deserialization fix (`ReferenceDeserializationEntry.java`):*
+- In `deserializeSingleValued()`, `deserializeMultiValued()`, and `deserializeSingleElement()`: changed the condition from `reference.isContainment()` to `reference.isContainment() || referenceReader != null`. When a `ReferenceValueReader` is configured, the inline JSON object is deserialized through it instead of the non-containment `$ref` path.
+
+*Rename:* `containmentWriter` → `referenceWriter`, `containmentReader` → `referenceReader` (internal fields only, no API impact). Updated related comments.
+
+*Spec updated:* `14-custom-values.md` — §1.2 use-case table, §4.1 type table, §4.2 heading/description, serialization flow diagram now reflect that `ReferenceValueWriter`/`ReferenceValueReader` work for both containment and non-containment.
+
+*Tests:* `JsonSchemaValueHolderIntegrationTest.serializationNonContainedWithInheritance()` — verifies non-containment EReference with `valueWriterName="eClassToJsonSchema"` produces inline JSON Schema (with `$defs`, `$ref`, etc.) instead of a default URI reference object.
+
+---
 
 **Session Summary (2026-03-05 latest):**
 
