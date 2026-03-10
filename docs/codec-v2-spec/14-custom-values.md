@@ -43,8 +43,8 @@ CodecValueWriter<T, F extends EStructuralFeature>
 |-----------|----------|---------|
 | `AttributeValueReader<T>` | Transform primitive/data type values | ISO 8601 date parsing |
 | `AttributeValueWriter<T>` | Format primitive/data type values | Base64 encoding |
-| `ReferenceValueReader<T>` | Read containment references in custom format | JSON Schema → EPackage |
-| `ReferenceValueWriter<T>` | Write containment references in custom format | EPackage → JSON Schema |
+| `ReferenceValueReader<T>` | Read references in custom format (containment or non-containment) | JSON Schema → EPackage |
+| `ReferenceValueWriter<T>` | Write references in custom format (containment or non-containment) | EPackage → JSON Schema |
 | `CodecValueReader<String, EReference>` | Transform non-containment reference URIs | MongoDB ObjectId → EMF URI |
 | `CodecValueWriter<EObject, EReference>` | Write non-containment reference URIs | Custom URI scheme |
 
@@ -372,12 +372,12 @@ AttributeSerializationEntry
 
 | Type | Interface | Purpose | When Used |
 |------|-----------|---------|-----------|
-| **Containment** | `ReferenceValueReader<T>` / `ReferenceValueWriter<T>` | Convert entire object structure | JSON Schema ↔ EPackage |
+| **Inline Object** | `ReferenceValueReader<T>` / `ReferenceValueWriter<T>` | Convert entire object structure (containment or non-containment) | JSON Schema ↔ EPackage, JSON Schema ↔ EClass |
 | **Non-Containment URI** | `CodecValueReader<String, EReference>` / `CodecValueWriter<EObject, EReference>` | Transform reference URI | MongoDB ObjectId ↔ EMF URI |
 
-### 4.2 Containment Reference Readers/Writers
+### 4.2 Inline Object Reference Readers/Writers
 
-Used for **containment references** where embedded content needs custom conversion.
+Used for references (containment **or** non-containment) where the referenced object needs custom inline conversion. When a `ReferenceValueWriter`/`ReferenceValueReader` is configured via `valueWriterName`/`valueReaderName`, it is used regardless of the reference's containment flag — the annotation is an explicit user intent to serialize the object inline in a custom format.
 
 #### Example: JSON Schema to EPackage (OpenAPI)
 
@@ -438,22 +438,28 @@ public class EPackageValueWriter implements ReferenceValueWriter<EPackage> {
 }
 ```
 
-#### Serialization Flow (Containment)
+#### Serialization Flow
 
 ```
-ReferenceSerializationEntry (containment)
+ReferenceSerializationEntry
     │
-    ├─ Lookup customWriter from registry
+    ├─ Lookup customWriter from registry (valueWriterName)
     │
     ├─ If writer instanceof ReferenceValueWriter:
     │       │
     │       ├─ Check canHandle(reference)
     │       │       │
-    │       │       ├─ YES: containmentWriter.write(target, ref, gen, ctxt)
+    │       │       ├─ YES: store as referenceWriter
     │       │       │
     │       │       └─ NO: Log warning, use default serialization
     │
-    └─ Default: ctxt.writeValue(gen, target)
+    ├─ At serialization time:
+    │   ├─ Containment + referenceWriter → referenceWriter.write(...)
+    │   ├─ Containment + no writer → ctxt.writeValue(gen, target)
+    │   ├─ Non-containment + referenceWriter → referenceWriter.write(...)
+    │   └─ Non-containment + no writer → writeReferenceObject (URI/$ref)
+    │
+    └─ Key: referenceWriter is used for BOTH containment and non-containment
 ```
 
 ### 4.3 Non-Containment Reference URI Customization

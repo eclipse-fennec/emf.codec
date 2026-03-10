@@ -3062,4 +3062,411 @@ class NewFeaturesTest {
 				"pet type should be Mammal (the lowest common ancestor), not Animal");
 		}
 	}
+
+	// ========================================================================
+	// Inline refs Tests (OPTION_INLINE_REFS)
+	// ========================================================================
+
+	@Nested
+	@DisplayName("inline refs option")
+	class InlineRefsTests {
+
+		@Test
+		@DisplayName("inlines containment reference instead of $ref")
+		void inlinesContainmentReference() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass address = EcoreFactory.eINSTANCE.createEClass();
+			address.setName("Address");
+			EAttribute street = EcoreFactory.eINSTANCE.createEAttribute();
+			street.setName("street");
+			street.setEType(EcorePackage.Literals.ESTRING);
+			address.getEStructuralFeatures().add(street);
+			pkg.getEClassifiers().add(address);
+
+			EClass person = EcoreFactory.eINSTANCE.createEClass();
+			person.setName("Person");
+			EAttribute name = EcoreFactory.eINSTANCE.createEAttribute();
+			name.setName("name");
+			name.setEType(EcorePackage.Literals.ESTRING);
+			person.getEStructuralFeatures().add(name);
+
+			EReference homeRef = EcoreFactory.eINSTANCE.createEReference();
+			homeRef.setName("home");
+			homeRef.setEType(address);
+			homeRef.setContainment(true);
+			person.getEStructuralFeatures().add(homeRef);
+			pkg.getEClassifiers().add(person);
+
+			EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(person, baos, true,
+					Map.of(CodecJsonSchemaOptions.OPTION_INLINE_REFS, Boolean.TRUE));
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+
+			// No $defs section
+			assertNull(root.get("$defs"), "$defs should not be present when inlining");
+
+			// home property should be inlined with full definition
+			JsonNode home = root.get("properties").get("home");
+			assertNotNull(home, "home property should exist");
+			assertNull(home.get("$ref"), "home should not use $ref");
+			assertEquals("object", home.get("type").asString());
+			assertNotNull(home.get("properties").get("street"), "inlined Address should have street property");
+		}
+
+		@Test
+		@DisplayName("inlines non-containment reference instead of $ref")
+		void inlinesNonContainmentReference() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass address = EcoreFactory.eINSTANCE.createEClass();
+			address.setName("Address");
+			EAttribute street = EcoreFactory.eINSTANCE.createEAttribute();
+			street.setName("street");
+			street.setEType(EcorePackage.Literals.ESTRING);
+			address.getEStructuralFeatures().add(street);
+			pkg.getEClassifiers().add(address);
+
+			EClass person = EcoreFactory.eINSTANCE.createEClass();
+			person.setName("Person");
+			EReference homeRef = EcoreFactory.eINSTANCE.createEReference();
+			homeRef.setName("home");
+			homeRef.setEType(address);
+			homeRef.setContainment(false);
+			person.getEStructuralFeatures().add(homeRef);
+			pkg.getEClassifiers().add(person);
+
+			EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(person, baos, true,
+					Map.of(CodecJsonSchemaOptions.OPTION_INLINE_REFS, Boolean.TRUE));
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+
+			assertNull(root.get("$defs"), "$defs should not be present when inlining");
+
+			JsonNode home = root.get("properties").get("home");
+			assertNotNull(home);
+			assertNull(home.get("$ref"), "home should not use $ref");
+			assertEquals("object", home.get("type").asString());
+			assertNotNull(home.get("properties").get("street"));
+		}
+
+		@Test
+		@DisplayName("inlines multi-valued containment reference in array items")
+		void inlinesMultiValuedContainmentReference() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass item = EcoreFactory.eINSTANCE.createEClass();
+			item.setName("Item");
+			EAttribute label = EcoreFactory.eINSTANCE.createEAttribute();
+			label.setName("label");
+			label.setEType(EcorePackage.Literals.ESTRING);
+			item.getEStructuralFeatures().add(label);
+			pkg.getEClassifiers().add(item);
+
+			EClass container = EcoreFactory.eINSTANCE.createEClass();
+			container.setName("Container");
+			EReference itemsRef = EcoreFactory.eINSTANCE.createEReference();
+			itemsRef.setName("items");
+			itemsRef.setEType(item);
+			itemsRef.setContainment(true);
+			itemsRef.setUpperBound(-1);
+			container.getEStructuralFeatures().add(itemsRef);
+			pkg.getEClassifiers().add(container);
+
+			EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(container, baos, true,
+					Map.of(CodecJsonSchemaOptions.OPTION_INLINE_REFS, Boolean.TRUE));
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+
+			assertNull(root.get("$defs"), "$defs should not be present");
+
+			JsonNode itemsProp = root.get("properties").get("items");
+			assertNotNull(itemsProp);
+			assertEquals("array", itemsProp.get("type").asString());
+
+			JsonNode itemsItems = itemsProp.get("items");
+			assertNotNull(itemsItems);
+			assertNull(itemsItems.get("$ref"), "items should not use $ref");
+			assertEquals("object", itemsItems.get("type").asString());
+			assertNotNull(itemsItems.get("properties").get("label"));
+		}
+
+		@Test
+		@DisplayName("inlines abstract type with oneOf containing concrete subclasses")
+		void inlinesAbstractTypeWithOneOf() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass shape = EcoreFactory.eINSTANCE.createEClass();
+			shape.setName("Shape");
+			shape.setAbstract(true);
+			pkg.getEClassifiers().add(shape);
+
+			EClass circle = EcoreFactory.eINSTANCE.createEClass();
+			circle.setName("Circle");
+			circle.getESuperTypes().add(shape);
+			EAttribute radius = EcoreFactory.eINSTANCE.createEAttribute();
+			radius.setName("radius");
+			radius.setEType(EcorePackage.Literals.EDOUBLE);
+			circle.getEStructuralFeatures().add(radius);
+			pkg.getEClassifiers().add(circle);
+
+			EClass rect = EcoreFactory.eINSTANCE.createEClass();
+			rect.setName("Rectangle");
+			rect.getESuperTypes().add(shape);
+			EAttribute width = EcoreFactory.eINSTANCE.createEAttribute();
+			width.setName("width");
+			width.setEType(EcorePackage.Literals.EDOUBLE);
+			rect.getEStructuralFeatures().add(width);
+			pkg.getEClassifiers().add(rect);
+
+			EClass canvas = EcoreFactory.eINSTANCE.createEClass();
+			canvas.setName("Canvas");
+			EReference shapesRef = EcoreFactory.eINSTANCE.createEReference();
+			shapesRef.setName("shapes");
+			shapesRef.setEType(shape);
+			shapesRef.setContainment(true);
+			shapesRef.setUpperBound(-1);
+			canvas.getEStructuralFeatures().add(shapesRef);
+			pkg.getEClassifiers().add(canvas);
+
+			EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(canvas, baos, true,
+					Map.of(CodecJsonSchemaOptions.OPTION_INLINE_REFS, Boolean.TRUE));
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+
+			assertNull(root.get("$defs"), "$defs should not be present");
+
+			JsonNode shapesProp = root.get("properties").get("shapes");
+			JsonNode items = shapesProp.get("items");
+			JsonNode oneOf = items.get("oneOf");
+			assertNotNull(oneOf, "abstract ref should produce oneOf");
+			assertEquals(2, oneOf.size(), "oneOf should have 2 concrete subclasses");
+
+			// Each oneOf entry should be an inlined object, not a $ref
+			for (JsonNode entry : oneOf) {
+				assertNull(entry.get("$ref"), "oneOf entries should not use $ref");
+				assertEquals("object", entry.get("type").asString());
+			}
+		}
+
+		@Test
+		@DisplayName("handles circular references with cycle guard")
+		void handlesCircularReferences() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass node = EcoreFactory.eINSTANCE.createEClass();
+			node.setName("TreeNode");
+			EAttribute value = EcoreFactory.eINSTANCE.createEAttribute();
+			value.setName("value");
+			value.setEType(EcorePackage.Literals.ESTRING);
+			node.getEStructuralFeatures().add(value);
+
+			// Self-referencing containment
+			EReference childrenRef = EcoreFactory.eINSTANCE.createEReference();
+			childrenRef.setName("children");
+			childrenRef.setEType(node);
+			childrenRef.setContainment(true);
+			childrenRef.setUpperBound(-1);
+			node.getEStructuralFeatures().add(childrenRef);
+			pkg.getEClassifiers().add(node);
+
+			EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(node, baos, true,
+					Map.of(CodecJsonSchemaOptions.OPTION_INLINE_REFS, Boolean.TRUE));
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+
+			assertNull(root.get("$defs"), "$defs should not be present");
+
+			// First level: children.items should be an inlined TreeNode
+			JsonNode childrenProp = root.get("properties").get("children");
+			assertNotNull(childrenProp);
+			JsonNode items = childrenProp.get("items");
+			assertEquals("object", items.get("type").asString());
+			assertNotNull(items.get("properties").get("value"), "inlined TreeNode should have value");
+
+			// Second level: cycle guard should produce minimal {"type": "object"}
+			JsonNode nestedChildren = items.get("properties").get("children");
+			assertNotNull(nestedChildren);
+			JsonNode nestedItems = nestedChildren.get("items");
+			assertEquals("object", nestedItems.get("type").asString());
+			// The cycle guard writes a minimal object — no properties
+			assertNull(nestedItems.get("properties"), "cycle guard should produce minimal object");
+		}
+
+		@Test
+		@DisplayName("flattens inheritance when inlineRefs is enabled")
+		void flattensInheritance() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass base = EcoreFactory.eINSTANCE.createEClass();
+			base.setName("Base");
+			EAttribute id = EcoreFactory.eINSTANCE.createEAttribute();
+			id.setName("id");
+			id.setEType(EcorePackage.Literals.ESTRING);
+			base.getEStructuralFeatures().add(id);
+			pkg.getEClassifiers().add(base);
+
+			EClass child = EcoreFactory.eINSTANCE.createEClass();
+			child.setName("Child");
+			child.getESuperTypes().add(base);
+			EAttribute extra = EcoreFactory.eINSTANCE.createEAttribute();
+			extra.setName("extra");
+			extra.setEType(EcorePackage.Literals.ESTRING);
+			child.getEStructuralFeatures().add(extra);
+			pkg.getEClassifiers().add(child);
+
+			EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(child, baos, true,
+					Map.of(CodecJsonSchemaOptions.OPTION_INLINE_REFS, Boolean.TRUE));
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+
+			// Should NOT use allOf with $ref — should be flattened
+			assertNull(root.get("allOf"), "inheritance should be flattened, not allOf");
+			assertNull(root.get("$defs"), "$defs should not be present");
+
+			// Both own and inherited properties should be present
+			JsonNode properties = root.get("properties");
+			assertNotNull(properties.get("id"), "inherited 'id' should be flattened in");
+			assertNotNull(properties.get("extra"), "own 'extra' should be present");
+		}
+
+		@Test
+		@DisplayName("EPackage converter omits definitions section when inlining")
+		void packageConverterOmitsDefinitions() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass address = EcoreFactory.eINSTANCE.createEClass();
+			address.setName("Address");
+			EAttribute street = EcoreFactory.eINSTANCE.createEAttribute();
+			street.setName("street");
+			street.setEType(EcorePackage.Literals.ESTRING);
+			address.getEStructuralFeatures().add(street);
+			pkg.getEClassifiers().add(address);
+
+			EClass person = EcoreFactory.eINSTANCE.createEClass();
+			person.setName("Person");
+			// Mark as root class
+			EAnnotation rootAnnotation = EcoreFactory.eINSTANCE.createEAnnotation();
+			rootAnnotation.setSource(JSONSCHEMA_ANNOTATION_SOURCE);
+			rootAnnotation.getDetails().put("rootClass", "true");
+			person.getEAnnotations().add(rootAnnotation);
+
+			EReference homeRef = EcoreFactory.eINSTANCE.createEReference();
+			homeRef.setName("home");
+			homeRef.setEType(address);
+			homeRef.setContainment(true);
+			person.getEStructuralFeatures().add(homeRef);
+			pkg.getEClassifiers().add(person);
+
+			EPackageToJsonSchemaConverter converter = new EPackageToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(pkg, baos, "$defs", true,
+					Map.of(CodecJsonSchemaOptions.OPTION_INLINE_REFS, Boolean.TRUE));
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+
+			// No $defs section
+			assertNull(root.get("$defs"), "$defs should not be present when inlining");
+
+			// home should be inlined
+			JsonNode home = root.get("properties").get("home");
+			assertNotNull(home);
+			assertNull(home.get("$ref"), "should not use $ref");
+			assertEquals("object", home.get("type").asString());
+			assertNotNull(home.get("properties").get("street"));
+		}
+
+		@Test
+		@DisplayName("single-valued abstract non-containment reference is inlined")
+		void inlinesSingleValuedAbstractNonContainment() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("test");
+			pkg.setNsPrefix("test");
+			pkg.setNsURI("http://example.org/test");
+
+			EClass animal = EcoreFactory.eINSTANCE.createEClass();
+			animal.setName("Animal");
+			animal.setAbstract(true);
+			pkg.getEClassifiers().add(animal);
+
+			EClass cat = EcoreFactory.eINSTANCE.createEClass();
+			cat.setName("Cat");
+			cat.getESuperTypes().add(animal);
+			EAttribute lives = EcoreFactory.eINSTANCE.createEAttribute();
+			lives.setName("lives");
+			lives.setEType(EcorePackage.Literals.EINT);
+			cat.getEStructuralFeatures().add(lives);
+			pkg.getEClassifiers().add(cat);
+
+			EClass dog = EcoreFactory.eINSTANCE.createEClass();
+			dog.setName("Dog");
+			dog.getESuperTypes().add(animal);
+			EAttribute breed = EcoreFactory.eINSTANCE.createEAttribute();
+			breed.setName("breed");
+			breed.setEType(EcorePackage.Literals.ESTRING);
+			dog.getEStructuralFeatures().add(breed);
+			pkg.getEClassifiers().add(dog);
+
+			EClass owner = EcoreFactory.eINSTANCE.createEClass();
+			owner.setName("Owner");
+			EReference petRef = EcoreFactory.eINSTANCE.createEReference();
+			petRef.setName("pet");
+			petRef.setEType(animal);
+			petRef.setContainment(false);
+			owner.getEStructuralFeatures().add(petRef);
+			pkg.getEClassifiers().add(owner);
+
+			EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			converter.convert(owner, baos, true,
+					Map.of(CodecJsonSchemaOptions.OPTION_INLINE_REFS, Boolean.TRUE));
+
+			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
+
+			assertNull(root.get("$defs"), "$defs should not be present");
+
+			JsonNode pet = root.get("properties").get("pet");
+			JsonNode oneOf = pet.get("oneOf");
+			assertNotNull(oneOf, "abstract non-containment should produce oneOf");
+			assertEquals(2, oneOf.size());
+
+			for (JsonNode entry : oneOf) {
+				assertNull(entry.get("$ref"), "oneOf entries should be inlined, not $ref");
+				assertEquals("object", entry.get("type").asString());
+			}
+		}
+	}
 }

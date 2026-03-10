@@ -82,6 +82,7 @@ public class JsonSchemaValueHolderIntegrationTest {
 	private EAttribute nameAttr;
 	private EAttribute descriptionAttr;
 	private EReference schemaRef;
+	private EReference nonContainedSchemaRef;
 
 	private CodecValueRegistry valueRegistry;
 
@@ -96,6 +97,7 @@ public class JsonSchemaValueHolderIntegrationTest {
 		nameAttr = (EAttribute) EcoreHelper.getFeature(schemaHolderClass, "name");
 		descriptionAttr = (EAttribute) EcoreHelper.getFeature(schemaHolderClass, "description");
 		schemaRef = (EReference) EcoreHelper.getFeature(schemaHolderClass, "schema");
+		nonContainedSchemaRef = (EReference) EcoreHelper.getFeature(schemaHolderClass, "nonContainedSchema");
 
 		valueRegistry = new CodecValueRegistry();
 		valueRegistry.register(new EClassValueWriter());
@@ -409,5 +411,44 @@ public class JsonSchemaValueHolderIntegrationTest {
 				"Should have firstName attribute after round-trip");
 		assertNotNull(loadedSchema.getEStructuralFeature("age"),
 				"Should have age attribute after round-trip");
+	}
+	
+	@Test
+	@DisplayName("Serialization Non Contaiment — EClass with inheritance emits $defs for supertype")
+	void serializationNonContainedWithInheritance() throws IOException {
+		EClass trendAnalysis = createTrendAnalysisEClass();
+
+		EObject holder = pkg.getEFactoryInstance().create(schemaHolderClass);
+		holder.eSet(nameAttr, "trend-analysis-schema");
+		holder.eSet(descriptionAttr, "Schema for trend analysis with inheritance");
+		holder.eSet(nonContainedSchemaRef, trendAnalysis);
+
+		String json = serialize(holder);
+
+		assertNotNull(json);
+
+		// The schema should contain $defs with CompactTrend definition
+		assertTrue(json.contains("\"$defs\""),
+				"Schema should contain $defs section for referenced supertypes. Got: " + json);
+		assertTrue(json.contains("\"CompactTrend\""),
+				"$defs should contain CompactTrend definition. Got: " + json);
+
+		// The Trend items should use allOf with $ref to CompactTrend
+		assertTrue(json.contains("\"$ref\""),
+				"Schema should contain $ref for inheritance. Got: " + json);
+		assertTrue(json.contains("#/$defs/CompactTrend"),
+				"$ref should point to #/$defs/CompactTrend. Got: " + json);
+
+		// CompactTrend's own properties should appear in its $defs definition
+		assertTrue(json.contains("\"title\""),
+				"CompactTrend should have title property. Got: " + json);
+		assertTrue(json.contains("\"category\""),
+				"CompactTrend should have category property. Got: " + json);
+
+		// Trend's own properties should appear inline (in the allOf)
+		assertTrue(json.contains("\"description\""),
+				"Trend should have description property. Got: " + json);
+		assertTrue(json.contains("\"evidence\""),
+				"Trend should have evidence property. Got: " + json);
 	}
 }

@@ -64,7 +64,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
     private final SerializationFormat refFormat;
     private final boolean smartCompression;
     private final EffectiveCodecConfig codecConfig;
-    private final ReferenceValueWriter<?> containmentWriter;
+    private final ReferenceValueWriter<?> referenceWriter;
     private final CodecValueWriter<EObject, EReference> uriWriter;
     private final CodecEntryContext entryContext;
 
@@ -149,26 +149,26 @@ public class ReferenceSerializationEntry implements SerializationEntry {
 
             if (writer instanceof ReferenceValueWriter<?> refWriter) {
                 if (refWriter.canHandle(reference)) {
-                    this.containmentWriter = refWriter;
+                    this.referenceWriter = refWriter;
                     this.uriWriter = null;
                 } else {
                     LOGGER.warning("ReferenceValueWriter '" + writerName + "' cannot handle reference '" +
                             reference.getName() + "' of type " + reference.getEReferenceType().getName());
-                    this.containmentWriter = null;
+                    this.referenceWriter = null;
                     this.uriWriter = null;
                 }
             } else if (writer != null) {
                 @SuppressWarnings("unchecked")
                 CodecValueWriter<EObject, EReference> refUriWriter =
                         (CodecValueWriter<EObject, EReference>) writer;
-                this.containmentWriter = null;
+                this.referenceWriter = null;
                 this.uriWriter = refUriWriter;
             } else {
-                this.containmentWriter = null;
+                this.referenceWriter = null;
                 this.uriWriter = null;
             }
         } else {
-            this.containmentWriter = null;
+            this.referenceWriter = null;
             this.uriWriter = null;
         }
     }
@@ -242,14 +242,19 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             // TypeSerializationEntry uses this to find the correct discriminator value.
             ContextHelper.setCurrentSerializationReference(ctxt, reference);
             try {
-                if (containmentWriter != null) {
-                    writeWithContainmentWriter(target, gen, ctxt);
+                if (referenceWriter != null) {
+                    writeWithReferenceWriter(target, gen, ctxt);
                 } else {
                     ctxt.writeValue(gen, target);
                 }
             } finally {
                 ContextHelper.clearCurrentSerializationReference(ctxt);
             }
+        } else if (referenceWriter != null) {
+            // Non-containment with explicit ReferenceValueWriter (e.g., JSON Schema):
+            // the user annotated this feature with a custom writer, honour it
+            // regardless of containment mode.
+            writeWithReferenceWriter(target, gen, ctxt);
         } else if (shouldExpandReference(target)) {
             serializeExpandedReference(target, gen, ctxt);
         } else {
@@ -258,16 +263,16 @@ public class ReferenceSerializationEntry implements SerializationEntry {
     }
 
     @SuppressWarnings("unchecked")
-    private void writeWithContainmentWriter(EObject target, JsonGenerator gen, SerializationContext ctxt) {
+    private void writeWithReferenceWriter(EObject target, JsonGenerator gen, SerializationContext ctxt) {
         if (entryContext == null) {
-            throw new IllegalStateException("CodecEntryContext required for custom containment writer");
+            throw new IllegalStateException("CodecEntryContext required for custom reference writer");
         }
         try {
             CodecWriterContext writerCtx = entryContext.createWriterContext(gen, ctxt);
-            ((ReferenceValueWriter<EObject>) containmentWriter).write(target, reference, writerCtx);
+            ((ReferenceValueWriter<EObject>) referenceWriter).write(target, reference, writerCtx);
         } catch (IOException e) {
             throw new UncheckedIOException(
-                    "Custom containment writer failed for reference: " + reference.getName(), e);
+                    "Custom reference writer failed for reference: " + reference.getName(), e);
         }
     }
 

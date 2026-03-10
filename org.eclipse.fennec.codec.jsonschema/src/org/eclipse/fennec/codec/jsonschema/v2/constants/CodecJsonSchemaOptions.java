@@ -137,4 +137,26 @@ public interface CodecJsonSchemaOptions {
 	 */
 	public static final String OPTION_SUPPRESS_VENDOR_EXTENSIONS = "codec.jsonschema.suppressVendorExtensions";
 
+	/**
+	 * When set to {@code true}, references that would normally use {@code $ref}
+	 * are inlined: the full object definition is written directly at the reference
+	 * site instead of pointing to a shared definition in {@code $defs}.
+	 * <p>
+	 * This is required for APIs (e.g., some AI structured-output endpoints) that
+	 * do not accept JSON Schema with {@code $ref} references.
+	 * </p>
+	 * <p>
+	 * When enabled:
+	 * <ul>
+	 *   <li>Both containment and non-containment references are inlined</li>
+	 *   <li>The {@code $defs}/{@code definitions} section is omitted</li>
+	 *   <li>Abstract type references inline each concrete subclass in {@code oneOf}/{@code anyOf}</li>
+	 * </ul>
+	 * </p>
+	 * <p>
+	 * Default: {@code false} (use {@code $ref} references)
+	 * </p>
+	 */
+	public static final String OPTION_INLINE_REFS = "codec.jsonschema.inlineRefs";
+
 }

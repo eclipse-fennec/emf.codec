@@ -86,6 +86,7 @@ public class EPackageToJsonSchemaConverter {
 	private Map<EClassifier, String> anchorNames = new HashMap<>();  // Track generated anchors
 	private Set<String> suppressedKeywords = Set.of();
 	private boolean suppressVendorExtensions = false;
+	private Set<String> inlineStack = new HashSet<>();  // Cycle detection for inline refs
 
 	/**
 	 * Converts an EPackage to JSON Schema and writes to output stream.
@@ -129,6 +130,7 @@ public class EPackageToJsonSchemaConverter {
 		this.processedClassifiers.clear();
 		this.options = options != null ? options : new HashMap<>();
 		this.anchorNames.clear();
+		this.inlineStack.clear();
 		this.suppressedKeywords = resolveSuppressedKeywords(this.options);
 		this.suppressVendorExtensions = Boolean.TRUE.equals(this.options.get(CodecJsonSchemaOptions.OPTION_SUPPRESS_VENDOR_EXTENSIONS));
 
@@ -162,8 +164,8 @@ public class EPackageToJsonSchemaConverter {
 			processedClassifiers.put(rootClass.getName(), rootClass);
 		}
 
-		// Write definitions section
-		if (schemaFeature != null) {
+		// Write definitions section (skip when inlining refs — everything is inlined)
+		if (schemaFeature != null && !isInlineRefs()) {
 			gen.writeObjectPropertyStart(schemaFeature);
 			writeDefinitions(ePackage, gen);
 			gen.writeEndObject();
@@ -638,6 +640,7 @@ public class EPackageToJsonSchemaConverter {
 		this.processedClassifiers.clear();
 		this.options = options != null ? options : new HashMap<>();
 		this.anchorNames.clear();
+		this.inlineStack.clear();
 		this.suppressedKeywords = resolveSuppressedKeywords(this.options);
 		this.suppressVendorExtensions = Boolean.TRUE.equals(this.options.get(CodecJsonSchemaOptions.OPTION_SUPPRESS_VENDOR_EXTENSIONS));
 		if (currentPackage != null) {
@@ -652,14 +655,16 @@ public class EPackageToJsonSchemaConverter {
 			writeEClassDocumentMetadata(eClass, gen);
 			writeEClassContent(eClass, gen);
 
-			// Collect referenced EClasses that need $defs entries
-			List<EClass> referencedClasses = collectReferencedClasses(eClass);
-			if (!referencedClasses.isEmpty()) {
-				gen.writeObjectPropertyStart("$defs");
-				for (EClass refClass : referencedClasses) {
-					writeClassifier(refClass, gen);
+			// Collect referenced EClasses that need $defs entries (skip when inlining)
+			if (!isInlineRefs()) {
+				List<EClass> referencedClasses = collectReferencedClasses(eClass);
+				if (!referencedClasses.isEmpty()) {
+					gen.writeObjectPropertyStart("$defs");
+					for (EClass refClass : referencedClasses) {
+						writeClassifier(refClass, gen);
+					}
+					gen.writeEndObject();
 				}
-				gen.writeEndObject();
 			}
 
 			gen.writeEndObject();
@@ -809,8 +814,8 @@ public class EPackageToJsonSchemaConverter {
 				.filter(st -> extractAnnotationDetail(st, AnnotationSources.JSONSCHEMA, "artificial") == null)
 				.toList();
 
-		if (nonArtificialParents.isEmpty() || isFlatAllOf()) {
-			// When flatAllOf is enabled, treat all parents as "inline" parents
+		if (nonArtificialParents.isEmpty() || isFlatAllOf() || isInlineRefs()) {
+			// When flatAllOf or inlineRefs is enabled, treat all parents as "inline" parents
 			// so their features are flattened into the child definition
 			List<EClass> allParents = new ArrayList<>();
 			allParents.addAll(nonArtificialParents);
@@ -1243,7 +1248,18 @@ public class EPackageToJsonSchemaConverter {
 		writeArrayBounds(eReference, gen);
 
 		gen.writeName("items");
-		if (eReference.isContainment()) {
+		if (isInlineRefs()) {
+			if (type instanceof EClass eClass && eClass.isAbstract()) {
+				gen.writeStartObject();
+				gen.writeName(abstractRefKeyword());
+				gen.writeStartArray();
+				writeInlinedSubclassDefinitions(type, gen);
+				gen.writeEndArray();
+				gen.writeEndObject();
+			} else {
+				writeInlinedRefOrCycleGuard((EClass) type, gen, eReference.isContainment());
+			}
+		} else if (eReference.isContainment()) {
 			if (((EClass) type).isAbstract()) {
 				gen.writeStartObject();
 				gen.writeName(abstractRefKeyword());
@@ -1278,34 +1294,42 @@ public class EPackageToJsonSchemaConverter {
 				gen.writeStartObject();
 				gen.writeName(abstractRefKeyword());
 				gen.writeStartArray();
-				writeSubclassRefs(type, gen);
+				writeSubclassRefsOrInline(type, gen);
 				gen.writeEndArray();
 				if (!suppressVendorExtensions) {
 					gen.writeBooleanProperty("x-containment", true);
 				}
 				gen.writeEndObject();
 			} else {
-				gen.writeStartObject();
-				String refPath = buildRefForType(eReference, type);
-				gen.writeStringProperty("$ref", refPath);
-				if (!suppressVendorExtensions) {
-					gen.writeBooleanProperty("x-containment", true);
+				if (isInlineRefs()) {
+					writeInlinedRefOrCycleGuard((EClass) type, gen, eReference.isContainment());
+				} else {
+					gen.writeStartObject();
+					String refPath = buildRefForType(eReference, type);
+					gen.writeStringProperty("$ref", refPath);
+					if (!suppressVendorExtensions) {
+						gen.writeBooleanProperty("x-containment", true);
+					}
+					gen.writeEndObject();
 				}
-				gen.writeEndObject();
 			}
 		} else {
 			if (type instanceof EClass eClass && eClass.isAbstract()) {
 				gen.writeStartObject();
 				gen.writeName(abstractRefKeyword());
 				gen.writeStartArray();
-				writeSubclassRefs(type, gen);
+				writeSubclassRefsOrInline(type, gen);
 				gen.writeEndArray();
 				gen.writeEndObject();
 			} else {
-				gen.writeStartObject();
-				String refPath = buildRefForType(eReference, type);
-				gen.writeStringProperty("$ref", refPath);
-				gen.writeEndObject();
+				if (isInlineRefs()) {
+					writeInlinedRefOrCycleGuard((EClass) type, gen, false);
+				} else {
+					gen.writeStartObject();
+					String refPath = buildRefForType(eReference, type);
+					gen.writeStringProperty("$ref", refPath);
+					gen.writeEndObject();
+				}
 			}
 		}
 	}
@@ -1397,6 +1421,44 @@ public class EPackageToJsonSchemaConverter {
 					writeEClass(eClass, gen);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Dispatches to either inlined subclass definitions or $ref-based subclass
+	 * references depending on whether inline refs mode is enabled.
+	 */
+	private void writeSubclassRefsOrInline(EClassifier type, JsonGenerator gen) throws IOException {
+		if (isInlineRefs()) {
+			writeInlinedSubclassDefinitions(type, gen);
+		} else {
+			writeSubclassRefs(type, gen);
+		}
+	}
+
+	/**
+	 * Writes an inlined class definition with cycle detection.
+	 * If a cycle is detected (the class is already being inlined up the call stack),
+	 * writes an empty {@code {"type": "object"}} to break the recursion.
+	 *
+	 * @param eClass the class to inline
+	 * @param gen the JSON generator
+	 * @param containment whether this is a containment reference
+	 */
+	private void writeInlinedRefOrCycleGuard(EClass eClass, JsonGenerator gen, boolean containment) throws IOException {
+		String className = eClass.getName();
+		if (inlineStack.contains(className)) {
+			// Cycle detected — write a minimal object schema to break recursion
+			gen.writeStartObject();
+			gen.writeStringProperty("type", "object");
+			gen.writeEndObject();
+			return;
+		}
+		inlineStack.add(className);
+		try {
+			writeEClass(eClass, gen);
+		} finally {
+			inlineStack.remove(className);
 		}
 	}
 
@@ -1813,6 +1875,10 @@ public class EPackageToJsonSchemaConverter {
 
 	private boolean isUseAnyOfForAbstract() {
 		return Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_USE_ANY_OF_FOR_ABSTRACT));
+	}
+
+	private boolean isInlineRefs() {
+		return Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_INLINE_REFS));
 	}
 
 	private String abstractRefKeyword() {

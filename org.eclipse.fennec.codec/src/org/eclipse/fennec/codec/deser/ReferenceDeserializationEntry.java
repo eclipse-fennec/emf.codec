@@ -76,8 +76,8 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     private final FeatureConfig config;
     private final EReference reference;
     private final String refKey;
-    /** Custom reader for containment references - returns EObject */
-    private final ReferenceValueReader<?> containmentReader;
+    /** Custom reader for references (containment or non-containment) - returns EObject */
+    private final ReferenceValueReader<?> referenceReader;
     /** Custom reader for non-containment reference URIs - returns String */
     private final CodecValueReader<String, EReference> uriReader;
     private final CodecEntryContext entryContext;
@@ -110,7 +110,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
 
         // Pre-resolve the custom reader at construction time
         // We support two types of readers:
-        // 1. ReferenceValueReader<T extends EObject> for containment references
+        // 1. ReferenceValueReader<T extends EObject> for inline object references (containment or non-containment)
         // 2. CodecValueReader<String, EReference> for non-containment URI transformation
         String readerName = config.getValueReaderName();
         CodecValueRegistry valueRegistry = entryContext != null ? entryContext.getValueRegistry() : null;
@@ -118,14 +118,14 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             CodecValueReader<?, ?> reader = valueRegistry.getReader(readerName).orElse(null);
 
             if (reader instanceof ReferenceValueReader<?> refReader) {
-                // ReferenceValueReader for containment - returns EObject
+                // ReferenceValueReader for inline object references - returns EObject
                 if (refReader.canHandle(reference)) {
-                    this.containmentReader = refReader;
+                    this.referenceReader = refReader;
                     this.uriReader = null;
                 } else {
                     LOGGER.warning("ReferenceValueReader '" + readerName + "' cannot handle reference '" +
                             reference.getName() + "' of type " + reference.getEReferenceType().getName());
-                    this.containmentReader = null;
+                    this.referenceReader = null;
                     this.uriReader = null;
                 }
             } else if (reader != null) {
@@ -133,14 +133,14 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                 @SuppressWarnings("unchecked")
                 CodecValueReader<String, EReference> stringReader =
                         (CodecValueReader<String, EReference>) reader;
-                this.containmentReader = null;
+                this.referenceReader = null;
                 this.uriReader = stringReader;
             } else {
-                this.containmentReader = null;
+                this.referenceReader = null;
                 this.uriReader = null;
             }
         } else {
-            this.containmentReader = null;
+            this.referenceReader = null;
             this.uriReader = null;
         }
     }
@@ -199,8 +199,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         JsonToken token = parser.currentToken();
 
         if (token == JsonToken.START_OBJECT) {
-            if (reference.isContainment()) {
-                // Containment: deserialize inline object
+            if (reference.isContainment() || referenceReader != null) {
+                // Containment, or non-containment with explicit ReferenceValueReader:
+                // deserialize inline object using the custom reader if available
                 EObject child = deserializeContainedObject(state, parser, ctxt);
                 if (child != null && reference.isChangeable()) {
                     eObject.eSet(reference, child);
@@ -240,7 +241,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         int index = 0;
 
         while (parser.nextToken() != JsonToken.END_ARRAY) {
-            if (reference.isContainment()) {
+            if (reference.isContainment() || referenceReader != null) {
                 EObject child = deserializeContainedObject(state, parser, ctxt);
                 if (child != null) {
                     values.add(child);
@@ -259,7 +260,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     @SuppressWarnings("unchecked")
     private void deserializeSingleElement(DeserializationState state, JsonParser parser,
             DeserializationContext ctxt, EObject eObject, int index) {
-        if (reference.isContainment()) {
+        if (reference.isContainment() || referenceReader != null) {
             EObject child = deserializeContainedObject(state, parser, ctxt);
             if (child != null) {
                 ((List<EObject>) eObject.eGet(reference)).add(child);
@@ -331,16 +332,16 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             // Priority 2: Check for runtime type hint from CODEC_FEATURE_TYPE_HINTS option
             EClass runtimeTypeHint = ContextHelper.getFeatureTypeHint(ctxt, reference);
 
-            // Priority 3: Check for custom containment reader from EAnnotation (valueReaderName)
+            // Priority 3: Check for custom reference reader from EAnnotation (valueReaderName)
             // (e.g., JSON Schema to EPackage for OpenAPI components/schemas)
-            if (containmentReader != null && entryContext != null) {
+            if (referenceReader != null && entryContext != null) {
                 // Make type hint available to the reader via context
                 if (runtimeTypeHint != null) {
                     ContextHelper.setCurrentFeatureTypeHint(ctxt, runtimeTypeHint);
                 }
                 try {
                     CodecReaderContext readerCtx = entryContext.createReaderContext(parser, ctxt);
-                    return containmentReader.read(readerCtx, reference);
+                    return referenceReader.read(readerCtx, reference);
                 } finally {
                     ContextHelper.clearCurrentFeatureTypeHint(ctxt);
                 }
