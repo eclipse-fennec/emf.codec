@@ -522,4 +522,24 @@ public final class CodecOptions {
      * <p>Default: false</p>
      */
     public static final String CODEC_INHERIT = "codec.inherit";
+
+    // ========================================================================
+    // SECURITY / LIMITS
+    // ========================================================================
+
+    /**
+     * Maximum payload size in bytes for format providers that buffer the entire
+     * input stream in memory (e.g., BSON).
+     * <p>
+     * Prevents denial-of-service attacks via oversized payloads that would cause
+     * {@code OutOfMemoryError}.
+     * </p>
+     * <p>Value: {@code Long} or {@code Integer}, default: 104,857,600 (100 MB)</p>
+     */
+    public static final String CODEC_MAX_PAYLOAD_SIZE = "codec.maxPayloadSize";
+
+    /**
+     * Default maximum payload size: 100 MB.
+     */
+    public static final long DEFAULT_MAX_PAYLOAD_SIZE = 100L * 1024 * 1024;
 }

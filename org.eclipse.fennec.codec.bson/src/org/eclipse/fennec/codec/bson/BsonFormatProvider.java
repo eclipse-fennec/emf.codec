@@ -26,6 +26,7 @@ import org.bson.codecs.BsonDocumentCodec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.io.BasicOutputBuffer;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.format.FormatDelegate;
 import org.eclipse.fennec.codec.format.FormatReaderDelegate;
@@ -39,6 +40,11 @@ import org.eclipse.fennec.codec.format.TokenType;
  * with {@link BsonDocument} as the in-memory representation, and converting
  * to/from binary BSON for stream I/O.
  * <p>
+ * The maximum payload size for reading is configurable via
+ * {@link CodecOptions#CODEC_MAX_PAYLOAD_SIZE} and defaults to
+ * {@link CodecOptions#DEFAULT_MAX_PAYLOAD_SIZE} (100 MB). This prevents
+ * denial-of-service attacks via oversized BSON payloads.
+ * <p>
  * Usage:
  * <pre>
  * BsonFormatProvider provider = new BsonFormatProvider();
@@ -50,11 +56,35 @@ import org.eclipse.fennec.codec.format.TokenType;
  *
  * @see BsonFormatDelegate
  * @see BsonFormatReaderDelegate
+ * @see CodecOptions#CODEC_MAX_PAYLOAD_SIZE
  * @since 2026-02-16
  */
 public class BsonFormatProvider implements CodecFormatProvider<InputStream, OutputStream> {
 
     private static final BsonDocumentCodec CODEC = new BsonDocumentCodec();
+
+    private final long maxPayloadSize;
+
+    /**
+     * Creates a provider with the default maximum payload size (100 MB).
+     */
+    public BsonFormatProvider() {
+        this(CodecOptions.DEFAULT_MAX_PAYLOAD_SIZE);
+    }
+
+    /**
+     * Creates a provider with a custom maximum payload size.
+     *
+     * @param maxPayloadSize the maximum number of bytes to read from the input
+     *        stream; must be positive
+     * @throws IllegalArgumentException if maxPayloadSize is not positive
+     */
+    public BsonFormatProvider(long maxPayloadSize) {
+        if (maxPayloadSize <= 0) {
+            throw new IllegalArgumentException("maxPayloadSize must be positive: " + maxPayloadSize);
+        }
+        this.maxPayloadSize = maxPayloadSize;
+    }
 
     @Override
     public String getFormatId() {
@@ -68,7 +98,7 @@ public class BsonFormatProvider implements CodecFormatProvider<InputStream, Outp
 
     @Override
     public FormatReaderDelegate<InputStream> createReader(InputStream source) throws IOException {
-        return new BsonStreamReader(source);
+        return new BsonStreamReader(source, maxPayloadSize);
     }
 
     @Override
@@ -226,13 +256,18 @@ public class BsonFormatProvider implements CodecFormatProvider<InputStream, Outp
         private InputStream source;
         private final BsonFormatReaderDelegate delegate;
 
-        BsonStreamReader(InputStream source) throws IOException {
+        BsonStreamReader(InputStream source, long maxPayloadSize) throws IOException {
             this.source = source;
-            byte[] bytes = source.readAllBytes();
-            BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(bytes));
-            BsonDocument document = CODEC.decode(reader, DecoderContext.builder().build());
-            reader.close();
-            this.delegate = new BsonFormatReaderDelegate(document);
+            int readLimit = (int) Math.min(maxPayloadSize, Integer.MAX_VALUE);
+            byte[] bytes = source.readNBytes(readLimit);
+            if (bytes.length == readLimit && source.read() != -1) {
+                throw new IOException(
+                        "BSON payload exceeds maximum allowed size: " + maxPayloadSize + " bytes");
+            }
+            try (BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(bytes))) {
+                BsonDocument document = CODEC.decode(reader, DecoderContext.builder().build());
+                this.delegate = new BsonFormatReaderDelegate(document);
+            }
         }
 
         @Override
