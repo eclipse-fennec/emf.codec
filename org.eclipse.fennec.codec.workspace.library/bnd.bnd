@@ -2,8 +2,7 @@
 -include: ${.}/buildpath.bnd	
 mavendeps: ${sjoin;\n; ${template;-maven-dependencies;${@}}}
 
--includeresource: resources,\
-	{template/fennecCodec.maven=resources/template/fennecCodec.maven}	
+-includeresource: {resources}	
 	
 Provide-Capability: \
 	${fennec-base}
@@ -12,5 +11,5 @@ fennec-base:\
     bnd.library;\
         bnd.library     = fennecCodec; \
         path            = template
-Bundle-Name: Fennec Codec
-Bundle-Description: Fennec Codec Dependencies
+Bundle-Name: Eclispe Fennec Codec
+Bundle-Description: Eclipse Fennec Codec Dependencies
