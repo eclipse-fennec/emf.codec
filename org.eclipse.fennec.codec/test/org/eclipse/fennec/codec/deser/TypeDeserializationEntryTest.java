@@ -90,7 +90,7 @@ class TypeDeserializationEntryTest extends DeserializationEntryTestBase {
         }
 
         @Test
-        @DisplayName("NAME strategy: deserializes simple class name")
+        @DisplayName("NAME strategy: deserializes simple class name with hint")
         void nameStrategy_deserializesSimpleName() {
             TypeConfig config = TypeConfig.builder()
                     .include(true)
@@ -101,8 +101,9 @@ class TypeDeserializationEntryTest extends DeserializationEntryTestBase {
             TypeDeserializationEntry entry = new TypeDeserializationEntry(config);
             DeserializationState state = createState(null);
 
+            // S-4: NAME strategy requires a schema hint (via hintEClass)
             try (JsonParser parser = createParser("\"Person\"")) {
-                entry.deserialize(state, parser, null);
+                entry.deserializeWithHint(state, parser, null, personClass);
                 assertEquals(personClass, state.getResolvedEClass());
             }
         }
@@ -305,9 +306,10 @@ class TypeDeserializationEntryTest extends DeserializationEntryTestBase {
             DeserializationState state = createState(null);
 
             // STRUCTURED NAME: {"type": "Person"}
+            // S-4: NAME strategy requires a schema hint (via hintEClass)
             String json = "{\"type\": \"Person\"}";
             try (JsonParser parser = createParser(json)) {
-                entry.deserialize(state, parser, null);
+                entry.deserializeWithHint(state, parser, null, personClass);
                 assertEquals(personClass, state.getResolvedEClass());
             }
         }

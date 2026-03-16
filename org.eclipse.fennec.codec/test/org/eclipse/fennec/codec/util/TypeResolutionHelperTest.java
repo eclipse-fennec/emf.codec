@@ -69,10 +69,10 @@ class TypeResolutionHelperTest {
         @Test
         @DisplayName("resolves EClass by simple name")
         void resolvesBySimpleName() {
-            EClass resolved = TypeResolutionHelper.resolveFromSimpleName("Person");
+            EClass resolved = TypeResolutionHelper.resolveFromSimpleName("Company");
             assertNotNull(resolved);
-            assertEquals("Person", resolved.getName());
-            assertSame(personClass, resolved);
+            assertEquals("Company", resolved.getName());
+            assertSame(companyClass, resolved);
         }
 
         @Test
@@ -185,15 +185,13 @@ class TypeResolutionHelperTest {
         }
 
         @Test
-        @DisplayName("resolves some EClass by classifier ID without hint (ambiguous across packages)")
+        @DisplayName("returns null without hint — no global scan (S-4)")
         void resolvesByIdWithoutHint() {
             int classifierId = companyClass.getClassifierID();
             EClass resolved = TypeResolutionHelper.resolveFromNumeric(
                     String.valueOf(classifierId), null);
-            // Without a hint, the classifier ID is ambiguous — another package may have
-            // the same ID. We can only assert that *some* EClass with that ID was found.
-            assertNotNull(resolved, "Should find an EClass with classifier ID " + classifierId);
-            assertEquals(classifierId, resolved.getClassifierID());
+            // S-4: Without a hint, numeric resolution must fail (no global EPackage scan)
+            assertNull(resolved, "Without hint, numeric resolution should return null (S-4)");
         }
 
         @Test

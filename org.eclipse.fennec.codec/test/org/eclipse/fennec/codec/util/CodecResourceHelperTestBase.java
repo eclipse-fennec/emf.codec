@@ -43,7 +43,6 @@ abstract class CodecResourceHelperTestBase {
     protected EClass abstractEntityClass;
     protected EClass namedInterface;
 
-    @SuppressWarnings("restriction")
 	@BeforeEach
     void setUp() throws IOException {
         metadataService = new MetadataServiceImpl();

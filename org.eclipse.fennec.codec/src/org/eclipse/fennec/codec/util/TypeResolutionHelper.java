@@ -43,9 +43,50 @@ public final class TypeResolutionHelper {
     }
 
     /**
-     * Resolves an EClass by its simple name.
+     * Resolves an EClass by its simple name, scoped to a context package.
      * <p>
-     * Searches through all registered EPackages for a matching classifier name.
+     * If a context package is provided, only that package is searched.
+     * If no context package is provided, falls back to scanning all registered
+     * EPackages (non-deterministic — logs a warning).
+     * </p>
+     * <p>
+     * Security: CWE-843 (S-4). The NAME type strategy should always be used with
+     * a schema hint ({@code CODEC_ROOT_SCHEMA} or {@code CODEC_ROOT_TYPE}) to
+     * avoid non-deterministic resolution across multiple registered EPackages.
+     * </p>
+     *
+     * @param className the simple class name (e.g. "Person")
+     * @param contextPackage the EPackage to scope resolution to (may be null)
+     * @return the resolved EClass, or null if not found
+     */
+    public static EClass resolveFromSimpleName(String className, EPackage contextPackage) {
+        if (className == null || className.isEmpty()) {
+            return null;
+        }
+        // If context package is provided, scope resolution to it
+        if (contextPackage != null) {
+            EClassifier classifier = contextPackage.getEClassifier(className);
+            if (classifier instanceof EClass) {
+                return (EClass) classifier;
+            }
+            LOGGER.warning("Could not resolve EClass '" + className
+                    + "' in context package: " + contextPackage.getNsURI());
+            return null;
+        }
+        // S-4: No global scan — NAME strategy requires a schema hint.
+        LOGGER.warning("Could not resolve EClass '" + className
+                + "' — no context package provided. "
+                + "NAME strategy requires CODEC_ROOT_SCHEMA or CODEC_ROOT_TYPE.");
+        return null;
+    }
+
+    /**
+     * Resolves an EClass by its simple name by scanning all registered EPackages.
+     * <p>
+     * <b>Warning:</b> This method scans all registered EPackages and returns the
+     * first match. Resolution order is undefined, making this non-deterministic
+     * when multiple packages define classes with the same name. Prefer
+     * {@link #resolveFromSimpleName(String, EPackage)} with a context package.
      * </p>
      *
      * @param className the simple class name (e.g. "Person")
@@ -69,11 +110,54 @@ public final class TypeResolutionHelper {
     }
 
     /**
-     * Resolves an EClass by its Java instance class name.
+     * Resolves an EClass by its Java instance class name, scoped to a context package.
      * <p>
-     * Searches all registered EPackages for a classifier whose
-     * {@code instanceClassName} matches. Falls back to simple name
-     * resolution using the last segment of the class name.
+     * If a context package is provided, only that package is searched for a classifier
+     * whose {@code instanceClassName} matches. If no context package is provided, resolution
+     * fails with a warning.
+     * </p>
+     * <p>
+     * Security: CWE-843 (S-4). The CLASS type strategy should always be used with
+     * a schema hint ({@code CODEC_ROOT_SCHEMA} or {@code CODEC_ROOT_TYPE}) to
+     * avoid scanning all registered EPackages.
+     * </p>
+     *
+     * @param className the fully qualified Java class name (e.g. "com.example.Person")
+     * @param contextPackage the EPackage to scope resolution to (may be null)
+     * @return the resolved EClass, or null if not found
+     */
+    public static EClass resolveFromClassName(String className, EPackage contextPackage) {
+        if (className == null || className.isEmpty()) {
+            return null;
+        }
+        if (contextPackage != null) {
+            for (EClassifier classifier : contextPackage.getEClassifiers()) {
+                if (classifier instanceof EClass eClass) {
+                    Class<?> instanceClass = eClass.getInstanceClass();
+                    if (instanceClass != null && className.equals(instanceClass.getName())) {
+                        return eClass;
+                    }
+                }
+            }
+            // Fallback to simple name within same context package
+            String simpleName = className.contains(".")
+                    ? className.substring(className.lastIndexOf('.') + 1)
+                    : className;
+            return resolveFromSimpleName(simpleName, contextPackage);
+        }
+        // S-4: No global scan — CLASS strategy requires a schema hint.
+        LOGGER.warning("Could not resolve EClass from class name '" + className
+                + "' — no context package provided. "
+                + "CLASS strategy requires CODEC_ROOT_SCHEMA or CODEC_ROOT_TYPE.");
+        return null;
+    }
+
+    /**
+     * Resolves an EClass by its Java instance class name by scanning all registered EPackages.
+     * <p>
+     * <b>Warning:</b> This method scans all registered EPackages. Resolution order is
+     * undefined, making this non-deterministic. Prefer
+     * {@link #resolveFromClassName(String, EPackage)} with a context package.
      * </p>
      *
      * @param className the fully qualified Java class name (e.g. "com.example.Person")
@@ -126,9 +210,9 @@ public final class TypeResolutionHelper {
      * <ol>
      *   <li>Hint EClass package (if provided)</li>
      *   <li>Context schema URI (if provided) — looks up EPackage by nsURI</li>
-     *   <li>Search all registered packages (fallback, non-deterministic)</li>
      * </ol>
-     * Per the spec (§1.7), NUMERIC strategy <b>requires</b> a schema hint
+     * If neither hint nor schema URI is provided, resolution fails with a warning (S-4).
+     * Per the spec (§9.3), NUMERIC strategy <b>requires</b> a schema hint
      * ({@code CODEC_ROOT_SCHEMA} or {@code CODEC_ROOT_TYPE}) for deserialization.
      * </p>
      *
@@ -163,16 +247,11 @@ public final class TypeResolutionHelper {
                 }
             }
 
-            // Fallback: search through all registered packages
-            for (Object key : EPackage.Registry.INSTANCE.keySet()) {
-                EPackage pkg = EPackage.Registry.INSTANCE.getEPackage((String) key);
-                if (pkg != null) {
-                    EClass resolved = findClassifierInPackage(pkg, classifierId);
-                    if (resolved != null) {
-                        return resolved;
-                    }
-                }
-            }
+            // S-4: No global scan fallback — NUMERIC requires a schema hint.
+            // Classifier IDs are package-specific and non-deterministic without context.
+            LOGGER.warning("Could not resolve numeric classifier ID " + numericValue
+                    + " — no schema hint or context package provided. "
+                    + "NUMERIC strategy requires CODEC_ROOT_SCHEMA or CODEC_ROOT_TYPE.");
         } catch (NumberFormatException e) {
             LOGGER.warning("Invalid numeric classifier ID: " + numericValue);
         }

@@ -109,6 +109,25 @@ public class CodecResource extends ResourceImpl {
      */
     public static final String CODEC_ROOT_SCHEMA = "CODEC_ROOT_SCHEMA";
 
+    /**
+     * Hardened Jackson stream read constraints for all codec parsing.
+     * <p>
+     * Security: CWE-400 (S-6). Tighter than Jackson 3.1.0 defaults:
+     * <ul>
+     *   <li>Max nesting depth: 500 (Jackson default: 1000) — higher than codec's own
+     *       {@code MAX_NESTING_DEPTH} (200) so the codec's graceful recovery (skipChildren +
+     *       warning diagnostic) triggers first; Jackson acts as a hard backstop.</li>
+     *   <li>Max string length: 10 MB (Jackson default: 20 MB)</li>
+     *   <li>Max field name length: 10 KB (Jackson default: 50 KB)</li>
+     * </ul>
+     * </p>
+     */
+    static final StreamReadConstraints STREAM_READ_CONSTRAINTS = StreamReadConstraints.builder()
+            .maxNestingDepth(500)
+            .maxStringLength(10_000_000)
+            .maxNameLength(10_000)
+            .build();
+
     private final MetadataService metadataService;
     private final ConfigurationResolver resolver;
     private final CodecValueRegistry valueRegistry;
@@ -315,7 +334,10 @@ public class CodecResource extends ResourceImpl {
                 .customProperties(extractCustomProperties(mergedOptions))
                 .build();
 
-        CodecJsonFactory codecFactory = new CodecJsonFactory(effectiveConfig);
+        CodecJsonFactory codecFactory = (CodecJsonFactory) CodecJsonFactory.builder()
+        		.effectiveConfig(effectiveConfig)
+                .streamReadConstraints(STREAM_READ_CONSTRAINTS)                
+                .build();
 
         List<UnresolvedReference> unresolvedReferences = new ArrayList<>();
 
@@ -413,7 +435,7 @@ public class CodecResource extends ResourceImpl {
         FormatDelegate<T> delegate = provider.createWriter((T) outputStream);
 
         IOContext ioCtxt = new IOContext(
-                StreamReadConstraints.defaults(),
+                STREAM_READ_CONSTRAINTS,
                 StreamWriteConstraints.defaults(),
                 ErrorReportConfiguration.defaults(),
                 new BufferRecycler(),
@@ -462,7 +484,7 @@ public class CodecResource extends ResourceImpl {
         FormatReaderDelegate<S> delegate = provider.createReader((S) inputStream);
 
         IOContext ioCtxt = new IOContext(
-                StreamReadConstraints.defaults(),
+                STREAM_READ_CONSTRAINTS,
                 StreamWriteConstraints.defaults(),
                 ErrorReportConfiguration.defaults(),
                 new BufferRecycler(),

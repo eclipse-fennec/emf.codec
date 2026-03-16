@@ -544,22 +544,50 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             strategy = TypeStrategy.URI;
         }
 
+        // Derive context package from context schema URI for scoped resolution (S-4)
+        EPackage contextPackage = null;
+        if (ctxt != null) {
+            String contextSchema = ContextHelper.getContextSchemaUri(ctxt);
+            if (contextSchema != null && !contextSchema.isEmpty()) {
+                contextPackage = EPackage.Registry.INSTANCE.getEPackage(contextSchema);
+            }
+        }
+        if (contextPackage == null && hintEClass != null) {
+            contextPackage = hintEClass.getEPackage();
+        }
+
+        EClass resolved;
         switch (strategy) {
             case NAME:
-                return TypeResolutionHelper.resolveFromSimpleName(typeValue);
+                resolved = TypeResolutionHelper.resolveFromSimpleName(typeValue, contextPackage);
+                break;
             case CLASS:
-                return TypeResolutionHelper.resolveFromClassName(typeValue);
+                resolved = TypeResolutionHelper.resolveFromClassName(typeValue, contextPackage);
+                break;
             case NUMERIC:
                 String numericContextSchema = ctxt != null ? ContextHelper.getContextSchemaUri(ctxt) : null;
-                return TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass, numericContextSchema);
+                resolved = TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass, numericContextSchema);
+                break;
             case SCHEMA_AND_TYPE:
                 // TODO: Implement SCHEMA_AND_TYPE resolution
-                return TypeResolutionHelper.resolveFromSimpleName(typeValue);
+                resolved = TypeResolutionHelper.resolveFromSimpleName(typeValue, contextPackage);
+                break;
             case URI:
             default:
-                // Fallback to simple name resolution
-                return TypeResolutionHelper.resolveFromSimpleName(typeValue);
+                // Fallback to simple name resolution (scoped if context available)
+                resolved = TypeResolutionHelper.resolveFromSimpleName(typeValue, contextPackage);
+                break;
         }
+
+        // S-4: Add resource diagnostic when resolution fails due to missing context
+        if (resolved == null && contextPackage == null && ctxt != null) {
+            String msg = "Type resolution for '" + typeValue + "' failed: "
+                    + strategy + " strategy requires a schema hint "
+                    + "(CODEC_ROOT_SCHEMA or CODEC_ROOT_TYPE) to scope resolution";
+            ContextHelper.addWarning(ctxt, msg, "TypeDeserializationEntry");
+        }
+
+        return resolved;
     }
 
     /**

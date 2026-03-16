@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -66,6 +67,47 @@ import tools.jackson.databind.DeserializationContext;
 public class AttributeDeserializationEntry implements DeserializationEntry {
 
     private static final Logger LOGGER = Logger.getLogger(AttributeDeserializationEntry.class.getName());
+
+    /**
+     * Maximum nesting depth for recursive JSON value reading.
+     * Protects against StackOverflowError from deeply nested JSON structures.
+     * <p>
+     * Security: CWE-674 (Uncontrolled Recursion), CWE-400 (Resource Exhaustion).
+     * </p>
+     */
+    static final int MAX_NESTING_DEPTH = CodecEObjectDeserializer.MAX_NESTING_DEPTH;
+
+    /**
+     * Maximum number of elements allowed in a single collection during recursive value reading.
+     * <p>
+     * Security: CWE-400 (Resource Exhaustion), CWE-770 (Allocation Without Limits).
+     * </p>
+     */
+    static final int MAX_COLLECTION_SIZE = CodecEObjectDeserializer.MAX_COLLECTION_SIZE;
+
+    /**
+     * Allowlist of types safe for reflection-based conversion from String.
+     * <p>
+     * Security: CWE-470 (S-5). Only these types may be instantiated via
+     * {@code Constructor(String)} or {@code valueOf(String)} / {@code parse(String)}.
+     * All other types fall back to {@code EcoreUtil.createFromString()}.
+     * </p>
+     */
+    static final Set<Class<?>> SAFE_REFLECTION_TARGETS = Set.of(
+            java.net.URI.class,
+            java.net.URL.class,
+            java.time.Instant.class,
+            java.time.LocalDate.class,
+            java.time.LocalTime.class,
+            java.time.LocalDateTime.class,
+            java.time.OffsetDateTime.class,
+            java.time.ZonedDateTime.class,
+            java.time.Duration.class,
+            java.time.Period.class,
+            java.time.Year.class,
+            java.time.YearMonth.class,
+            java.time.MonthDay.class
+    );
 
     private final FeatureConfig config;
     private final EAttribute attribute;
@@ -317,6 +359,18 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
      * @return the array value, or null if not supported
      */
     private Object readArrayValue(JsonParser parser, DeserializationContext ctxt, Class<?> instanceClass) {
+        return readArrayValue(parser, ctxt, instanceClass, 0);
+    }
+
+    private Object readArrayValue(JsonParser parser, DeserializationContext ctxt, Class<?> instanceClass, int depth) {
+        if (depth > MAX_NESTING_DEPTH) {
+            String msg = "Maximum nesting depth exceeded: " + MAX_NESTING_DEPTH;
+            LOGGER.warning(msg);
+            ContextHelper.addWarning(ctxt, msg, parser, "AttributeDeserializationEntry");
+            parser.skipChildren();
+            return null;
+        }
+
         if (!instanceClass.isArray()) {
             String msg = "Expected array type but got: " + instanceClass.getName();
             LOGGER.warning(msg);
@@ -328,7 +382,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
 
         // Handle multi-dimensional arrays recursively
         if (componentType.isArray()) {
-            return readNestedArray(parser, ctxt, componentType);
+            return readNestedArray(parser, ctxt, componentType, depth);
         }
 
         // Handle 1D primitive arrays
@@ -356,14 +410,14 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     }
 
     /**
-     * Reads a nested (multi-dimensional) array.
+     * Reads a nested (multi-dimensional) array, tracking nesting depth.
      */
-    private Object readNestedArray(JsonParser parser, DeserializationContext ctxt, Class<?> componentType) {
+    private Object readNestedArray(JsonParser parser, DeserializationContext ctxt, Class<?> componentType, int depth) {
         List<Object> elements = new ArrayList<>();
 
         while (parser.nextToken() != JsonToken.END_ARRAY) {
             if (parser.currentToken() == JsonToken.START_ARRAY) {
-                Object nested = readArrayValue(parser, ctxt, componentType);
+                Object nested = readArrayValue(parser, ctxt, componentType, depth + 1);
                 if (nested != null) {
                     elements.add(nested);
                 }
@@ -550,7 +604,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
      * </p>
      */
     private Object convertObjectFromString(String stringValue, Class<?> targetType) throws Exception {
-        // Try common types first
+        // Try common types first (direct, no reflection)
         if (targetType == BigDecimal.class) {
             return new BigDecimal(stringValue);
         }
@@ -570,6 +624,14 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         }
         if (targetType == UUID.class) {
             return UUID.fromString(stringValue);
+        }
+
+        // S-5: Only allow reflection for safe types (CWE-470)
+        if (!SAFE_REFLECTION_TARGETS.contains(targetType)) {
+            LOGGER.warning("Reflection-based conversion not allowed for type: "
+                    + targetType.getName() + " (S-5). Falling back to EcoreUtil.");
+            throw new IllegalArgumentException(
+                    "Type not in safe reflection allowlist: " + targetType.getName());
         }
 
         // Try String constructor
@@ -732,6 +794,15 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
 
     /**
      * Reads any JSON value and returns it as a native Java object.
+     * Entry point that starts depth tracking at 0.
+     */
+    private Object readAnyJsonValue(JsonParser parser, DeserializationContext ctxt) {
+        return readAnyJsonValue(parser, ctxt, 0);
+    }
+
+    /**
+     * Reads any JSON value and returns it as a native Java object,
+     * tracking nesting depth to prevent stack overflow from malicious input.
      * <p>
      * Used for EJavaObject (Object.class) attributes that can hold any value.
      * </p>
@@ -747,9 +818,18 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
      *
      * @param parser the JSON parser
      * @param ctxt the deserialization context
-     * @return the native Java representation of the JSON value
+     * @param depth current nesting depth
+     * @return the native Java representation of the JSON value, or null if depth exceeded
      */
-    private Object readAnyJsonValue(JsonParser parser, DeserializationContext ctxt) {
+    private Object readAnyJsonValue(JsonParser parser, DeserializationContext ctxt, int depth) {
+        if (depth > MAX_NESTING_DEPTH) {
+            String msg = "Maximum nesting depth exceeded: " + MAX_NESTING_DEPTH;
+            LOGGER.warning(msg);
+            ContextHelper.addWarning(ctxt, msg, parser, "AttributeDeserializationEntry");
+            parser.skipChildren();
+            return null;
+        }
+
         JsonToken token = parser.currentToken();
 
         switch (token) {
@@ -766,9 +846,9 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
             case VALUE_NULL:
                 return null;
             case START_ARRAY:
-                return readJsonArrayAsCollection(parser, ctxt);
+                return readJsonArrayAsCollection(parser, ctxt, depth + 1);
             case START_OBJECT:
-                return readJsonObjectAsMap(parser, ctxt);
+                return readJsonObjectAsMap(parser, ctxt, depth + 1);
             default:
                 String msg = "Unexpected token for EJavaObject attribute '" + attribute.getName() + "': " + token;
                 LOGGER.warning(msg);
@@ -778,28 +858,59 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     }
 
     /**
-     * Reads a JSON array and returns it as a List.
+     * Reads a JSON array and returns it as a List, tracking nesting depth.
+     *
+     * @param parser the JSON parser
+     * @param ctxt the deserialization context
+     * @param depth current nesting depth
      */
-    private List<Object> readJsonArrayAsCollection(JsonParser parser, DeserializationContext ctxt) {
+    private List<Object> readJsonArrayAsCollection(JsonParser parser, DeserializationContext ctxt, int depth) {
         List<Object> list = new ArrayList<>();
+        boolean limitExceeded = false;
 
         while (parser.nextToken() != JsonToken.END_ARRAY) {
-            list.add(readAnyJsonValue(parser, ctxt));
+            if (!limitExceeded && list.size() >= MAX_COLLECTION_SIZE) {
+                String msg = "Array exceeds maximum size: " + MAX_COLLECTION_SIZE;
+                LOGGER.warning(msg);
+                ContextHelper.addWarning(ctxt, msg, parser, "AttributeDeserializationEntry");
+                limitExceeded = true;
+            }
+            if (limitExceeded) {
+                parser.skipChildren();
+                continue;
+            }
+            list.add(readAnyJsonValue(parser, ctxt, depth));
         }
 
         return list;
     }
 
     /**
-     * Reads a JSON object and returns it as a Map.
+     * Reads a JSON object and returns it as a Map, tracking nesting depth and collection size.
+     *
+     * @param parser the JSON parser
+     * @param ctxt the deserialization context
+     * @param depth current nesting depth
      */
-    private Map<String, Object> readJsonObjectAsMap(JsonParser parser, DeserializationContext ctxt) {
+    private Map<String, Object> readJsonObjectAsMap(JsonParser parser, DeserializationContext ctxt, int depth) {
         Map<String, Object> map = new LinkedHashMap<>();
+        boolean limitExceeded = false;
 
         while (parser.nextToken() != JsonToken.END_OBJECT) {
+            if (!limitExceeded && map.size() >= MAX_COLLECTION_SIZE) {
+                String msg = "Object exceeds maximum size: " + MAX_COLLECTION_SIZE;
+                LOGGER.warning(msg);
+                ContextHelper.addWarning(ctxt, msg, parser, "AttributeDeserializationEntry");
+                limitExceeded = true;
+            }
+            if (limitExceeded) {
+                parser.nextToken(); // Move to value
+                parser.skipChildren();
+                continue;
+            }
             String fieldName = parser.currentName();
             parser.nextToken(); // Move to value
-            map.put(fieldName, readAnyJsonValue(parser, ctxt));
+            map.put(fieldName, readAnyJsonValue(parser, ctxt, depth));
         }
 
         return map;
@@ -823,18 +934,26 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         JsonToken startToken = parser.currentToken();
 
         if (startToken == JsonToken.START_OBJECT) {
-            readJsonObjectToString(parser, sb);
+            readJsonObjectToString(parser, sb, 0);
         } else if (startToken == JsonToken.START_ARRAY) {
-            readJsonArrayToString(parser, sb);
+            readJsonArrayToString(parser, sb, 0);
         }
 
         return sb.toString();
     }
 
     /**
-     * Reads a JSON object and appends it to the StringBuilder.
+     * Reads a JSON object and appends it to the StringBuilder, tracking nesting depth.
+     * When the depth limit is exceeded, skips remaining content and appends {@code null}.
      */
-    private void readJsonObjectToString(JsonParser parser, StringBuilder sb) {
+    private void readJsonObjectToString(JsonParser parser, StringBuilder sb, int depth) {
+        if (depth > MAX_NESTING_DEPTH) {
+            LOGGER.warning("Maximum nesting depth exceeded: " + MAX_NESTING_DEPTH);
+            parser.skipChildren();
+            sb.append("null");
+            return;
+        }
+
         sb.append("{");
         boolean first = true;
 
@@ -850,16 +969,24 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
 
             // Move to value
             parser.nextToken();
-            appendJsonValue(parser, sb);
+            appendJsonValue(parser, sb, depth);
         }
 
         sb.append("}");
     }
 
     /**
-     * Reads a JSON array and appends it to the StringBuilder.
+     * Reads a JSON array and appends it to the StringBuilder, tracking nesting depth.
+     * When the depth limit is exceeded, skips remaining content and appends {@code null}.
      */
-    private void readJsonArrayToString(JsonParser parser, StringBuilder sb) {
+    private void readJsonArrayToString(JsonParser parser, StringBuilder sb, int depth) {
+        if (depth > MAX_NESTING_DEPTH) {
+            LOGGER.warning("Maximum nesting depth exceeded: " + MAX_NESTING_DEPTH);
+            parser.skipChildren();
+            sb.append("null");
+            return;
+        }
+
         sb.append("[");
         boolean first = true;
 
@@ -869,24 +996,24 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
             }
             first = false;
 
-            appendJsonValue(parser, sb);
+            appendJsonValue(parser, sb, depth);
         }
 
         sb.append("]");
     }
 
     /**
-     * Appends the current JSON value to the StringBuilder.
+     * Appends the current JSON value to the StringBuilder, tracking nesting depth.
      */
-    private void appendJsonValue(JsonParser parser, StringBuilder sb) {
+    private void appendJsonValue(JsonParser parser, StringBuilder sb, int depth) {
         JsonToken token = parser.currentToken();
 
         switch (token) {
             case START_OBJECT:
-                readJsonObjectToString(parser, sb);
+                readJsonObjectToString(parser, sb, depth + 1);
                 break;
             case START_ARRAY:
-                readJsonArrayToString(parser, sb);
+                readJsonArrayToString(parser, sb, depth + 1);
                 break;
             case VALUE_STRING:
                 sb.append("\"").append(escapeJson(parser.getString())).append("\"");

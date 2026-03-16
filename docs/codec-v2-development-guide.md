@@ -2,9 +2,77 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-03-10
+**Last Updated:** 2026-03-16
 
-**Session Summary (2026-03-10 latest):**
+**Session Summary (2026-03-16 latest):**
+
+**Security Hardening — S-2 through S-6 (continued from previous session):**
+
+Systematic security fixes based on `docs/codec-security-analysis.md`. S-1 was already fixed. This session implemented S-2 through S-6.
+
+**S-2: Nesting Depth Protection** (done in earlier session, included for completeness)
+- `MAX_NESTING_DEPTH=200` depth counter added to all recursive value-reading chains
+- `CodecEObjectDeserializer`: `readCurrentValue()`, `readObjectAsMap()`, `readArrayAsList()` — deferred properties path
+- `AttributeDeserializationEntry`: `readAnyJsonValue()`, `readJsonObjectAsMap()`, `readJsonArrayAsCollection()`, `readJsonObjectToString()`, `readJsonArrayToString()`, `readArrayValue()`, `readNestedArray()` — attribute path
+- Recovery: `parser.skipChildren()` + return null + warning diagnostic (keeps parser consistent)
+- Test: `NestingDepthProtectionTest` — 9 tests
+
+**S-3: Collection Size Guard** (done in earlier session, included for completeness)
+- `MAX_COLLECTION_SIZE=100,000` with `limitExceeded` flag pattern
+- Applied to both `CodecEObjectDeserializer` and `AttributeDeserializationEntry`
+- Recovery: warning emitted once, remaining elements skipped via `skipChildren()`
+- Test: `CollectionSizeProtectionTest` — 7 tests
+
+**S-4: Type Resolution Scoping** ✅ NEW
+- `TypeResolutionHelper.resolveFromSimpleName(String, EPackage)` — scoped to context package only
+- `TypeResolutionHelper.resolveFromClassName(String, EPackage)` — scoped to context package only
+- `TypeResolutionHelper.resolveFromNumeric()` — global scan fallback removed
+- `TypeDeserializationEntry.resolveEClass()` — derives context package from context schema URI or hint EClass; adds warning diagnostic when resolution fails due to missing context
+- Also fixes S-9 (Numeric Classifier ID Ambiguity) — same root cause
+- Updated existing tests: `TypeDeserializationEntryTest` NAME strategy tests now pass hint, `TypeResolutionHelperTest.resolvesByIdWithoutHint` expects null
+- Test: `TypeResolutionScopingTest` — 11 tests
+- Spec updates: `06-type.md` (context schema table, CLASS resolution flow, NUMERIC requirement, type resolution rules), `15-error-handling.md` (§9.3)
+
+**S-5: Reflection Allowlist** ✅ NEW
+- `SAFE_REFLECTION_TARGETS` (13 types) in `AttributeDeserializationEntry`
+- `convertObjectFromString()` checks allowlist before any reflection; rejected types throw `IllegalArgumentException`, caught by caller as warning diagnostic
+- `BigDecimal`, `BigInteger`, `UUID`, `Date` handled by direct code paths before the allowlist check
+- Allowlist: `URI`, `URL`, + 11 `java.time` types
+- Test: `ReflectionAllowlistTest` — 6 tests (was 7, adjusted after removing directly-handled types from set)
+- Spec updates: `15-error-handling.md` (§9.5)
+
+**S-6: Jackson StreamReadConstraints** ✅ NEW
+- `STREAM_READ_CONSTRAINTS` constant in `CodecResource`: nesting 500 (backstop above codec's 200), strings 10 MB, field names 10 KB
+- Applied to all three parsing paths: `CodecJsonFactory` builder, format provider load IOContext, format provider save IOContext
+- Nesting depth set to 500 (not 200) so the codec's own `MAX_NESTING_DEPTH` (200) triggers first with graceful recovery; Jackson acts as hard backstop
+- Test: `StreamReadConstraintsTest` — 6 tests
+- Spec updates: `15-error-handling.md` (§9.6)
+
+*Files changed (S-4):*
+- `org.eclipse.fennec.codec/src/.../util/TypeResolutionHelper.java` — scoped overloads, removed global scan fallbacks
+- `org.eclipse.fennec.codec/src/.../deser/TypeDeserializationEntry.java` — context package derivation, warning diagnostic
+- `org.eclipse.fennec.codec/test/.../deser/TypeResolutionScopingTest.java` — new (11 tests)
+- `org.eclipse.fennec.codec/test/.../deser/TypeDeserializationEntryTest.java` — updated NAME tests
+- `org.eclipse.fennec.codec/test/.../util/TypeResolutionHelperTest.java` — updated resolvesByIdWithoutHint
+
+*Files changed (S-5):*
+- `org.eclipse.fennec.codec/src/.../deser/AttributeDeserializationEntry.java` — `SAFE_REFLECTION_TARGETS`, allowlist check in `convertObjectFromString()`
+- `org.eclipse.fennec.codec/test/.../deser/ReflectionAllowlistTest.java` — new (6 tests)
+
+*Files changed (S-6):*
+- `org.eclipse.fennec.codec/src/.../resource/CodecResource.java` — `STREAM_READ_CONSTRAINTS`, applied to all parsing paths
+- `org.eclipse.fennec.codec/test/.../resource/StreamReadConstraintsTest.java` — new (6 tests)
+
+*Documentation updated:*
+- `docs/codec-security-analysis.md` — S-4, S-5, S-6, S-9 marked as fixed; mitigation plan, configurable limits, design mitigations, BSI mapping, embedder guide (§6.4, §6.9, §6.10, §6.8), testing section all updated
+- `docs/codec-v2-spec/06-type.md` — context schema table, CLASS resolution flow, NUMERIC requirement, type resolution rules
+- `docs/codec-v2-spec/15-error-handling.md` — §9.3 (Type Resolution Scoping), §9.5 (Reflection Allowlist), §9.6 (StreamReadConstraints)
+
+**Next steps:** Security issues S-7 through S-11 remain (S-7 YAML tags safe by default, S-8 CBOR indefinite-length, S-10 URI scheme validation, S-11 custom value handler audit). S-12 through S-15 are accepted risks.
+
+---
+
+**Session Summary (2026-03-10 previous):**
 
 **JSON Schema Inline Refs Option (`OPTION_INLINE_REFS`):**
 
