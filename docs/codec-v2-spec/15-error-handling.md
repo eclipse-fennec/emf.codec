@@ -505,7 +505,111 @@ See [Custom Values](14-custom-values.md) (section 4) for complete context API.
 
 ---
 
-## 9. Option Reference Summary
+## 9. Security Limits
+
+The codec enforces built-in limits to protect against denial-of-service attacks via malicious input.
+
+### 9.1 Nesting Depth Limit
+
+| Property | Value |
+|----------|-------|
+| **Constant** | `CodecEObjectDeserializer.MAX_NESTING_DEPTH` |
+| **Default** | 200 |
+| **Scope** | All recursive value reading during deserialization |
+| **Recovery** | `parser.skipChildren()`, value dropped, WARNING diagnostic added |
+
+Deeply nested JSON/YAML/CBOR structures (objects within objects, arrays within arrays, or mixed) are truncated at 200 levels of nesting. When the limit is exceeded:
+
+1. The remaining nested content is skipped via `parser.skipChildren()` to keep the parser in a consistent state
+2. The value is dropped (`null`)
+3. A warning diagnostic with source `CodecEObjectDeserializer` or `AttributeDeserializationEntry` is added to the resource
+4. Deserialization continues — the EObject is still produced, only the deeply nested value is missing
+
+The limit protects two deserialization paths:
+- **Deferred properties** — values appearing before `_type` in JSON, read by `CodecEObjectDeserializer.readCurrentValue()`
+- **EJavaObject / JSON-to-String attributes** — values read by `AttributeDeserializationEntry.readAnyJsonValue()` and `readJsonStructureAsString()`
+
+**CWE references:** CWE-674 (Uncontrolled Recursion), CWE-400 (Resource Exhaustion).
+
+### 9.2 Collection Size Limit
+
+| Property | Value |
+|----------|-------|
+| **Constant** | `CodecEObjectDeserializer.MAX_COLLECTION_SIZE` |
+| **Default** | 100,000 |
+| **Scope** | All collection-accumulating loops during recursive value reading |
+| **Recovery** | Remaining elements skipped, WARNING diagnostic added, truncated collection returned |
+
+Arrays and objects with more than 100,000 elements are truncated during deserialization. When the limit is exceeded:
+
+1. A warning diagnostic is emitted once
+2. Remaining elements are skipped via `parser.skipChildren()` without accumulating
+3. The loop drains to the matching END_ARRAY/END_OBJECT
+4. The truncated collection (with elements read so far) is returned
+
+The limit applies to the same paths as the nesting depth limit (deferred properties and EJavaObject attributes).
+
+**CWE references:** CWE-400 (Resource Exhaustion), CWE-770 (Allocation Without Limits).
+
+### 9.3 Type Resolution Scoping
+
+| Property | Value |
+|----------|-------|
+| **Strategies affected** | `NAME`, `CLASS`, `NUMERIC` |
+| **Requirement** | Schema hint (`CODEC_ROOT_SCHEMA` or `CODEC_ROOT_TYPE`) |
+| **Scope** | `TypeResolutionHelper`, `TypeDeserializationEntry` |
+| **Recovery** | Resolution returns `null`, warning diagnostic added to resource |
+
+Non-URI type strategies resolve type values within a **scoped context package** derived from the schema hint. Without a schema hint, resolution fails instead of scanning all registered EPackages. This prevents type confusion when multiple packages define classes with the same name or overlapping classifier IDs.
+
+The `URI` strategy (default) is not affected — full URIs are always unambiguous.
+
+> **Deserialization requirement:** When using `NAME`, `CLASS`, or `NUMERIC` strategy, always provide a schema hint via `CODEC_ROOT_SCHEMA` or `CODEC_ROOT_TYPE` load option.
+
+### 9.4 BSON Payload Size Limit
+
+| Property | Value |
+|----------|-------|
+| **Constant** | `CodecOptions.CODEC_MAX_PAYLOAD_SIZE` |
+| **Default** | 100 MB |
+| **Scope** | BSON format provider |
+| **Recovery** | `IOException` thrown before decoding |
+
+See the [Security Analysis](../codec-security-analysis.md) for details.
+
+### 9.5 Reflection Allowlist for Type Conversion
+
+| Property | Value |
+|----------|-------|
+| **Constant** | `AttributeDeserializationEntry.SAFE_REFLECTION_TARGETS` |
+| **Size** | 13 types (+ 4 handled by direct code paths) |
+| **Scope** | `convertObjectFromString()` in attribute deserialization |
+| **Recovery** | `IllegalArgumentException` → warning diagnostic, element skipped |
+
+When deserializing array attributes with custom component types (e.g., `Date[]`, `UUID[]`), the codec uses reflection to invoke `String` constructors or `valueOf`/`parse` static methods. Only types on the `SAFE_REFLECTION_TARGETS` allowlist are permitted. All other types are rejected with a warning diagnostic. `BigDecimal`, `BigInteger`, `UUID`, and `Date` are handled by direct code paths before the allowlist check. The allowlist contains: `URI`, `URL`, and 11 `java.time` types (`Instant`, `LocalDate`, `LocalTime`, `LocalDateTime`, `OffsetDateTime`, `ZonedDateTime`, `Duration`, `Period`, `Year`, `YearMonth`, `MonthDay`).
+
+### 9.6 Jackson StreamReadConstraints
+
+| Property | Value |
+|----------|-------|
+| **Constant** | `CodecResource.STREAM_READ_CONSTRAINTS` |
+| **Max nesting depth** | 500 (Jackson default: 1000) — backstop above codec's own 200 limit |
+| **Max string length** | 10 MB (Jackson default: 20 MB) |
+| **Max field name length** | 10 KB (Jackson default: 50 KB) |
+| **Scope** | All JSON/YAML/CBOR/BSON parsing via `CodecResource` |
+| **Recovery** | Jackson throws exception before codec processing |
+
+The codec configures Jackson's `StreamReadConstraints` with tighter limits than the 3.1.0 defaults. These limits are applied at the Jackson parser level, providing a first line of defense before the codec's own limits (nesting depth, collection size) are checked. The constraints are applied to:
+- Default JSON path (via `CodecJsonFactory` builder)
+- Format provider load path (`doLoadWithFormat`)
+- Format provider save path (`doSaveWithFormat`)
+
+**CWE reference:** CWE-400 (Resource Exhaustion).
+
+---
+
+## 10. Option Reference Summary
+
 
 | Option Key | Type | Default | Description |
 |------------|------|---------|-------------|

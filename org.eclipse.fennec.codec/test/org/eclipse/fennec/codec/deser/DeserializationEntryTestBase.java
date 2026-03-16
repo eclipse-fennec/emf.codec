@@ -35,7 +35,7 @@ import tools.jackson.databind.ObjectMapper;
  * Uses real EMF objects and real JSON parsing for more realistic testing.
  * </p>
  */
-abstract class DeserializationEntryTestBase {
+public abstract class DeserializationEntryTestBase {
 
     protected static final String TEST_ECORE = "test-deserialization.ecore";
 

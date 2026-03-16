@@ -268,7 +268,7 @@ The NUMERIC strategy uses EMF classifier IDs instead of type names for compactne
 
 > **Warning:** Classifier IDs are positional and can change when the model evolves. See [Global Options - NUMERIC Strategy](05-global-options.md#2-numeric-strategy) for details.
 
-> **Deserialization requirement:** NUMERIC strategy **requires** a schema hint (`CODEC_ROOT_SCHEMA` or `CODEC_ROOT_TYPE`) for deserialization. Classifier IDs are package-specific - without knowing which package, the ID cannot be resolved to an EClass.
+> **Deserialization requirement:** NUMERIC strategy **requires** a schema hint (`CODEC_ROOT_SCHEMA` or `CODEC_ROOT_TYPE`) for deserialization. Classifier IDs are package-specific — without knowing which package, the ID cannot be resolved to an EClass. Without a hint, resolution fails with a WARNING diagnostic (S-4: no global EPackage scan).
 
 ---
 
@@ -1057,11 +1057,10 @@ This provides **two benefits**:
 | `CODEC_ROOT_SCHEMA` | 1 (highest) | Explicitly provided schema URI |
 | `CODEC_ROOT_TYPE` | 2 | Extracted from hint EClass's package |
 | First full URI in content | 3 | Smart compression: schema from root's `_type` |
-| Search all packages | 4 (lowest) | Fallback, non-deterministic! |
 
-> **Warning:** Without a context schema, NAME strategy searches all registered packages for a matching class name. This is **non-deterministic** if multiple packages contain classes with the same name.
+> **Security (S-4):** Without a context schema, NAME, CLASS, and NUMERIC strategies **fail with a warning diagnostic** instead of scanning all registered EPackages. This prevents type confusion when multiple packages define classes with the same name. Always provide `CODEC_ROOT_SCHEMA` or `CODEC_ROOT_TYPE` when using these strategies.
 
-NAME strategy uses `MetadataIndexReader.findByClassName(nsURI, className)` for context-aware lookup and `findAllByClassName(className)` for global search. See [CLASS Strategy Resolution](#645-class-strategy-resolution) for the full MetadataIndex API.
+NAME strategy uses `MetadataIndexReader.findByClassName(nsURI, className)` for context-aware lookup. See [CLASS Strategy Resolution](#645-class-strategy-resolution) for the full MetadataIndex API.
 
 #### 6.4.4 Smart Compression
 
@@ -1110,10 +1109,8 @@ CLASS strategy resolution uses the **MetadataService** to lookup EClass by `inst
    → MetadataService.findByInstanceClassName(nsUri, className)
    → If found → RESOLVED ✓
 4. No hint or not found in context package:
-   → MetadataService.findAllByInstanceClassName(className)
-   → If exactly ONE match → RESOLVED ✓
-   → If ZERO matches → ERROR ("EClass not found for instanceClassName: {className}")
-   → If MULTIPLE matches → ERROR (see "Ambiguous Resolution" below)
+   → WARNING diagnostic: "CLASS strategy requires CODEC_ROOT_SCHEMA or CODEC_ROOT_TYPE"
+   → Resolution returns null (S-4: no global EPackage scan)
 ```
 
 **NESTED OBJECT:**
@@ -1121,7 +1118,8 @@ CLASS strategy resolution uses the **MetadataService** to lookup EClass by `inst
 1. Get context from EReference.getEReferenceType().getEPackage().getNsURI()
 2. MetadataService.findByInstanceClassName(contextNsUri, className)
 3. If found → RESOLVED ✓
-4. If not found → fall back to full registry search (same as root step 4)
+4. If not found in context package:
+   → WARNING diagnostic: resolution fails (S-4: no global EPackage scan)
 ```
 
 ##### Ambiguous Resolution (Multiple Matches)
@@ -1194,7 +1192,7 @@ The index is built automatically when EPackages are registered via `MetadataServ
 | Content has `_type` | `CODEC_ROOT_TYPE` set | Behavior |
 |---------------------|-------------------------|----------|
 | Yes (full URI) | No | Use content type, establish context schema |
-| Yes (simple name) | No | Resolve via context schema or search all packages |
+| Yes (simple name) | No | Resolve via context schema; WARNING if no schema (S-4) |
 | Yes | Yes | Use content type, context schema from hint |
 | No | Yes | Use hint type, context schema from hint |
 | No | No | **ERROR**: Cannot determine type |

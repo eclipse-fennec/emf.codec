@@ -86,6 +86,25 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     /** Default schema key for PLAIN SCHEMA_AND_TYPE format */
     private static final String DEFAULT_SCHEMA_KEY = "_schema";
 
+    /**
+     * Maximum nesting depth for recursive value reading (readCurrentValue, readObjectAsMap, readArrayAsList).
+     * Protects against StackOverflowError from deeply nested JSON structures.
+     * <p>
+     * Security: CWE-674 (Uncontrolled Recursion), CWE-400 (Resource Exhaustion).
+     * </p>
+     */
+    static final int MAX_NESTING_DEPTH = 200;
+
+    /**
+     * Maximum number of elements allowed in a single collection (array or object)
+     * during recursive value reading (readArrayAsList, readObjectAsMap).
+     * Protects against OutOfMemoryError from payloads with millions of elements.
+     * <p>
+     * Security: CWE-400 (Resource Exhaustion), CWE-770 (Allocation Without Limits).
+     * </p>
+     */
+    static final int MAX_COLLECTION_SIZE = 100_000;
+
     private final EffectiveCodecConfig config;
     private final CodecEntryContext entryContext;
 
@@ -226,7 +245,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 
             // If we don't have the type yet, defer this property
             if (resolvedEClass == null) {
-                deferredProperties.put(propertyName, readCurrentValue(parser));
+                deferredProperties.put(propertyName, readCurrentValue(parser, ctxt));
                 continue;
             }
 
@@ -506,8 +525,36 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 
     /**
      * Reads the current value from the parser into a simple Java object.
+     * Entry point that starts depth tracking at 0.
      */
-    private Object readCurrentValue(JsonParser parser) {
+    private Object readCurrentValue(JsonParser parser, DeserializationContext ctxt) {
+        return readCurrentValue(parser, ctxt, 0);
+    }
+
+    /**
+     * Reads the current value from the parser into a simple Java object,
+     * tracking nesting depth to prevent stack overflow from malicious input.
+     * <p>
+     * When the depth limit is exceeded, the remaining nested content is skipped
+     * via {@code parser.skipChildren()} to keep the parser in a consistent state,
+     * and {@code null} is returned. The recursion then unwinds naturally as each
+     * level finds its matching END_ARRAY/END_OBJECT.
+     * </p>
+     *
+     * @param parser the JSON parser
+     * @param ctxt the deserialization context (for diagnostics)
+     * @param depth current nesting depth
+     * @return the parsed value, or null if depth exceeded or unsupported token
+     */
+    private Object readCurrentValue(JsonParser parser, DeserializationContext ctxt, int depth) {
+        if (depth > MAX_NESTING_DEPTH) {
+            String msg = "Maximum nesting depth exceeded: " + MAX_NESTING_DEPTH;
+            LOGGER.warning(msg);
+            ContextHelper.addWarning(ctxt, msg, parser, "CodecEObjectDeserializer");
+            parser.skipChildren();
+            return null;
+        }
+
         JsonToken token = parser.currentToken();
 
         switch (token) {
@@ -524,24 +571,41 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             case VALUE_NULL:
                 return null;
             case START_OBJECT:
-                return readObjectAsMap(parser);
+                return readObjectAsMap(parser, ctxt, depth + 1);
             case START_ARRAY:
-                return readArrayAsList(parser);
+                return readArrayAsList(parser, ctxt, depth + 1);
             default:
                 return null;
         }
     }
 
     /**
-     * Reads a JSON object into a Map.
+     * Reads a JSON object into a Map, tracking nesting depth.
+     *
+     * @param parser the JSON parser
+     * @param ctxt the deserialization context (for diagnostics)
+     * @param depth current nesting depth
      */
-    private Map<String, Object> readObjectAsMap(JsonParser parser) {
+    private Map<String, Object> readObjectAsMap(JsonParser parser, DeserializationContext ctxt, int depth) {
         Map<String, Object> result = new LinkedHashMap<>();
+        boolean limitExceeded = false;
 
         while (parser.nextToken() != JsonToken.END_OBJECT) {
+            if (!limitExceeded && result.size() >= MAX_COLLECTION_SIZE) {
+                String msg = "Object exceeds maximum size: " + MAX_COLLECTION_SIZE;
+                LOGGER.warning(msg);
+                ContextHelper.addWarning(ctxt, msg, parser, "CodecEObjectDeserializer");
+                limitExceeded = true;
+            }
+            if (limitExceeded) {
+                // Skip remaining entries without accumulating
+                parser.nextToken(); // Move to value
+                parser.skipChildren();
+                continue;
+            }
             String fieldName = parser.currentName();
             parser.nextToken(); // Move to value
-            Object value = readCurrentValue(parser);
+            Object value = readCurrentValue(parser, ctxt, depth);
             result.put(fieldName, value);
         }
 
@@ -549,13 +613,29 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     }
 
     /**
-     * Reads a JSON array into a List.
+     * Reads a JSON array into a List, tracking nesting depth and collection size.
+     *
+     * @param parser the JSON parser
+     * @param ctxt the deserialization context (for diagnostics)
+     * @param depth current nesting depth
      */
-    private List<Object> readArrayAsList(JsonParser parser) {
+    private List<Object> readArrayAsList(JsonParser parser, DeserializationContext ctxt, int depth) {
         List<Object> result = new ArrayList<>();
+        boolean limitExceeded = false;
 
         while (parser.nextToken() != JsonToken.END_ARRAY) {
-            Object value = readCurrentValue(parser);
+            if (!limitExceeded && result.size() >= MAX_COLLECTION_SIZE) {
+                String msg = "Array exceeds maximum size: " + MAX_COLLECTION_SIZE;
+                LOGGER.warning(msg);
+                ContextHelper.addWarning(ctxt, msg, parser, "CodecEObjectDeserializer");
+                limitExceeded = true;
+            }
+            if (limitExceeded) {
+                // Skip remaining elements without accumulating
+                parser.skipChildren();
+                continue;
+            }
+            Object value = readCurrentValue(parser, ctxt, depth);
             result.add(value);
         }
 

@@ -74,7 +74,7 @@ The codec is a **data format translation layer** — it converts between EMF obj
 
 ## 2. Attack Vectors
 
-### S-1: BSON Unbounded Memory Allocation
+### S-1: BSON Unbounded Memory Allocation ✅ FIXED
 
 | | |
 |---|---|
@@ -90,7 +90,7 @@ The codec is a **data format translation layer** — it converts between EMF obj
 
 ---
 
-### S-2: Uncontrolled JSON/YAML/CBOR Nesting Depth
+### S-2: Uncontrolled JSON/YAML/CBOR Nesting Depth ✅ FIXED
 
 | | |
 |---|---|
@@ -98,15 +98,15 @@ The codec is a **data format translation layer** — it converts between EMF obj
 | **Vector** | Deeply nested JSON structures (10,000+ levels) — `readCurrentValue()` recurses without depth tracking |
 | **Impact** | StackOverflowError, Denial of Service |
 | **Prerequisite** | Attacker controls input stream |
-| **File** | `org.eclipse.fennec.codec/src/org/eclipse/fennec/codec/deser/CodecEObjectDeserializer.java` — `readCurrentValue()`, `readArrayAsList()`, `readObjectAsMap()` |
+| **File** | `org.eclipse.fennec.codec/src/org/eclipse/fennec/codec/deser/CodecEObjectDeserializer.java` — `readCurrentValue()`, `readArrayAsList()`, `readObjectAsMap()`; `org.eclipse.fennec.codec/src/org/eclipse/fennec/codec/deser/AttributeDeserializationEntry.java` — `readAnyJsonValue()`, `readJsonArrayAsCollection()`, `readJsonObjectAsMap()`, `readJsonObjectToString()`, `readJsonArrayToString()`, `readArrayValue()` |
 
-**Analysis:** The `readCurrentValue()` method recursively calls `readObjectAsMap()` and `readArrayAsList()` without tracking or limiting nesting depth. While Jackson 3.1.0 has a default nesting limit of 1000, the codec does not configure `StreamReadConstraints` and relies entirely on upstream defaults.
+**Analysis:** Previously, recursive value-reading methods had no depth tracking. Fixed by adding a `MAX_NESTING_DEPTH` (200) limit to all recursive chains in both `CodecEObjectDeserializer` (deferred properties path) and `AttributeDeserializationEntry` (EJavaObject attributes, JSON-to-String conversion, multi-dimensional arrays). When the depth limit is exceeded, `parser.skipChildren()` is called to keep the parser in a consistent state, the value is dropped (returns `null`), and a warning diagnostic is added to the resource. The recursion then unwinds naturally as each level finds its matching END_ARRAY/END_OBJECT.
 
 **BSI reference:** CWE-674 (Uncontrolled Recursion), CWE-400 (Resource Exhaustion)
 
 ---
 
-### S-3: Unbounded Array/Object Size in Deserialization
+### S-3: Unbounded Array/Object Size in Deserialization ✅ FIXED
 
 | | |
 |---|---|
@@ -114,15 +114,15 @@ The codec is a **data format translation layer** — it converts between EMF obj
 | **Vector** | JSON array with millions of elements — `readArrayAsList()` has no size limit |
 | **Impact** | OutOfMemoryError, Denial of Service |
 | **Prerequisite** | Attacker controls input stream |
-| **File** | `org.eclipse.fennec.codec/src/org/eclipse/fennec/codec/deser/CodecEObjectDeserializer.java` — `readArrayAsList()`, `readObjectAsMap()` |
+| **File** | `org.eclipse.fennec.codec/src/org/eclipse/fennec/codec/deser/CodecEObjectDeserializer.java` — `readArrayAsList()`, `readObjectAsMap()`; `org.eclipse.fennec.codec/src/org/eclipse/fennec/codec/deser/AttributeDeserializationEntry.java` — `readJsonArrayAsCollection()`, `readJsonObjectAsMap()` |
 
-**Analysis:** Both `readArrayAsList()` and `readObjectAsMap()` accumulate elements in `ArrayList` / `LinkedHashMap` without any size check. A payload with millions of array elements causes unbounded heap allocation.
+**Analysis:** Previously, collection-accumulating methods had no size check. Fixed by adding a `MAX_COLLECTION_SIZE` (100,000) limit to all recursive value-reading loops in both `CodecEObjectDeserializer` (deferred properties path) and `AttributeDeserializationEntry` (EJavaObject attributes). When the limit is exceeded, the warning is emitted once and remaining elements are skipped via `parser.skipChildren()` without accumulation, then the loop drains to the matching end token. The truncated collection is returned with the elements read so far.
 
 **BSI reference:** CWE-400 (Resource Exhaustion), CWE-770 (Allocation Without Limits)
 
 ---
 
-### S-4: Type Confusion via Unrestricted EPackage Scanning
+### S-4: Type Confusion via Unrestricted EPackage Scanning ✅ FIXED
 
 | | |
 |---|---|
@@ -134,11 +134,13 @@ The codec is a **data format translation layer** — it converts between EMF obj
 
 **Analysis:** When using the `SIMPLE_NAME` type strategy, the resolver iterates **all** registered EPackages and returns the **first match**. The iteration order is undefined (`EPackage.Registry.INSTANCE.keySet()`), making resolution non-deterministic when multiple packages define classes with the same name.
 
+**Fix:** All three non-URI type strategies (NAME, CLASS, NUMERIC) now require a schema hint (`CODEC_ROOT_SCHEMA` or `CODEC_ROOT_TYPE`) to scope resolution. Without a hint, resolution fails with a warning diagnostic on the resource instead of scanning all registered EPackages. The scoped overloads `resolveFromSimpleName(String, EPackage)`, `resolveFromClassName(String, EPackage)` are called from `TypeDeserializationEntry`, which derives the context package from the deserialization context schema URI or from the hint EClass.
+
 **BSI reference:** CWE-843 (Access of Resource Using Incompatible Type)
 
 ---
 
-### S-5: Reflection-Based Object Instantiation from User Input
+### S-5: Reflection-Based Object Instantiation from User Input ✅ FIXED
 
 | | |
 |---|---|
@@ -150,11 +152,13 @@ The codec is a **data format translation layer** — it converts between EMF obj
 
 **Analysis:** The fallback conversion path uses reflection to invoke `String` constructors, `valueOf()`, and `parse()` static methods on the target Java class. While `targetType` comes from the EDataType's `instanceClass`, a malicious ECORE model could define a data type whose instance class has side effects in its constructor.
 
+**Fix:** Added `SAFE_REFLECTION_TARGETS` allowlist (13 types: `URI`, `URL`, and 11 `java.time` types). `BigDecimal`, `BigInteger`, `UUID`, and `Date` are handled by direct code paths before the check. The `convertObjectFromString()` method now rejects types not on the allowlist before attempting any reflection. Rejected types throw `IllegalArgumentException`, which is caught by the caller and converted to a warning diagnostic. All other types must go through `EcoreUtil.createFromString()` which is EMF-controlled.
+
 **BSI reference:** CWE-470 (Use of Externally-Controlled Input to Select Classes or Code)
 
 ---
 
-### S-6: Missing Jackson StreamReadConstraints Configuration
+### S-6: Missing Jackson StreamReadConstraints Configuration ✅ FIXED
 
 | | |
 |---|---|
@@ -165,6 +169,8 @@ The codec is a **data format translation layer** — it converts between EMF obj
 | **File** | `org.eclipse.fennec.codec/src/org/eclipse/fennec/codec/resource/CodecResource.java` — `doLoadWithFormat()`, `doSaveWithFormat()` |
 
 **Analysis:** `StreamReadConstraints.defaults()` is used without customization. Jackson 3.1.0 defaults allow: max nesting depth 1000, max string length 20MB, max field name length 50KB. These are generous for most codec use cases and should be tightened.
+
+**Fix:** Replaced `StreamReadConstraints.defaults()` with hardened `STREAM_READ_CONSTRAINTS` constant in `CodecResource`. Applied to all three parsing paths: default JSON (via `CodecJsonFactory` builder), format provider load, and format provider save. Limits: nesting depth 200, string length 10 MB, field name length 10 KB.
 
 **BSI reference:** CWE-400 (Resource Exhaustion)
 
@@ -202,7 +208,7 @@ The codec is a **data format translation layer** — it converts between EMF obj
 
 ---
 
-### S-9: Numeric Classifier ID Ambiguity
+### S-9: Numeric Classifier ID Ambiguity ✅ FIXED (by S-4)
 
 | | |
 |---|---|
@@ -213,6 +219,8 @@ The codec is a **data format translation layer** — it converts between EMF obj
 | **File** | `org.eclipse.fennec.codec/src/org/eclipse/fennec/codec/util/TypeResolutionHelper.java` — `resolveFromNumeric()` |
 
 **Analysis:** When using `NUMERIC` type strategy without a context schema URI, the fallback scans all registered packages in undefined order. Classifier IDs are only unique within a single EPackage.
+
+**Fix:** The global scan fallback in `resolveFromNumeric()` has been removed as part of the S-4 fix. NUMERIC strategy now requires a hint EClass or context schema URI; without either, resolution fails with a warning.
 
 **BSI reference:** CWE-843 (Access of Resource Using Incompatible Type)
 
@@ -321,6 +329,11 @@ The codec is a **data format translation layer** — it converts between EMF obj
 | Limit | Default | Protects | Status |
 |-------|---------|----------|--------|
 | BSON max payload size | 100 MB (`CodecOptions.DEFAULT_MAX_PAYLOAD_SIZE`) | S-1 | ✅ Implemented |
+| Max nesting depth | 200 (`CodecEObjectDeserializer.MAX_NESTING_DEPTH`) | S-2 | ✅ Implemented |
+| Max collection size | 100,000 (`CodecEObjectDeserializer.MAX_COLLECTION_SIZE`) | S-3 | ✅ Implemented |
+| Jackson max nesting depth | 500 (`CodecResource.STREAM_READ_CONSTRAINTS`) — backstop above codec's own 200 | S-6 | ✅ Implemented |
+| Jackson max string length | 10 MB (`CodecResource.STREAM_READ_CONSTRAINTS`) | S-6 | ✅ Implemented |
+| Jackson max field name length | 10 KB (`CodecResource.STREAM_READ_CONSTRAINTS`) | S-6 | ✅ Implemented |
 
 ### 3.2 Design-Level Mitigations
 
@@ -335,7 +348,12 @@ The codec is a **data format translation layer** — it converts between EMF obj
 | ConcurrentHashMap in registry | Implemented | `CodecValueRegistry` uses thread-safe maps |
 | Registry snapshot on use | Implemented | `CodecResourceFactoryComponent` copies registry to avoid concurrent modification |
 | Jackson 3.1.0 safe defaults | By dependency | Polymorphic type handling disabled by default; YAML type tags blocked |
+| Jackson StreamReadConstraints | Implemented | Hardened limits: nesting 500 (backstop), strings 10 MB, field names 10 KB (S-6) |
 | BSON payload size limit | Implemented | `readNBytes()` with configurable max + try-with-resources (S-1, S-13) |
+| Nesting depth limit | Implemented | `MAX_NESTING_DEPTH=200` in deserializer + attribute entry with `skipChildren()` recovery (S-2) |
+| Collection size limit | Implemented | `MAX_COLLECTION_SIZE=100,000` in deserializer + attribute entry; remaining elements skipped (S-3) |
+| Type resolution scoping | Implemented | NAME, CLASS, NUMERIC strategies scoped to context package; no global EPackage scan (S-4, S-9) |
+| Reflection allowlist | Implemented | `SAFE_REFLECTION_TARGETS` (13 types) gates `convertObjectFromString()` reflection (S-5) |
 
 ### 3.2 Format-Specific Safety Properties
 
@@ -366,112 +384,73 @@ The codec is a **data format translation layer** — it converts between EMF obj
 
 ---
 
-### CRITICAL Priority
-
-#### S-2: Nesting Depth Protection in Deserializer
+#### S-2: Nesting Depth Protection in Deserializer ✅ IMPLEMENTED
 
 **Problem:** `readCurrentValue()` recurses without depth tracking.
 
-**Solution:** Add depth counter to `readCurrentValue()`, `readArrayAsList()`, `readObjectAsMap()`:
+**Solution:** `MAX_NESTING_DEPTH` (200) — depth counter added to all recursive value-reading chains in `CodecEObjectDeserializer` (deferred properties) and `AttributeDeserializationEntry` (EJavaObject attributes, JSON-to-String conversion, multi-dimensional arrays). When the limit is exceeded, `parser.skipChildren()` is called to properly consume the remaining nested content (keeping the parser consistent), the value is dropped (`null`), and a warning diagnostic is added to the resource. The recursion unwinds naturally as each level finds its matching END_ARRAY/END_OBJECT.
 
-```java
-private static final int MAX_NESTING_DEPTH = 200;
-
-private Object readCurrentValue(JsonParser parser, int depth) {
-    if (depth > MAX_NESTING_DEPTH) {
-        throw new CodecException("Maximum nesting depth exceeded: " + MAX_NESTING_DEPTH);
-    }
-    // ... existing logic with depth+1 passed to recursive calls
-}
-```
+**Tests:** `NestingDepthProtectionTest` — 9 tests:
+- `AttributePath`: deeply nested objects, arrays, mixed nesting → warning diagnostic
+- `AttributePath`: objects within limit → no diagnostic
+- `DeferredPath`: deeply nested deferred objects, arrays → warning diagnostic, EObject still produced
+- `DeferredPath`: deferred within limit → no diagnostic
+- `Constants`: MAX_NESTING_DEPTH value, shared between classes
 
 ---
+
+### CRITICAL Priority
+
 
 ### HIGH Priority
 
-#### S-3: Collection Size Guard in Deserializer
+#### S-3: Collection Size Guard in Deserializer ✅ IMPLEMENTED
 
 **Problem:** `readArrayAsList()` and `readObjectAsMap()` accumulate without limit.
 
-**Solution:** Add configurable maximum element count:
+**Solution:** `MAX_COLLECTION_SIZE` (100,000) — size check added to all collection-accumulating loops in `CodecEObjectDeserializer` (deferred properties) and `AttributeDeserializationEntry` (EJavaObject attributes). When the limit is exceeded, the warning is emitted once and remaining elements are skipped via `parser.skipChildren()` without accumulation. The loop continues to drain tokens until the matching end token, keeping the parser consistent. The truncated collection is returned with elements read so far.
 
-```java
-private List<Object> readArrayAsList(JsonParser parser, int depth) {
-    List<Object> result = new ArrayList<>();
-    while (parser.nextToken() != JsonToken.END_ARRAY) {
-        if (result.size() >= maxCollectionSize) {
-            throw new CodecException("Array exceeds maximum size: " + maxCollectionSize);
-        }
-        result.add(readCurrentValue(parser, depth + 1));
-    }
-    return result;
-}
-```
+**Tests:** `CollectionSizeProtectionTest` — 7 tests:
+- `AttributePath`: oversized array, oversized object → warning diagnostic; small array → no diagnostic
+- `DeferredPath`: oversized deferred array, oversized deferred object → warning diagnostic; EObject still produced
+- `Constants`: MAX_COLLECTION_SIZE value, shared between classes
 
 ---
 
-#### S-4: Type Resolution Scoping
+#### S-4: Type Resolution Scoping ✅ IMPLEMENTED
 
-**Problem:** Simple name resolution scans all registered EPackages non-deterministically.
+**Problem:** NAME, CLASS, and NUMERIC type strategies scan all registered EPackages non-deterministically.
 
-**Solution:** Scope type resolution to the context EPackage or an explicit allowlist:
+**Solution:** Scoped resolution — all three non-URI strategies now require a context package derived from a schema hint. `TypeResolutionHelper` provides scoped overloads: `resolveFromSimpleName(String, EPackage)`, `resolveFromClassName(String, EPackage)`. `resolveFromNumeric()` had its global scan fallback removed. `TypeDeserializationEntry.resolveEClass()` derives the context package from the deserialization context schema URI or from the hint EClass, and adds a warning diagnostic to the resource when resolution fails due to missing context.
 
-```java
-// Preferred: resolve within context package first
-public static EClass resolveFromSimpleName(String className, EPackage contextPackage) {
-    // 1. Try context package
-    EClassifier classifier = contextPackage.getEClassifier(className);
-    if (classifier instanceof EClass ec) return ec;
-    // 2. Try sub-packages of context
-    // 3. Only fall back to global scan if explicitly enabled
-}
-```
+**Tests:** `TypeResolutionScopingTest` — 11 tests:
+- `HelperScoping`: resolveFromSimpleName with/without context, resolveFromClassName with/without context, resolveFromNumeric with/without hints
+- `NameStrategyE2E`: NAME with CODEC_ROOT_TYPE resolves, NAME without hint produces warning
+- `NumericStrategyE2E`: NUMERIC with CODEC_ROOT_TYPE resolves
 
 ---
 
-#### S-5: Restrict Reflection Targets
+#### S-5: Restrict Reflection Targets ✅ IMPLEMENTED
 
 **Problem:** `convertObjectFromString()` invokes constructors/methods on arbitrary classes.
 
-**Solution:** Allowlist safe target types for reflection-based conversion:
+**Solution:** `SAFE_REFLECTION_TARGETS` allowlist (13 types) in `AttributeDeserializationEntry`. The `convertObjectFromString()` method checks the allowlist before any reflection. Types not on the list throw `IllegalArgumentException`, caught by the caller as a warning diagnostic. Safe types for reflection: `URI`, `URL`, `Instant`, `LocalDate`, `LocalTime`, `LocalDateTime`, `OffsetDateTime`, `ZonedDateTime`, `Duration`, `Period`, `Year`, `YearMonth`, `MonthDay`. (`BigDecimal`, `BigInteger`, `UUID`, `Date` are handled by direct code paths before the allowlist check.)
 
-```java
-private static final Set<Class<?>> SAFE_CONVERSION_TARGETS = Set.of(
-    java.util.UUID.class,
-    java.math.BigDecimal.class,
-    java.math.BigInteger.class,
-    java.net.URI.class,
-    java.time.Instant.class,
-    java.time.LocalDate.class,
-    java.time.LocalDateTime.class
-);
-
-private Object convertObjectFromString(String stringValue, Class<?> targetType) {
-    if (!SAFE_CONVERSION_TARGETS.contains(targetType)) {
-        // Fall back to EcoreUtil.createFromString() which is EMF-controlled
-        return EcoreUtil.createFromString(eDataType, stringValue);
-    }
-    // ... existing reflection logic
-}
-```
+**Tests:** `ReflectionAllowlistTest` — 6 tests:
+- `AllowlistContents`: standard value types, java.time types, dangerous types excluded, Object/String excluded, allowlist size
+- `E2EBlocked`: arbitrary type not in allowlist
 
 ---
 
-#### S-6: Configure StreamReadConstraints
+#### S-6: Configure StreamReadConstraints ✅ IMPLEMENTED
 
 **Problem:** Default Jackson constraints are too generous.
 
-**Solution:** Apply tighter constraints in `CodecResource`:
+**Solution:** `STREAM_READ_CONSTRAINTS` constant in `CodecResource` with hardened limits: nesting depth 500 (was 1000, backstop above codec's own 200 limit), string length 10 MB (was 20 MB), field name length 10 KB (was 50 KB). Applied to all three parsing paths: default JSON factory, format provider load, and format provider save.
 
-```java
-StreamReadConstraints constraints = StreamReadConstraints.builder()
-    .maxNestingDepth(200)
-    .maxStringLength(10_000_000)    // 10MB
-    .maxNameLength(10_000)          // 10KB
-    .build();
-```
-
-Make configurable via codec load/save options.
+**Tests:** `StreamReadConstraintsTest` — 6 tests:
+- `ConstraintValues`: non-null, nesting depth 200, string length 10 MB, name length 10 KB, tighter than defaults
+- `OversizedFieldName`: field name exceeding 10 KB rejected
 
 ---
 
@@ -497,15 +476,11 @@ void yamlTypeTag_rejected() {
 
 ---
 
-#### S-9: Numeric Type Resolution Scoping
+#### S-9: Numeric Type Resolution Scoping ✅ IMPLEMENTED (by S-4)
 
-**Solution:** Require context schema URI for numeric resolution; reject global fallback:
+**Problem:** Numeric classifier ID resolution falls back to scanning all packages.
 
-```java
-if (contextSchemaUri == null) {
-    throw new CodecException("Numeric type resolution requires a context schema URI");
-}
-```
+**Solution:** Fixed as part of S-4 — the global scan fallback in `resolveFromNumeric()` has been removed. NUMERIC strategy now requires a hint EClass or context schema URI.
 
 ---
 
@@ -584,10 +559,10 @@ Mapping of identified risks and mitigations to the requirement areas of [BSI TR-
 
 | TR Requirement | Implementation | Status |
 |----------------|----------------|--------|
-| Stream size limits | BSON: `maxPayloadSize` (default 100 MB) (S-1); JSON/YAML/CBOR: Jackson defaults | ✅ Implemented |
-| Nesting depth limits | Deserializer: **missing** (S-2); Jackson: default 1000 | Partial |
-| Collection size limits | Deserializer: **missing** (S-3) | Missing |
-| Type value validation | Simple name resolution unbounded (S-4) | Missing |
+| Stream size limits | BSON: `maxPayloadSize` (default 100 MB) (S-1); JSON/YAML/CBOR: Jackson defaults | ✅ Implemented (S-1) |
+| Nesting depth limits | Deserializer: `MAX_NESTING_DEPTH=200` (S-2); Jackson: default 1000 | ✅ Implemented |
+| Collection size limits | Deserializer: `MAX_COLLECTION_SIZE=100,000` (S-3) | ✅ Implemented |
+| Type value validation | Scoped resolution via context package (S-4) | ✅ Implemented |
 | URI scheme validation | Proxy URIs not scheme-validated (S-10) | Missing |
 | YAML type tag filtering | Safe by Jackson 3.1.0 default (S-7) | By dependency |
 
@@ -596,10 +571,10 @@ Mapping of identified risks and mitigations to the requirement areas of [BSI TR-
 | TR Requirement | Implementation | Status |
 |----------------|----------------|--------|
 | Stream size limit | BSON: `maxPayloadSize` (default 100 MB) (S-1) | ✅ Implemented |
-| Nesting depth limit | No codec-level limit (S-2) | Missing |
-| Collection size guard | No limit in readArrayAsList/readObjectAsMap (S-3) | Missing |
+| Nesting depth limit | `MAX_NESTING_DEPTH=200` in deserializer + attribute entry (S-2) | ✅ Implemented |
+| Collection size guard | `MAX_COLLECTION_SIZE=100,000` in deserializer + attribute entry (S-3) | ✅ Implemented |
 | CBOR item limits | No indefinite-length protection (S-8) | Missing |
-| StreamReadConstraints | Using defaults, not customized (S-6) | Partial |
+| StreamReadConstraints | Hardened: nesting 200, strings 10 MB, names 10 KB (S-6) | ✅ Implemented |
 
 ### 5.4 Requirement Area: Confidentiality (§4.4)
 
@@ -623,7 +598,7 @@ Mapping of identified risks and mitigations to the requirement areas of [BSI TR-
 
 | TR Requirement | Implementation | Status |
 |----------------|----------------|--------|
-| Security-specific tests | 6 tests in `BsonFormatProviderTest.PayloadSizeLimit` (S-1) | Partial |
+| Security-specific tests | 6 tests in `BsonFormatProviderTest.PayloadSizeLimit` (S-1); 9 tests in `NestingDepthProtectionTest` (S-2); 7 tests in `CollectionSizeProtectionTest` (S-3); 11 tests in `TypeResolutionScopingTest` (S-4, S-9); 6 tests in `ReflectionAllowlistTest` (S-5); 6 tests in `StreamReadConstraintsTest` (S-6) | Partial |
 | Fuzzing / adversarial input tests | Not present | Missing |
 | Format-specific attack tests | Not present | Missing |
 | Large payload TCK | `AbstractLargePayloadTCK` exists (functional, not security) | Partial |
@@ -668,7 +643,53 @@ Resource resource = resourceSet.createResource(uri);
 resource.load(inputStream, options);
 ```
 
-### 6.2 BSON Payload Size Limiting
+### 6.2 Nesting Depth Protection
+
+The codec enforces a maximum nesting depth of 200 for recursive JSON value reading during deserialization. Deeply nested structures beyond this limit are silently truncated (value dropped, warning diagnostic added to resource). This protects against `StackOverflowError` from malicious payloads.
+
+The limit applies to:
+- **Deferred properties** (properties appearing before `_type`) — in `CodecEObjectDeserializer`
+- **EJavaObject attributes** — in `AttributeDeserializationEntry`
+- **JSON-to-String conversion** — when String attributes encounter nested JSON
+- **Multi-dimensional arrays** — nested array type deserialization
+
+```java
+// Check for nesting depth warnings after loading
+resource.load(inputStream, options);
+for (Diagnostic warning : resource.getWarnings()) {
+    if (warning.getMessage().contains("Maximum nesting depth exceeded")) {
+        // Potentially malicious input - deeply nested structure was truncated
+        log.warn("Deeply nested input truncated: " + warning.getMessage());
+    }
+}
+```
+
+### 6.3 Collection Size Protection
+
+The codec enforces a maximum of 100,000 elements per collection (array or object) during recursive value reading in deserialization. Collections exceeding this limit are truncated — elements up to the limit are kept, remaining elements are skipped, and a warning diagnostic is added to the resource.
+
+### 6.4 Type Resolution Scoping
+
+When using NAME, CLASS, or NUMERIC type strategies (non-default), you **must** provide a schema hint to scope type resolution to a specific EPackage. Without a hint, resolution fails with a warning diagnostic instead of scanning all registered packages (which could cause type confusion in multi-package environments).
+
+```java
+// Always provide CODEC_ROOT_TYPE or CODEC_ROOT_SCHEMA with non-URI strategies
+Map<String, Object> options = Map.of(
+    CodecResource.CODEC_ROOT_TYPE, MyPackage.Literals.MY_ROOT_CLASS
+);
+resource.load(inputStream, options);
+
+// Check for scoping warnings
+for (Diagnostic warning : resource.getWarnings()) {
+    if (warning.getMessage().contains("requires a schema hint")) {
+        log.warn("Type resolution failed: " + warning.getMessage());
+    }
+}
+```
+
+The default type strategy (`URI`) is not affected — full URIs are always unambiguous.
+
+### 6.5 BSON Payload Size Limiting
 
 The codec enforces a default 100 MB limit. For tighter control, configure the `BsonFormatProvider`:
 
@@ -681,7 +702,7 @@ CodecResource resource = new CodecResource(uri, metadataService,
 resource.load(inputStream, options);
 ```
 
-### 6.3 Production Logging Configuration
+### 6.6 Production Logging Configuration
 
 ```properties
 # Suppress detailed codec diagnostics in production
@@ -690,7 +711,7 @@ org.eclipse.fennec.codec.deser.level = SEVERE
 org.eclipse.fennec.codec.resource.level = SEVERE
 ```
 
-### 6.4 Custom Value Handler Security
+### 6.7 Custom Value Handler Security
 
 ```java
 // Only register audited, trusted value handlers
@@ -701,14 +722,32 @@ registry.register(new MyAuditedValueWriter());  // internally reviewed
 // registry.register(untrustedHandler);  // RISK: arbitrary code execution
 ```
 
-### 6.5 Type Strategy Selection
+### 6.8 Type Strategy Selection
 
 | Strategy | Security | Use When |
 |----------|----------|----------|
 | `FULL_URI` | Best | Untrusted input — fully qualified, no ambiguity |
-| `CLASS_NAME` | Good | Java class name — unique if instance classes set |
-| `SIMPLE_NAME` | Risky | Only trusted input — ambiguous across packages |
-| `NUMERIC` | Risky | Only trusted input — ambiguous without schema URI |
+| `CLASS_NAME` | Scoped | Requires schema hint — scoped to context package (S-4) |
+| `SIMPLE_NAME` | Scoped | Requires schema hint — scoped to context package (S-4) |
+| `NUMERIC` | Scoped | Requires schema hint — scoped to context package (S-4, S-9) |
+
+### 6.9 Reflection Allowlist
+
+The codec restricts reflection-based type conversion in `convertObjectFromString()` to a fixed allowlist of 13 safe types (`SAFE_REFLECTION_TARGETS`), plus 4 types handled by direct code paths. This prevents arbitrary constructor invocation if a malicious EDataType with a dangerous `instanceClass` is registered.
+
+If your application uses custom EDataTypes with instance classes not on the allowlist, the codec will reject them with a warning and skip the value. Use `EcoreUtil.createFromString()` in a custom value handler (`CodecValueReader`) instead for non-standard types.
+
+### 6.10 Jackson StreamReadConstraints
+
+The codec applies hardened Jackson `StreamReadConstraints` to all parsing paths:
+
+| Limit | Codec Value | Jackson Default |
+|-------|-------------|-----------------|
+| Max nesting depth | 500 (backstop; codec's own limit is 200) | 1000 |
+| Max string length | 10 MB | 20 MB |
+| Max field name length | 10 KB | 50 KB |
+
+These are enforced at the Jackson parser level before the codec's own limits (S-2 nesting depth, S-3 collection size) are checked. Violations throw a Jackson exception that surfaces as an error on the resource.
 
 ---
 
