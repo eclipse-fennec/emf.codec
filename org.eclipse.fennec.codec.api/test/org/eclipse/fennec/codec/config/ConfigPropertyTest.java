@@ -79,6 +79,7 @@ class ConfigPropertyTest {
             assertNotNull(ConfigProperty.SERIALIZE_NULL);
             assertNotNull(ConfigProperty.IGNORE_READ);
             assertNotNull(ConfigProperty.IGNORE_WRITE);
+            assertNotNull(ConfigProperty.DATE_FORMAT);
         }
     }
 
@@ -221,6 +222,12 @@ class ConfigPropertyTest {
         }
 
         @Test
+        @DisplayName("DATE_FORMAT default is null")
+        void dateFormatDefaultIsNull() {
+            assertNull(ConfigProperty.DATE_FORMAT.getDefaultValue());
+        }
+
+        @Test
         @DisplayName("null defaults are allowed for optional properties")
         void nullDefaultsAreAllowed() {
             assertNull(ConfigProperty.KEY.getDefaultValue());
@@ -344,6 +351,16 @@ class ConfigPropertyTest {
             assertTrue(levels.contains(ConfigLevel.GLOBAL));
             assertTrue(levels.contains(ConfigLevel.FEATURE));
             assertFalse(levels.contains(ConfigLevel.ECLASS));
+        }
+
+        @Test
+        @DisplayName("DATE_FORMAT has GLOBAL, ECLASS, FEATURE levels")
+        void dateFormatHasThreeLevels() {
+            Set<ConfigLevel> levels = ConfigProperty.DATE_FORMAT.getValidLevels();
+            assertEquals(3, levels.size());
+            assertTrue(levels.contains(ConfigLevel.GLOBAL));
+            assertTrue(levels.contains(ConfigLevel.ECLASS));
+            assertTrue(levels.contains(ConfigLevel.FEATURE));
         }
 
         @Test

@@ -671,6 +671,7 @@ public class CodecResource extends ResourceImpl {
         List<String> ignoreFeatures = operationResolver.getGlobalProperty(ConfigProperty.IGNORE_FEATURES);
         boolean smartCompression = operationResolver.getGlobalProperty(ConfigProperty.SMART_COMPRESSION);
         boolean useNamesFromExtendedMetaData = operationResolver.getGlobalProperty(ConfigProperty.USE_NAMES_FROM_EXTENDED_METADATA);
+        String dateFormat = operationResolver.getGlobalProperty(ConfigProperty.DATE_FORMAT);
 
         // Extract expand properties from the operation resolver
         boolean expandGlobal = operationResolver.getGlobalProperty(ConfigProperty.EXPAND_GLOBAL);
@@ -690,6 +691,7 @@ public class CodecResource extends ResourceImpl {
                 .globalIgnoreFeatures(ignoreFeatures)
                 .smartCompression(smartCompression)
                 .useNamesFromExtendedMetaData(useNamesFromExtendedMetaData)
+                .dateFormat(dateFormat)
                 .customProperties(customProperties)
                 .expandGlobal(expandGlobal)
                 .expandDepth(expandDepth)

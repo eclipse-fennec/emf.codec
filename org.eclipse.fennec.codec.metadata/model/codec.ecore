@@ -351,6 +351,11 @@
         <details key="documentation" value="Strategy for serializing enum values (null = use LITERAL default)."/>
       </eAnnotations>
     </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dateFormat" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Date format pattern (SimpleDateFormat) for serializing/deserializing Date values. Null means use EMF default conversion."/>
+      </eAnnotations>
+    </eStructuralFeatures>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ReferenceCodecAspect" eSuperTypes="#//FeatureCodecAspect">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">

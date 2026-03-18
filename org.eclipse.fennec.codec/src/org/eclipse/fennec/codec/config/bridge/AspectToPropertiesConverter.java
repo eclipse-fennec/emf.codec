@@ -244,6 +244,7 @@ public final class AspectToPropertiesConverter {
 
         putIfNotNull(props, "valueWriterName", aspect.getValueWriterName());
         putIfNotNull(props, "valueReaderName", aspect.getValueReaderName());
+        putIfNotNull(props, "dateFormat", aspect.getDateFormat());
 
         if (aspect.getEnumSerialization() != null) {
             props.put("enumSerialization", aspect.getEnumSerialization().name());

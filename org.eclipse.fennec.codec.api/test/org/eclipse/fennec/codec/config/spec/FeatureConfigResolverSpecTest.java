@@ -778,6 +778,114 @@ class FeatureConfigResolverSpecTest {
     }
 
     // ================================================================
+    // DateFormat Resolution
+    // ================================================================
+
+    @Nested
+    @DisplayName("DateFormat Resolution")
+    class DateFormatResolution {
+
+        @Test
+        @DisplayName("dateFormat defaults to null when not configured")
+        void dateFormatDefaultsToNull() {
+            ConfigurationResolver resolver = ConfigurationResolver.defaults();
+            FeatureConfig config = resolver.resolveFeatureConfig(firstNameAttr, diagnostics);
+            assertNull(config.getDateFormat());
+        }
+
+        @Test
+        @DisplayName("dateFormat can be set at global scope via options")
+        void dateFormatSetGloballyViaOptions() {
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .optionsProperties(Map.of("dateFormat", "yyyy-MM-dd"))
+                    .build();
+
+            FeatureConfig config = resolver.resolveFeatureConfig(firstNameAttr, diagnostics);
+
+            assertEquals("yyyy-MM-dd", config.getDateFormat());
+        }
+
+        @Test
+        @DisplayName("dateFormat at feature scope overrides global scope via options")
+        void dateFormatFeatureScopeOverridesGlobal() {
+            Map<String, Object> featureProps = new HashMap<>();
+            featureProps.put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+            Map<String, Object> classProps = new HashMap<>();
+            classProps.put("firstName", featureProps);
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .optionsProperties(Map.of(
+                            "dateFormat", "yyyy-MM-dd",
+                            "Person", classProps
+                    ))
+                    .build();
+
+            FeatureConfig config = resolver.resolveFeatureConfig(firstNameAttr, diagnostics);
+
+            assertEquals("yyyy-MM-dd'T'HH:mm:ss'Z'", config.getDateFormat(),
+                    "Feature scope dateFormat should override global scope");
+        }
+
+        @Test
+        @DisplayName("dateFormat from options overrides annotation")
+        void dateFormatOptionsOverridesAnnotation() {
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .annotationProperties(featureConfig("Person", "firstName",
+                            Map.of("dateFormat", "yyyy-MM-dd")))
+                    .optionsProperties(featureConfig("Person", "firstName",
+                            Map.of("dateFormat", "yyyy-MM-dd'T'HH:mm:ss'Z'")))
+                    .build();
+
+            FeatureConfig config = resolver.resolveFeatureConfig(firstNameAttr, diagnostics);
+
+            assertEquals("yyyy-MM-dd'T'HH:mm:ss'Z'", config.getDateFormat(),
+                    "Options dateFormat should override annotation dateFormat");
+        }
+
+        @Test
+        @DisplayName("dateFormat at class scope applies to all features of that class")
+        void dateFormatClassScopeAppliesToAllFeatures() {
+            Map<String, Object> classProps = new HashMap<>();
+            classProps.put("dateFormat", "yyyy-MM-dd");
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .optionsProperties(Map.of("Person", classProps))
+                    .build();
+
+            FeatureConfig firstNameConfig = resolver.resolveFeatureConfig(firstNameAttr, diagnostics);
+            FeatureConfig lastNameConfig = resolver.resolveFeatureConfig(lastNameAttr, diagnostics);
+
+            assertEquals("yyyy-MM-dd", firstNameConfig.getDateFormat());
+            assertEquals("yyyy-MM-dd", lastNameConfig.getDateFormat());
+        }
+
+        @Test
+        @DisplayName("different features on same class can have different dateFormats")
+        void differentFeaturesCanHaveDifferentDateFormats() {
+            Map<String, Object> firstNameProps = new HashMap<>();
+            firstNameProps.put("dateFormat", "yyyy-MM-dd");
+
+            Map<String, Object> lastNameProps = new HashMap<>();
+            lastNameProps.put("dateFormat", "yyyy-MM-dd'T'HH:mm:ss");
+
+            Map<String, Object> classProps = new HashMap<>();
+            classProps.put("firstName", firstNameProps);
+            classProps.put("lastName", lastNameProps);
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .optionsProperties(Map.of("Person", classProps))
+                    .build();
+
+            FeatureConfig firstNameConfig = resolver.resolveFeatureConfig(firstNameAttr, diagnostics);
+            FeatureConfig lastNameConfig = resolver.resolveFeatureConfig(lastNameAttr, diagnostics);
+
+            assertEquals("yyyy-MM-dd", firstNameConfig.getDateFormat());
+            assertEquals("yyyy-MM-dd'T'HH:mm:ss", lastNameConfig.getDateFormat());
+        }
+    }
+
+    // ================================================================
     // Helper Methods
     // ================================================================
 

@@ -45,6 +45,7 @@ import org.eclipse.fennec.model.metadata.impl.FeatureAspectImpl;
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.FeatureCodecAspectImpl#getValueWriterName <em>Value Writer Name</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.FeatureCodecAspectImpl#getValueReaderName <em>Value Reader Name</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.FeatureCodecAspectImpl#getEnumSerialization <em>Enum Serialization</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.FeatureCodecAspectImpl#getDateFormat <em>Date Format</em>}</li>
  * </ul>
  *
  * @generated
@@ -289,6 +290,26 @@ public class FeatureCodecAspectImpl extends FeatureAspectImpl implements Feature
 	 * @ordered
 	 */
 	protected EnumSerializationStrategy enumSerialization = ENUM_SERIALIZATION_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getDateFormat() <em>Date Format</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getDateFormat()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String DATE_FORMAT_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getDateFormat() <em>Date Format</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getDateFormat()
+	 * @generated
+	 * @ordered
+	 */
+	protected String dateFormat = DATE_FORMAT_EDEFAULT;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -591,6 +612,29 @@ public class FeatureCodecAspectImpl extends FeatureAspectImpl implements Feature
 	 * @generated
 	 */
 	@Override
+	public String getDateFormat() {
+		return dateFormat;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setDateFormat(String newDateFormat) {
+		String oldDateFormat = dateFormat;
+		dateFormat = newDateFormat;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__DATE_FORMAT, oldDateFormat, dateFormat));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
 			case CodecPackage.FEATURE_CODEC_ASPECT__EFFECTIVE_KEY:
@@ -617,6 +661,8 @@ public class FeatureCodecAspectImpl extends FeatureAspectImpl implements Feature
 				return getValueReaderName();
 			case CodecPackage.FEATURE_CODEC_ASPECT__ENUM_SERIALIZATION:
 				return getEnumSerialization();
+			case CodecPackage.FEATURE_CODEC_ASPECT__DATE_FORMAT:
+				return getDateFormat();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -664,6 +710,9 @@ public class FeatureCodecAspectImpl extends FeatureAspectImpl implements Feature
 				return;
 			case CodecPackage.FEATURE_CODEC_ASPECT__ENUM_SERIALIZATION:
 				setEnumSerialization((EnumSerializationStrategy)newValue);
+				return;
+			case CodecPackage.FEATURE_CODEC_ASPECT__DATE_FORMAT:
+				setDateFormat((String)newValue);
 				return;
 		}
 		super.eSet(featureID, newValue);
@@ -713,6 +762,9 @@ public class FeatureCodecAspectImpl extends FeatureAspectImpl implements Feature
 			case CodecPackage.FEATURE_CODEC_ASPECT__ENUM_SERIALIZATION:
 				setEnumSerialization(ENUM_SERIALIZATION_EDEFAULT);
 				return;
+			case CodecPackage.FEATURE_CODEC_ASPECT__DATE_FORMAT:
+				setDateFormat(DATE_FORMAT_EDEFAULT);
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -749,6 +801,8 @@ public class FeatureCodecAspectImpl extends FeatureAspectImpl implements Feature
 				return VALUE_READER_NAME_EDEFAULT == null ? valueReaderName != null : !VALUE_READER_NAME_EDEFAULT.equals(valueReaderName);
 			case CodecPackage.FEATURE_CODEC_ASPECT__ENUM_SERIALIZATION:
 				return enumSerialization != ENUM_SERIALIZATION_EDEFAULT;
+			case CodecPackage.FEATURE_CODEC_ASPECT__DATE_FORMAT:
+				return DATE_FORMAT_EDEFAULT == null ? dateFormat != null : !DATE_FORMAT_EDEFAULT.equals(dateFormat);
 		}
 		return super.eIsSet(featureID);
 	}
@@ -787,6 +841,8 @@ public class FeatureCodecAspectImpl extends FeatureAspectImpl implements Feature
 		result.append(valueReaderName);
 		result.append(", enumSerialization: ");
 		result.append(enumSerialization);
+		result.append(", dateFormat: ");
+		result.append(dateFormat);
 		result.append(')');
 		return result.toString();
 	}

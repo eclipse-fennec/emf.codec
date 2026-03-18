@@ -42,6 +42,7 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
     private final boolean serializeEmpty;
     private final boolean serializeDefault;
     private final EnumSerializationStrategy enumSerialization;
+    private final String dateFormat;
     private final String valueReaderName;
     private final String valueWriterName;
 
@@ -56,6 +57,7 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
         this.serializeEmpty = builder.serializeEmpty;
         this.serializeDefault = builder.serializeDefault;
         this.enumSerialization = builder.enumSerialization;
+        this.dateFormat = builder.dateFormat;
         this.valueReaderName = builder.valueReaderName;
         this.valueWriterName = builder.valueWriterName;
     }
@@ -145,6 +147,14 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
     }
 
     /**
+     * Returns the date format pattern for serializing/deserializing Date values,
+     * or null if EMF default conversion should be used.
+     */
+    public String getDateFormat() {
+        return dateFormat;
+    }
+
+    /**
      * Returns the custom value reader name, or null if none.
      */
     public String getValueReaderName() {
@@ -211,6 +221,7 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
                 .serializeEmpty(getBoolean(source, ConfigProperty.SERIALIZE_EMPTY, this.serializeEmpty))
                 .serializeDefault(getBoolean(source, ConfigProperty.SERIALIZE_DEFAULT, this.serializeDefault))
                 .enumSerialization(getEnum(source, ConfigProperty.ENUM_SERIALIZATION, EnumSerializationStrategy.class, this.enumSerialization))
+                .dateFormat(getString(source, ConfigProperty.DATE_FORMAT, this.dateFormat))
                 .valueReaderName(getString(source, ConfigProperty.VALUE_READER_NAME, this.valueReaderName))
                 .valueWriterName(getString(source, ConfigProperty.VALUE_WRITER_NAME, this.valueWriterName))
                 .build();
@@ -276,6 +287,7 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
                 .serializeEmpty(this.serializeEmpty)
                 .serializeDefault(this.serializeDefault)
                 .enumSerialization(this.enumSerialization)
+                .dateFormat(this.dateFormat)
                 .valueReaderName(this.valueReaderName)
                 .valueWriterName(this.valueWriterName);
     }
@@ -298,6 +310,7 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
         private boolean serializeEmpty = ConfigProperty.SERIALIZE_EMPTY.getDefaultValue();
         private boolean serializeDefault = ConfigProperty.SERIALIZE_DEFAULT.getDefaultValue();
         private EnumSerializationStrategy enumSerialization = EnumSerializationStrategy.valueOf(ConfigProperty.ENUM_SERIALIZATION.getDefaultValue());
+        private String dateFormat = ConfigProperty.DATE_FORMAT.getDefaultValue();
         private String valueReaderName = ConfigProperty.VALUE_READER_NAME.getDefaultValue();
         private String valueWriterName = ConfigProperty.VALUE_WRITER_NAME.getDefaultValue();
 
@@ -350,6 +363,11 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
 
         public Builder enumSerialization(EnumSerializationStrategy enumSerialization) {
             this.enumSerialization = enumSerialization;
+            return this;
+        }
+
+        public Builder dateFormat(String dateFormat) {
+            this.dateFormat = dateFormat;
             return this;
         }
 

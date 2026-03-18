@@ -2,9 +2,70 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-03-16
+**Last Updated:** 2026-03-18
 
-**Session Summary (2026-03-16 latest):**
+**Session Summary (2026-03-18 latest):**
+
+**DateFormat ConfigProperty — Full Stack Implementation:**
+
+Added `dateFormat` as a new ConfigProperty across the entire codec stack, enabling per-feature, per-EClass, and global date format configuration via SimpleDateFormat patterns.
+
+- `ConfigProperty.DATE_FORMAT` — new enum entry (`String`, default `null`, levels: GLOBAL/ECLASS/FEATURE, directions: READ/WRITE)
+- `CodecOptions.CODEC_DATE_FORMAT` — new constant (`"codec.dateFormat"`)
+- `FeatureConfig` — added `dateFormat` field, accessor, builder method, merge support (short + prefixed key)
+- `EffectiveCodecConfig` (API interface) — added `getDateFormat()` default method returning `null`
+- `EffectiveCodecConfig` (runtime impl) — added `dateFormat` field, constructor wiring, builder, `@Override getDateFormat()`
+- `CodecModule` — added `dateFormat` field, wired into both `createEffectiveConfig()` methods
+- `CodecResource.createObjectMapper()` — extracts `DATE_FORMAT` from `ConfigurationResolver` and passes to `CodecModule.Builder`
+- `AttributeSerializationEntry.writeValue()` — new Date branch delegates to `writeDateValue()` using configured format
+- `AttributeDeserializationEntry.convertObjectFromString()` — checks configured format before falling back to ISO patterns
+- Ecore model: added `dateFormat` attribute to `FeatureCodecAspect` in `codec.ecore` + `codec.genmodel`, regenerated src-gen
+- `CodecAspectProvider` — parses `dateFormat` from EAnnotation details (EAttribute only)
+- `AspectToPropertiesConverter` — converts `dateFormat` aspect to property map
+- `CodecAnnotationConstants.KEY_DATE_FORMAT` — new constant
+- Tests: `ConfigPropertyTest`, `FeatureConfigTest`, `EffectiveCodecConfigTest`, `FeatureConfigResolverSpecTest` (6 resolution tests)
+
+**REST Bundle Migration (`org.eclipse.fennec.codec.rest`):**
+
+Migrated the REST bundle annotations from legacy EMFJs constants to the new CodecOptions-based system.
+
+- `@CodecConfig` annotation — complete rewrite mapping all `CodecOptions` constants, organized into sections:
+  Feature (dateFormat, serialize*, enum, valueReader/WriterName), Type (strategy, format, key, include, nameKey, schemaKey),
+  ID (strategy, format, key, valueKey, keyMode, onTop), Reference (format, key, typeKey),
+  SuperType (serialize, key, strategy), Global (smartCompression). Fixed typo: `idStartegy` → `idStrategy`.
+- `@RootElement` annotation — added `rootType()` (EClass URI) and `rootSchema()` (EPackage namespace URI) fields,
+  mapping to `CodecResource.CODEC_ROOT_TYPE` and `CodecResource.CODEC_ROOT_SCHEMA` (legacy keys, by design).
+- `CodecAnnotationConverter` — completed `convertCodecConfig()` method converting all `@CodecConfig` fields to `CodecOptions` entries.
+  String keys (default `""`) use `putIfNotBlank`; booleans and string enums always written.
+- `CodecOptions.CODEC_SMART_COMPRESSION` — new constant (`"codec.smartCompression"`) added to support `@CodecConfig.smartCompression()`.
+- `bnd.bnd` — added `codec.api` and `codec` to `-buildpath`, plus `jakarta.ws.rs-api`, `model.metadata`, `emf.osgi.model.info`, `jakartars`.
+- Tests: `CodecAnnotationConverterTest` with `AnnotationHelper` (annotation proxy builder for tests).
+  Test sections: canHandle, RootElement conversion, Feature/Type/ID/Reference/SuperType/Global configuration, Defaults, Full Custom.
+
+**Known Gap: Jackson-Specific Features Not Configurable via Load/Save Options:**
+
+There is currently no way for users to configure Jackson-specific serialization/deserialization features
+(e.g., `SerializationFeature.INDENT_OUTPUT`, `DeserializationFeature.*`, `MapperFeature.*`, `StreamWriteFeature.*`)
+through the codec's load/save option maps. The `JsonMapper.Builder` in `CodecResource.createObjectMapper()` is either
+provided externally via the constructor or created fresh internally — but its feature configuration is not exposed
+through the options system.
+
+The only current workaround is to pass a pre-configured `JsonMapper.Builder` when constructing the `CodecResource`
+programmatically, which requires direct access to resource creation and is not available to REST endpoint users
+or users who rely on `ResourceFactory`-based resource creation.
+
+This means features like pretty-printing (`INDENT_OUTPUT`), lenient parsing, or other Jackson behaviors cannot be
+toggled per-request via load/save options. Each such feature would need to be explicitly added as a `ConfigProperty`
+and wired into `createObjectMapper()`, as was done for `dateFormat`. The only pretty-print option in the codebase
+is `CodecJsonSchemaOptions.OPTION_PRETTY_PRINT` (`"codec.jsonschema.pretty.print"`) in the jsonschema module,
+which is not part of the core codec.
+
+**Decision (2026-03-18):** Leave this as-is for now — to be discussed with the team before adding any Jackson
+feature passthrough mechanism.
+
+---
+
+**Session Summary (2026-03-16):**
 
 **Security Hardening — S-2 through S-6 (continued from previous session):**
 

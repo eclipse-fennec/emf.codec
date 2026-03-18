@@ -603,6 +603,13 @@ public final class CodecAnnotationConstants {
      */
     public static final String KEY_ENUM_SERIALIZATION = "enumSerialization";
 
+    /**
+     * Detail key for the date format pattern on a feature.
+     * Value: A {@link java.text.SimpleDateFormat} pattern string (e.g., "yyyy-MM-dd'T'HH:mm:ss'Z'").
+     * Default: null (use EMF default conversion).
+     */
+    public static final String KEY_DATE_FORMAT = "dateFormat";
+
     // ========================================================================
     // STRATEGY VALUES
     // These are valid values for the strategy detail keys

@@ -612,14 +612,16 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
             return new BigInteger(stringValue);
         }
         if (targetType == Date.class) {
-            // Try ISO date format first (yyyy-MM-dd)
+            String dateFormat = config.getDateFormat();
+            if (dateFormat != null) {
+                return new SimpleDateFormat(dateFormat).parse(stringValue);
+            }
+            // No configured format: try ISO date format first (yyyy-MM-dd)
             try {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                return sdf.parse(stringValue);
+                return new SimpleDateFormat("yyyy-MM-dd").parse(stringValue);
             } catch (ParseException e) {
                 // Try ISO datetime format
-                SimpleDateFormat sdfTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-                return sdfTime.parse(stringValue);
+                return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(stringValue);
             }
         }
         if (targetType == UUID.class) {

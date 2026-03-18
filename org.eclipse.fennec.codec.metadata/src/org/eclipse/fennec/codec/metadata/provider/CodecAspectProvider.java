@@ -13,6 +13,7 @@
 package org.eclipse.fennec.codec.metadata.provider;
 
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.CODEC_SOURCE;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_DATE_FORMAT;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_ENUM_SERIALIZATION;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_EXPAND;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_FORCE_READ;
@@ -541,6 +542,11 @@ public class CodecAspectProvider implements AspectProvider {
             // Parse value writer/reader names
             AnnotationParseHelper.ifStringPresent(details, KEY_VALUE_WRITER_NAME, aspect::setValueWriterName);
             AnnotationParseHelper.ifStringPresent(details, KEY_VALUE_READER_NAME, aspect::setValueReaderName);
+
+            // Parse date format - only valid for EAttributes per spec
+            if (feature instanceof EAttribute) {
+                AnnotationParseHelper.ifStringPresent(details, KEY_DATE_FORMAT, aspect::setDateFormat);
+            }
 
             // Parse enum serialization strategy - only valid for EAttributes per spec
             // See annotation-scope-reference.md: enumSerialization is ❌ on EReference, ✅ on EAttribute
