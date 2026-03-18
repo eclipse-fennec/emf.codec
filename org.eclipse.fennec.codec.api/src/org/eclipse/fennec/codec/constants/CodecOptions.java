@@ -444,6 +444,12 @@ public final class CodecOptions {
     public static final String CODEC_ENUM_SERIALIZATION = "codec.enumSerialization";
 
     /**
+     * Date format pattern (SimpleDateFormat) for serializing/deserializing Date values.
+     * <p>Value: {@code String} (e.g., "yyyy-MM-dd'T'HH:mm:ss'Z'"). Default: null (use EMF default)</p>
+     */
+    public static final String CODEC_DATE_FORMAT = "codec.dateFormat";
+
+    /**
      * Custom value reader for a feature.
      */
     public static final String CODEC_VALUE_READER_NAME = "codec.valueReaderName";
@@ -516,6 +522,12 @@ public final class CodecOptions {
      * <p>Default: true</p>
      */
     public static final String CODEC_EXPAND_IGNORE_BIDIRECTIONAL = "codec.expandIgnoreBidirectional";
+
+    /**
+     * Enable smart compression (omit type when inferable).
+     * <p>Default: false</p>
+     */
+    public static final String CODEC_SMART_COMPRESSION = "codec.smartCompression";
 
     /**
      * Enable cross-package annotation inheritance.

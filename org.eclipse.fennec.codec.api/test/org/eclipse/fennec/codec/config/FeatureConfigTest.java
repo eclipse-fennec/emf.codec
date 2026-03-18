@@ -52,6 +52,7 @@ class FeatureConfigTest {
             assertFalse(config.isSerializeEmpty());
             assertFalse(config.isSerializeDefault());
             assertEquals(EnumSerializationStrategy.LITERAL, config.getEnumSerialization());
+            assertNull(config.getDateFormat());
             assertNull(config.getValueReaderName());
             assertNull(config.getValueWriterName());
         }
@@ -220,6 +221,27 @@ class FeatureConfigTest {
         }
 
         @Test
+        @DisplayName("overrides dateFormat from source")
+        void overridesDateFormatFromSource() {
+            FeatureConfig config = FeatureConfig.defaults();
+            assertNull(config.getDateFormat());
+
+            FeatureConfig result = config.mergeWith(Map.of("dateFormat", "yyyy-MM-dd"));
+
+            assertEquals("yyyy-MM-dd", result.getDateFormat());
+        }
+
+        @Test
+        @DisplayName("overrides dateFormat from source using prefixed key")
+        void overridesDateFormatFromSourceUsingPrefixedKey() {
+            FeatureConfig config = FeatureConfig.defaults();
+
+            FeatureConfig result = config.mergeWith(Map.of("codec.dateFormat", "yyyy-MM-dd'T'HH:mm:ss'Z'"));
+
+            assertEquals("yyyy-MM-dd'T'HH:mm:ss'Z'", result.getDateFormat());
+        }
+
+        @Test
         @DisplayName("overrides valueReaderName from source")
         void overridesValueReaderNameFromSource() {
             FeatureConfig config = FeatureConfig.defaults();
@@ -347,6 +369,7 @@ class FeatureConfigTest {
                     .serializeEmpty(true)
                     .serializeDefault(true)
                     .enumSerialization(EnumSerializationStrategy.VALUE)
+                    .dateFormat("yyyy-MM-dd")
                     .valueReaderName("reader")
                     .valueWriterName("writer")
                     .build();
@@ -363,6 +386,7 @@ class FeatureConfigTest {
             assertEquals(original.isSerializeEmpty(), copy.isSerializeEmpty());
             assertEquals(original.isSerializeDefault(), copy.isSerializeDefault());
             assertEquals(original.getEnumSerialization(), copy.getEnumSerialization());
+            assertEquals(original.getDateFormat(), copy.getDateFormat());
             assertEquals(original.getValueReaderName(), copy.getValueReaderName());
             assertEquals(original.getValueWriterName(), copy.getValueWriterName());
         }

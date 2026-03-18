@@ -14,6 +14,8 @@ package org.eclipse.fennec.codec.ser;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -199,10 +201,24 @@ public class AttributeSerializationEntry implements SerializationEntry {
             writeEnumValue(gen, e);
         } else if (value instanceof Enum<?> e) {
             writeJavaEnumValue(gen, e);
+        } else if (value instanceof Date d) {
+            writeDateValue(gen, d);
         } else if (value.getClass().isArray()) {
             writeArrayValue(gen, value, ctxt);
         } else {
             gen.writeString(value.toString());
+        }
+    }
+
+    /**
+     * Writes a Date value using the configured date format, or toString() if none is configured.
+     */
+    private void writeDateValue(JsonGenerator gen, Date date) {
+        String dateFormat = config.getDateFormat();
+        if (dateFormat != null) {
+            gen.writeString(new SimpleDateFormat(dateFormat).format(date));
+        } else {
+            gen.writeString(date.toString());
         }
     }
 

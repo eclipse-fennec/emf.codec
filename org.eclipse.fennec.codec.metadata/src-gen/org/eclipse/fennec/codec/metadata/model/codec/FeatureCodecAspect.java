@@ -42,6 +42,7 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#getValueWriterName <em>Value Writer Name</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#getValueReaderName <em>Value Reader Name</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#getEnumSerialization <em>Enum Serialization</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#getDateFormat <em>Date Format</em>}</li>
  * </ul>
  *
  * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect()
@@ -360,5 +361,30 @@ public interface FeatureCodecAspect extends FeatureAspect {
 	 * @generated
 	 */
 	void setEnumSerialization(EnumSerializationStrategy value);
+
+	/**
+	 * Returns the value of the '<em><b>Date Format</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * Date format pattern (SimpleDateFormat) for serializing/deserializing Date values. Null means use EMF default conversion.
+	 * <!-- end-model-doc -->
+	 * @return the value of the '<em>Date Format</em>' attribute.
+	 * @see #setDateFormat(String)
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect_DateFormat()
+	 * @model
+	 * @generated
+	 */
+	String getDateFormat();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#getDateFormat <em>Date Format</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Date Format</em>' attribute.
+	 * @see #getDateFormat()
+	 * @generated
+	 */
+	void setDateFormat(String value);
 
 } // FeatureCodecAspect

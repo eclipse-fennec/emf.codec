@@ -288,6 +288,23 @@ class EffectiveCodecConfigTest {
         void defaultExtendedMetaData() {
             assertFalse(config.isUseNamesFromExtendedMetaData());
         }
+
+        @Test
+        @DisplayName("default dateFormat is null")
+        void defaultDateFormat() {
+            assertNull(config.getDateFormat());
+        }
+
+        @Test
+        @DisplayName("dateFormat can be set via builder")
+        void dateFormatCanBeSet() {
+            EffectiveCodecConfig cfg = EffectiveCodecConfig.builder()
+                    .resolver(resolver)
+                    .diagnostics(diagnostics)
+                    .dateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                    .build();
+            assertEquals("yyyy-MM-dd'T'HH:mm:ss'Z'", cfg.getDateFormat());
+        }
     }
 
     @Nested

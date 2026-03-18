@@ -166,6 +166,9 @@ public enum ConfigProperty {
     ENUM_SERIALIZATION("enumSerialization", String.class, "LITERAL",
         levels(GLOBAL, FEATURE), directions(READ, WRITE)),
 
+    DATE_FORMAT("dateFormat", String.class, null,
+        levels(GLOBAL, ECLASS, FEATURE), directions(READ, WRITE)),
+
     VALUE_READER_NAME("valueReaderName", String.class, null,
         levels(GLOBAL, ECLASS, FEATURE), directions(READ)),
 

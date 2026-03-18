@@ -85,6 +85,21 @@ public interface EffectiveCodecConfig {
     boolean isSmartCompressionEnabled();
 
     /**
+     * Returns the effective date format pattern for serializing/deserializing
+     * {@link java.util.Date} values.
+     * <p>
+     * The format string follows {@link java.text.SimpleDateFormat} conventions.
+     * When not configured, returns null, indicating that EMF's default
+     * conversion should be used.
+     * </p>
+     *
+     * @return the date format pattern, or null if not configured
+     */
+    default String getDateFormat() {
+        return null;
+    }
+
+    /**
      * Returns custom properties collected from load/save options.
      * <p>
      * Custom properties are {@code codec.*} options that do not match any known

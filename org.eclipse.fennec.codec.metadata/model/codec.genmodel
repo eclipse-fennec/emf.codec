@@ -82,6 +82,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//FeatureCodecAspect/valueWriterName"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//FeatureCodecAspect/valueReaderName"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//FeatureCodecAspect/enumSerialization"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//FeatureCodecAspect/dateFormat"/>
     </genClasses>
     <genClasses ecoreClass="codec.ecore#//ReferenceCodecAspect">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec.ecore#//ReferenceCodecAspect/referenceConfig"/>

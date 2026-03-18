@@ -691,6 +691,16 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 	 * @generated
 	 */
 	@Override
+	public EAttribute getFeatureCodecAspect_DateFormat() {
+		return (EAttribute)featureCodecAspectEClass.getEStructuralFeatures().get(12);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EClass getReferenceCodecAspect() {
 		return referenceCodecAspectEClass;
 	}
@@ -1137,6 +1147,7 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		createEAttribute(featureCodecAspectEClass, FEATURE_CODEC_ASPECT__VALUE_WRITER_NAME);
 		createEAttribute(featureCodecAspectEClass, FEATURE_CODEC_ASPECT__VALUE_READER_NAME);
 		createEAttribute(featureCodecAspectEClass, FEATURE_CODEC_ASPECT__ENUM_SERIALIZATION);
+		createEAttribute(featureCodecAspectEClass, FEATURE_CODEC_ASPECT__DATE_FORMAT);
 
 		referenceCodecAspectEClass = createEClass(REFERENCE_CODEC_ASPECT);
 		createEReference(referenceCodecAspectEClass, REFERENCE_CODEC_ASPECT__REFERENCE_CONFIG);
@@ -1278,6 +1289,7 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		initEAttribute(getFeatureCodecAspect_ValueWriterName(), ecorePackage.getEString(), "valueWriterName", null, 0, 1, FeatureCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getFeatureCodecAspect_ValueReaderName(), ecorePackage.getEString(), "valueReaderName", null, 0, 1, FeatureCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getFeatureCodecAspect_EnumSerialization(), theMetadataPackage.getEnumSerializationStrategy(), "enumSerialization", null, 0, 1, FeatureCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getFeatureCodecAspect_DateFormat(), ecorePackage.getEString(), "dateFormat", null, 0, 1, FeatureCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(referenceCodecAspectEClass, ReferenceCodecAspect.class, "ReferenceCodecAspect", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getReferenceCodecAspect_ReferenceConfig(), this.getReferenceSerializationConfig(), null, "referenceConfig", null, 0, 1, ReferenceCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
