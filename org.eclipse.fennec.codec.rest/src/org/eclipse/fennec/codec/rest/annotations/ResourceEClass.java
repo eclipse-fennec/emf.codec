@@ -24,7 +24,9 @@ import org.eclipse.emf.ecore.EClass;
  * 
  * @author ilenia
  * @since Mar 18, 2026
+ * @deprecated old annotation @ResourceEClass is replaced by @RootElement(rootType="")
  */
+@Deprecated(forRemoval = true)
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ResourceEClass {
