@@ -1376,9 +1376,21 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		JsonNode enumValues = enumNode.get("enum");
+		String defaultValue = enumNode.has("default") ? enumNode.get("default").asString() : null;
+
+		// Collect literal names, reordering so the default value comes first
+		List<String> literalNames = new ArrayList<>();
 		for (int e = 0; e < enumValues.size(); e++) {
+			literalNames.add(enumValues.get(e).asString());
+		}
+		if (defaultValue != null && literalNames.contains(defaultValue)) {
+			literalNames.remove(defaultValue);
+			literalNames.add(0, defaultValue);
+		}
+
+		for (int e = 0; e < literalNames.size(); e++) {
 			EEnumLiteral literal = ecoreFactory.createEEnumLiteral();
-			String literalName = enumValues.get(e).asString();
+			String literalName = literalNames.get(e);
 			literal.setLiteral(literalName);
 			literal.setName(literalName);
 			literal.setValue(e);
@@ -1517,9 +1529,39 @@ public class JsonSchemaToEPackageConverter {
 		if (typeNode.isString()) {
 			return createFeatureFromJsonType(typeNode.asString(), name, propertyNode, contextPath);
 		} else {
+			// Check for nullable pattern: ["someType", "null"] or ["null", "someType"]
+			String nullableType = extractNullableType(typeNode);
+			if (nullableType != null) {
+				EStructuralFeature feature = createFeatureFromJsonType(nullableType, name, propertyNode, contextPath);
+				if (feature != null) {
+					feature.setLowerBound(0);
+				}
+				return feature;
+			}
 			// Multiple types → multi-type property
 			return handleMultiTypeProperty(propertyNode, typeNode, name, contextPath);
 		}
+	}
+
+	/**
+	 * Checks if a type array represents a nullable type pattern: exactly two entries
+	 * where one is "null" and the other is a concrete type.
+	 *
+	 * @return the non-null type name, or null if this is not a nullable pattern
+	 */
+	private String extractNullableType(JsonNode typeArray) {
+		if (!typeArray.isArray() || typeArray.size() != 2) {
+			return null;
+		}
+		String first = typeArray.get(0).asString();
+		String second = typeArray.get(1).asString();
+		if ("null".equals(first)) {
+			return second;
+		}
+		if ("null".equals(second)) {
+			return first;
+		}
+		return null;
 	}
 
 	private EStructuralFeature createEnumFeature(JsonNode propertyNode, String name, String contextPath) {

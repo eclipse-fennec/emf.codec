@@ -2,9 +2,24 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-03-18
+**Last Updated:** 2026-03-31
 
-**Session Summary (2026-03-18 latest):**
+**Session Summary (2026-03-31 latest):**
+
+**JSON Schema Nullable Type Support (Issue 3 fix):**
+
+Added nullable type handling for JSON Schema ↔ EPackage conversion, fixing the known Issue 3 where `"type": ["string", "null"]` created 3 artificial classes instead of a simple nullable EAttribute.
+
+- `EPackageToJsonSchemaConverter.writeSingleValuedAttribute()` — optional single-valued EAttributes (`lowerBound=0`) now emit `"type": ["<type>", "null"]` instead of `"type": "<type>"`. Applies to primitive data types and date/time types. Optional EEnum attributes emit `"default": "<first literal>"` instead of nullable type arrays, preserving the standard enum schema structure.
+- `JsonSchemaToEPackageConverter.createTypedFeature()` — two-element type arrays with `"null"` (e.g., `["string", "null"]` or `["null", "integer"]`) now create a simple `EAttribute(lowerBound=0)` via the new `extractNullableType()` method, instead of delegating to `handleMultiTypeProperty()`.
+- `JsonSchemaToEPackageConverter.createEEnum()` — when a `"default"` value is present, the default literal is reordered to be the first literal (value 0) in the EEnum, ensuring it becomes the EMF default.
+- Type arrays with 3+ elements or two non-null types still produce the artificial class hierarchy as before.
+- Tests: `NewFeaturesTest.NullableTypeTests` — 11 tests (read nullable string/integer/null-first, three-type array fallback, read enum with/without default, write nullable string/integer/boolean, write default for optional enum, roundtrip)
+- Documentation: `jsonschema-architecture.md` updated with new "Nullable Types" section
+
+---
+
+**Session Summary (2026-03-18):**
 
 **DateFormat ConfigProperty — Full Stack Implementation:**
 
@@ -294,7 +309,7 @@ Comparison with gecko-codec's `EnhancedJsonSchemaToEPackageDeserializer` reveale
 | `anyOfFindsLowestCommonAncestor` | Animal → Mammal → Cat/Dog — anyOf resolves to Mammal (lowest), not Animal |
 
 *Remaining known issues (documented in findings, not yet fixed):*
-- Issue 3: Multi-type `"null"` (e.g., `"type": ["string", "null"]`) creates 3 artificial classes instead of a nullable EAttribute
+- ~~Issue 3: Multi-type `"null"` (e.g., `"type": ["string", "null"]`) creates 3 artificial classes instead of a nullable EAttribute~~ — **Fixed (2026-03-31):** Two-element type arrays with `"null"` now create a simple `EAttribute(lowerBound=0)` instead of artificial classes. Serialization emits `["type", "null"]` for optional single-valued attributes.
 - Issue 4: Context-specific variant base class always created even with 0 common properties
 - Issue 5: `$ref` default containment is `false` (should be `true` to match typical JSON Schema semantics)
 

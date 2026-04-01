@@ -292,6 +292,48 @@ A property is included in the `required` array if:
 
 ---
 
+## Nullable Types
+
+Single-valued EAttributes that are not required (`lowerBound == 0`) are serialized with a nullable type array instead of a plain type string. This aligns with JSON Schema's convention for representing optional fields that accept `null`.
+
+**Serialization (EPackage → JSON Schema):**
+
+| EMF state | JSON Schema output |
+|-----------|-------------------|
+| `lowerBound=1` (required) | `"type": "string"` |
+| `lowerBound=0` (optional, single-valued) | `"type": ["string", "null"]` |
+| `lowerBound=0` (optional, EEnum) | `"type": "string"` with `"default": "<first literal>"` |
+| `isMany()` (multi-valued) | `"type": "array"` (nullable does not apply) |
+
+This applies to all primitive data types (string, integer, number, boolean) and date/time types. EEnum attributes are handled differently: instead of a nullable type array, optional enums emit a `"default"` value set to the first enum literal. This preserves the `"type": "string"` + `"enum"` structure while indicating that the field has a fallback value when absent.
+
+**Deserialization of enum default:** When a JSON Schema enum has a `"default"` value, the converter reorders the enum literals so that the default value becomes the first literal (value 0) in the resulting EEnum. This ensures it acts as the EMF default value. Literals without a `"default"` field retain their original order.
+
+**Deserialization (JSON Schema → EPackage):**
+
+When the converter encounters a two-element type array where one element is `"null"` (e.g., `["string", "null"]` or `["null", "integer"]`), it creates a simple EAttribute with `lowerBound=0` and the non-null type mapped to the corresponding Ecore data type. This avoids generating artificial multi-type class hierarchies for what is semantically a nullable field.
+
+Type arrays with more than two elements, or two non-null types, still produce the artificial class hierarchy via `handleMultiTypeProperty()`.
+
+**Example round-trip:**
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "nickname": { "type": ["string", "null"] }
+  },
+  "required": ["name"]
+}
+```
+
+→ `name`: `EAttribute(EString, lowerBound=1)`, `nickname`: `EAttribute(EString, lowerBound=0)`
+
+→ Re-serialized: `name` gets `"type": "string"`, `nickname` gets `"type": ["string", "null"]`
+
+---
+
 ## Custom Properties Integration
 
 JSON Schema options flow through the codec's generic `customProperties` mechanism introduced in `EffectiveCodecConfig`. When a user passes load/save options to `CodecResource`, any `codec.*` key that is **not** a known `ConfigProperty` and **not** a known runtime option is automatically collected into `customProperties`. Format-specific options use a sub-namespace:

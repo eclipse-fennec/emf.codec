@@ -1007,10 +1007,15 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeStringProperty("description", documentation);
 		}
 
+		boolean nullable = !eAttribute.isRequired() && !eAttribute.isMany();
+
 		if (type instanceof EEnum eEnum) {
 			writeEnumLiterals(eEnum.getELiterals(), gen);
 			if (!"true".equals(noTypeInfo)) {
 				gen.writeStringProperty("type", "string");
+			}
+			if (nullable && !eEnum.getELiterals().isEmpty()) {
+				gen.writeStringProperty("default", eEnum.getELiterals().get(0).getName());
 			}
 		}
 
@@ -1031,7 +1036,11 @@ public class EPackageToJsonSchemaConverter {
 			if ("javaObject".equals(jsonType)) {
 				String dateFormat = getDateTimeFormat(type);
 				if (dateFormat != null) {
-					gen.writeStringProperty("type", "string");
+					if (nullable) {
+						writeTypeArray("string,null", gen);
+					} else {
+						gen.writeStringProperty("type", "string");
+					}
 					if (format == null) {
 						gen.writeStringProperty("format", dateFormat);
 					}
@@ -1042,7 +1051,11 @@ public class EPackageToJsonSchemaConverter {
 					}
 				}
 			} else {
-				gen.writeStringProperty("type", jsonType);
+				if (nullable) {
+					writeTypeArray(jsonType + ",null", gen);
+				} else {
+					gen.writeStringProperty("type", jsonType);
+				}
 			}
 		}
 

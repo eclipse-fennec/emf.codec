@@ -28,6 +28,8 @@ import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.EEnum;
+import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -881,7 +883,7 @@ class NewFeaturesTest {
 			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
 			JsonNode createdAt = root.get("properties").get("createdAt");
 			assertNotNull(createdAt, "createdAt property should exist");
-			assertEquals("string", createdAt.get("type").asString(),
+			assertEquals("string", createdAt.get("type").asArray().get(0).asString(),
 				"EDate should serialize as type:string");
 			assertEquals("date-time", createdAt.get("format").asString(),
 				"EDate should have format:date-time");
@@ -909,7 +911,7 @@ class NewFeaturesTest {
 
 			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
 			JsonNode eventDate = root.get("properties").get("eventDate");
-			assertEquals("string", eventDate.get("type").asString());
+			assertEquals("string", eventDate.get("type").asArray().get(0).asString());
 			assertEquals("date", eventDate.get("format").asString(),
 				"Explicit format annotation should take precedence");
 		}
@@ -938,7 +940,7 @@ class NewFeaturesTest {
 			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
 			JsonNode analysisDate = root.get("properties").get("analysisDate");
 			assertNotNull(analysisDate.get("description"), "description should be present");
-			assertEquals("string", analysisDate.get("type").asString(),
+			assertEquals("string", analysisDate.get("type").asArray().get(0).asString(),
 				"EDate should have type:string even with description");
 			assertEquals("date-time", analysisDate.get("format").asString(),
 				"EDate should have format:date-time even with description");
@@ -3467,6 +3469,443 @@ class NewFeaturesTest {
 				assertNull(entry.get("$ref"), "oneOf entries should be inlined, not $ref");
 				assertEquals("object", entry.get("type").asString());
 			}
+		}
+	}
+
+	// ========================================================================
+	// Nullable Type Tests
+	// ========================================================================
+
+	@Nested
+	@DisplayName("Nullable Type")
+	class NullableTypeTests {
+
+		@Test
+		@DisplayName("reads nullable string type as optional EAttribute")
+		void readsNullableStringAsOptionalAttribute() throws IOException {
+			String json = """
+				{
+					"$id": "http://example.org/nullable",
+					"definitions": {
+						"Person": {
+							"type": "object",
+							"properties": {
+								"nickname": {
+									"type": ["string", "null"]
+								}
+							}
+						}
+					}
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage result = converter.convert(toInputStream(json), "definitions");
+
+			EClass person = (EClass) result.getEClassifier("Person");
+			assertNotNull(person);
+
+			EStructuralFeature nickname = person.getEStructuralFeature("nickname");
+			assertNotNull(nickname, "nickname should exist");
+			assertTrue(nickname instanceof EAttribute, "nullable string should be an EAttribute, not EReference");
+			assertEquals(EcorePackage.Literals.ESTRING, ((EAttribute) nickname).getEAttributeType());
+			assertEquals(0, nickname.getLowerBound(), "nullable attribute should have lowerBound=0");
+			assertFalse(nickname.isRequired(), "nullable attribute should not be required");
+		}
+
+		@Test
+		@DisplayName("reads nullable integer type as optional EAttribute")
+		void readsNullableIntegerAsOptionalAttribute() throws IOException {
+			String json = """
+				{
+					"$id": "http://example.org/nullable",
+					"definitions": {
+						"Measurement": {
+							"type": "object",
+							"properties": {
+								"value": {
+									"type": ["integer", "null"]
+								}
+							}
+						}
+					}
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage result = converter.convert(toInputStream(json), "definitions");
+
+			EClass measurement = (EClass) result.getEClassifier("Measurement");
+			assertNotNull(measurement);
+
+			EStructuralFeature value = measurement.getEStructuralFeature("value");
+			assertNotNull(value);
+			assertTrue(value instanceof EAttribute, "nullable integer should be an EAttribute");
+			assertEquals(EcorePackage.Literals.EINT, ((EAttribute) value).getEAttributeType());
+			assertEquals(0, value.getLowerBound());
+		}
+
+		@Test
+		@DisplayName("reads null-first type array as optional EAttribute")
+		void readsNullFirstAsOptionalAttribute() throws IOException {
+			String json = """
+				{
+					"$id": "http://example.org/nullable",
+					"definitions": {
+						"Item": {
+							"type": "object",
+							"properties": {
+								"label": {
+									"type": ["null", "string"]
+								}
+							}
+						}
+					}
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage result = converter.convert(toInputStream(json), "definitions");
+
+			EClass item = (EClass) result.getEClassifier("Item");
+			assertNotNull(item);
+
+			EStructuralFeature label = item.getEStructuralFeature("label");
+			assertNotNull(label);
+			assertTrue(label instanceof EAttribute, "null-first type should be an EAttribute");
+			assertEquals(EcorePackage.Literals.ESTRING, ((EAttribute) label).getEAttributeType());
+			assertEquals(0, label.getLowerBound());
+		}
+
+		@Test
+		@DisplayName("three-type array still creates artificial classes")
+		void threeTypeArrayStillCreatesArtificialClasses() throws IOException {
+			String json = """
+				{
+					"$id": "http://example.org/multitype",
+					"definitions": {
+						"FlexValue": {
+							"type": "object",
+							"properties": {
+								"data": {
+									"type": ["string", "integer", "null"]
+								}
+							}
+						}
+					}
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage result = converter.convert(toInputStream(json), "definitions");
+
+			EClass flexValue = (EClass) result.getEClassifier("FlexValue");
+			assertNotNull(flexValue);
+
+			EStructuralFeature data = flexValue.getEStructuralFeature("data");
+			assertNotNull(data);
+			assertTrue(data instanceof EReference, "three-type array should still create an EReference to artificial class");
+		}
+
+		@Test
+		@DisplayName("reads enum with default value — default becomes first literal")
+		void readsEnumDefaultAsFirstLiteral() throws IOException {
+			String json = """
+				{
+					"$id": "http://example.org/enum-default",
+					"definitions": {
+						"TrafficLight": {
+							"type": "object",
+							"properties": {
+								"color": {
+									"type": "string",
+									"enum": ["RED", "YELLOW", "GREEN"],
+									"default": "GREEN"
+								}
+							}
+						}
+					}
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage result = converter.convert(toInputStream(json), "definitions");
+
+			EClass trafficLight = (EClass) result.getEClassifier("TrafficLight");
+			assertNotNull(trafficLight);
+
+			EAttribute color = (EAttribute) trafficLight.getEStructuralFeature("color");
+			assertNotNull(color);
+			assertTrue(color.getEAttributeType() instanceof EEnum);
+
+			EEnum colorEnum = (EEnum) color.getEAttributeType();
+			// GREEN should be reordered to first position (value 0)
+			assertEquals("GREEN", colorEnum.getELiterals().get(0).getName(),
+					"default value should become the first enum literal");
+			assertEquals(0, colorEnum.getELiterals().get(0).getValue());
+			// Other literals follow
+			assertEquals("RED", colorEnum.getELiterals().get(1).getName());
+			assertEquals("YELLOW", colorEnum.getELiterals().get(2).getName());
+		}
+
+		@Test
+		@DisplayName("reads enum without default — literals stay in original order")
+		void readsEnumWithoutDefaultKeepsOrder() throws IOException {
+			String json = """
+				{
+					"$id": "http://example.org/enum-no-default",
+					"definitions": {
+						"Direction": {
+							"type": "object",
+							"properties": {
+								"heading": {
+									"type": "string",
+									"enum": ["NORTH", "EAST", "SOUTH", "WEST"]
+								}
+							}
+						}
+					}
+				}
+				""";
+
+			JsonSchemaToEPackageConverter converter = new JsonSchemaToEPackageConverter();
+			EPackage result = converter.convert(toInputStream(json), "definitions");
+
+			EClass direction = (EClass) result.getEClassifier("Direction");
+			EAttribute heading = (EAttribute) direction.getEStructuralFeature("heading");
+			EEnum headingEnum = (EEnum) heading.getEAttributeType();
+
+			assertEquals("NORTH", headingEnum.getELiterals().get(0).getName());
+			assertEquals("EAST", headingEnum.getELiterals().get(1).getName());
+			assertEquals("SOUTH", headingEnum.getELiterals().get(2).getName());
+			assertEquals("WEST", headingEnum.getELiterals().get(3).getName());
+		}
+
+		@Test
+		@DisplayName("writes nullable type for optional string EAttribute")
+		void writesNullableTypeForOptionalString() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("TestPkg");
+			pkg.setNsURI("http://example.org/nullable-write");
+			pkg.setNsPrefix("test");
+
+			EClass person = EcoreFactory.eINSTANCE.createEClass();
+			person.setName("Person");
+
+			EAttribute required = EcoreFactory.eINSTANCE.createEAttribute();
+			required.setName("name");
+			required.setEType(EcorePackage.Literals.ESTRING);
+			required.setLowerBound(1);
+			person.getEStructuralFeatures().add(required);
+
+			EAttribute optional = EcoreFactory.eINSTANCE.createEAttribute();
+			optional.setName("nickname");
+			optional.setEType(EcorePackage.Literals.ESTRING);
+			optional.setLowerBound(0);
+			person.getEStructuralFeatures().add(optional);
+
+			pkg.getEClassifiers().add(person);
+
+			EPackageToJsonSchemaConverter writer = new EPackageToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			writer.convert(pkg, baos, "definitions", false);
+			String output = baos.toString(StandardCharsets.UTF_8);
+			JsonNode root = JsonMapper.builder().build().readTree(output);
+
+			JsonNode personDef = root.get("definitions").get("Person");
+			JsonNode properties = personDef.get("properties");
+
+			// Required attribute should have simple type
+			JsonNode nameType = properties.get("name").get("type");
+			assertTrue(nameType.isString(), "required attribute should have simple string type");
+			assertEquals("string", nameType.asString());
+
+			// Optional attribute should have nullable type array
+			JsonNode nicknameType = properties.get("nickname").get("type");
+			assertTrue(nicknameType.isArray(), "optional attribute should have type array");
+			assertEquals(2, nicknameType.size());
+			assertEquals("string", nicknameType.get(0).asString());
+			assertEquals("null", nicknameType.get(1).asString());
+		}
+
+		@Test
+		@DisplayName("writes nullable type for optional integer EAttribute")
+		void writesNullableTypeForOptionalInteger() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("TestPkg");
+			pkg.setNsURI("http://example.org/nullable-int");
+			pkg.setNsPrefix("test");
+
+			EClass item = EcoreFactory.eINSTANCE.createEClass();
+			item.setName("Item");
+
+			EAttribute count = EcoreFactory.eINSTANCE.createEAttribute();
+			count.setName("count");
+			count.setEType(EcorePackage.Literals.EINT);
+			count.setLowerBound(0);
+			item.getEStructuralFeatures().add(count);
+
+			pkg.getEClassifiers().add(item);
+
+			EPackageToJsonSchemaConverter writer = new EPackageToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			writer.convert(pkg, baos, "definitions", false);
+			String output = baos.toString(StandardCharsets.UTF_8);
+			JsonNode root = JsonMapper.builder().build().readTree(output);
+
+			JsonNode countType = root.get("definitions").get("Item").get("properties").get("count").get("type");
+			assertTrue(countType.isArray(), "optional integer should have type array");
+			assertEquals("integer", countType.get(0).asString());
+			assertEquals("null", countType.get(1).asString());
+		}
+
+		@Test
+		@DisplayName("roundtrip: nullable type survives EPackage → JSON Schema → EPackage")
+		void roundtripNullableType() throws IOException {
+			// Step 1: Create EPackage with optional attribute
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("RoundtripPkg");
+			pkg.setNsURI("http://example.org/roundtrip-nullable");
+			pkg.setNsPrefix("rt");
+
+			EClass entity = EcoreFactory.eINSTANCE.createEClass();
+			entity.setName("Entity");
+
+			EAttribute mandatory = EcoreFactory.eINSTANCE.createEAttribute();
+			mandatory.setName("id");
+			mandatory.setEType(EcorePackage.Literals.ESTRING);
+			mandatory.setLowerBound(1);
+			entity.getEStructuralFeatures().add(mandatory);
+
+			EAttribute nullable = EcoreFactory.eINSTANCE.createEAttribute();
+			nullable.setName("description");
+			nullable.setEType(EcorePackage.Literals.ESTRING);
+			nullable.setLowerBound(0);
+			entity.getEStructuralFeatures().add(nullable);
+
+			pkg.getEClassifiers().add(entity);
+
+			// Step 2: EPackage → JSON Schema
+			EPackageToJsonSchemaConverter writer = new EPackageToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			writer.convert(pkg, baos, "definitions", false);
+			String schemaJson = baos.toString(StandardCharsets.UTF_8);
+
+			// Step 3: JSON Schema → EPackage
+			JsonSchemaToEPackageConverter reader = new JsonSchemaToEPackageConverter();
+			EPackage result = reader.convert(toInputStream(schemaJson), "definitions");
+
+			EClass resultEntity = (EClass) result.getEClassifier("Entity");
+			assertNotNull(resultEntity);
+
+			EStructuralFeature resultId = resultEntity.getEStructuralFeature("id");
+			assertNotNull(resultId);
+			assertTrue(resultId instanceof EAttribute);
+			// id is in the required array (lowerBound=1 on source), so it remains required
+			assertEquals(1, resultId.getLowerBound(), "required attribute should have lowerBound=1");
+
+			EStructuralFeature resultDesc = resultEntity.getEStructuralFeature("description");
+			assertNotNull(resultDesc);
+			assertTrue(resultDesc instanceof EAttribute, "description should roundtrip as EAttribute, not EReference");
+			assertEquals(EcorePackage.Literals.ESTRING, ((EAttribute) resultDesc).getEAttributeType());
+			assertEquals(0, resultDesc.getLowerBound(), "nullable attribute should roundtrip with lowerBound=0");
+		}
+
+		@Test
+		@DisplayName("writes default value for optional enum EAttribute instead of nullable type")
+		void writesDefaultForOptionalEnum() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("TestPkg");
+			pkg.setNsURI("http://example.org/nullable-enum");
+			pkg.setNsPrefix("test");
+
+			EEnum colorEnum = EcoreFactory.eINSTANCE.createEEnum();
+			colorEnum.setName("Color");
+			EEnumLiteral red = EcoreFactory.eINSTANCE.createEEnumLiteral();
+			red.setName("RED");
+			red.setValue(0);
+			colorEnum.getELiterals().add(red);
+			EEnumLiteral green = EcoreFactory.eINSTANCE.createEEnumLiteral();
+			green.setName("GREEN");
+			green.setValue(1);
+			colorEnum.getELiterals().add(green);
+			EEnumLiteral blue = EcoreFactory.eINSTANCE.createEEnumLiteral();
+			blue.setName("BLUE");
+			blue.setValue(2);
+			colorEnum.getELiterals().add(blue);
+			pkg.getEClassifiers().add(colorEnum);
+
+			EClass item = EcoreFactory.eINSTANCE.createEClass();
+			item.setName("Item");
+
+			EAttribute requiredColor = EcoreFactory.eINSTANCE.createEAttribute();
+			requiredColor.setName("primaryColor");
+			requiredColor.setEType(colorEnum);
+			requiredColor.setLowerBound(1);
+			item.getEStructuralFeatures().add(requiredColor);
+
+			EAttribute optionalColor = EcoreFactory.eINSTANCE.createEAttribute();
+			optionalColor.setName("secondaryColor");
+			optionalColor.setEType(colorEnum);
+			optionalColor.setLowerBound(0);
+			item.getEStructuralFeatures().add(optionalColor);
+
+			pkg.getEClassifiers().add(item);
+
+			EPackageToJsonSchemaConverter writer = new EPackageToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			writer.convert(pkg, baos, "definitions", false);
+			String output = baos.toString(StandardCharsets.UTF_8);
+			JsonNode root = JsonMapper.builder().build().readTree(output);
+
+			JsonNode itemDef = root.get("definitions").get("Item");
+			JsonNode properties = itemDef.get("properties");
+
+			// Required enum should have simple string type and no default
+			JsonNode primaryType = properties.get("primaryColor").get("type");
+			assertTrue(primaryType.isString(), "required enum should have simple string type");
+			assertEquals("string", primaryType.asString());
+			assertNull(properties.get("primaryColor").get("default"),
+					"required enum should not have a default value");
+
+			// Optional enum should have simple string type with a default value
+			JsonNode secondaryType = properties.get("secondaryColor").get("type");
+			assertTrue(secondaryType.isString(), "optional enum should still have simple string type");
+			assertEquals("string", secondaryType.asString());
+			JsonNode defaultValue = properties.get("secondaryColor").get("default");
+			assertNotNull(defaultValue, "optional enum should have a default value");
+			assertEquals("RED", defaultValue.asString(), "default should be the first enum literal");
+		}
+
+		@Test
+		@DisplayName("writes nullable type for optional boolean EAttribute")
+		void writesNullableTypeForOptionalBoolean() throws IOException {
+			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+			pkg.setName("TestPkg");
+			pkg.setNsURI("http://example.org/nullable-bool");
+			pkg.setNsPrefix("test");
+
+			EClass settings = EcoreFactory.eINSTANCE.createEClass();
+			settings.setName("Settings");
+
+			EAttribute enabled = EcoreFactory.eINSTANCE.createEAttribute();
+			enabled.setName("enabled");
+			enabled.setEType(EcorePackage.Literals.EBOOLEAN);
+			enabled.setLowerBound(0);
+			settings.getEStructuralFeatures().add(enabled);
+
+			pkg.getEClassifiers().add(settings);
+
+			EPackageToJsonSchemaConverter writer = new EPackageToJsonSchemaConverter();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			writer.convert(pkg, baos, "definitions", false);
+			String output = baos.toString(StandardCharsets.UTF_8);
+			JsonNode root = JsonMapper.builder().build().readTree(output);
+
+			JsonNode enabledType = root.get("definitions").get("Settings").get("properties").get("enabled").get("type");
+			assertTrue(enabledType.isArray(), "optional boolean should have type array");
+			assertEquals("boolean", enabledType.get(0).asString());
+			assertEquals("null", enabledType.get(1).asString());
 		}
 	}
 }
