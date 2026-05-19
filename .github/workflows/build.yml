@@ -43,6 +43,6 @@ jobs:
     - name: Gradle version
       run: ./gradlew --no-daemon --version
     - name: Build with Gradle
-      run: ./gradlew build --info
+      run: ./gradlew clean build --info
     - name: Run Performance Tests
       run: ./gradlew perfTest --info
