@@ -19,21 +19,13 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
-
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.rest.annotations.AnnotationConverter;
+import org.eclipse.fennec.codec.rest.jakartas.JakartaRestConstants;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -44,6 +36,17 @@ import org.osgi.service.jakartars.whiteboard.JakartarsWhiteboardConstants;
 import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsApplicationSelect;
 import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsExtension;
 import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsName;
+
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.Provider;
 
 /**
  * {@link MessageBodyReader} and {@link MessageBodyWriter} that handle {@link EObject}.
@@ -56,7 +59,7 @@ import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsName;
 @Component(
 		service = {MessageBodyReader.class, MessageBodyWriter.class},
 		enabled = true,
-		scope = ServiceScope.SINGLETON
+		scope = ServiceScope.PROTOTYPE
 	)
 @JakartarsExtension
 @JakartarsName("EMFEObjectMessagebodyReaderWriter")
@@ -66,8 +69,8 @@ import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsName;
 @Consumes(MediaType.WILDCARD)
 public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> extends BaseJakartaCodecMessageBodyReaderWriter<R, W>{
 
-	@Reference
-	private ResourceSetFactory resourceSetFactory;
+	@Context
+    private jakarta.inject.Provider<ContainerRequestContext> requestContextProvider;
 	
 	/*
 	 * (non-Javadoc)
@@ -167,6 +170,6 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 
 	@Override
 	protected ResourceSetFactory getResourceSetFactory() {
-		return resourceSetFactory;
+		return (ResourceSetFactory) requestContextProvider.get().getProperty(JakartaRestConstants.RESOLVED_RESOURCE_SET_FACTORY);
 	}
 }

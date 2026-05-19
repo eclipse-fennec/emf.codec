@@ -4,7 +4,11 @@
 	org.eclipse.fennec.codec.api;version=snapshot,\
 	osgi.cmpn,\
 	org.eclipse.fennec.codec,\
-	jakarta.ws.rs-api,\
+	jakarta.ws.rs-api;version=latest,\
+	jakarta.inject.jakarta.inject-api;version=latest,\
 	org.eclipse.fennec.model.metadata,\
 	org.eclipse.fennec.emf.osgi.model.info,\
 	org.osgi.service.jakartars
+	
+#So inherited @Reference are put in the service description xml
+-dsannotations-options: inherit

@@ -16,10 +16,6 @@ package org.eclipse.fennec.codec.rest.jakartas;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Variant;
-
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -27,6 +23,10 @@ import org.eclipse.emf.ecore.util.Diagnostician;
 import org.eclipse.fennec.codec.rest.annotations.ContentNotEmpty;
 import org.eclipse.fennec.codec.rest.annotations.ResourceEClass;
 import org.eclipse.fennec.codec.rest.common.AbstractCodecAnnotationHandler;
+
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Variant;
 
 /**
  * Base class to handle Codec resource annotation and turn them into Codec load or save options

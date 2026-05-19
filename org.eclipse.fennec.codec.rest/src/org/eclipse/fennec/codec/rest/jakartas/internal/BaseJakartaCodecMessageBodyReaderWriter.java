@@ -22,13 +22,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -43,6 +36,14 @@ import org.eclipse.fennec.codec.rest.jakartas.AbstractJakartaCodecAnnotationHand
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.model.info.EMFModelInfo;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
 
 /**
  * 
@@ -52,7 +53,7 @@ import org.osgi.service.component.annotations.Reference;
 public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends AbstractJakartaCodecAnnotationHandler
 implements MessageBodyReader<R>, MessageBodyWriter<W> {
 
-@Reference
+@Reference(cardinality = ReferenceCardinality.MANDATORY)
 EMFModelInfo modelInfo;
 
 /**
