@@ -67,6 +67,30 @@ public interface CodecFormatProvider<S, T> {
     FormatDelegate<T> createWriter(T target) throws IOException;
 
     /**
+     * Creates a new writer delegate, with optional access to the root
+     * {@code EObject} being serialized and the save-time options map.
+     * <p>
+     * The default implementation simply delegates to {@link #createWriter(Object)},
+     * so most format providers do not need to override this method. Providers
+     * that need contextual information ahead of writing — for example, the CSV
+     * provider, which derives a "type row" from the root {@code EClass} — can
+     * override this overload to inspect {@code rootObject} and/or {@code saveOptions}
+     * before constructing the delegate.
+     *
+     * @param target the output target
+     * @param rootObject the root {@code EObject} being serialized, may be {@code null}
+     * @param saveOptions the save-time option map, never {@code null} (may be empty)
+     * @return a new writer delegate, never null
+     * @throws IOException if the delegate cannot be created
+     * @since 2026-05
+     */
+    default FormatDelegate<T> createWriter(T target,
+            org.eclipse.emf.ecore.EObject rootObject,
+            java.util.Map<String, Object> saveOptions) throws IOException {
+        return createWriter(target);
+    }
+
+    /**
      * Creates a new reader delegate for the given input source.
      *
      * @param source the input source

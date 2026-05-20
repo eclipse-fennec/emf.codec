@@ -152,3 +152,5 @@ org.eclipse.fennec.bnd:org.eclipse.fennec.jacoco.bnd.library:0.0.9
 org.eclipse.fennec.bnd:org.eclipse.fennec.osgitest.bnd.library:0.0.9
 org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bnd.library.workspace:0.1.2
 org.eclipse.fennec.models:org.eclipse.fennec.common.models.library:0.0.1-SNAPSHOT
+
+de.siegmar:fastcsv:4.2.0

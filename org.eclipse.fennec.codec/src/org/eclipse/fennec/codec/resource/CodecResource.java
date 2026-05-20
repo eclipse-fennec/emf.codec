@@ -432,7 +432,8 @@ public class CodecResource extends ResourceImpl {
     private <T> void doSaveWithFormat(OutputStream outputStream,
             Map<String, Object> effectiveOptions) throws IOException {
         CodecFormatProvider<?, T> provider = (CodecFormatProvider<?, T>) formatProvider;
-        FormatDelegate<T> delegate = provider.createWriter((T) outputStream);
+        EObject rootForProvider = getContents().isEmpty() ? null : getContents().get(0);
+        FormatDelegate<T> delegate = provider.createWriter((T) outputStream, rootForProvider, effectiveOptions);
 
         IOContext ioCtxt = new IOContext(
                 STREAM_READ_CONSTRAINTS,

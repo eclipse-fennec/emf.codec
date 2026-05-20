@@ -1,0 +1,18 @@
+Bundle-Name: Fennec Codec CSV
+Bundle-Description: CSV format provider for the Fennec EMF Codec
+
+-library: enableEMF
+
+-buildpath: \
+	org.osgi.service.condition;version=latest,\
+	org.eclipse.fennec.codec.api;version=snapshot,\
+	org.eclipse.fennec.codec;version=snapshot,\
+	org.eclipse.fennec.model.metadata;version=snapshot,\
+	org.eclipse.fennec.codec.metadata;version=snapshot,\
+	tools.jackson.core.jackson-core;version=latest,\
+	tools.jackson.core.jackson-databind;version=latest,\
+	com.fasterxml.jackson.core.jackson-annotations;version=latest,\
+	de.siegmar.fastcsv;version=latest
+
+-testpath: \
+	org.eclipse.fennec.codec.tests;version=snapshot
