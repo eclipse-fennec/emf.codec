@@ -92,7 +92,22 @@ public class CsvFormatProvider implements CodecFormatProvider<InputStream, Outpu
             effectiveOptions.putAll(saveOptions);
         }
 
+        CodecCsvOptions.ReferenceMode mode = resolveReferenceMode(effectiveOptions);
+        if (mode == CodecCsvOptions.ReferenceMode.SQL_TABLES) {
+            return new CsvSqlTablesDelegate(target, rootObject, effectiveOptions);
+        }
         return new CsvFormatDelegate(target, effectiveEClass, effectiveOptions);
+    }
+
+    private static CodecCsvOptions.ReferenceMode resolveReferenceMode(Map<String, Object> options) {
+        Object value = options.get(CodecCsvOptions.OPTION_REFERENCE_MODE);
+        if (value instanceof CodecCsvOptions.ReferenceMode m) {
+            return m;
+        }
+        if (value instanceof String s && !s.isBlank()) {
+            return CodecCsvOptions.ReferenceMode.valueOf(s.toUpperCase());
+        }
+        return CodecCsvOptions.ReferenceMode.IGNORE;
     }
 
     @Override

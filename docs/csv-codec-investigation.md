@@ -530,3 +530,102 @@ Daanse ignores it today, but a future smarter importer might honor it. Options:
 
 Recommendation: ship "nothing" first (matches daanse's contract), revisit if we ever target an
 importer that wants FK metadata.
+
+---
+
+## 9. Implementation status
+
+This section tracks what's actually built in the `org.eclipse.fennec.codec.csv` bundle today
+versus what's still on the roadmap from the design sections above.
+
+### 9.1 Implemented and tested
+
+#### Single-EObject mode (default, `OPTION_REFERENCE_MODE=IGNORE`)
+
+- `CsvFormatProvider`, `CsvFormatDelegate`, `SqlTypeMapper` — produces the 3-row CSV
+  (header / SQL types / data) for a single `EObject`'s `EAttribute`s.
+- **All existing codec option mechanics flow through** (§7): `useNamesFromExtendedMetaData`,
+  `ignore` / `globalIgnoreFeatures`, `forceWrite`, `serializeNull/Empty/Default`, custom value
+  writers, `dateFormat` — they all participate via the standard `CodecResource` →
+  `CodecEObjectSerializer` pipeline.
+- `OPTION_COLUMN_TYPES` (preferred `EStructuralFeature` key; `String` key also accepted)
+  overrides SQL type per feature.
+- `OPTION_DELIMITER`, `OPTION_QUOTE_MODE`, `OPTION_LINE_ENDING`, `OPTION_CHARSET` — dialect
+  control.
+- References, multi-valued attributes, contained `EObject`s — silently skipped with a `FINE`
+  log line (matches the "MVP, attributes only" scope of §4).
+- OSGi `Resource.Factory` registered for `.csv` extension via `CsvResourceFactoryComponent`.
+
+#### SQL_TABLES mode (MVP spike, `OPTION_REFERENCE_MODE=SQL_TABLES`)
+
+- `CsvSqlTablesDelegate` — BFS walk from the root `EObject`, per-`EClass` matrices, ZIP output
+  with one CSV entry per visited `EClass`.
+- Pseudo `_id` (BIGINT) primary key per EClass; foreign-key columns named `<refname>_id`
+  (BIGINT) — daanse-friendly naming (§8.6.4 item 1).
+- **Single-valued** `EReference`s (containment + non-containment) emit a FK column.
+- Multi-valued `EAttribute`s joined with `;` in a single cell (same as IGNORE mode).
+- OSGi `Resource.Factory` also registers `.csvz` extension that defaults to SQL_TABLES mode
+  (file path `out.csvz` works through `ResourceSetImpl`; `out.csv.zip` does not, because EMF's
+  `URI.fileExtension()` only returns the last segment).
+- `IdentityHashMap`-based visit set in the graph walk — cycle-safe by construction.
+
+#### Plumbing changes outside the bundle
+
+- `CodecFormatProvider` (in `org.eclipse.fennec.codec.api`) extended with a default
+  `createWriter(target, rootObject, saveOptions)` overload — backwards compatible (other
+  providers inherit the default that delegates to the existing `createWriter(target)`).
+- `CodecResource.doSaveWithFormat()` calls the new overload, passing the root `EObject` and
+  effective save options.
+
+#### Tests
+
+| Test class | Verifies |
+|---|---|
+| `CsvFormatProviderTest` | Provider metadata + read-not-supported |
+| `CsvWriterTest` | Single-EObject 3-row layout, `columnTypes` override, stateless auto-discovery |
+| `CsvExtendedMetaDataTest` | EMD names appear in header when option is set |
+| `CsvCustomKeyTest` | Per-feature `key` annotation renames the column |
+| `CsvForceWriteTest` | `forceWrite` brings transient/volatile/derived feature into header |
+| `CsvGlobalIgnoreTest` | `globalIgnoreFeatures` drops columns (and values) |
+| `CsvVisibilityTest` | Per-feature `ignoreWrite`/`ignore` drop columns; `ignoreRead` does not |
+| `CsvValueHandlingTest` | `serializeNull` / `serializeEmpty` / `serializeDefault` |
+| `CsvSqlTablesTest` | SQL_TABLES emits ZIP with two CSVs + FK linking; empty-ref case |
+
+### 9.2 Not yet implemented
+
+| Item | Reference | Notes |
+|---|---|---|
+| Codec option pipeline in SQL_TABLES mode | §8 | `CsvSqlTablesDelegate` currently uses `feat.getName()` directly. `useNamesFromExtendedMetaData`, per-feature `ignore`, `forceWrite`, custom value writers, `dateFormat` are **not** applied. Needs the delegate to read from `ConfigurationResolver`. |
+| Multi-valued references → mapping CSVs (join tables) | §8.1.4 / §8.5 step 3 | Currently skipped with a `FINE` log line. Gecko's `Person_contacts_Mapping.csv` pattern. |
+| Cleaner mapping-table file names | §8.6.4 item 3 | Becomes relevant when mapping tables land. |
+| Subdirectory-as-schema layout in the ZIP | §8.6.4 item 2 | Daanse treats subdirectories as DB schemas. |
+| `DOUBLE` instead of `DOUBLE PRECISION` for daanse compat | §8.6.4 item 4 | Single-character change in `SqlTypeMapper` defaults. |
+| `referenceOverrides` (per-`EReference` mode override) | §8.5 step 5 | Not started. |
+| `FLAT` reference mode | §5.3, §8.5 step 6 | Different audience (single-sheet / spreadsheets); a third delegate variant. |
+| CSV reader / deserialization | — | `createReader()` throws `UnsupportedOperationException`. Not on the roadmap. |
+| FK constraint metadata sidecar | §8.6.5 | Decided "nothing" — matches daanse's contract. |
+
+### 9.3 Bundle layout
+
+```
+org.eclipse.fennec.codec.csv/
+├── bnd.bnd                                       # depends on de.siegmar.fastcsv 4.2.0
+├── src/org/eclipse/fennec/codec/csv/
+│   ├── CodecCsvOptions.java                      # option keys + ReferenceMode enum
+│   ├── CsvFormatProvider.java                    # CodecFormatProvider<InputStream, OutputStream>
+│   ├── CsvFormatDelegate.java                    # IGNORE-mode writer delegate
+│   ├── CsvSqlTablesDelegate.java                 # SQL_TABLES-mode writer delegate
+│   ├── CsvResourceFactoryComponent.java          # OSGi DS: csv + csvz extensions
+│   ├── SqlTypeMapper.java                        # default EMF → SQL type table
+│   └── package-info.java
+└── test/org/eclipse/fennec/codec/csv/
+    ├── CsvFormatProviderTest.java
+    ├── CsvWriterTest.java
+    ├── CsvExtendedMetaDataTest.java
+    ├── CsvCustomKeyTest.java
+    ├── CsvForceWriteTest.java
+    ├── CsvGlobalIgnoreTest.java
+    ├── CsvVisibilityTest.java
+    ├── CsvValueHandlingTest.java
+    └── CsvSqlTablesTest.java
+```
