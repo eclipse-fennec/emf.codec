@@ -14,8 +14,8 @@ package org.eclipse.fennec.codec.csv;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 
@@ -54,9 +54,9 @@ class CsvFormatProviderTest {
         }
 
         @Test
-        @DisplayName("does not support array root")
+        @DisplayName("supports array root (multiple EObjects in one Resource)")
         void supportsArrayRoot() {
-            assertFalse(new CsvFormatProvider().supportsArrayRoot());
+            assertTrue(new CsvFormatProvider().supportsArrayRoot());
         }
     }
 

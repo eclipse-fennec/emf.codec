@@ -256,7 +256,7 @@ public class CodecResource extends ResourceImpl {
         mapper = createObjectMapper(effectiveOptions, operationResolver);
 
         if (formatProvider != null) {
-            doSaveWithFormat(outputStream, effectiveOptions);
+            doSaveWithFormat(outputStream, effectiveOptions, operationResolver);
             LOGGER.fine(() -> String.format("Saved %s to %s (format: %s)",
                     eClass.getName(), getURI(), formatProvider.getFormatId()));
             return;
@@ -430,10 +430,10 @@ public class CodecResource extends ResourceImpl {
 
     @SuppressWarnings("unchecked")
     private <T> void doSaveWithFormat(OutputStream outputStream,
-            Map<String, Object> effectiveOptions) throws IOException {
+            Map<String, Object> effectiveOptions, ConfigurationResolver operationResolver) throws IOException {
         CodecFormatProvider<?, T> provider = (CodecFormatProvider<?, T>) formatProvider;
-        EObject rootForProvider = getContents().isEmpty() ? null : getContents().get(0);
-        FormatDelegate<T> delegate = provider.createWriter((T) outputStream, rootForProvider, effectiveOptions);
+        FormatDelegate<T> delegate = provider.createWriter((T) outputStream, getContents(),
+                effectiveOptions, operationResolver);
 
         IOContext ioCtxt = new IOContext(
                 STREAM_READ_CONSTRAINTS,

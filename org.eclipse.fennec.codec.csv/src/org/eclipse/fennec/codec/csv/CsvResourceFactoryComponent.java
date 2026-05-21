@@ -19,6 +19,8 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
+import org.eclipse.fennec.codec.tabular.CodecTabularOptions;
+import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 import org.osgi.service.component.annotations.Activate;
@@ -32,14 +34,14 @@ import org.osgi.service.component.annotations.Reference;
  * Two extensions are supported:
  * <ul>
  *   <li>{@code .csv} — single-{@code EObject} output (default reference mode
- *       {@link CodecCsvOptions.ReferenceMode#IGNORE IGNORE}).</li>
+ *       {@link ReferenceMode#IGNORE IGNORE}).</li>
  *   <li>{@code .csvz} — multi-table ZIP output, one CSV per visited
  *       {@code EClass} (default reference mode
- *       {@link CodecCsvOptions.ReferenceMode#SQL_TABLES SQL_TABLES}).</li>
+ *       {@link ReferenceMode#SQL_TABLES SQL_TABLES}).</li>
  * </ul>
  * <p>
  * The caller can override the mode at save time by passing
- * {@link CodecCsvOptions#OPTION_REFERENCE_MODE} in the save-options map.
+ * {@link CodecTabularOptions#OPTION_REFERENCE_MODE} in the save-options map.
  * <p>
  * Note on {@code .csv.zip} URIs: EMF's {@code URI.fileExtension()} returns only
  * the segment after the last dot, so a file named {@code out.csv.zip} would
@@ -73,8 +75,8 @@ public class CsvResourceFactoryComponent extends ResourceFactoryImpl {
     public Resource createResource(URI uri) {
         CsvFormatProvider provider = isSqlTablesUri(uri)
                 ? new CsvFormatProvider(null,
-                        Map.of(CodecCsvOptions.OPTION_REFERENCE_MODE,
-                                CodecCsvOptions.ReferenceMode.SQL_TABLES))
+                        Map.of(CodecTabularOptions.OPTION_REFERENCE_MODE,
+                                ReferenceMode.SQL_TABLES))
                 : new CsvFormatProvider();
         return new CodecResource(
                 uri, metadataService,

@@ -1,0 +1,96 @@
+/*
+ */
+package org.eclipse.fennec.codec.tabular.model.tabular;
+
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
+
+import org.osgi.annotation.versioning.ProviderType;
+
+/**
+ * <!-- begin-user-doc -->
+ * A representation of the model object '<em><b>Join Table Row</b></em>'.
+ * <!-- end-user-doc -->
+ *
+ * <p>
+ * The following features are supported:
+ * </p>
+ * <ul>
+ *   <li>{@link org.eclipse.fennec.codec.tabular.model.tabular.JoinTableRow#getOwnerId <em>Owner Id</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.tabular.model.tabular.JoinTableRow#getTargetId <em>Target Id</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.tabular.model.tabular.JoinTableRow#getTargetEClass <em>Target EClass</em>}</li>
+ * </ul>
+ *
+ * @see org.eclipse.fennec.codec.tabular.model.tabular.TabularPackage#getJoinTableRow()
+ * @model
+ * @generated
+ */
+@ProviderType
+public interface JoinTableRow extends EObject {
+	/**
+	 * Returns the value of the '<em><b>Owner Id</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Owner Id</em>' attribute.
+	 * @see #setOwnerId(long)
+	 * @see org.eclipse.fennec.codec.tabular.model.tabular.TabularPackage#getJoinTableRow_OwnerId()
+	 * @model
+	 * @generated
+	 */
+	long getOwnerId();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.codec.tabular.model.tabular.JoinTableRow#getOwnerId <em>Owner Id</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Owner Id</em>' attribute.
+	 * @see #getOwnerId()
+	 * @generated
+	 */
+	void setOwnerId(long value);
+
+	/**
+	 * Returns the value of the '<em><b>Target Id</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Target Id</em>' attribute.
+	 * @see #setTargetId(long)
+	 * @see org.eclipse.fennec.codec.tabular.model.tabular.TabularPackage#getJoinTableRow_TargetId()
+	 * @model
+	 * @generated
+	 */
+	long getTargetId();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.codec.tabular.model.tabular.JoinTableRow#getTargetId <em>Target Id</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Target Id</em>' attribute.
+	 * @see #getTargetId()
+	 * @generated
+	 */
+	void setTargetId(long value);
+
+	/**
+	 * Returns the value of the '<em><b>Target EClass</b></em>' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Target EClass</em>' reference.
+	 * @see #setTargetEClass(EClass)
+	 * @see org.eclipse.fennec.codec.tabular.model.tabular.TabularPackage#getJoinTableRow_TargetEClass()
+	 * @model
+	 * @generated
+	 */
+	EClass getTargetEClass();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.codec.tabular.model.tabular.JoinTableRow#getTargetEClass <em>Target EClass</em>}' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Target EClass</em>' reference.
+	 * @see #getTargetEClass()
+	 * @generated
+	 */
+	void setTargetEClass(EClass value);
+
+} // JoinTableRow

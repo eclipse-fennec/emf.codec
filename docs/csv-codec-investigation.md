@@ -85,7 +85,7 @@ org.eclipse.fennec.codec.csv/
 - **Row 1 — header:** feature names in the order they appear, optionally overridden via the
   `codec.csv.columnNames` option (see §5).
 - **Row 2 — types:** SQL type names (`BIGINT`, `VARCHAR`, `DECIMAL`, …), derived from a built-in
-  EMF → SQL default table, optionally overridden per feature via the `codec.csv.columnTypes`
+  EMF → SQL default table, optionally overridden per feature via the `codec.tabular.columnTypes`
   option (see §5). SQL types are the target so the produced CSV can be ingested directly into a
   relational database.
 - **Row 3 — values:** the buffered values, with `null` → empty cell.
@@ -137,7 +137,7 @@ extra configuration.
 | `ELong` / `ELongObject` | `BIGINT` |
 | `EShort` / `EShortObject` | `SMALLINT` |
 | `EFloat` / `EFloatObject` | `REAL` |
-| `EDouble` / `EDoubleObject` | `DOUBLE PRECISION` |
+| `EDouble` / `EDoubleObject` | `DOUBLE` |
 | `EBigDecimal` | `DECIMAL` |
 | `EBigInteger` | `NUMERIC` |
 | `EDate` | `TIMESTAMP` |
@@ -157,7 +157,7 @@ Only **one** genuinely CSV-specific override is required, because SQL type is no
 existing config model:
 
 ```
-codec.csv.columnTypes : Map<EStructuralFeature, String>
+codec.tabular.columnTypes : Map<EStructuralFeature, String>
                         or Map<String, String>  (keyed by feature name)
     // Overrides the SQL type for a given feature.
     // Required to express length/precision since EString alone can't
@@ -179,17 +179,21 @@ design discussion (how gecko handled this and the architectural options for port
 | `HYBRID` | Containment flattened, non-containment as FK column only. | When children are 1:1-ish and you want one row per parent. |
 
 ```
-codec.csv.referenceMode      : SQL_TABLES | FLAT | HYBRID   (default: SQL_TABLES)
-codec.csv.referenceOverrides : Map<EReference, ReferenceMode>   // per-reference override
+codec.tabular.referenceMode      : SQL_TABLES | FLAT | HYBRID   (default: SQL_TABLES)
+codec.tabular.referenceOverrides : Map<EReference, ReferenceMode>   // per-reference override
 ```
 
 ### 5.4 CSV dialect options
 
 ```
-codec.csv.delimiter   : char       (default: ',')
-codec.csv.quoteMode   : enum       (always / minimal / non-numeric / never)
-codec.csv.lineEnding  : enum       (lf / crlf / platform; default: lf)
-codec.csv.charset     : Charset    (default: UTF-8)
+codec.csv.delimiter        : char       (default: ',')
+codec.csv.quoteMode        : enum       (always / minimal / non-numeric / never)
+codec.csv.lineEnding       : enum       (lf / crlf / platform; default: lf)
+codec.csv.charset          : Charset    (default: UTF-8)
+codec.tabular.fkColumnSuffix   : String     (default: "_id" — SQL_TABLES only)
+codec.tabular.schemas          : Map<?,String> keyed by EClass or EPackage (SQL_TABLES only)
+codec.tabular.multiValuedRefStrategy : enum  (ALWAYS_JOIN_TABLE / PREFER_FK_COLUMN;
+                                          default: PREFER_FK_COLUMN — SQL_TABLES only)
 ```
 
 ---
@@ -201,7 +205,7 @@ codec.csv.charset     : Charset    (default: UTF-8)
 2. Implement the default EMF → SQL type mapping table (§5.1) as a static helper.
 3. Implement `CsvFormatProvider` + `CsvFormatDelegate` (writer path only) backed by
    `de.siegmar.fastcsv`. Scope: single `EObject`, `EAttribute`s only, no references.
-4. Wire the `codec.csv.columnTypes` option (§5.2) through `CodecOptions`. Column renaming reuses
+4. Wire the `codec.tabular.columnTypes` option (§5.2) through `CodecOptions`. Column renaming reuses
    the existing per-feature `key` mechanism (§7) — no new option needed.
 5. Add a `CsvCoreRoundTripTCKTest`-style test, but writer-only (no round-trip yet).
 6. Once green: spec out the multi-object wrapper and start porting reference-flattening from
@@ -262,7 +266,7 @@ These all participate via the same serializer chain:
 |---|---|
 | `codec.typeStrategy` / `codec.typeKey` | If enabled, a `_type` column would appear in every row. CSV should **default `typeStrategy=NONE`** since each file is per-`EClass`. |
 | `codec.idStrategy` / `codec.idKey` | Risks clashing with an existing `iD=true` `EAttribute`. CSV should default to "use the `iD`-flagged `EAttribute` as the `id` column, no extra column." |
-| `codec.referenceFormat` (`flat` / `inline` / `id-only`) | Has nothing to do with CSV's row/table layout. **Superseded by `codec.csv.referenceMode`** (§5.3). |
+| `codec.referenceFormat` (`flat` / `inline` / `id-only`) | Has nothing to do with CSV's row/table layout. **Superseded by `codec.tabular.referenceMode`** (§5.3). |
 | Indent / pretty-print / Jackson features | Not applicable to CSV. Ignored. |
 
 ### 7.4 Consequence for the option surface
@@ -270,8 +274,8 @@ These all participate via the same serializer chain:
 Because the existing key mechanism already covers column renaming, the CSV codec adds a very
 small option surface of its own:
 
-- `codec.csv.columnTypes` — SQL-type override (genuinely new)
-- `codec.csv.referenceMode` + `codec.csv.referenceOverrides` — layout choice (post-MVP)
+- `codec.tabular.columnTypes` — SQL-type override (genuinely new)
+- `codec.tabular.referenceMode` + `codec.tabular.referenceOverrides` — layout choice (post-MVP)
 - `codec.csv.delimiter` / `quoteMode` / `lineEnding` / `charset` — dialect knobs
 
 Everything else (`columnNames`, ignore, forceWrite, value writers, date formatting,
@@ -346,6 +350,57 @@ out.zip
 
 This is exactly the layout a SQL DB importer expects: one file per table, FK columns, join
 tables for N-to-M.
+
+#### 8.1.7 Why gecko picks join tables uniformly for every multi-valued reference
+
+A natural question reading §8.1.3 / §8.1.4: why a separate join table for *every* multi-valued
+reference? A "1-to-N" containment relationship is usually modeled with an FK *on the child*
+(e.g. `Product.warehouse_id`) rather than a separate `Warehouse_items_Mapping` table. The
+answer is EMF's containment semantics:
+
+- **Containment.** A child has at most one `eContainer()`. EMF enforces this — setting a
+  containment reference on a new parent moves the child out of any previous container.
+  Multi-valued containment is therefore truly 1-to-N: every child has a unique parent, and
+  FK-on-child is a well-defined place to put the back-link.
+- **Non-containment.** No such constraint. Two different parents can both reference the same
+  target. The canonical case: a non-containment `Person.address` reference to a shared
+  `Address` object — Alice and Bob can both point at `Address(123 Main St)`. If we tried to
+  store this with FK-on-child (`Address.person_id`), the single Address row could only point
+  back to one of them. Multi-valued non-containment makes the problem worse.
+
+A small note about single-valued references: we don't have this problem there because the FK
+sits on the *parent* (`Order.product_id`), not the child. Each parent row carries its own
+copy of the target id, and shared targets are fine — two `Order` rows can both have
+`product_id=42`. Sharing only becomes painful when you try to put the FK on the child for a
+multi-valued non-containment reference.
+
+Putting that all together, the strict picture for where an FK-on-child would actually work:
+
+| Reference shape | FK-on-child works? | Notes |
+|---|---|---|
+| Single-valued containment | n/a (we use FK-on-parent) | One parent per child by EMF rule. |
+| Single-valued non-containment | n/a (we use FK-on-parent) | Sharing is fine — each parent row holds its own id. |
+| Multi-valued containment | ✅ yes | EMF guarantees one parent per child. |
+| Multi-valued non-containment | ❌ no | A shared target has multiple parents; one FK column on the child can't represent that. |
+
+So strictly speaking only the last row *requires* a separate join table. The third row could
+go either way. Gecko picked the uniform "always join-table for multi-valued" pattern because
+it correctly handles both shapes with one rule — no need to inspect `eReference.isContainment()`
+and switch strategies mid-export, and no risk of being wrong if the EMF model later changes a
+reference from containment to non-containment.
+
+When we implement multi-valued reference support in `CsvSqlTablesDelegate`, this is the
+fork-in-the-road:
+
+- **A. Uniform join-table** (what gecko does). One rule, simple to reason about, safe under
+  all EMF reference shapes. Adds a CSV per multi-valued reference even when an idiomatic
+  `parent_id` column on the child would do.
+- **B. FK-on-child for containment, join-table for non-containment.** More SQL-idiomatic; the
+  produced schema looks like what a hand-modelled relational schema would. Costs a per-ref
+  branch on `isContainment()` and a small amount of extra logic in the emit phase.
+
+→ Resolved in §8.7 in favour of option B: it's what the target JPA/eorm layout requires
+(`OneToMany` ↔ FK-on-child, `ManyToMany` ↔ join table).
 
 ### 8.2 Architectural mismatch with our FormatDelegate
 
@@ -505,19 +560,24 @@ prevent loading in any order and would clash with daanse's `DROP/CREATE/INSERT` 
 
 1. **`address_id` instead of `address._ref`** — gecko's `._ref` suffix is SQL-unfriendly and
    would need quoting in most dialects. Switching to `<refname>_id` matches JPA/Hibernate
-   convention. Trivial codec-side change; big DX win.
-2. **Subdirectory-as-schema** — the codec should be able to emit `<schema>/<EClass>.csv`
-   layout inside the ZIP. Derive the schema from EPackage namespace, an annotation, or an
-   option. Daanse already treats this as schema scoping.
-3. **Cleaner mapping-table file names** — drop the `_Mapping` suffix; e.g. emit
-   `person_contacts.csv` instead of `Person_contacts_Mapping.csv`. Daanse doesn't care, but
-   human readers and future tooling do.
-4. **Type vocabulary aligned to daanse** — the SQL types in our default EMF → SQL table
-   (§5.1) are already a subset of what daanse recognizes. The only gap is `DOUBLE PRECISION`
-   (we map `EDouble` to it), which daanse doesn't list explicitly and would fall back to
-   `VARCHAR`. Either change our default to `DOUBLE` (cleaner cross-dialect) or accept that
-   users targeting daanse should set `columnTypes` for double columns. Recommendation: change
-   the default to `DOUBLE`.
+   convention. Trivial codec-side change; big DX win. The suffix is now configurable via the
+   CSV-specific option `codec.tabular.fkColumnSuffix` (defaults to `"_id"`); we considered reusing
+   the codec's global `refKey` but kept it separate because the syntactic roles differ
+   (`refKey` is an inner JSON key like `"$ref"`, whereas this is a suffix on the parent
+   column name).
+2. **Subdirectory-as-schema** — implemented via the `codec.tabular.schemas` option, a
+   `Map<?, String>` keyed by either `EClass` or `EPackage`. Lookup precedence per visited
+   EClass: exact EClass match → its EPackage → no schema (file lands at the ZIP root).
+   Daanse treats subdirectories as DB schemas (e.g. `hr/Person.csv` → table `hr.Person`).
+3. **Cleaner mapping-table file names** — done: join tables are emitted as
+   `<lowercaseFirst(owner)>_<refname>.csv` (e.g. `warehouse_items.csv`, `person_friends.csv`),
+   no `_Mapping` suffix. See §8.7.4 for the broader naming-convention discussion.
+4. **Type vocabulary aligned to daanse** — done: `EDouble` / `EDoubleObject` now default to
+   `DOUBLE` instead of `DOUBLE PRECISION` (§5.1). Daanse's
+   `CsvDataImporter.parseColumnDataType()` recognizes `DOUBLE` via `JDBCType.valueOf(...)`
+   but not the two-word `DOUBLE PRECISION`, which silently fell back to `VARCHAR`. The
+   single-word form is also more portable across SQL dialects. Users wanting `DOUBLE PRECISION`
+   can still set it explicitly via `codec.tabular.columnTypes`.
 
 #### 8.6.5 Open question — should we emit FK constraint metadata anyway?
 
@@ -531,6 +591,138 @@ Daanse ignores it today, but a future smarter importer might honor it. Options:
 Recommendation: ship "nothing" first (matches daanse's contract), revisit if we ever target an
 importer that wants FK metadata.
 
+### 8.7 Target output: JPA / eorm alignment
+
+§8.1–§8.6 cover what gecko did and how daanse consumes CSVs. This section adds the third
+audience the SQL_TABLES output is meant to feed: a JPA layer driven by an eorm mapping. The
+findings here settle the option-A-vs-B fork left open at the end of §8.1.7.
+
+#### 8.7.1 Concrete target — the `test1` fixture
+
+Location: `/home/ilenia/tests/jpa/test1` — five EClasses (`model.ecore`), a `mapping.eorm`, and
+the produced CSVs laid out under `data/` with daanse-style subdirectory schemas:
+
+```
+test1/
+├── mapping/
+│   ├── model.ecore
+│   └── mapping.eorm
+└── data/
+    ├── employees.csv
+    ├── products.csv
+    ├── hr/
+    │   └── contracts.csv
+    └── finance/
+        ├── invoices.csv
+        └── payments.csv
+```
+
+The references and their CSV representations:
+
+| EReference | Kind | CSV representation | eorm |
+|---|---|---|---|
+| `Employee.contracts` | OneToMany containment | FK on child: `hr/contracts.csv` has column `employee_id` | `<oneToMany name="contracts"><joinColumn name="employee_id"/>` (mapping.eorm:52-59) |
+| `Invoice.employee`   | ManyToOne non-containment | FK on parent: `finance/invoices.csv` has column `employee_id` | `<manyToOne name="employee"><joinColumn name="employee_id"/>` (mapping.eorm:146-152) |
+| `Invoice.payments`   | OneToMany containment | FK on child: `finance/payments.csv` has column `invoice_id` | `<oneToMany name="payments"><joinColumn name="invoice_id"/>` (mapping.eorm:158) |
+
+Every relationship is **a single FK column** — on the child for OneToMany, on the parent for
+ManyToOne. **No join-table CSVs appear anywhere**, and the example contains **no ManyToMany**.
+So the example settles the OneToMany / ManyToOne cases directly; the many-to-many case has to
+be extrapolated from how eorm expresses it.
+
+#### 8.7.2 The eorm's `JoinTable` model
+
+`/opt/git/fennec-persistence-jpa/org.eclipse.fennec.persistence.orm/model/eorm.ecore` defines:
+
+- **`JoinTable`** (lines 1828–1902) — an EClass with `name`, `schema`, `catalog`,
+  `joinColumn[*]` (FKs pointing back to the *owning* entity), `inverseJoinColumn[*]` (FKs
+  pointing to the *target* entity), plus the usual `foreignKey` / `inverseForeignKey` and
+  constraint/index decorations.
+- **`BaseRef`** (lines 1610–1649) — abstract superclass of every relationship mapping — carries
+  a `joinTable: JoinTable` containment ref (lines 1634–1641).
+- **`ManyToMany`** (lines 1934–2033) extends `MappedByRef`, which extends `BaseRef`, so it
+  inherits the `joinTable` feature.
+
+A ManyToMany mapping therefore looks like:
+
+```xml
+<manyToMany name="..." access="FIELD" targetEntity="...">
+  <joinTable name="...">
+    <joinColumn name="..." />          <!-- FK back to the owning entity -->
+    <inverseJoinColumn name="..." />   <!-- FK to the target entity -->
+  </joinTable>
+</manyToMany>
+```
+
+The `JoinTable.name` plus its `joinColumn`/`inverseJoinColumn` names *are* the contract the
+JPA layer expects to find in the database. Translated to our CSV world: the join table has
+to be **a real CSV file** with those exact columns. No way around it — the eorm has no other
+mechanism to encode a many-to-many.
+
+#### 8.7.3 daanse's role (cross-ref to §8.6.2)
+
+Worth repeating from §8.6.2: daanse's `CsvDataImporter` has **no special handling** for join
+tables. Every CSV → one SQL table via `dialect.ddlGenerator().createTable(...)`. So a join
+table CSV is just another table from daanse's perspective; it loads the rows, and the JPA
+layer (driven by the eorm) is the consumer that knows it's a join.
+
+#### 8.7.4 What this implies for option A vs B
+
+§8.1.7 left two paths open:
+
+- **Option A** — uniform join-table for every multi-valued reference (what gecko does).
+- **Option B** — FK-on-child for containment, join-table for non-containment.
+
+The `test1` fixture makes the answer concrete: **option B is the only mapping that produces
+the JPA-compatible layout.** Specifically:
+
+- `Employee.contracts` is multi-valued containment → the example puts an `employee_id` FK on
+  the child table (`hr/contracts.csv`). That is **option B** for that ref. Option A would have
+  emitted a separate `Employee_contracts.csv` join-table, which would not match the eorm's
+  `<oneToMany>` mapping that expects `employee_id` on the child.
+- Non-containment multi-valued → no example case, but the eorm reserves `<manyToMany>` +
+  `<joinTable>` for exactly this shape, and a join-table CSV is the only thing that can satisfy
+  that contract. **Option B** prescribes a join table here too.
+
+So the strict rule for SQL_TABLES, aligned with JPA/eorm, is:
+
+| EReference shape | CSV output |
+|---|---|
+| Single-valued (any containment flag) | FK column on the parent table |
+| Multi-valued containment | FK column **on the child table** pointing back at the parent (the JPA `OneToMany` shape) |
+| Multi-valued non-containment | Separate join-table CSV with two FK columns (the JPA `ManyToMany` shape) |
+
+The asymmetry between containment and non-containment for multi-valued references comes
+directly from EMF's one-container rule (§8.1.7) and matches JPA's distinction between
+OneToMany and ManyToMany exactly.
+
+Rather than locking the implementation into option B, the codec exposes the choice as
+`codec.tabular.multiValuedRefStrategy` (§9.1, §5.4):
+
+- **`PREFER_FK_COLUMN`** (default) — matches the JPA-idiomatic rule above.
+- **`ALWAYS_JOIN_TABLE`** — every multi-valued reference goes to a join-table CSV (the legacy
+  gecko approach). Useful when the downstream consumer prefers one uniform shape.
+
+**Naming conventions adopted:**
+
+- **FK-on-child column** (multi-valued containment under `PREFER_FK_COLUMN`):
+  `<lowercaseFirst(parentEClass)><fkSuffix>` — e.g. `employee_id` on the child `Contract`
+  table, matching the `test1` fixture. Collisions (two containment refs from the same parent
+  EClass to the same child EClass) are disambiguated as
+  `<lowercaseFirst(parentEClass)>_<refname><fkSuffix>`.
+- **Join-table file name**: `<lowercaseFirst(owner)>_<refname>.csv` — e.g. `warehouse_items.csv`
+  or `person_friends.csv`. No `_Mapping` suffix (§8.6.4 item 3 resolution).
+- **Join-table columns**: `<lowercaseFirst(owner)><fkSuffix>` and `<refname><fkSuffix>`. The
+  target column uses the reference name rather than the target EClass name so that
+  self-referential ManyToMany (e.g. `Person.friends: Person*`) yields two distinct column
+  names (`person_id`, `friends_id`).
+- **Schema placement for join tables**: same `codec.tabular.schemas` lookup applied to the
+  *owner* EClass — join tables follow the owner.
+
+These defaults are workable starting points; a future refinement (§9.2 row) may switch the
+join-table target column from `<refname>` to `<targetType>` for closer JPA alignment, behind
+an opt-in option.
+
 ---
 
 ## 9. Implementation status
@@ -540,10 +732,15 @@ versus what's still on the roadmap from the design sections above.
 
 ### 9.1 Implemented and tested
 
-#### Single-EObject mode (default, `OPTION_REFERENCE_MODE=IGNORE`)
+#### IGNORE mode (default, `OPTION_REFERENCE_MODE=IGNORE`)
 
-- `CsvFormatProvider`, `CsvFormatDelegate`, `SqlTypeMapper` — produces the 3-row CSV
-  (header / SQL types / data) for a single `EObject`'s `EAttribute`s.
+- `CsvFormatProvider`, `CsvFormatDelegate`, `SqlTypeMapper` — produces a single CSV with
+  header / SQL types / one-data-row-per-root from an `EObject`'s `EAttribute`s.
+- **Multi-root**: a `CodecResource` may hold any number of root `EObject`s. They are written
+  into the same CSV — header + types row once, then one data row per root. Column set is the
+  union of names seen across all rows, in first-appearance order. Mixed-`EClass` roots produce
+  a sparse output (missing cells empty); the use case targeted is N roots of the same `EClass`
+  (e.g. all `Person`s in one file).
 - **All existing codec option mechanics flow through** (§7): `useNamesFromExtendedMetaData`,
   `ignore` / `globalIgnoreFeatures`, `forceWrite`, `serializeNull/Empty/Default`, custom value
   writers, `dateFormat` — they all participate via the standard `CodecResource` →
@@ -556,12 +753,49 @@ versus what's still on the roadmap from the design sections above.
   log line (matches the "MVP, attributes only" scope of §4).
 - OSGi `Resource.Factory` registered for `.csv` extension via `CsvResourceFactoryComponent`.
 
-#### SQL_TABLES mode (MVP spike, `OPTION_REFERENCE_MODE=SQL_TABLES`)
+#### SQL_TABLES mode (`OPTION_REFERENCE_MODE=SQL_TABLES`)
 
-- `CsvSqlTablesDelegate` — BFS walk from the root `EObject`, per-`EClass` matrices, ZIP output
-  with one CSV entry per visited `EClass`.
-- Pseudo `_id` (BIGINT) primary key per EClass; foreign-key columns named `<refname>_id`
-  (BIGINT) — daanse-friendly naming (§8.6.4 item 1).
+- `CsvSqlTablesDelegate` — BFS walk from every root `EObject` (shared visited set and
+  pseudo-id space), per-`EClass` matrices, ZIP output with one CSV entry per visited `EClass`.
+- **Multi-root**: all roots are walked in a single pass, so cross-root references resolve
+  correctly. Disconnected roots of the same `EClass` collapse into a single CSV; roots of
+  different `EClass`es land in separate CSVs.
+- **Codec options pipeline**: the delegate receives the operation `ConfigurationResolver` and
+  applies it per feature via `resolveFeatureConfig(...)`:
+  - **Column key**: `FeatureConfig.getKey()` is used instead of `feat.getName()` — so
+    `useNamesFromExtendedMetaData`, per-feature `@codec(key="...")` annotations, and the
+    `codec.featureConfig` map all rename SQL_TABLES headers. FK columns become
+    `<resolved-key>_id`.
+  - **Filter**: `FeatureConfig.shouldSerialize()` gates inclusion — covers `ignore` /
+    `ignoreWrite` / `globalIgnoreFeatures` and the implicit transient/derived/volatile skip
+    (which `forceWrite` overrides).
+  - **Dates**: when a `FeatureConfig.getDateFormat()` is set (per-feature / per-class /
+    global), `java.util.Date` values are formatted via `SimpleDateFormat`. Otherwise
+    `Date#toString()` is the fallback.
+  - **`OPTION_COLUMN_TYPES`** now also accepts lookups by resolved column key (in addition
+    to the existing `EStructuralFeature` and raw feature-name keys).
+- Pseudo `_id` (BIGINT) primary key per EClass; foreign-key columns named
+  `<resolved-key><suffix>` (BIGINT). The suffix defaults to `"_id"` — daanse-friendly naming
+  (§8.6.4 item 1) — and is overridable per save via `codec.tabular.fkColumnSuffix`.
+- **Schema subdirectories**: via `codec.tabular.schemas` (Map keyed by EClass or EPackage,
+  EClass takes precedence), ZIP entries can be laid out as `<schema>/<EClass>.csv`. EClasses
+  with no schema entry land at the ZIP root. Matches daanse's "subdirectory = DB schema"
+  convention (§8.6.4 item 2).
+- **Multi-valued reference handling**: governed by `codec.tabular.multiValuedRefStrategy`
+  (§8.7), with two values:
+  - **`PREFER_FK_COLUMN`** (default): multi-valued *containment* refs add a FK column
+    `<lowercaseFirst(parentEClass)><fkSuffix>` on the *child* table (the JPA `OneToMany`
+    idiom; the example in §8.7.1). Multi-valued *non-containment* refs are emitted as a
+    separate join-table CSV.
+  - **`ALWAYS_JOIN_TABLE`**: every multi-valued ref produces a separate join-table CSV
+    (the legacy gecko approach, §8.1.4).
+  - Join-table CSV name: `<lowercaseFirst(owner)>_<refname>.csv`, placed in the owner's
+    schema. Columns: `<lowercaseFirst(owner)><fkSuffix>` and `<refname><fkSuffix>` (the
+    second column uses the EReference name so self-referential many-to-many — e.g.
+    `Person.friends: Person*` — gets two distinct columns).
+  - FK-on-child column naming disambiguates collisions (two containment refs from the same
+    parent EClass to the same child EClass) by appending `_<refname>` to the parent
+    prefix.
 - **Single-valued** `EReference`s (containment + non-containment) emit a FK column.
 - Multi-valued `EAttribute`s joined with `;` in a single cell (same as IGNORE mode).
 - OSGi `Resource.Factory` also registers `.csvz` extension that defaults to SQL_TABLES mode
@@ -569,13 +803,46 @@ versus what's still on the roadmap from the design sections above.
   `URI.fileExtension()` only returns the last segment).
 - `IdentityHashMap`-based visit set in the graph walk — cycle-safe by construction.
 
+#### FLAT mode (`OPTION_REFERENCE_MODE=FLAT`)
+
+- `CsvFlatDelegate` — single-CSV output with all references flattened into dotted column
+  names. Mirrors the legacy gecko `EMFCSVExporter` FLAT layout:
+  - Root `EAttribute` → `<attr>`
+  - Single-valued `EReference` → `<ref>.<sub>` (recursive)
+  - Multi-valued `EReference` → `<ref>.<index>.<sub>` (recursive)
+- **Multi-root**: each root produces one data row. Header is the union of column names
+  across all rows in first-appearance order; rows shorter than the widest one get empty
+  cells (sparse alignment). This lets sibling roots with different multi-ref sizes coexist
+  in one CSV.
+- **Codec options pipeline**: the delegate receives the operation `ConfigurationResolver`
+  and applies `FeatureConfig` per feature exactly like SQL_TABLES — `useNamesFromExtendedMetaData`,
+  per-feature `@codec(key="...")`, `globalIgnoreFeatures`, `forceWrite`, and `dateFormat` all
+  flow through. The resolved feature key is what appears in dotted column names (e.g.
+  `featured.custom_name`, not `featured.customKeyAttr`).
+- **`OPTION_COLUMN_TYPES`** lookup order: `EStructuralFeature` key → dotted column name
+  (e.g. `"featured.name"`) → raw feature name. The dotted-name form is the natural way to
+  override an inner column's SQL type.
+- Multi-valued `EAttribute`s joined with `;` in a single cell (same convention as IGNORE/SQL_TABLES).
+- **Cycle protection**: a per-row path stack of `EObject`s (identity-based) breaks
+  back-edges within a single row's traversal. Aliasing across sibling references is preserved
+  (the same target reached via two different paths gets flattened twice).
+- Type row is computed from the leaf `EAttribute` that produced each column.
+
 #### Plumbing changes outside the bundle
 
-- `CodecFormatProvider` (in `org.eclipse.fennec.codec.api`) extended with a default
-  `createWriter(target, rootObject, saveOptions)` overload — backwards compatible (other
-  providers inherit the default that delegates to the existing `createWriter(target)`).
-- `CodecResource.doSaveWithFormat()` calls the new overload, passing the root `EObject` and
-  effective save options.
+- `CodecFormatProvider` (in `org.eclipse.fennec.codec.api`) carries two default overloads:
+  `createWriter(target, rootObject, saveOptions)` and
+  `createWriter(target, List<EObject> rootObjects, saveOptions)`. Both are backwards
+  compatible (each delegates down to the next narrower overload, ultimately
+  `createWriter(target)`).
+- `CodecResource.doSaveWithFormat()` calls the `List<EObject>` overload, passing
+  `getContents()` and effective save options.
+- `CsvFormatProvider.supportsArrayRoot()` returns `true` (was `false`) so resources with
+  multiple roots flow through to the delegate instead of being rejected with an `IOException`.
+- A further `CodecFormatProvider.createWriter(target, roots, saveOptions, resolver)` overload
+  was added — also a backwards-compatible default — so the SQL_TABLES delegate receives the
+  operation `ConfigurationResolver` (the same one the Jackson pipeline uses upstream of
+  IGNORE-mode delegates) and can apply codec options itself.
 
 #### Tests
 
@@ -590,18 +857,19 @@ versus what's still on the roadmap from the design sections above.
 | `CsvVisibilityTest` | Per-feature `ignoreWrite`/`ignore` drop columns; `ignoreRead` does not |
 | `CsvValueHandlingTest` | `serializeNull` / `serializeEmpty` / `serializeDefault` |
 | `CsvSqlTablesTest` | SQL_TABLES emits ZIP with two CSVs + FK linking; empty-ref case |
+| `CsvMultiRootTest` | Multiple roots in IGNORE (one CSV, N data rows) and SQL_TABLES (single shared ZIP) |
+| `CsvSqlTablesOptionsTest` | Codec options flow through SQL_TABLES: extended-metadata names, `@codec(key=...)`, `globalIgnoreFeatures`, `forceWrite` on derived, `dateFormat` for EDate, `fkColumnSuffix`, `schemas` (by EClass / EPackage) |
+| `CsvSqlTablesMultiRefTest` | Multi-valued reference handling: PREFER_FK_COLUMN puts an FK column on the child for containment refs, falls back to a join-table CSV for non-containment refs; ALWAYS_JOIN_TABLE emits a join-table CSV for both shapes; default strategy verification |
+| `CsvFlatTest` | FLAT mode: single-ref flattening, multi-ref indexed columns, sparse alignment across roots, null/empty refs, multi-valued attribute join, resolved key in dotted names, globalIgnore drops sub-columns, `OPTION_COLUMN_TYPES` by dotted name, cycle protection |
 
 ### 9.2 Not yet implemented
 
 | Item | Reference | Notes |
 |---|---|---|
-| Codec option pipeline in SQL_TABLES mode | §8 | `CsvSqlTablesDelegate` currently uses `feat.getName()` directly. `useNamesFromExtendedMetaData`, per-feature `ignore`, `forceWrite`, custom value writers, `dateFormat` are **not** applied. Needs the delegate to read from `ConfigurationResolver`. |
-| Multi-valued references → mapping CSVs (join tables) | §8.1.4 / §8.5 step 3 | Currently skipped with a `FINE` log line. Gecko's `Person_contacts_Mapping.csv` pattern. |
-| Cleaner mapping-table file names | §8.6.4 item 3 | Becomes relevant when mapping tables land. |
-| Subdirectory-as-schema layout in the ZIP | §8.6.4 item 2 | Daanse treats subdirectories as DB schemas. |
-| `DOUBLE` instead of `DOUBLE PRECISION` for daanse compat | §8.6.4 item 4 | Single-character change in `SqlTypeMapper` defaults. |
+| Custom value writers in SQL_TABLES mode | §8 / §7.2 | `codec.featureValueWriters` / `codec.featureValueWriterInstances` are honoured in IGNORE mode (Jackson pipeline) but not in SQL_TABLES. Plumbing them requires a one-shot capture `JsonGenerator` (the `FormatDelegate` API is token-shaped, but `CodecValueWriter#write` expects `gen.writeString(...)`). Column key, ignore/forceWrite, and dateFormat already flow through (§9.1). |
+| Join-table file/column naming refinement | §8.6.4 item 3 / §8.7.4 | Current defaults: `<lowercaseFirst(owner)>_<refname>.csv`, columns `<lowercaseFirst(owner)><fkSuffix>` and `<refname><fkSuffix>`. Open whether a more JPA-conventional alternative (e.g. `<owner>_<targetType>` for both file and target column) is preferable. |
 | `referenceOverrides` (per-`EReference` mode override) | §8.5 step 5 | Not started. |
-| `FLAT` reference mode | §5.3, §8.5 step 6 | Different audience (single-sheet / spreadsheets); a third delegate variant. |
+| `HYBRID` reference mode | §5.3 | Containment flattened (FLAT-style), non-containment as FK column. Open design question: an FK without a peer SQL_TABLES target table is just an opaque id — useful only when paired with a separate SQL_TABLES export. |
 | CSV reader / deserialization | — | `createReader()` throws `UnsupportedOperationException`. Not on the roadmap. |
 | FK constraint metadata sidecar | §8.6.5 | Decided "nothing" — matches daanse's contract. |
 
@@ -615,6 +883,7 @@ org.eclipse.fennec.codec.csv/
 │   ├── CsvFormatProvider.java                    # CodecFormatProvider<InputStream, OutputStream>
 │   ├── CsvFormatDelegate.java                    # IGNORE-mode writer delegate
 │   ├── CsvSqlTablesDelegate.java                 # SQL_TABLES-mode writer delegate
+│   ├── CsvFlatDelegate.java                      # FLAT-mode writer delegate
 │   ├── CsvResourceFactoryComponent.java          # OSGi DS: csv + csvz extensions
 │   ├── SqlTypeMapper.java                        # default EMF → SQL type table
 │   └── package-info.java
@@ -627,5 +896,9 @@ org.eclipse.fennec.codec.csv/
     ├── CsvGlobalIgnoreTest.java
     ├── CsvVisibilityTest.java
     ├── CsvValueHandlingTest.java
-    └── CsvSqlTablesTest.java
+    ├── CsvSqlTablesTest.java
+    ├── CsvMultiRootTest.java
+    ├── CsvSqlTablesOptionsTest.java
+    ├── CsvSqlTablesMultiRefTest.java
+    └── CsvFlatTest.java
 ```

@@ -10,7 +10,7 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.codec.csv;
+package org.eclipse.fennec.codec.tabular;
 
 import java.util.Map;
 
@@ -21,9 +21,11 @@ import org.eclipse.emf.ecore.EcorePackage;
 
 /**
  * Default mapping from EMF data types to SQL type names, used to populate the
- * CSV "type" row (second row) of the produced file.
+ * {@code Column.sqlType} field of a {@code TabularDocument}.
  * <p>
- * The fallback for unknown classifiers is {@code VARCHAR}.
+ * The fallback for unknown classifiers is {@code VARCHAR}. The mapping is
+ * intentionally conservative and dialect-portable; users can override per
+ * feature via {@link CodecTabularOptions#OPTION_COLUMN_TYPES}.
  *
  * @since 2026-05
  */
@@ -74,8 +76,8 @@ public final class SqlTypeMapper {
                 Map.entry(ecore.getEShortObject(), "SMALLINT"),
                 Map.entry(ecore.getEFloat(), "REAL"),
                 Map.entry(ecore.getEFloatObject(), "REAL"),
-                Map.entry(ecore.getEDouble(), "DOUBLE PRECISION"),
-                Map.entry(ecore.getEDoubleObject(), "DOUBLE PRECISION"),
+                Map.entry(ecore.getEDouble(), "DOUBLE"),
+                Map.entry(ecore.getEDoubleObject(), "DOUBLE"),
                 Map.entry(ecore.getEBigDecimal(), "DECIMAL"),
                 Map.entry(ecore.getEBigInteger(), "NUMERIC"),
                 Map.entry(ecore.getEDate(), "TIMESTAMP"),

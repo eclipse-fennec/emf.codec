@@ -91,6 +91,64 @@ public interface CodecFormatProvider<S, T> {
     }
 
     /**
+     * Creates a new writer delegate, with optional access to the full list of root
+     * {@code EObject}s being serialized and the save-time options map.
+     * <p>
+     * The default implementation delegates to
+     * {@link #createWriter(Object, org.eclipse.emf.ecore.EObject, java.util.Map)} with the
+     * first element of {@code rootObjects} (or {@code null} if the list is empty), so
+     * single-root providers don't need to override this. Providers that need to know
+     * about all roots ahead of time — for example the CSV provider in {@code SQL_TABLES}
+     * mode, which walks every root to build per-{@code EClass} matrices — should override
+     * this overload.
+     *
+     * @param target the output target
+     * @param rootObjects the root {@code EObject}s being serialized, never {@code null} (may be empty)
+     * @param saveOptions the save-time option map, never {@code null} (may be empty)
+     * @return a new writer delegate, never null
+     * @throws IOException if the delegate cannot be created
+     * @since 2026-05
+     */
+    default FormatDelegate<T> createWriter(T target,
+            java.util.List<? extends org.eclipse.emf.ecore.EObject> rootObjects,
+            java.util.Map<String, Object> saveOptions) throws IOException {
+        org.eclipse.emf.ecore.EObject first = rootObjects.isEmpty() ? null : rootObjects.get(0);
+        return createWriter(target, first, saveOptions);
+    }
+
+    /**
+     * Creates a new writer delegate with access to the full operation
+     * {@link org.eclipse.fennec.codec.config.ConfigurationResolver} as well as the
+     * root {@code EObject}s and save-time options.
+     * <p>
+     * Most format providers don't need the resolver: their {@link FormatDelegate}
+     * participates in the Jackson-driven serialization pipeline, and all option
+     * resolution happens upstream in {@code CodecResource}/{@code CodecEObjectSerializer}.
+     * The CSV provider's {@code SQL_TABLES}-mode delegate is the exception — it bypasses
+     * the Jackson pipeline and walks the EMF graph directly, so it needs to apply
+     * codec options (extended-metadata names, ignore/forceWrite, dateFormat, …)
+     * itself.
+     * <p>
+     * The default implementation delegates to
+     * {@link #createWriter(Object, java.util.List, java.util.Map)} and ignores the resolver,
+     * keeping every existing provider working unchanged.
+     *
+     * @param target the output target
+     * @param rootObjects the root {@code EObject}s being serialized, never {@code null} (may be empty)
+     * @param saveOptions the save-time option map, never {@code null} (may be empty)
+     * @param resolver the operation configuration resolver (already enriched with save options); may be {@code null}
+     * @return a new writer delegate, never null
+     * @throws IOException if the delegate cannot be created
+     * @since 2026-05
+     */
+    default FormatDelegate<T> createWriter(T target,
+            java.util.List<? extends org.eclipse.emf.ecore.EObject> rootObjects,
+            java.util.Map<String, Object> saveOptions,
+            org.eclipse.fennec.codec.config.ConfigurationResolver resolver) throws IOException {
+        return createWriter(target, rootObjects, saveOptions);
+    }
+
+    /**
      * Creates a new reader delegate for the given input source.
      *
      * @param source the input source

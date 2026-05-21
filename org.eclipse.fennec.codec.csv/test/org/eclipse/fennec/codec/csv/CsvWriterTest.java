@@ -13,6 +13,7 @@
 package org.eclipse.fennec.codec.csv;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,6 +31,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
+import org.eclipse.fennec.codec.tabular.CodecTabularOptions;
 import org.eclipse.fennec.codec.tests.tck.AbstractCoreRoundTripTCK;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
@@ -157,12 +159,13 @@ class CsvWriterTest {
             String typeRow = splitLines(csv).get(1);
 
             // id and label are EString -> VARCHAR; count -> INTEGER;
-            // amount -> BIGINT; ratio -> DOUBLE PRECISION; enabled -> BOOLEAN.
+            // amount -> BIGINT; ratio -> DOUBLE; enabled -> BOOLEAN.
             assertTrue(typeRow.contains("VARCHAR"), typeRow);
             assertTrue(typeRow.contains("INTEGER"), typeRow);
             assertTrue(typeRow.contains("BIGINT"), typeRow);
-            // DOUBLE PRECISION contains a space and will be quoted by fastcsv.
-            assertTrue(typeRow.contains("DOUBLE PRECISION"), typeRow);
+            assertTrue(typeRow.contains("DOUBLE"), typeRow);
+            assertFalse(typeRow.contains("DOUBLE PRECISION"),
+                    () -> "EDouble default should be the single-word DOUBLE (daanse-compat): " + typeRow);
             assertTrue(typeRow.contains("BOOLEAN"), typeRow);
         }
 
@@ -214,7 +217,7 @@ class CsvWriterTest {
         @DisplayName("overrides VARCHAR with VARCHAR(255) for a named feature")
         void overridesByName() throws IOException {
             Map<String, Object> options = Map.of(
-                    CodecCsvOptions.OPTION_COLUMN_TYPES,
+                    CodecTabularOptions.OPTION_COLUMN_TYPES,
                     Map.of("label", "VARCHAR(255)", "amount", "DECIMAL(15,2)"));
 
             CsvFormatProvider provider = new CsvFormatProvider(itemClass, options);
@@ -243,7 +246,7 @@ class CsvWriterTest {
             assertTrue(typeRow.contains("VARCHAR"), typeRow);            // id, label
             assertTrue(typeRow.contains("INTEGER"), typeRow);            // count
             assertTrue(typeRow.contains("BIGINT"), typeRow);             // amount
-            assertTrue(typeRow.contains("DOUBLE PRECISION"), typeRow);   // ratio
+            assertTrue(typeRow.contains("DOUBLE"), typeRow);             // ratio
             assertTrue(typeRow.contains("BOOLEAN"), typeRow);            // enabled
         }
 
@@ -253,7 +256,7 @@ class CsvWriterTest {
             CsvFormatProvider provider = new CsvFormatProvider();
 
             Map<String, Object> saveOptions = Map.of(
-                    CodecCsvOptions.OPTION_COLUMN_TYPES,
+                    CodecTabularOptions.OPTION_COLUMN_TYPES,
                     Map.of("label", "VARCHAR(255)", "amount", "DECIMAL(15,2)"));
 
             String csv = save(createItem(), provider, saveOptions);

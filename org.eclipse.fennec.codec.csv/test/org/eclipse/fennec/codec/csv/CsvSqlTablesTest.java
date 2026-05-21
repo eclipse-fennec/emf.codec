@@ -37,6 +37,8 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
+import org.eclipse.fennec.codec.tabular.CodecTabularOptions;
+import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
 import org.eclipse.fennec.codec.tests.tck.AbstractCoreRoundTripTCK;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
@@ -120,8 +122,8 @@ class CsvSqlTablesTest {
         resource.getContents().add(root);
 
         Map<String, Object> effective = new HashMap<>(options);
-        effective.putIfAbsent(CodecCsvOptions.OPTION_REFERENCE_MODE,
-                CodecCsvOptions.ReferenceMode.SQL_TABLES);
+        effective.putIfAbsent(CodecTabularOptions.OPTION_REFERENCE_MODE,
+                ReferenceMode.SQL_TABLES);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         resource.save(out, effective);

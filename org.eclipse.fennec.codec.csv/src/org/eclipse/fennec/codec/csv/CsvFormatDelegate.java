@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -31,6 +32,8 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.format.FormatDelegate;
+import org.eclipse.fennec.codec.tabular.CodecTabularOptions;
+import org.eclipse.fennec.codec.tabular.SqlTypeMapper;
 import org.eclipse.fennec.codec.util.AnnotationHelper;
 
 import de.siegmar.fastcsv.writer.CsvWriter;
@@ -42,12 +45,15 @@ import de.siegmar.fastcsv.writer.QuoteStrategy;
  * CSV writer delegate.
  * <p>
  * Buffers the (column-name, value) pairs emitted by the Jackson-style writer
- * pipeline and, on {@link #close()}, produces a three-row CSV: a header row of
- * column names, a type row of SQL types, and a single data row of values.
+ * pipeline. On {@link #close()} it produces a CSV with a header row of column
+ * names, a type row of SQL types, and one data row per buffered root
+ * {@code EObject}.
  * <p>
- * Scope (MVP):
+ * Scope:
  * <ul>
- *   <li>Single root {@code EObject}.</li>
+ *   <li>One or more root {@code EObject}s. All roots are written into the same
+ *       CSV; the header is the union of the column names seen, in the insertion
+ *       order they first appear.</li>
  *   <li>{@code EAttribute}s only. Nested {@code EObject}s (contained or referenced) are
  *       silently skipped.</li>
  *   <li>Multi-valued {@code EAttribute}s are joined with {@code ';'} in a single cell.</li>
@@ -71,10 +77,12 @@ public class CsvFormatDelegate implements FormatDelegate<OutputStream> {
     private final EClass rootEClass;
     private final Map<String, Object> options;
 
-    private final LinkedHashMap<String, String> row = new LinkedHashMap<>();
+    private final List<LinkedHashMap<String, String>> rows = new ArrayList<>();
+    private final LinkedHashSet<String> headerOrder = new LinkedHashSet<>();
+    private LinkedHashMap<String, String> currentRow;
     private String currentName;
     private int objectDepth;
-    private int arrayDepth;
+    private boolean inAttrArray;
     private List<String> pendingArrayValues;
     private boolean emitted;
 
@@ -104,10 +112,12 @@ public class CsvFormatDelegate implements FormatDelegate<OutputStream> {
 
     @Override
     public void writeStartObject() throws IOException {
-        objectDepth++;
-        if (objectDepth > 1) {
-            LOGGER.fine(() -> "CSV: skipping nested object at depth " + objectDepth);
+        if (objectDepth == 0) {
+            currentRow = new LinkedHashMap<>();
+        } else {
+            LOGGER.fine(() -> "CSV: skipping nested object at depth " + (objectDepth + 1));
         }
+        objectDepth++;
     }
 
     @Override
@@ -115,25 +125,29 @@ public class CsvFormatDelegate implements FormatDelegate<OutputStream> {
         if (objectDepth > 0) {
             objectDepth--;
         }
+        if (objectDepth == 0 && currentRow != null) {
+            rows.add(currentRow);
+            currentRow = null;
+            currentName = null;
+        }
     }
 
     @Override
     public void writeStartArray() throws IOException {
-        arrayDepth++;
-        if (arrayDepth == 1 && objectDepth == 1) {
+        if (objectDepth == 1 && !inAttrArray && currentName != null) {
+            inAttrArray = true;
             pendingArrayValues = new ArrayList<>();
         }
+        // Otherwise: outer multi-root array (objectDepth==0) or nested array — ignored.
     }
 
     @Override
     public void writeEndArray() throws IOException {
-        if (arrayDepth == 1 && objectDepth == 1 && pendingArrayValues != null && currentName != null) {
-            row.put(currentName, String.join(ARRAY_VALUE_SEPARATOR, pendingArrayValues));
+        if (inAttrArray) {
+            putInRow(currentName, String.join(ARRAY_VALUE_SEPARATOR, pendingArrayValues));
             pendingArrayValues = null;
             currentName = null;
-        }
-        if (arrayDepth > 0) {
-            arrayDepth--;
+            inAttrArray = false;
         }
     }
 
@@ -143,7 +157,7 @@ public class CsvFormatDelegate implements FormatDelegate<OutputStream> {
 
     @Override
     public void writeName(String name) throws IOException {
-        if (objectDepth == 1 && arrayDepth == 0) {
+        if (objectDepth == 1 && !inAttrArray) {
             currentName = name;
         }
     }
@@ -200,19 +214,24 @@ public class CsvFormatDelegate implements FormatDelegate<OutputStream> {
 
     private void putValue(String value) {
         if (objectDepth != 1) {
-            // Nested EObject or pre/post-document: ignore for MVP.
             return;
         }
-        if (arrayDepth > 0) {
-            if (pendingArrayValues != null) {
-                pendingArrayValues.add(value);
-            }
+        if (inAttrArray) {
+            pendingArrayValues.add(value);
             return;
         }
         if (currentName != null) {
-            row.put(currentName, value);
+            putInRow(currentName, value);
             currentName = null;
         }
+    }
+
+    private void putInRow(String name, String value) {
+        if (name == null || currentRow == null) {
+            return;
+        }
+        currentRow.put(name, value);
+        headerOrder.add(name);
     }
 
     // ========================================================================
@@ -247,16 +266,18 @@ public class CsvFormatDelegate implements FormatDelegate<OutputStream> {
                 .lineDelimiter(resolveLineDelimiter())
                 .build(target, charset);
 
-        List<String> headers = new ArrayList<>(row.keySet());
+        List<String> headers = new ArrayList<>(headerOrder);
         List<String> types = resolveTypes(headers);
-        List<String> values = new ArrayList<>(headers.size());
-        for (String h : headers) {
-            values.add(row.getOrDefault(h, ""));
-        }
         try {
             csv.writeRecord(headers);
             csv.writeRecord(types);
-            csv.writeRecord(values);
+            for (LinkedHashMap<String, String> row : rows) {
+                List<String> values = new ArrayList<>(headers.size());
+                for (String h : headers) {
+                    values.add(row.getOrDefault(h, ""));
+                }
+                csv.writeRecord(values);
+            }
             csv.flush();
         } catch (UncheckedIOException e) {
             throw e.getCause();
@@ -270,7 +291,7 @@ public class CsvFormatDelegate implements FormatDelegate<OutputStream> {
     // ========================================================================
 
     private List<String> resolveTypes(List<String> headers) {
-        Map<?, ?> columnTypes = optionAsMap(CodecCsvOptions.OPTION_COLUMN_TYPES);
+        Map<?, ?> columnTypes = optionAsMap(CodecTabularOptions.OPTION_COLUMN_TYPES);
         List<String> resolved = new ArrayList<>(headers.size());
         for (String header : headers) {
             resolved.add(resolveTypeFor(header, columnTypes));
