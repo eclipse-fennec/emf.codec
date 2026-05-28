@@ -30,6 +30,7 @@ import org.eclipse.fennec.codec.rest.annotations.EMFResourceOptions;
 import org.eclipse.fennec.codec.rest.annotations.ResourceEClass;
 import org.eclipse.fennec.codec.rest.annotations.ResourceOption;
 import org.eclipse.fennec.codec.rest.annotations.ValidateContent;
+import org.eclipse.fennec.codec.rest.annotations.json.RootElement;
 
 /**
  * 
@@ -99,6 +100,10 @@ public abstract class AbstractCodecAnnotationHandler {
 			if (annotation instanceof ValidateContent) {
 				handleValidateContent(resource);
 			}
+			if (annotation instanceof RootElement) {
+				handleResourceRootType(resource, annotation);
+				handleResourceRootSchema(resource, annotation);
+			}
 		}
 
 	}
@@ -125,6 +130,23 @@ public abstract class AbstractCodecAnnotationHandler {
 	 * @param annotation the content not empty annotation
 	 */
 	abstract protected void handleContentNotEmpty(Resource resource, ContentNotEmpty annotation);
+	
+	/**
+	 * Handles the {@link RootElement} - rootType annotation
+	 * 
+	 * @param resource   the EMF resource
+	 * @param annotation the annotation
+	 */
+	abstract protected void handleResourceRootType(Resource resource, Annotation annotation);
+	
+	/**
+	 * Handles the {@link RootElement} - rootSchema annotation
+	 * 
+	 * @param resource   the EMF resource
+	 * @param annotation the annotation
+	 */
+	abstract protected void handleResourceRootSchema(Resource resource, Annotation annotation);
+	
 
 	/**
 	 * Writes the diagnostic content to a String
