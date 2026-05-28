@@ -16,17 +16,19 @@ package org.eclipse.fennec.codec.rest.jakartas;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Variant;
-
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.Diagnostician;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.rest.annotations.ContentNotEmpty;
 import org.eclipse.fennec.codec.rest.annotations.ResourceEClass;
+import org.eclipse.fennec.codec.rest.annotations.json.RootElement;
 import org.eclipse.fennec.codec.rest.common.AbstractCodecAnnotationHandler;
+
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Variant;
 
 /**
  * Base class to handle Codec resource annotation and turn them into Codec load or save options
@@ -35,9 +37,10 @@ import org.eclipse.fennec.codec.rest.common.AbstractCodecAnnotationHandler;
  */
 public class AbstractJakartaCodecAnnotationHandler extends AbstractCodecAnnotationHandler {
 
+	
 	/* 
 	 * (non-Javadoc)
-	 * @see org.gecko.emf.rest.common.AbstractEMFAnnotationHandler#handleValidateContent(org.eclipse.emf.ecore.resource.Resource)
+	 * @see org.eclipse.fennec.codec.rest.common.AbstractCodecAnnotationHandler#handleValidateContent(org.eclipse.emf.ecore.resource.Resource)
 	 */
 	@Override
 	protected void handleValidateContent(Resource resource) {
@@ -53,9 +56,10 @@ public class AbstractJakartaCodecAnnotationHandler extends AbstractCodecAnnotati
 		}
 	}
 
+	
 	/* 
 	 * (non-Javadoc)
-	 * @see org.gecko.emf.rest.common.AbstractEMFAnnotationHandler#handleResourceEClass(org.eclipse.emf.ecore.resource.Resource, java.lang.annotation.Annotation)
+	 * @see org.eclipse.fennec.codec.rest.common.AbstractCodecAnnotationHandler#handleResourceEClass(org.eclipse.emf.ecore.resource.Resource, java.lang.annotation.Annotation)
 	 */
 	@Override
 	protected void handleResourceEClass(Resource resource, Annotation annotation) {
@@ -72,9 +76,11 @@ public class AbstractJakartaCodecAnnotationHandler extends AbstractCodecAnnotati
 		}
 	}
 
+
+	
 	/* 
 	 * (non-Javadoc)
-	 * @see org.gecko.emf.rest.common.AbstractEMFAnnotationHandler#handleContentNotEmpty(org.eclipse.emf.ecore.resource.Resource, org.gecko.emf.rest.annotations.ContentNotEmpty)
+	 * @see org.eclipse.fennec.codec.rest.common.AbstractCodecAnnotationHandler#handleContentNotEmpty(org.eclipse.emf.ecore.resource.Resource, org.eclipse.fennec.codec.rest.annotations.ContentNotEmpty)
 	 */
 	@Override
 	protected void handleContentNotEmpty(Resource resource, ContentNotEmpty annotation) {
@@ -85,6 +91,49 @@ public class AbstractJakartaCodecAnnotationHandler extends AbstractCodecAnnotati
 			List<Variant> encoded = Variant.encodings(annotation.message()).build();
 			Response res = Response.notAcceptable(encoded).build();
 			throw new WebApplicationException(res);
+		}
+	}
+
+
+	
+	/* 
+	 * (non-Javadoc)
+	 * @see org.eclipse.fennec.codec.rest.common.AbstractCodecAnnotationHandler#handleResourceRootType(org.eclipse.emf.ecore.resource.Resource, java.lang.annotation.Annotation)
+	 */
+	@Override
+	protected void handleResourceRootType(Resource resource, Annotation annotation) {
+		if (resource == null || annotation == null) {
+			return;
+		}
+		String rootType = ((RootElement) annotation).rootType();
+		if(rootType.isBlank()) return;
+		for (EObject eObject : resource.getContents()) {
+			if (!rootType.equals(EcoreUtil.getURI(eObject.eClass()).toString())) {
+				List<Variant> encoded = Variant.encodings(rootType).build();
+				Response res = Response.notAcceptable(encoded).build();
+				throw new WebApplicationException(res);
+			}
+		}
+	}
+
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.eclipse.fennec.codec.rest.common.AbstractCodecAnnotationHandler#handleResourceRootSchema(org.eclipse.emf.ecore.resource.Resource, java.lang.annotation.Annotation)
+	 */
+	@Override
+	protected void handleResourceRootSchema(Resource resource, Annotation annotation) {
+		if (resource == null || annotation == null) {
+			return;
+		}
+		String rootSchema = ((RootElement) annotation).rootSchema();
+		if(rootSchema.isBlank()) return;
+		for (EObject eObject : resource.getContents()) {
+			if (!rootSchema.equals(eObject.eClass().getEPackage().getNsURI())) {
+				List<Variant> encoded = Variant.encodings(rootSchema).build();
+				Response res = Response.notAcceptable(encoded).build();
+				throw new WebApplicationException(res);
+			}
 		}
 	}
 
