@@ -244,5 +244,32 @@ class CsvValidationTest {
             byte[] bytes = save("out.csvz", options);
             assertTrue(bytes.length > 0, "save should produce output bytes");
         }
+
+        @Test
+        @DisplayName("throw=false + mismatch → warning is also attached to resource.getWarnings()")
+        void warningIsAttachedAsDiagnostic() throws IOException {
+            CsvFormatProvider provider = new CsvFormatProvider();
+            CodecResource resource = new CodecResource(
+                    URI.createURI("out.csv"),
+                    metadataService, ConfigurationResolver.defaults(),
+                    null, null, provider);
+            resource.getContents().add(createProduct("p-001", "Widget"));
+
+            Map<String, Object> options = new HashMap<>();
+            options.put(CodecTabularOptions.OPTION_REFERENCE_MODE, ReferenceMode.SQL_TABLES);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            resource.save(out, options);
+
+            assertTrue(out.size() > 0, "save should still produce bytes");
+            assertEquals(1, resource.getWarnings().size(),
+                    () -> "expected exactly one warning diagnostic; got "
+                            + resource.getWarnings());
+            String message = resource.getWarnings().get(0).getMessage();
+            assertTrue(message.contains("SQL_TABLES"),
+                    () -> "diagnostic message should mention SQL_TABLES; got: " + message);
+            assertTrue(message.contains(".csv"),
+                    () -> "diagnostic message should mention .csv; got: " + message);
+        }
     }
 }

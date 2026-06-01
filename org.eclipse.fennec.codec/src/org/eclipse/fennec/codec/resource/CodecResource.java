@@ -265,10 +265,14 @@ public class CodecResource extends ResourceImpl {
                             formatProvider.getFormatId(), getURI(),
                             String.join("; ", warnings)));
                 }
+                DiagnosticCollector validationCollector = new DiagnosticCollector();
+                String source = "validation:" + formatProvider.getFormatId();
                 for (String warning : warnings) {
                     LOGGER.warning(() -> String.format("[%s] %s (resource: %s)",
                             formatProvider.getFormatId(), warning, getURI()));
+                    validationCollector.addWarning(warning, source);
                 }
+                validationCollector.addToResource(this);
             }
             doSaveWithFormat(outputStream, effectiveOptions, operationResolver);
             LOGGER.fine(() -> String.format("Saved %s to %s (format: %s)",

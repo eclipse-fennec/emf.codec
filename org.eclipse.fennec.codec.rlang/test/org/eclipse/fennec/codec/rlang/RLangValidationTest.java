@@ -229,5 +229,33 @@ class RLangValidationTest {
             assertEquals('X', (char) bytes[2]);
             assertEquals('2', (char) bytes[3]);
         }
+
+        @Test
+        @DisplayName("throw=false + mismatch → warning is also attached to resource.getWarnings()")
+        void warningIsAttachedAsDiagnostic() throws IOException {
+            RLangFormatProvider provider = new RLangFormatProvider();
+            CodecResource resource = new CodecResource(
+                    URI.createURI("out.RData"),
+                    metadataService, ConfigurationResolver.defaults(),
+                    null, null, provider);
+            resource.getContents().add(createProduct("p-001", "Widget"));
+
+            Map<String, Object> options = new HashMap<>();
+            options.put(CodecRLangOptions.OPTION_DATAFRAME_PER_FILE, Boolean.TRUE);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            resource.save(out, options);
+
+            assertTrue(out.size() > 0, "save should still produce bytes");
+            assertEquals(1, resource.getWarnings().size(),
+                    () -> "expected exactly one warning diagnostic; got "
+                            + resource.getWarnings());
+            String message = resource.getWarnings().get(0).getMessage();
+            assertTrue(message.contains("dataframePerFile"),
+                    () -> "diagnostic message should mention dataframePerFile; got: "
+                            + message);
+            assertTrue(message.contains(".RData"),
+                    () -> "diagnostic message should mention .RData; got: " + message);
+        }
     }
 }
