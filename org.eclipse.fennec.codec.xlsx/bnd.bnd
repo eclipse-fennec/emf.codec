@@ -1,0 +1,31 @@
+Bundle-Name: Fennec Codec XLSX
+Bundle-Description: XLSX format provider for the Fennec EMF Codec
+
+-library: enableEMF
+
+-buildpath: \
+	org.osgi.service.condition;version=latest,\
+	org.eclipse.fennec.codec.api;version=snapshot,\
+	org.eclipse.fennec.codec;version=snapshot,\
+	org.eclipse.fennec.model.metadata;version=snapshot,\
+	org.eclipse.fennec.codec.metadata;version=snapshot,\
+	org.eclipse.fennec.codec.tabular;version=snapshot,\
+	org.eclipse.fennec.codec.tabular.model;version=snapshot,\
+	tools.jackson.core.jackson-core;version=latest,\
+	tools.jackson.core.jackson-databind;version=latest,\
+	com.fasterxml.jackson.core.jackson-annotations;version=latest,\
+	org.apache.servicemix.bundles.poi;version=latest,\
+	org.apache.logging.log4j.api;version=latest,\
+	org.apache.commons.commons-compress;version=latest,\
+	org.apache.commons.commons-collections4;version=latest,\
+	org.apache.servicemix.bundles.xmlbeans;version=latest
+
+-testpath: \
+	org.eclipse.fennec.codec.tests;version=snapshot,\
+	org.apache.servicemix.bundles.poi;version=latest,\
+	org.apache.logging.log4j.api;version=latest,\
+	org.apache.commons.commons-compress;version=latest,\
+	org.apache.commons.commons-collections4;version=latest,\
+	org.apache.servicemix.bundles.xmlbeans;version=latest
+	
+	

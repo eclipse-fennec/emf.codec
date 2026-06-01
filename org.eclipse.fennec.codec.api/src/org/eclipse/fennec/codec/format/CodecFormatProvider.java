@@ -195,4 +195,33 @@ public interface CodecFormatProvider<S, T> {
     default boolean supportsArrayRoot() {
         return true;
     }
+
+    /**
+     * Validates the save-time options against the resource URI and returns any
+     * inconsistency warnings. Default: empty list (no warnings).
+     * <p>
+     * The caller ({@code CodecResource.doSave(...)}) logs returned messages at
+     * WARN level but proceeds with the save. Providers should use this hook to
+     * surface mismatches between the URI shape and option values that would
+     * produce surprising output — for example, a {@code .RData} URI saved with
+     * {@code codec.rlang.dataframePerFile=true} (the bytes will be a ZIP
+     * archive named {@code .RData}), or a {@code .csv} URI saved with
+     * {@code codec.tabular.referenceMode=SQL_TABLES} (the bytes will be a ZIP
+     * of CSVs).
+     * <p>
+     * The {@code uri} may be {@code null} (e.g. in unit tests or programmatic
+     * saves with no Resource); implementations should handle that gracefully
+     * and return an empty list in that case.
+     *
+     * @param uri the resource URI being saved, possibly {@code null}
+     * @param options the effective save-time option map (already merged with
+     *            any provider-level defaults), never {@code null} (may be empty)
+     * @return a list of warning messages; never {@code null}, possibly empty
+     * @since 2026-06
+     */
+    default java.util.List<String> validateSaveOptions(
+            org.eclipse.emf.common.util.URI uri,
+            java.util.Map<String, Object> options) {
+        return java.util.List.of();
+    }
 }

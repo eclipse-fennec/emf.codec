@@ -7,9 +7,9 @@
 | Phase | State | Notes |
 |---|---|---|
 | Phase 1 — extract shared infrastructure (§8) | ✅ **Done** (2026-05-21) | `codec.tabular.model` and `codec.tabular` bundles in place; CSV refactored onto the shared layer; all CSV tests green; new `TabularDocumentBuilderCellTypingTest` covers cell-typing correctness. |
-| Phase 2 — ODS (§9) | ⬜ Not started | |
-| Phase 3 — XLSX (§10) | ⬜ Not started | |
-| Phase 4 — R Language (§11) | ⬜ Not started (optional) | |
+| Phase 2 — ODS (§9) | ✅ **Done** (2026-06-01) | `codec.ods` bundle in place; `OdsRenderer` consumes the shared `TabularDocument`; IGNORE / FLAT / SQL_TABLES all routed through `TabularDocumentDelegate`. Tests round-trip via `sods` SpreadSheet. |
+| Phase 3 — XLSX (§10) | ✅ **Done** (2026-06-01) | `codec.xlsx` bundle in place; `XlsxRenderer` uses Apache POI (`XSSFWorkbook`); IGNORE / FLAT / SQL_TABLES routed through `TabularDocumentDelegate`. FK cells ship with `HyperlinkType.DOCUMENT` links to the target sheet's `A1` by default. Tests round-trip via POI. |
+| Phase 4 — R Language (§11) | ✅ **Done** (2026-06-01) | `codec.rlang` bundle in place; `RLangRenderer` writes the R serialization format (`RDX2` SXP tree, no external library); single-file (`.RData`) and ZIP (`.rdataz`) modes both supported; data frames carry typed columns including native R `POSIXct` for `DateCell`. |
 
 **Phase 1 deliverables actually shipped:**
 
@@ -23,6 +23,133 @@
 
 - Custom value writers in tabular renderers — IGNORE still uses the Jackson path in the CSV provider; FLAT/SQL_TABLES bypass the pipeline and don't yet support `CodecValueWriter`. Re-open if a phase-2 consumer needs them.
 - The "second tabular test class" candidates (`TabularDocumentDelegateTest`, `SqlTypeMapperTest`) were considered and deferred — CSV tests cover their concerns transitively today.
+
+**Phase 2 deliverables actually shipped:**
+
+- `org.eclipse.fennec.codec.ods` bundle wired against `com.github.miachm.sods:SODS:1.8.3` (added to `cnf/central.mvn`).
+- `OdsRenderer` — `TabularDocumentRenderer<OutputStream>` that maps `Table` → `Sheet` (with `<schema>.<name>` prefix when a schema is set) and `JoinTable` → `Sheet`. Dispatches on the concrete `Cell` subclass so numbers/booleans/dates land as native sods values (no SQL-type row; cells are typed). Header row optionally styled (bold, light grey, centered); column widths auto-adjusted by default.
+- `CodecOdsOptions` — two ODS-only knobs: `codec.ods.styleHeader` and `codec.ods.adjustColumnWidth` (both default `true`).
+- `OdsFormatProvider` — registered for `.ods`. Unlike CSV's IGNORE-mode Jackson detour, all three reference modes flow through `TabularDocumentDelegate + OdsRenderer`.
+- `OdsResourceFactoryComponent` — DS component for `.ods` / `application/vnd.oasis.opendocument.spreadsheet`.
+- Tests in `OdsRendererTest` cover IGNORE, FLAT, SQL_TABLES (with FK link), multi-valued PREFER_FK_COLUMN (FK-on-child column named after the parent EClass), schema-as-sheet-prefix, and the empty-resource short-circuit. Tests round-trip through `new SpreadSheet(InputStream)` and assert on the resulting sods model.
+
+**Phase 3 deliverables actually shipped:**
+
+- `org.eclipse.fennec.codec.xlsx` bundle wired against `org.apache.servicemix.bundles:org.apache.servicemix.bundles.poi:5.3.0_1` (added to `cnf/central.mvn`).
+- `XlsxRenderer` — `TabularDocumentRenderer<OutputStream>` using POI's `XSSFWorkbook`. Per-`Table` and per-`JoinTable` sheet; sheet names go through `WorkbookUtil.createSafeSheetName` then truncated to POI's 31-character limit with `~1`/`~2` collision suffixes. Two-pass design (compute all final sheet names first, then create sheets) so FK hyperlinks resolve their target sheet regardless of table order. Workbook-level `CellStyle` caching for header / date / hyperlink styles (date styles keyed by format string to stay under POI's 64K style limit).
+- `FkCell`s render as a numeric value plus a `HyperlinkType.DOCUMENT` hyperlink to `'<target-sheet>'!A1` when {@code codec.xlsx.generateLinks} is on (default `true`). XLSX therefore ships clickable FKs from day one — what we deferred for ODS we get for free here because POI exposes the API natively.
+- `CodecXlsxOptions` — five XLSX-only knobs: `styleHeader`, `adjustColumnWidth`, `freezeHeaderRow`, `generateLinks` (all default `true`), `defaultDateFormat` (default `"m/d/yy h:mm"`).
+- `XlsxFormatProvider` — registered for `.xlsx`. All three reference modes flow through `TabularDocumentDelegate + XlsxRenderer` (no Jackson-pipeline detour needed — cells are typed).
+- `XlsxResourceFactoryComponent` — DS component for `.xlsx` / `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
+- `XlsxRendererTest` covers the same shape as the ODS suite (IGNORE / FLAT / SQL_TABLES, schema-as-sheet-prefix, multi-valued PREFER_FK_COLUMN, empty resource) plus two FK-specific tests: `fkCellHasDocumentHyperlinkByDefault` (default-on) and `disableHyperlinks` (option-off keeps numeric value, drops the hyperlink).
+
+**POI runtime dependency chain (5.3.0_1 servicemix bundle):**
+
+The servicemix 5.2.2 POI bundle gecko used embedded several deps internally; the 5.3.0_1 we
+adopted unbundles more of them. Determined the precise required set by reading
+`Import-Package` directly from the bundle manifest in `~/.m2`:
+
+| Maven coordinate | bnd BSN |
+|---|---|
+| `org.apache.servicemix.bundles:org.apache.servicemix.bundles.poi:5.3.0_1` | `org.apache.servicemix.bundles.poi` |
+| `org.apache.logging.log4j:log4j-api:2.26.0` | `org.apache.logging.log4j.api` |
+| `org.apache.commons:commons-compress:1.28.0` | `org.apache.commons.commons-compress` |
+| `org.apache.commons:commons-collections4:4.5.0` | `org.apache.commons.commons-collections4` |
+| `org.apache.xmlbeans:xmlbeans:5.3.0` | `org.apache.servicemix.bundles.xmlbeans` |
+
+`commons-io`, `commons-codec`, and `commons-collections` (the legacy 3.x line) were already in
+`cnf/central.mvn` and are imported by POI too. POI also `DynamicImport`-Packages
+`schemaorg_apache_xmlbeans.*` (XMLBeans-generated schema classes) — these resolve via the
+xmlbeans bundle at runtime, no extra wiring needed.
+
+What POI does **not** import (so we don't need): `com.zaxxer.SparseBitSet`, `curvesapi`.
+
+**Carried open from phase 2 (not blockers for phase 3):**
+
+- ODS reading — no requirement on the horizon; out of scope.
+- `CodecValueWriter` support in tabular renderers (still open from phase 1).
+- ODS hyperlinks (FK → target sheet) — gecko's exporter used a forked sods 1.6.2 carrying the patch from
+  upstream PR [#63](https://github.com/miachm/SODS/pull/63), which adds `LinkedValue` and
+  `Range.addLinkedValue` / `Range.setLinkedValues`. Verified against the 1.8.3 sources jar in `~/.m2`:
+  no `LinkedValue` class is present, and no `link` / `hyperlink` / `href` / `url` method exists on
+  `Cell` or `Range` (the only `href` occurrences are internal namespace plumbing for embedded
+  images and charts). The version bump between 1.6.2 and 1.8.3 looks to be chart-related, not the
+  PR #63 work. Re-open if a real consumer asks for clickable FKs — would require either a vendored
+  fork (gecko-style) or contributing the patch upstream and waiting for a release.
+
+  Pre-existing gecko fork to reuse if we decide to: `org.gecko.com.github.miachm.sods` in the
+  `geckoprojects-emf-utils` repo vendors the patched 1.6.2 jar at
+  `cnf/local/com.github.miachm.sods/com.github.miachm.sods-1.6.2.jar` and exports
+  `com.github.miachm.sods` as an OSGi bundle. Its `bnd.bnd` calls out the rationale verbatim:
+  *"This is a fork of https://github.com/miachm/SODS. We provide this, until
+  https://github.com/miachm/SODS/pull/63 or something similar is available on maven central."*
+  Adopting that bundle here would mean pinning to 1.6.2 (losing every upstream change since —
+  notably the charts work that pushed the version to 1.8.3), so the trade-off is real and should
+  be a deliberate call rather than a default.
+
+**Phase 4 deliverables actually shipped:**
+
+- `org.eclipse.fennec.codec.rlang` bundle — no external library; the renderer ports gecko's
+  SXP encoder and writes the R serialization format (`RDX2\nX\n` magic + format version 2 +
+  big-endian XDR ints / IEEE-754 doubles + the SYMSXP/LISTSXP/VECSXP/CHARSXP/INTSXP/REALSXP/
+  LGLSXP/STRSXP tag set) using only `java.io.DataOutputStream`.
+- `RLangRenderer` — `TabularDocumentRenderer<OutputStream>`. Each `Table` and each `JoinTable`
+  becomes one R *data frame* (a `VECSXP` of typed column vectors plus the canonical
+  `names` / `row.names` / `class="data.frame"` attribute trailer). Per-column R type is derived
+  from the concrete `Cell` subclass at the column's first non-empty position (the column is
+  homogeneous because the `TabularDocumentBuilder` builds one column per feature).
+- Cell mapping (improvement over gecko, which stringified everything):
+  - `StringCell` → `STRSXP`
+  - `LongCell` / `FkCell` → `INTSXP` when the value fits in signed 32-bit; the whole column
+    widens to `REALSXP` if any cell overflows
+  - `DoubleCell` / `BigDecimalCell` → `REALSXP`
+  - `BooleanCell` → `LGLSXP`
+  - `DateCell` → `REALSXP` (seconds since epoch) with `class = c("POSIXct","POSIXt")` —
+    native R datetime, not a stringified date as in gecko
+  - `BinaryCell` → Base64 `STRSXP` (same convention as ODS/XLSX)
+  - `EmptyCell` → typed NA for the column's R type (`NA_integer_` / `NA_real_` /
+    `NA_character_` / logical `NA`)
+- Two output modes via `codec.rlang.dataframePerFile`:
+  - default `false`: single `.RData` file containing all data frames as named variables in a
+    `LISTSXP` chain
+  - `true` (also auto-set by the `.rdataz` factory): a ZIP archive with one self-contained
+    `.RData` entry per data frame
+- `CodecRLangOptions` — one knob: `codec.rlang.dataframePerFile`.
+- `RLangFormatProvider` — registered for `.RData` and `.rdataz`; all three reference modes
+  flow through `TabularDocumentDelegate + RLangRenderer`.
+- `RLangResourceFactoryComponent` — DS component for both extensions; `.rdataz` auto-sets
+  `dataframePerFile=true`.
+- `RLangRendererTest` — IGNORE / FLAT / SQL_TABLES, ZIP-mode entries, empty resource. Includes
+  an inline minimal `RDataReader` (~180 lines) that decodes just the SXP grammar the renderer
+  emits — no external R library needed for verification.
+
+## 12.5. Validation hook for URI / save-option consistency
+
+Cross-cutting addition that landed alongside phase 4 to address a class of mismatch any
+ZIP-capable format can hit (`.csv` saved with `SQL_TABLES`, `.RData` saved with
+`dataframePerFile=true`, etc. — produces ZIP bytes inside a file named with the non-ZIP
+extension):
+
+- **`CodecFormatProvider.validateSaveOptions(URI, Map<String,Object>)`** — new `default`
+  method on the shared SPI. Returns a list of warning messages (empty by default); providers
+  with cross-cutting URI-vs-options inconsistencies override it.
+- **`CodecResource.doSave(...)`** — calls the hook between option-merge and writer-delegate
+  creation. If the warning list is non-empty: logs each at WARN level by default, or aggregates
+  them into one `IllegalStateException` thrown *before* the writer runs when the new option
+  `CodecOptions.CODEC_THROW_ON_VALIDATION_WARNINGS` is `true`.
+- **`CsvFormatProvider`** override — warns on `.csv` + `SQL_TABLES` (output would be ZIP) and
+  on `.csvz` + `IGNORE` / `FLAT` (output would be a single CSV).
+- **`RLangFormatProvider`** override — warns on `.RData` + `dataframePerFile=true` (output
+  would be ZIP) and on `.rdataz` + `dataframePerFile=false` (output would be a single RData
+  stream).
+- Tests: `CsvValidationTest` and `RLangValidationTest`, each with a `Hook` nested block for
+  pure-unit assertions on the hook return value and an `EndToEnd` nested block exercising
+  `resource.save(...)` with the `CODEC_THROW_ON_VALIDATION_WARNINGS` toggle in both states.
+
+The throw path is opt-in for now; the log path is the default and is consistent with the
+rest of the codec's "warn-and-proceed" behaviour. Escalating defaults to throw can be done
+later by flipping the per-call default in callers' code or by changing the
+`throwOnValidationWarnings` helper in `CodecResource` — no SPI change required.
 
 ## 1. Goal
 

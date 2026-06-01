@@ -256,6 +256,20 @@ public class CodecResource extends ResourceImpl {
         mapper = createObjectMapper(effectiveOptions, operationResolver);
 
         if (formatProvider != null) {
+            List<String> warnings = formatProvider.validateSaveOptions(
+                    getURI(), effectiveOptions);
+            if (!warnings.isEmpty()) {
+                if (throwOnValidationWarnings(effectiveOptions)) {
+                    throw new IllegalStateException(String.format(
+                            "[%s] save-option validation failed for resource %s: %s",
+                            formatProvider.getFormatId(), getURI(),
+                            String.join("; ", warnings)));
+                }
+                for (String warning : warnings) {
+                    LOGGER.warning(() -> String.format("[%s] %s (resource: %s)",
+                            formatProvider.getFormatId(), warning, getURI()));
+                }
+            }
             doSaveWithFormat(outputStream, effectiveOptions, operationResolver);
             LOGGER.fine(() -> String.format("Saved %s to %s (format: %s)",
                     eClass.getName(), getURI(), formatProvider.getFormatId()));
@@ -643,6 +657,17 @@ public class CodecResource extends ResourceImpl {
      * @param options the load/save options map
      * @return a new resolver with options set as highest priority
      */
+    private static boolean throwOnValidationWarnings(Map<String, Object> options) {
+        Object value = options.get(CodecOptions.CODEC_THROW_ON_VALIDATION_WARNINGS);
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        if (value instanceof String s && !s.isBlank()) {
+            return Boolean.parseBoolean(s);
+        }
+        return false;
+    }
+
     private static ConfigurationResolver enrichWithOptions(ConfigurationResolver resolver,
             Map<String, Object> options) {
         if (isNull(options) || options.isEmpty()) {

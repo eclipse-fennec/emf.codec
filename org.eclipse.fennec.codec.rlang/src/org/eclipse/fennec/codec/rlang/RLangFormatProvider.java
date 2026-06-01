@@ -10,7 +10,7 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.codec.csv;
+package org.eclipse.fennec.codec.rlang;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,59 +26,44 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.format.FormatDelegate;
 import org.eclipse.fennec.codec.format.FormatReaderDelegate;
-import org.eclipse.fennec.codec.tabular.CodecTabularOptions;
 import org.eclipse.fennec.codec.tabular.TabularDocumentDelegate;
 import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
 
 /**
- * {@link CodecFormatProvider} for CSV.
+ * {@link CodecFormatProvider} for R Language ({@code .RData} / {@code .rdataz}).
  * <p>
- * Writer-only for now: {@link #createReader(InputStream)} throws
- * {@link UnsupportedOperationException}.
- * <p>
- * Three reference modes via
- * {@link CodecTabularOptions#OPTION_REFERENCE_MODE}:
- * <ul>
- *   <li>{@link ReferenceMode#IGNORE} (default) — single CSV, attributes only.
- *       Driven by the Jackson serialization pipeline through
- *       {@link CsvFormatDelegate} so that custom value writers and other
- *       Jackson-pipeline mechanisms continue to apply.</li>
- *   <li>{@link ReferenceMode#FLAT} — single CSV with dotted column names
- *       (references flattened). Driven by the shared
- *       {@link org.eclipse.fennec.codec.tabular.TabularDocumentBuilder} via
- *       {@link TabularDocumentDelegate} + {@link CsvRenderer}.</li>
- *   <li>{@link ReferenceMode#SQL_TABLES} — ZIP of per-{@code EClass} CSVs with
- *       FK columns and optional join tables. Same shared infrastructure.</li>
- * </ul>
+ * Writer-only: {@link #createReader(InputStream)} throws
+ * {@link UnsupportedOperationException}. All {@link ReferenceMode}s flow
+ * through {@link TabularDocumentDelegate} + {@link RLangRenderer}.
  *
- * @since 2026-05
+ * @since 2026-06
  */
-public class CsvFormatProvider implements CodecFormatProvider<InputStream, OutputStream> {
+public class RLangFormatProvider implements CodecFormatProvider<InputStream, OutputStream> {
 
     private final EClass rootEClass;
     private final Map<String, Object> options;
 
-    public CsvFormatProvider() {
+    public RLangFormatProvider() {
         this(null, Collections.emptyMap());
     }
 
-    public CsvFormatProvider(EClass rootEClass) {
+    public RLangFormatProvider(EClass rootEClass) {
         this(rootEClass, Collections.emptyMap());
     }
 
-    public CsvFormatProvider(EClass rootEClass, Map<String, Object> options) {
+    public RLangFormatProvider(EClass rootEClass, Map<String, Object> options) {
         this.rootEClass = rootEClass;
         this.options = options != null ? options : Collections.emptyMap();
     }
 
     @Override
     public String getFormatId() {
-        return "csv";
+        return "rlang";
     }
 
     @Override
     public FormatDelegate<OutputStream> createWriter(OutputStream target) {
-        return new CsvFormatDelegate(target, rootEClass, options);
+        return createWriter(target, List.<EObject>of(), Collections.emptyMap(), null);
     }
 
     @Override
@@ -101,10 +86,6 @@ public class CsvFormatProvider implements CodecFormatProvider<InputStream, Outpu
             ConfigurationResolver resolver) {
 
         List<? extends EObject> roots = rootObjects != null ? rootObjects : List.<EObject>of();
-        EObject first = roots.isEmpty() ? null : roots.get(0);
-        EClass effectiveEClass = rootEClass != null
-                ? rootEClass
-                : (first != null ? first.eClass() : null);
 
         Map<String, Object> effectiveOptions;
         if (saveOptions == null || saveOptions.isEmpty()) {
@@ -116,44 +97,35 @@ public class CsvFormatProvider implements CodecFormatProvider<InputStream, Outpu
             effectiveOptions.putAll(saveOptions);
         }
 
-        ReferenceMode mode = resolveReferenceMode(effectiveOptions);
-        if (mode == ReferenceMode.SQL_TABLES || mode == ReferenceMode.FLAT) {
-            return new TabularDocumentDelegate<>(target, roots, effectiveOptions, resolver,
-                    new CsvRenderer());
-        }
-        // IGNORE mode: stay on the Jackson pipeline (preserves custom value writers).
-        return new CsvFormatDelegate(target, effectiveEClass, effectiveOptions);
-    }
-
-    private static ReferenceMode resolveReferenceMode(Map<String, Object> options) {
-        Object value = options.get(CodecTabularOptions.OPTION_REFERENCE_MODE);
-        if (value instanceof ReferenceMode m) {
-            return m;
-        }
-        if (value instanceof String s && !s.isBlank()) {
-            return ReferenceMode.valueOf(s.toUpperCase());
-        }
-        return ReferenceMode.IGNORE;
+        return new TabularDocumentDelegate<>(target, roots, effectiveOptions, resolver,
+                new RLangRenderer());
     }
 
     @Override
     public FormatReaderDelegate<InputStream> createReader(InputStream source) {
-        throw new UnsupportedOperationException("CSV reading is not supported yet");
+        throw new UnsupportedOperationException("RData reading is not supported");
     }
 
     @Override
     public String[] getFileExtensions() {
-        return new String[] { "csv" };
+        return new String[] { "RData", "rdataz" };
     }
 
     @Override
     public String[] getContentTypes() {
-        return new String[] { "text/csv" };
+        return new String[] {
+                "application/x-rdata",
+                "application/x-rdata-zip"
+        };
     }
 
     @Override
     public boolean supportsArrayRoot() {
         return true;
+    }
+
+    public EClass getRootEClass() {
+        return rootEClass;
     }
 
     @Override
@@ -165,18 +137,31 @@ public class CsvFormatProvider implements CodecFormatProvider<InputStream, Outpu
         if (ext == null) {
             return List.of();
         }
-        ReferenceMode mode = resolveReferenceMode(saveOptions);
-        if (mode == ReferenceMode.SQL_TABLES && "csv".equalsIgnoreCase(ext)) {
+        boolean zipMode = resolveBoolean(saveOptions,
+                CodecRLangOptions.OPTION_DATAFRAME_PER_FILE, false);
+        if (zipMode && "RData".equalsIgnoreCase(ext)) {
             return List.of(
-                    "codec.tabular.referenceMode=SQL_TABLES produces a ZIP archive, but the "
-                  + "resource URI ends in .csv — consider using .csvz or a different mode.");
+                    "codec.rlang.dataframePerFile=true produces a ZIP archive, but the "
+                  + "resource URI ends in .RData — consider using .rdataz or setting the "
+                  + "option to false.");
         }
-        if (mode != ReferenceMode.SQL_TABLES && "csvz".equalsIgnoreCase(ext)) {
+        if (!zipMode && "rdataz".equalsIgnoreCase(ext)) {
             return List.of(
-                    "URI ends in .csvz (ZIP shape) but codec.tabular.referenceMode=" + mode
-                  + " produces a single CSV — the output will be a flat CSV stream inside a "
-                  + "file named .csvz.");
+                    "URI ends in .rdataz (ZIP shape) but codec.rlang.dataframePerFile=false "
+                  + "— the output will be a single RData stream inside a file named .rdataz.");
         }
         return List.of();
+    }
+
+    private static boolean resolveBoolean(Map<String, Object> options, String key,
+            boolean defaultValue) {
+        Object value = options.get(key);
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        if (value instanceof String s && !s.isBlank()) {
+            return Boolean.parseBoolean(s);
+        }
+        return defaultValue;
     }
 }

@@ -153,4 +153,16 @@ org.eclipse.fennec.bnd:org.eclipse.fennec.osgitest.bnd.library:0.0.9
 org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bnd.library.workspace:0.1.2
 org.eclipse.fennec.models:org.eclipse.fennec.common.models.library:0.0.1-SNAPSHOT
 
+#Deps needed for csv exporter
 de.siegmar:fastcsv:4.2.0
+
+#Deps needed for ods exporter
+com.github.miachm.sods:SODS:1.8.3
+
+#Deps needed for xslx exporter
+org.apache.servicemix.bundles:org.apache.servicemix.bundles.poi:5.3.0_1
+org.apache.logging.log4j:log4j-api:2.26.0
+org.apache.logging.log4j:log4j-to-slf4j:2.26.0
+org.apache.commons:commons-compress:1.28.0
+org.apache.commons:commons-collections4:4.5.0
+org.apache.servicemix.bundles:org.apache.servicemix.bundles.xmlbeans:5.2.0_1

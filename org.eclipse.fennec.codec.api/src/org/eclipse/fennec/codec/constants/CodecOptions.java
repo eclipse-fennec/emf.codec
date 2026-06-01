@@ -554,4 +554,29 @@ public final class CodecOptions {
      * Default maximum payload size: 100 MB.
      */
     public static final long DEFAULT_MAX_PAYLOAD_SIZE = 100L * 1024 * 1024;
+
+    /**
+     * Save option: how to react when a format provider's
+     * {@code validateSaveOptions(URI, options)} returns one or more inconsistency
+     * warnings.
+     * <p>
+     * Currently used to surface mismatches between the resource URI and the
+     * save-time option values (e.g. a {@code .RData} URI saved with
+     * {@code codec.rlang.dataframePerFile=true}, which would produce a ZIP
+     * archive named {@code .RData}).
+     * <p>
+     * When {@code false} (default), warnings are logged at WARN level via
+     * {@code java.util.logging} and the save proceeds.
+     * <p>
+     * When {@code true}, the same messages are aggregated and an
+     * {@link IllegalStateException} is thrown <em>before</em> the writer
+     * delegate runs, aborting the save.
+     * <p>
+     * Value: {@code Boolean} or {@code "true"}/{@code "false"}. Default:
+     * {@code false}.
+     *
+     * @since 2026-06
+     */
+    public static final String CODEC_THROW_ON_VALIDATION_WARNINGS =
+            "codec.throwOnValidationWarnings";
 }
