@@ -9,10 +9,16 @@ All workflow definitions live in [`.github/workflows`](../.github/workflows).
 
 ## Branch model
 
+`snapshot` is the active development line — all PRs target it, and every push
+publishes a `-SNAPSHOT` artifact. `main` always holds the latest released
+version, which is available on
+[Maven Central](https://repo1.maven.org/maven2/org/eclipse/fennec/codec/) under
+`org.eclipse.fennec.codec:*`.
+
 | Branch     | Purpose                                            | Publishes to                                              |
 |------------|----------------------------------------------------|-----------------------------------------------------------|
 | `snapshot` | Active development. PRs target this branch.        | Sonatype Central — `-SNAPSHOT` versions                   |
-| `main`     | Release line. Tagged releases are cut from here.   | Sonatype Central — final versions, signed with project GPG key |
+| `main`     | Latest release — code here matches what is on Maven Central. | Sonatype Central → Maven Central — final versions, signed with project GPG key |
 
 ## Workflow overview
 

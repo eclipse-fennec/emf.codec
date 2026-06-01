@@ -41,6 +41,17 @@ Further documentation:
 | `org.eclipse.fennec.codec.openapi` | OpenAPI codec extension |
 | `org.eclipse.fennec.codec.examples` | Usage examples |
 
+## Branches & releases
+
+* `snapshot` is the active development branch. PRs land here first; every
+  push publishes a `-SNAPSHOT` artifact to
+  [Sonatype Central snapshots](https://central.sonatype.com/repository/maven-snapshots/org/eclipse/fennec/codec/).
+* `main` always holds the latest released version. Released artifacts are
+  available on [Maven Central](https://repo1.maven.org/maven2/org/eclipse/fennec/codec/)
+  under `org.eclipse.fennec.codec:*`.
+
+See [docs/ci.md](docs/ci.md) for the full CI / publishing pipeline.
+
 ## Build
 
 ```bash
