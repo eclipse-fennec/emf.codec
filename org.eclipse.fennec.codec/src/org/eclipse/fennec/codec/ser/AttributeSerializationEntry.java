@@ -121,24 +121,10 @@ public class AttributeSerializationEntry implements SerializationEntry {
         // These checks apply regardless of forceWrite.
         // forceWrite allows volatile features to pass visibility gate,
         // but value-based conditions (null, empty, default) still apply.
+        // Shared with the tabular export pipeline via FeatureConfig.shouldSerializeValue.
         Object value = state.getValue(attribute);
-
-        // Null check
-        if (value == null) {
-            return config.isSerializeNull();
-        }
-
-        // Empty collection check
-        if (attribute.isMany() && value instanceof EList<?> list && list.isEmpty()) {
-            return config.isSerializeEmpty();
-        }
-
-        // Default value check
-        if (value.equals(attribute.getDefaultValue())) {
-            return config.isSerializeDefault();
-        }
-
-        return true;
+        boolean manyEmpty = attribute.isMany() && value instanceof EList<?> list && list.isEmpty();
+        return config.shouldSerializeValue(value, attribute.getDefaultValue(), manyEmpty);
     }
 
     @Override

@@ -36,19 +36,17 @@ import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
  * Writer-only for now: {@link #createReader(InputStream)} throws
  * {@link UnsupportedOperationException}.
  * <p>
- * Three reference modes via
- * {@link CodecTabularOptions#OPTION_REFERENCE_MODE}:
+ * All three reference modes flow through the shared tabular pipeline
+ * ({@link TabularDocumentDelegate} +
+ * {@link org.eclipse.fennec.codec.tabular.TabularDocumentBuilder} + {@link CsvRenderer}), so the
+ * full codec option set (value gate, {@code enumSerialization}, {@code @codec(key)}/extended
+ * -metadata names, {@code dateFormat}, column types, …) is honored uniformly across modes:
  * <ul>
- *   <li>{@link ReferenceMode#IGNORE} (default) — single CSV, attributes only.
- *       Driven by the Jackson serialization pipeline through
- *       {@link CsvFormatDelegate} so that custom value writers and other
- *       Jackson-pipeline mechanisms continue to apply.</li>
+ *   <li>{@link ReferenceMode#IGNORE} (default) — single CSV, attributes only.</li>
  *   <li>{@link ReferenceMode#FLAT} — single CSV with dotted column names
- *       (references flattened). Driven by the shared
- *       {@link org.eclipse.fennec.codec.tabular.TabularDocumentBuilder} via
- *       {@link TabularDocumentDelegate} + {@link CsvRenderer}.</li>
+ *       (references flattened).</li>
  *   <li>{@link ReferenceMode#SQL_TABLES} — ZIP of per-{@code EClass} CSVs with
- *       FK columns and optional join tables. Same shared infrastructure.</li>
+ *       FK columns and optional join tables.</li>
  * </ul>
  *
  * @since 2026-05
@@ -78,7 +76,7 @@ public class CsvFormatProvider implements CodecFormatProvider<InputStream, Outpu
 
     @Override
     public FormatDelegate<OutputStream> createWriter(OutputStream target) {
-        return new CsvFormatDelegate(target, rootEClass, options);
+        return createWriter(target, List.<EObject>of(), Collections.emptyMap(), null);
     }
 
     @Override
@@ -101,10 +99,6 @@ public class CsvFormatProvider implements CodecFormatProvider<InputStream, Outpu
             ConfigurationResolver resolver) {
 
         List<? extends EObject> roots = rootObjects != null ? rootObjects : List.<EObject>of();
-        EObject first = roots.isEmpty() ? null : roots.get(0);
-        EClass effectiveEClass = rootEClass != null
-                ? rootEClass
-                : (first != null ? first.eClass() : null);
 
         Map<String, Object> effectiveOptions;
         if (saveOptions == null || saveOptions.isEmpty()) {
@@ -116,13 +110,11 @@ public class CsvFormatProvider implements CodecFormatProvider<InputStream, Outpu
             effectiveOptions.putAll(saveOptions);
         }
 
-        ReferenceMode mode = resolveReferenceMode(effectiveOptions);
-        if (mode == ReferenceMode.SQL_TABLES || mode == ReferenceMode.FLAT) {
-            return new TabularDocumentDelegate<>(target, roots, effectiveOptions, resolver,
-                    new CsvRenderer());
-        }
-        // IGNORE mode: stay on the Jackson pipeline (preserves custom value writers).
-        return new CsvFormatDelegate(target, effectiveEClass, effectiveOptions);
+        // All reference modes flow through the shared tabular pipeline so that every codec
+        // option (value gate, enumSerialization, key/extended-metadata names, dateFormat, …)
+        // is honored uniformly — IGNORE no longer takes a separate Jackson path.
+        return new TabularDocumentDelegate<>(target, roots, effectiveOptions, resolver,
+                new CsvRenderer());
     }
 
     private static ReferenceMode resolveReferenceMode(Map<String, Object> options) {

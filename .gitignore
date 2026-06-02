@@ -6,3 +6,11 @@ build/
 bin/
 bin_test/
 /cnf/cache
+/org.eclipse.fennec.codec.playground
+/scripts
+
+# Python virtualenvs / artifacts (e.g. for scripts/)
+.venv/
+venv/
+__pycache__/
+*.pyc

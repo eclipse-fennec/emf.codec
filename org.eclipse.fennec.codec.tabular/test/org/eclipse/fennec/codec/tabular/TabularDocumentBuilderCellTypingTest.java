@@ -257,12 +257,17 @@ class TabularDocumentBuilderCellTypingTest {
     // ========================================================================
 
     @Test
-    @DisplayName("unset EString → EmptyCell")
+    @DisplayName("included null EString → EmptyCell")
     void unsetStringIsEmpty() {
         createScalarPackage(EcorePackage.Literals.ESTRING, false);
         EObject obj = pkg.getEFactoryInstance().create(thingClass);
         // Do not call eSet: value stays unset (null for a single-valued EString).
-        Cell c = buildAndExtractFirstCell(obj, null, null);
+        // The value gate drops null columns by default, so keep it with serializeNull(true)
+        // to assert the cell typing of an included-but-null value.
+        ConfigurationResolver keepNull = ConfigurationResolver.builder()
+                .serializeNull(true)
+                .build();
+        Cell c = buildAndExtractFirstCell(obj, null, keepNull);
         assertInstanceOf(EmptyCell.class, c);
     }
 

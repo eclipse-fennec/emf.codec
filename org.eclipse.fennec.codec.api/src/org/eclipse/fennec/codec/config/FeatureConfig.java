@@ -17,6 +17,7 @@ import static org.eclipse.fennec.codec.config.ConfigMergeHelper.getEnum;
 import static org.eclipse.fennec.codec.config.ConfigMergeHelper.getString;
 
 import java.util.Map;
+import java.util.Objects;
 
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
@@ -192,6 +193,37 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
             return true;
         }
         return !ignore && !ignoreRead;
+    }
+
+    /**
+     * Value gate: decides whether a concrete feature value should be written, after the
+     * {@link #shouldSerialize() visibility gate} has already passed.
+     * <p>
+     * This is the single source of truth shared by the Jackson serialization pipeline and the
+     * tabular export pipeline so the two cannot drift:
+     * <ul>
+     *   <li>{@code null} value &rarr; written only if {@link #isSerializeNull()}.</li>
+     *   <li>empty multi-valued collection &rarr; written only if {@link #isSerializeEmpty()}.</li>
+     *   <li>value equal to the feature default &rarr; written only if {@link #isSerializeDefault()}.</li>
+     *   <li>otherwise &rarr; written.</li>
+     * </ul>
+     *
+     * @param value the current feature value (may be null)
+     * @param defaultValue the feature's default value (from {@code EStructuralFeature.getDefaultValue()})
+     * @param manyEmpty whether this is a multi-valued feature whose collection is empty
+     * @return {@code true} if the value should be written
+     */
+    public boolean shouldSerializeValue(Object value, Object defaultValue, boolean manyEmpty) {
+        if (value == null) {
+            return serializeNull;
+        }
+        if (manyEmpty) {
+            return serializeEmpty;
+        }
+        if (Objects.equals(value, defaultValue)) {
+            return serializeDefault;
+        }
+        return true;
     }
 
     // ========================================================================

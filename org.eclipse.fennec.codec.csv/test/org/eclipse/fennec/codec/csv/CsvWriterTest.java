@@ -210,6 +210,44 @@ class CsvWriterTest {
     }
 
     @Nested
+    @DisplayName("dataTypeInSecondRow option")
+    class TypeRowToggle {
+
+        @Test
+        @DisplayName("default emits the SQL-type row (3 rows)")
+        void defaultEmitsTypeRow() throws IOException {
+            String csv = save(createItem(), new CsvFormatProvider(itemClass), Collections.emptyMap());
+            List<String> lines = splitLines(csv);
+            assertEquals(3, lines.size(), () -> "default should keep the type row:\n" + csv);
+            assertTrue(lines.get(1).contains("VARCHAR"), () -> "row 1 should be the type row: " + lines.get(1));
+        }
+
+        @Test
+        @DisplayName("dataTypeInSecondRow=false drops the type row (header + data only)")
+        void falseDropsTypeRow() throws IOException {
+            Map<String, Object> options = Map.of(
+                    CodecCsvOptions.OPTION_DATA_TYPE_IN_SECOND_ROW, false);
+            String csv = save(createItem(), new CsvFormatProvider(itemClass, options), options);
+            List<String> lines = splitLines(csv);
+
+            assertEquals(2, lines.size(), () -> "type row should be omitted:\n" + csv);
+            assertTrue(lines.get(0).contains("id"), () -> "row 0 is the header: " + lines.get(0));
+            // Row 1 is now the data row, not the SQL-type row.
+            assertTrue(lines.get(1).contains("item-001"), () -> "row 1 should be data: " + lines.get(1));
+            assertFalse(lines.get(1).contains("VARCHAR"), () -> "row 1 must not be the type row: " + lines.get(1));
+        }
+
+        @Test
+        @DisplayName("dataTypeInSecondRow=\"false\" (String) also drops the type row")
+        void stringFalseDropsTypeRow() throws IOException {
+            Map<String, Object> options = Map.of(
+                    CodecCsvOptions.OPTION_DATA_TYPE_IN_SECOND_ROW, "false");
+            String csv = save(createItem(), new CsvFormatProvider(itemClass, options), options);
+            assertEquals(2, splitLines(csv).size(), () -> "string 'false' should omit the type row:\n" + csv);
+        }
+    }
+
+    @Nested
     @DisplayName("columnTypes override")
     class ColumnTypesOverride {
 

@@ -2,9 +2,60 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-03-31
+**Last Updated:** 2026-06-02
 
-**Session Summary (2026-03-31 latest):**
+**Session Summary (2026-06-02 latest):**
+
+**CSV: dataTypeInSecondRow option to toggle the SQL-type row:**
+
+Added `CodecCsvOptions.OPTION_DATA_TYPE_IN_SECOND_ROW` (`"codec.csv.dataTypeInSecondRow"`),
+**default `true`** (keeps current behavior). When `false`, `CsvRenderer` emits only the header row
+followed by data rows (no SQL-type second row) — applies to single-CSV (IGNORE/FLAT) and every
+per-table + join-table CSV in SQL_TABLES. Resolved in `CsvRenderer.resolveTypeRow(options)` and
+threaded through `writeTable`/`writeJoinTableToZipEntry`. Tests: `CsvWriterTest.TypeRowToggle`.
+
+**Tabular exporters: honor idOnTop + fieldOrder=ALPHABETICAL column ordering:**
+
+`TabularDocumentBuilder` now applies column ordering across IGNORE/FLAT/SQL_TABLES (CSV/ODS/XLSX/R):
+- `fieldOrder=ALPHABETICAL` codec option (default `DECLARATION`) sorts columns by header
+  (case-insensitive). Read from the codec options map via `ConfigProperty.FIELD_ORDER.getKey()`
+  (also accepts `codec.fieldOrder`).
+- `idOnTop` codec option floats the EClass's `getEIDAttribute()` column to first; resolved through
+  `resolver.resolveIdConfig(eClass).isOnTop()`. In SQL_TABLES the synthetic `_id` PK stays first and
+  the eID attribute floats ahead of the other own columns.
+- Shared helpers `orderColumns(...)`, `resolveAlphabetical(opts)`, `resolveIdOnTop(eClass, …)` in
+  `TabularDocumentBuilder`. Tests in `TabularDocumentBuilderOptionTest`.
+- Scope: exporters only. NOTE/follow-up: `FIELD_ORDER` is declared but **not wired into the Jackson
+  serialization path** anywhere (`sortPropertiesAlphabetically` is never set from options) — open a
+  separate issue to wire alphabetical ordering into JSON/Jackson for full consistency.
+
+**Unify tabular export on one path; honor value gate + enumSerialization everywhere:**
+
+CSV IGNORE mode previously used a separate Jackson path (`CsvFormatDelegate`) while FLAT/SQL_TABLES
+and all ODS/XLSX/R modes used the shared `TabularDocumentDelegate → TabularDocumentBuilder →
+<renderer>` pipeline. The Jackson path honored the value gate and `enumSerialization`; the tabular
+path silently skipped them — so the same object exported as CSV-IGNORE vs ODS-IGNORE diverged.
+
+- `FeatureConfig.shouldSerializeValue(value, defaultValue, manyEmpty)` — extracted the value gate
+  (serializeNull/Empty/Default) into one shared method; `AttributeSerializationEntry.shouldSerialize`
+  now calls it (single source of truth, no drift).
+- `TabularDocumentBuilder` — applies the value gate in `buildIgnore`/`buildFlat`/`buildSqlTables`:
+  a column appears iff at least one row has a qualifying value (matches the Jackson/`CsvValueHandlingTest`
+  contract); gated-out rows get `EmptyCell`. Now honors `enumSerialization` (LITERAL/NAME/VALUE) for
+  EMF `Enumerator` and Java `Enum` in `makeScalarCell`/`stringifyScalar`.
+- `CsvFormatProvider` — all reference modes now flow through `TabularDocumentDelegate + CsvRenderer`;
+  the IGNORE special case is gone. `CsvFormatDelegate` deleted (unreferenced).
+- Behavior change: ODS/XLSX/R IGNORE are now option-aware (null/default/empty columns drop unless the
+  matching `serialize*` option is set) — the intended consistency fix.
+- Out of scope (follow-ups): id/type strategy (`_id`/`_type` columns) for the tabular grid; custom
+  value writers (`CodecValueWriter`) on the tabular path — CSV IGNORE no longer supports them.
+- Tests: `CsvEnumSerializationTest` (CSV enum strategies), `TabularDocumentBuilderOptionTest`
+  (format-agnostic value gate + enums); updated `TabularDocumentBuilderCellTypingTest`'s null-cell
+  test to keep the column via `serializeNull(true)`. Full `./gradlew build` green.
+
+---
+
+**Session Summary (2026-03-31):**
 
 **JSON Schema Nullable Type Support (Issue 3 fix):**
 

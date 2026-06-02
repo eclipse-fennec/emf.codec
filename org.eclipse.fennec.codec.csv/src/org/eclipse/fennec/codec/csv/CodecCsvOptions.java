@@ -56,4 +56,15 @@ public interface CodecCsvOptions {
      * Default: {@code UTF-8}.
      */
     String OPTION_CHARSET = "codec.csv.charset";
+
+    /**
+     * Whether to emit a second row carrying each column's SQL type (between the header row and the
+     * data rows). Applies to every CSV produced, including the per-table and join-table CSVs of
+     * {@code SQL_TABLES} mode.
+     * <p>
+     * Value: {@code Boolean} or {@code "true"}/{@code "false"} ({@code String}).
+     * Default: {@code true} (header row, then a SQL-type row, then data rows). Set to
+     * {@code false} to emit only the header row followed directly by the data rows.
+     */
+    String OPTION_DATA_TYPE_IN_SECOND_ROW = "codec.csv.dataTypeInSecondRow";
 }

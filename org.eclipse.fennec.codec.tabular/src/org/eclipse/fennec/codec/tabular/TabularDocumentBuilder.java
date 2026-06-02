@@ -17,6 +17,7 @@ import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -26,16 +27,22 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import org.eclipse.emf.common.util.Enumerator;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.config.FeatureConfig;
+import org.eclipse.fennec.codec.config.IdConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
+import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
 import org.eclipse.fennec.codec.tabular.model.tabular.BigDecimalCell;
 import org.eclipse.fennec.codec.tabular.model.tabular.BinaryCell;
 import org.eclipse.fennec.codec.tabular.model.tabular.BooleanCell;
@@ -147,15 +154,29 @@ public final class TabularDocumentBuilder {
             if (fc != null && !fc.shouldSerialize()) {
                 continue;
             }
-            String resolvedKey = resolvedKey(attr, fc);
+            // Value gate: include the column only if at least one root would populate it.
+            if (!anyValueQualifies(roots, attr, fc)) {
+                continue;
+            }
+            attrColumns.add(attr);
+        }
 
+        // Apply column ordering (alphabetical / idOnTop) before materializing columns and rows.
+        EAttribute idAttr = eClass.getEIDAttribute();
+        orderColumns(attrColumns,
+                attr -> resolvedKey(attr, resolveFeatureConfig(attr, resolver, diagnostics)),
+                attr -> attr == idAttr,
+                resolveAlphabetical(opts), resolveIdOnTop(eClass, resolver, diagnostics));
+
+        for (EAttribute attr : attrColumns) {
+            FeatureConfig fc = resolveFeatureConfig(attr, resolver, diagnostics);
+            String resolvedKey = resolvedKey(attr, fc);
             Column col = TabularFactory.eINSTANCE.createColumn();
             col.setHeader(resolvedKey);
             col.setSource(ColumnSource.ATTRIBUTE);
             col.setSqlType(resolveAttributeSqlType(attr, resolvedKey, columnTypeOverrides));
             col.setFeature(attr);
             table.getColumns().add(col);
-            attrColumns.add(attr);
         }
 
         // One row per root.
@@ -166,7 +187,9 @@ public final class TabularDocumentBuilder {
             Row row = TabularFactory.eINSTANCE.createRow();
             for (EAttribute attr : attrColumns) {
                 FeatureConfig fc = resolveFeatureConfig(attr, resolver, diagnostics);
-                row.getCells().add(makeAttributeCell(root, attr, fc));
+                row.getCells().add(passesValueGate(root, attr, fc)
+                        ? makeAttributeCell(root, attr, fc)
+                        : TabularFactory.eINSTANCE.createEmptyCell());
             }
             table.getRows().add(row);
         }
@@ -202,11 +225,30 @@ public final class TabularDocumentBuilder {
 
         // Materialize the Table.
         Table table = TabularFactory.eINSTANCE.createTable();
+        EObject firstRoot = roots.isEmpty() ? null : roots.get(0);
         // FLAT's table has no canonical EClass — name borrowed from the first root, if any.
-        if (!roots.isEmpty() && roots.get(0) != null) {
-            table.setName(roots.get(0).eClass().getName());
+        if (firstRoot != null) {
+            table.setName(firstRoot.eClass().getName());
         }
-        for (String header : columnOrder) {
+
+        // Apply column ordering (alphabetical / idOnTop). idOnTop floats the root EClass's
+        // eID attribute (a top-level, unprefixed column) to the front.
+        List<String> orderedHeaders = new ArrayList<>(columnOrder);
+        String idHeader = null;
+        if (firstRoot != null) {
+            EAttribute idAttr = firstRoot.eClass().getEIDAttribute();
+            if (idAttr != null) {
+                idHeader = resolvedKey(idAttr, resolveFeatureConfig(idAttr, resolver, diagnostics));
+            }
+        }
+        final String floatHeader = idHeader;
+        boolean idOnTop = firstRoot != null
+                && floatHeader != null
+                && resolveIdOnTop(firstRoot.eClass(), resolver, diagnostics);
+        orderColumns(orderedHeaders, h -> h, h -> h.equals(floatHeader),
+                resolveAlphabetical(opts), idOnTop);
+
+        for (String header : orderedHeaders) {
             EAttribute attr = columnAttributes.get(header);
             Column col = TabularFactory.eINSTANCE.createColumn();
             col.setHeader(header);
@@ -219,7 +261,7 @@ public final class TabularDocumentBuilder {
         }
         for (LinkedHashMap<String, Cell> rowMap : rowMaps) {
             Row row = TabularFactory.eINSTANCE.createRow();
-            for (String header : columnOrder) {
+            for (String header : orderedHeaders) {
                 Cell cell = rowMap.get(header);
                 row.getCells().add(cell != null ? cell : TabularFactory.eINSTANCE.createEmptyCell());
             }
@@ -253,6 +295,11 @@ public final class TabularDocumentBuilder {
                 String resolvedKey = resolvedKey(feat, fc);
 
                 if (feat instanceof EAttribute attr) {
+                    // Value gate: a gated-out value contributes no column; rows lacking the
+                    // column are filled with EmptyCell at materialization time.
+                    if (!passesValueGate(obj, attr, fc)) {
+                        continue;
+                    }
                     String column = prefix + resolvedKey;
                     rowMap.put(column, makeAttributeCell(obj, attr, fc));
                     columnOrder.add(column);
@@ -319,9 +366,10 @@ public final class TabularDocumentBuilder {
 
         WalkResult walk = walkGraph(roots, strategy);
 
+        boolean alphabetical = resolveAlphabetical(opts);
         for (Map.Entry<EClass, List<EObject>> entry : walk.byClass.entrySet()) {
             Table table = buildTableForEClass(entry.getKey(), entry.getValue(), walk,
-                    columnTypeOverrides, fkSuffix, schemas, resolver, diagnostics);
+                    columnTypeOverrides, fkSuffix, schemas, resolver, diagnostics, alphabetical);
             doc.getTables().add(table);
         }
         for (Map.Entry<JoinTableKey, List<JoinTableEntry>> entry : walk.joinTableEntries.entrySet()) {
@@ -399,7 +447,7 @@ public final class TabularDocumentBuilder {
 
     private static Table buildTableForEClass(EClass eClass, List<EObject> objects, WalkResult walk,
             Map<?, ?> columnTypeOverrides, String fkSuffix, Map<?, ?> schemas,
-            ConfigurationResolver resolver, DiagnosticCollector diagnostics) {
+            ConfigurationResolver resolver, DiagnosticCollector diagnostics, boolean alphabetical) {
 
         Table table = TabularFactory.eINSTANCE.createTable();
         table.setEClass(eClass);
@@ -416,8 +464,10 @@ public final class TabularDocumentBuilder {
         pkCol.setSqlType(PK_FK_SQL_TYPE);
         table.getColumns().add(pkCol);
 
-        // Attribute + single-valued-ref columns (in EClass-declared order).
-        record OwnColumn(EStructuralFeature feature, FeatureConfig config, boolean isReference) {}
+        // Attribute + single-valued-ref columns (in EClass-declared order), each carrying its
+        // materialized Column and resolved header so ordering can reorder both at once.
+        record OwnColumn(EStructuralFeature feature, FeatureConfig config, boolean isReference,
+                Column column, String header) {}
         List<OwnColumn> ownColumns = new ArrayList<>();
         for (EStructuralFeature feat : eClass.getEAllStructuralFeatures()) {
             FeatureConfig fc = resolveFeatureConfig(feat, resolver, diagnostics);
@@ -427,13 +477,16 @@ public final class TabularDocumentBuilder {
             String resolvedKey = resolvedKey(feat, fc);
 
             if (feat instanceof EAttribute attr) {
+                // Value gate: include the column only if some row would populate it.
+                if (!anyValueQualifies(objects, attr, fc)) {
+                    continue;
+                }
                 Column col = TabularFactory.eINSTANCE.createColumn();
                 col.setHeader(resolvedKey);
                 col.setSource(ColumnSource.ATTRIBUTE);
                 col.setSqlType(resolveAttributeSqlType(attr, resolvedKey, columnTypeOverrides));
                 col.setFeature(attr);
-                table.getColumns().add(col);
-                ownColumns.add(new OwnColumn(attr, fc, false));
+                ownColumns.add(new OwnColumn(attr, fc, false, col, resolvedKey));
             } else if (feat instanceof EReference ref) {
                 if (ref.isMany()) {
                     // Handled out-of-band (FK-on-child or join-table).
@@ -445,9 +498,17 @@ public final class TabularDocumentBuilder {
                 col.setSource(ColumnSource.FK_PARENT);
                 col.setSqlType(PK_FK_SQL_TYPE);
                 col.setFeature(ref);
-                table.getColumns().add(col);
-                ownColumns.add(new OwnColumn(ref, fc, true));
+                ownColumns.add(new OwnColumn(ref, fc, true, col, fkHeader));
             }
+        }
+
+        // Apply column ordering (alphabetical / idOnTop). The synthetic PK stays first; own
+        // attribute/FK columns are reordered, with the eID attribute floated ahead of them.
+        EAttribute idAttr = eClass.getEIDAttribute();
+        orderColumns(ownColumns, OwnColumn::header, oc -> oc.feature() == idAttr,
+                alphabetical, resolveIdOnTop(eClass, resolver, diagnostics));
+        for (OwnColumn oc : ownColumns) {
+            table.getColumns().add(oc.column());
         }
 
         // Incoming-FK columns (multi-valued containment refs under PREFER_FK_COLUMN).
@@ -488,7 +549,10 @@ public final class TabularDocumentBuilder {
                         row.getCells().add(TabularFactory.eINSTANCE.createEmptyCell());
                     }
                 } else {
-                    row.getCells().add(makeAttributeCell(obj, (EAttribute) oc.feature(), oc.config()));
+                    EAttribute attr = (EAttribute) oc.feature();
+                    row.getCells().add(passesValueGate(obj, attr, oc.config())
+                            ? makeAttributeCell(obj, attr, oc.config())
+                            : TabularFactory.eINSTANCE.createEmptyCell());
                 }
             }
 
@@ -577,6 +641,7 @@ public final class TabularDocumentBuilder {
             return TabularFactory.eINSTANCE.createEmptyCell();
         }
         String dateFormat = fc != null ? fc.getDateFormat() : null;
+        EnumSerializationStrategy enumStrategy = fc != null ? fc.getEnumSerialization() : null;
 
         if (attr.isMany() && value instanceof List<?> list) {
             // Multi-valued attribute: stringify items, join with ';', return as StringCell
@@ -587,17 +652,18 @@ public final class TabularDocumentBuilder {
                 if (!first) {
                     sb.append(ARRAY_VALUE_SEPARATOR);
                 }
-                sb.append(stringifyScalar(item, dateFormat));
+                sb.append(stringifyScalar(item, dateFormat, enumStrategy));
                 first = false;
             }
             StringCell cell = TabularFactory.eINSTANCE.createStringCell();
             cell.setValue(sb.toString());
             return cell;
         }
-        return makeScalarCell(value, dateFormat);
+        return makeScalarCell(value, dateFormat, enumStrategy);
     }
 
-    private static Cell makeScalarCell(Object value, String dateFormat) {
+    private static Cell makeScalarCell(Object value, String dateFormat,
+            EnumSerializationStrategy enumStrategy) {
         if (value == null) {
             return TabularFactory.eINSTANCE.createEmptyCell();
         }
@@ -646,18 +712,61 @@ public final class TabularDocumentBuilder {
             cell.setValue(bytes);
             return cell;
         }
-        // Characters and enum literals → toString into a StringCell.
+        // Enums honour the configured enumSerialization strategy (LITERAL/NAME/VALUE).
+        if (value instanceof Enumerator e) {
+            return makeEnumCell(e, enumStrategy);
+        }
+        if (value instanceof Enum<?> e) {
+            return makeJavaEnumCell(e, enumStrategy);
+        }
+        // Characters and anything else → toString into a StringCell.
         StringCell cell = TabularFactory.eINSTANCE.createStringCell();
         cell.setValue(value.toString());
         return cell;
     }
 
-    private static String stringifyScalar(Object value, String dateFormat) {
+    /** Cell for an EMF enum literal, per the configured strategy (default LITERAL). */
+    private static Cell makeEnumCell(Enumerator e, EnumSerializationStrategy strategy) {
+        if (strategy == EnumSerializationStrategy.VALUE) {
+            LongCell cell = TabularFactory.eINSTANCE.createLongCell();
+            cell.setValue((long) e.getValue());
+            return cell;
+        }
+        StringCell cell = TabularFactory.eINSTANCE.createStringCell();
+        cell.setValue(strategy == EnumSerializationStrategy.NAME ? e.getName() : e.getLiteral());
+        return cell;
+    }
+
+    /** Cell for a plain Java enum, per the configured strategy (default name). */
+    private static Cell makeJavaEnumCell(Enum<?> e, EnumSerializationStrategy strategy) {
+        if (strategy == EnumSerializationStrategy.VALUE) {
+            LongCell cell = TabularFactory.eINSTANCE.createLongCell();
+            cell.setValue((long) e.ordinal());
+            return cell;
+        }
+        StringCell cell = TabularFactory.eINSTANCE.createStringCell();
+        cell.setValue(e.name());
+        return cell;
+    }
+
+    private static String stringifyScalar(Object value, String dateFormat,
+            EnumSerializationStrategy enumStrategy) {
         if (value == null) {
             return "";
         }
         if (value instanceof Date d && dateFormat != null && !dateFormat.isBlank()) {
             return new java.text.SimpleDateFormat(dateFormat).format(d);
+        }
+        if (value instanceof Enumerator e) {
+            if (enumStrategy == EnumSerializationStrategy.VALUE) {
+                return Integer.toString(e.getValue());
+            }
+            return enumStrategy == EnumSerializationStrategy.NAME ? e.getName() : e.getLiteral();
+        }
+        if (value instanceof Enum<?> e) {
+            return enumStrategy == EnumSerializationStrategy.VALUE
+                    ? Integer.toString(e.ordinal())
+                    : e.name();
         }
         if (value instanceof BigDecimal bd) {
             return bd.toPlainString();
@@ -684,6 +793,92 @@ public final class TabularDocumentBuilder {
                     + feat.getEContainingClass().getName() + "." + feat.getName()
                     + ": " + e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Value gate for a single (object, attribute) pair, mirroring the Jackson serialization
+     * pipeline ({@code AttributeSerializationEntry.shouldSerialize}) via the shared
+     * {@link FeatureConfig#shouldSerializeValue}. When no {@link FeatureConfig} is available
+     * (no resolver), the prior behaviour is preserved: the value always passes.
+     */
+    private static boolean passesValueGate(EObject obj, EAttribute attr, FeatureConfig fc) {
+        if (fc == null) {
+            return true;
+        }
+        Object value = obj.eGet(attr);
+        boolean manyEmpty = attr.isMany() && value instanceof List<?> list && list.isEmpty();
+        return fc.shouldSerializeValue(value, attr.getDefaultValue(), manyEmpty);
+    }
+
+    /**
+     * Whether at least one object in {@code objects} has a value for {@code attr} that passes the
+     * {@link #passesValueGate value gate}. Used for column inclusion so a column is emitted iff
+     * some row would populate it — matching the IGNORE/Jackson "union of written names" contract.
+     */
+    private static boolean anyValueQualifies(List<? extends EObject> objects, EAttribute attr,
+            FeatureConfig fc) {
+        if (fc == null) {
+            return true;
+        }
+        for (EObject obj : objects) {
+            if (obj != null && passesValueGate(obj, attr, fc)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static final String FIELD_ORDER_ALPHABETICAL = "ALPHABETICAL";
+
+    /**
+     * Whether columns should be sorted alphabetically by header — driven by the
+     * {@code fieldOrder=ALPHABETICAL} codec option (default {@code DECLARATION}).
+     */
+    private static boolean resolveAlphabetical(Map<String, Object> opts) {
+        Object value = opts.get(ConfigProperty.FIELD_ORDER.getKey());
+        if (value == null) {
+            value = opts.get("codec." + ConfigProperty.FIELD_ORDER.getKey());
+        }
+        return value != null && FIELD_ORDER_ALPHABETICAL.equalsIgnoreCase(value.toString());
+    }
+
+    /**
+     * Whether the id column should float to the front — driven by the {@code idOnTop} codec option,
+     * resolved through the {@link IdConfig} for the EClass so annotation/module/options layers apply.
+     */
+    private static boolean resolveIdOnTop(EClass eClass, ConfigurationResolver resolver,
+            DiagnosticCollector diagnostics) {
+        if (resolver == null || eClass == null) {
+            return false;
+        }
+        try {
+            IdConfig idConfig = resolver.resolveIdConfig(eClass, diagnostics);
+            return idConfig != null && idConfig.isOnTop();
+        } catch (RuntimeException e) {
+            LOGGER.fine(() -> "TabularDocumentBuilder: failed to resolve IdConfig for "
+                    + eClass.getName() + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Applies column ordering in place: alphabetical sort by header first (when requested), then the
+     * id item floated to the front (when requested). Both are stable; the id float preserves the
+     * relative order of the remaining items. The id is the EClass {@code eIDAttribute}.
+     */
+    private static <T> void orderColumns(List<T> items, Function<T, String> header,
+            Predicate<T> isId, boolean alphabetical, boolean idOnTop) {
+        if (alphabetical) {
+            items.sort(Comparator.comparing(header, String.CASE_INSENSITIVE_ORDER));
+        }
+        if (idOnTop) {
+            for (int i = 0; i < items.size(); i++) {
+                if (isId.test(items.get(i))) {
+                    items.add(0, items.remove(i));
+                    break;
+                }
+            }
         }
     }
 

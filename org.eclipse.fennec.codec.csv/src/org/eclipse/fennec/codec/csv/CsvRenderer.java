@@ -63,12 +63,14 @@ import de.siegmar.fastcsv.writer.QuoteStrategy;
  *       one CSV per {@code JoinTable}.</li>
  * </ul>
  * <p>
- * Each emitted CSV has three sections: row 1 = headers, row 2 = SQL types, rows
- * 3+ = data. Cells are stringified by dispatching on the concrete
- * {@link Cell} subclass.
+ * Each emitted CSV has a header row, an optional SQL-type row, and then the data
+ * rows. The SQL-type row is controlled by
+ * {@link CodecCsvOptions#OPTION_DATA_TYPE_IN_SECOND_ROW} (default {@code true}).
+ * Cells are stringified by dispatching on the concrete {@link Cell} subclass.
  * <p>
  * Dialect knobs are read from the options map under the keys in
- * {@link CodecCsvOptions}: delimiter, quote mode, line ending, charset.
+ * {@link CodecCsvOptions}: delimiter, quote mode, line ending, charset, and the
+ * SQL-type-row toggle.
  *
  * @since 2026-05
  */
@@ -86,10 +88,12 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
         QuoteStrategy quoteStrategy = resolveQuoteStrategy(options);
         LineDelimiter lineDelimiter = resolveLineDelimiter(options);
 
+        boolean typeRow = resolveTypeRow(options);
+
         if (doc.getReferenceMode() == ReferenceMode.SQL_TABLES) {
-            renderZip(doc, target, charset, delimiter, quoteStrategy, lineDelimiter);
+            renderZip(doc, target, charset, delimiter, quoteStrategy, lineDelimiter, typeRow);
         } else {
-            renderSingleCsv(doc, target, charset, delimiter, quoteStrategy, lineDelimiter);
+            renderSingleCsv(doc, target, charset, delimiter, quoteStrategy, lineDelimiter, typeRow);
         }
     }
 
@@ -98,7 +102,7 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
     // ========================================================================
 
     private void renderSingleCsv(TabularDocument doc, OutputStream target, Charset charset,
-            char delimiter, QuoteStrategy quoteStrategy, LineDelimiter lineDelimiter)
+            char delimiter, QuoteStrategy quoteStrategy, LineDelimiter lineDelimiter, boolean typeRow)
             throws IOException {
         if (doc.getTables().isEmpty()) {
             return;
@@ -110,7 +114,7 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
                 .lineDelimiter(lineDelimiter)
                 .build(target, charset);
         try {
-            writeTable(csv, table);
+            writeTable(csv, table, typeRow);
             csv.flush();
         } catch (UncheckedIOException e) {
             throw e.getCause();
@@ -123,21 +127,21 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
     // ========================================================================
 
     private void renderZip(TabularDocument doc, OutputStream target, Charset charset,
-            char delimiter, QuoteStrategy quoteStrategy, LineDelimiter lineDelimiter)
+            char delimiter, QuoteStrategy quoteStrategy, LineDelimiter lineDelimiter, boolean typeRow)
             throws IOException {
         ZipOutputStream zip = new ZipOutputStream(target);
         for (Table table : doc.getTables()) {
             String entryName = (table.getSchema() != null && !table.getSchema().isEmpty()
                     ? table.getSchema() + "/" : "") + table.getName() + ".csv";
             zip.putNextEntry(new ZipEntry(entryName));
-            writeTableToZipEntry(zip, table, charset, delimiter, quoteStrategy, lineDelimiter);
+            writeTableToZipEntry(zip, table, charset, delimiter, quoteStrategy, lineDelimiter, typeRow);
             zip.closeEntry();
         }
         for (JoinTable jt : doc.getJoinTables()) {
             String entryName = (jt.getSchema() != null && !jt.getSchema().isEmpty()
                     ? jt.getSchema() + "/" : "") + jt.getFileName() + ".csv";
             zip.putNextEntry(new ZipEntry(entryName));
-            writeJoinTableToZipEntry(zip, jt, charset, delimiter, quoteStrategy, lineDelimiter);
+            writeJoinTableToZipEntry(zip, jt, charset, delimiter, quoteStrategy, lineDelimiter, typeRow);
             zip.closeEntry();
         }
         // Write the ZIP's central directory but do not close the underlying OutputStream.
@@ -145,7 +149,7 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
     }
 
     private void writeTableToZipEntry(ZipOutputStream zip, Table table, Charset charset,
-            char delimiter, QuoteStrategy quoteStrategy, LineDelimiter lineDelimiter)
+            char delimiter, QuoteStrategy quoteStrategy, LineDelimiter lineDelimiter, boolean typeRow)
             throws IOException {
         // Suppress close of the underlying stream — CsvWriter.close() would otherwise
         // close the ZipOutputStream's entry stream, which is not what we want.
@@ -158,7 +162,7 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
                 .lineDelimiter(lineDelimiter)
                 .build(guarded, charset);
         try {
-            writeTable(csv, table);
+            writeTable(csv, table, typeRow);
             csv.flush();
         } catch (UncheckedIOException e) {
             throw e.getCause();
@@ -166,7 +170,7 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
     }
 
     private void writeJoinTableToZipEntry(ZipOutputStream zip, JoinTable jt, Charset charset,
-            char delimiter, QuoteStrategy quoteStrategy, LineDelimiter lineDelimiter)
+            char delimiter, QuoteStrategy quoteStrategy, LineDelimiter lineDelimiter, boolean typeRow)
             throws IOException {
         OutputStream guarded = new FilterOutputStream(zip) {
             @Override public void close() { /* deliberate no-op */ }
@@ -178,7 +182,9 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
                 .build(guarded, charset);
         try {
             csv.writeRecord(List.of(jt.getOwnerCol(), jt.getTargetCol()));
-            csv.writeRecord(List.of("BIGINT", "BIGINT"));
+            if (typeRow) {
+                csv.writeRecord(List.of("BIGINT", "BIGINT"));
+            }
             for (JoinTableRow row : jt.getRows()) {
                 csv.writeRecord(List.of(Long.toString(row.getOwnerId()), Long.toString(row.getTargetId())));
             }
@@ -192,7 +198,7 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
     // Table writing — header, types, data
     // ========================================================================
 
-    private void writeTable(CsvWriter csv, Table table) {
+    private void writeTable(CsvWriter csv, Table table, boolean typeRow) {
         List<String> headers = new ArrayList<>(table.getColumns().size());
         List<String> types = new ArrayList<>(table.getColumns().size());
         for (Column col : table.getColumns()) {
@@ -200,7 +206,9 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
             types.add(col.getSqlType() != null ? col.getSqlType() : "");
         }
         csv.writeRecord(headers);
-        csv.writeRecord(types);
+        if (typeRow) {
+            csv.writeRecord(types);
+        }
         for (Row row : table.getRows()) {
             List<String> values = new ArrayList<>(row.getCells().size());
             for (Cell cell : row.getCells()) {
@@ -287,6 +295,17 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
             return QuoteStrategies.valueOf(s.toUpperCase());
         }
         return DEFAULT_QUOTE_STRATEGY;
+    }
+
+    private static boolean resolveTypeRow(Map<String, Object> options) {
+        Object value = options.get(CodecCsvOptions.OPTION_DATA_TYPE_IN_SECOND_ROW);
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        if (value instanceof String s && !s.isBlank()) {
+            return Boolean.parseBoolean(s);
+        }
+        return true; // default: emit the SQL-type row
     }
 
     private static LineDelimiter resolveLineDelimiter(Map<String, Object> options) {
