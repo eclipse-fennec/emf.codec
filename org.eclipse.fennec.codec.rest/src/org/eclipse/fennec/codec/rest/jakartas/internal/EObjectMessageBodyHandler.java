@@ -1,13 +1,13 @@
 /**
  * Copyright (c) 2012 - 2026 Data In Motion and others.
- * All rights reserved. 
- * 
+ * All rights reserved.
+ *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
@@ -25,8 +25,6 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.rest.annotations.AnnotationConverter;
-import org.eclipse.fennec.codec.rest.jakartas.JakartaRestConstants;
-import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -40,7 +38,6 @@ import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsName;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -70,8 +67,8 @@ import jakarta.ws.rs.ext.Provider;
 public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> extends BaseJakartaCodecMessageBodyReaderWriter<R, W>{
 
 	@Context
-    private jakarta.inject.Provider<ContainerRequestContext> requestContextProvider;
-	
+	private jakarta.inject.Provider<ResourceSet> resourceSetProvider;
+
 	/*
 	 * (non-Javadoc)
 	 * @see jakarta.ws.rs.ext.MessageBodyWriter#isWriteable(java.lang.Class, java.lang.reflect.Type, java.lang.annotation.Annotation[], jakarta.ws.rs.core.MediaType)
@@ -79,8 +76,7 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		ResourceSetFactory setFactory = getResourceSetFactory();
-		ResourceSet resourceSet = setFactory.createResourceSet();
+		ResourceSet resourceSet = getResourceSet();
 		return EObject.class.isAssignableFrom(type) && resourceSet.getResourceFactoryRegistry()
 				.getContentTypeToFactoryMap().containsKey(mediaType.getType() + "/" + mediaType.getSubtype());
 	}
@@ -95,8 +91,7 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 			MultivaluedMap<String, Object> httpHeaders,
 			OutputStream entityStream) throws IOException,
 			WebApplicationException {
-		ResourceSetFactory setFactory = getResourceSetFactory();
-		ResourceSet resourceSet = setFactory.createResourceSet();
+		ResourceSet resourceSet = getResourceSet();
 		Resource resource = t.eResource();
 		boolean cleanUp = false;
 		if(resource == null){
@@ -106,9 +101,9 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 			resourceSet.getResources().add(resource);
 			resource.getContents().add(t);
 		}
-		
+
 		super.writeResourceTo(resource, Resource.class, genericType, annotations, mediaType, httpHeaders, entityStream);
-		
+
 		if(cleanUp){
 			resource.getContents().remove(t);
 			resource.getResourceSet().getResources().remove(resource);
@@ -122,8 +117,7 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		ResourceSetFactory setFactory = getResourceSetFactory();
-		ResourceSet resourceSet = setFactory.createResourceSet();
+		ResourceSet resourceSet = getResourceSet();
 		return EObject.class.isAssignableFrom(type) && resourceSet.getResourceFactoryRegistry()
 				.getContentTypeToFactoryMap().containsKey(mediaType.getType() + "/" + mediaType.getSubtype());
 	}
@@ -169,7 +163,7 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 	}
 
 	@Override
-	protected ResourceSetFactory getResourceSetFactory() {
-		return (ResourceSetFactory) requestContextProvider.get().getProperty(JakartaRestConstants.RESOLVED_RESOURCE_SET_FACTORY);
+	protected ResourceSet getResourceSet() {
+		return resourceSetProvider.get();
 	}
 }

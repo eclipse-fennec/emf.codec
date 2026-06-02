@@ -1,0 +1,12 @@
+-library: enableOSGi-Test
+
+-runrequires: \
+	bnd.identity;id='org.eclipse.fennec.codec.rest.tests',\
+	bnd.identity;id='org.eclipse.fennec.codec.rest'
+
+-runbundles.test: \
+	org.eclipse.fennec.codec.rest.tests;version=snapshot
+
+-runfw: org.apache.felix.framework
+
+-runee: JavaSE-21
