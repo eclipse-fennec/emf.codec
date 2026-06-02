@@ -14,7 +14,6 @@
 package org.eclipse.fennec.codec.rest.common;
 
 import java.lang.annotation.Annotation;
-import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -186,21 +185,11 @@ public abstract class AbstractCodecAnnotationHandler {
 	 *         {@link ResourceOption#valueType()}
 	 */
 	private Object createValue(ResourceOption opt, ResourceSet resourceSet) {
-		if (opt.valueType().equals(String.class)) {
-			return opt.value();
-		} else if (opt.valueType().equals(Integer.class)) {
-			return Integer.parseInt(opt.value());
-		} else if (opt.valueType().equals(Double.class)) {
-			return Double.parseDouble(opt.value());
-		} else if (opt.valueType().equals(Long.class)) {
-			return Long.parseLong(opt.value());
-		} else if (opt.valueType().equals(Boolean.class)) {
-			return Boolean.parseBoolean(opt.value());
-		} else if (opt.valueType().equals(EClass.class)) {
+		// EClass needs URI resolution against the ResourceSet; the scalar types are shared with
+		// the client-override path via CodecOptionValues.
+		if (opt.valueType().equals(EClass.class)) {
 			return resourceSet.getEObject(URI.createURI(opt.value()), Boolean.TRUE);
-		} else if (opt.valueType().equals(SimpleDateFormat.class)) {
-			return new SimpleDateFormat(opt.value());
 		}
-		return null;
+		return CodecOptionValues.parse(opt.value(), opt.valueType());
 	}
 }

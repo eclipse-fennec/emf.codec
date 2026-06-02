@@ -6,6 +6,26 @@ This document provides context for continuing codec development across sessions.
 
 **Session Summary (2026-06-02 latest):**
 
+**REST: client-overridable codec options (whitelisted, via `Codec-Options` header):**
+
+Clients can now override a whitelisted subset of codec load/save options per request, without an
+endpoint annotation. Full design + as-built in `docs/codec-rest-client-overridable-options.md`.
+
+- `RestOverridableCodecOptions` SPI in `codec.api` (`Map<String,Class<?>> overridableKeys()`); each
+  module registers a `@Component` listing its safe keys via its own constants (no magic strings, no
+  jakarta dependency in format bundles). Contributors: `CoreOverridableCodecOptions` (in `codec`),
+  `Csv/Ods/Xlsx/RLangOverridableCodecOptions`.
+- Single `ClientCodecOptionsFilter` in `codec.rest` collects the whitelist services, parses the
+  `Codec-Options` request header (`key=value`, comma-separated), keeps only whitelisted keys, and
+  sets the `JakartaRestConstants.CLIENT_CODEC_OPTIONS` request property.
+- `BaseJakartaCodecMessageBodyReaderWriter.getClientCodecOptions()` merges them after
+  `handleAnnotedOptions` (client wins) on both read and write. Value parsing shared with the
+  annotation path via `CodecOptionValues.parse`.
+- Secure by default (empty whitelist ⇒ ignored). Risky keys (expand, typeStrategy, value writers)
+  deliberately not contributed. Tests: `ClientCodecOptionsFilterTest`.
+- Follow-up noted separately: `FIELD_ORDER`/alphabetical ordering is still unwired in the Jackson
+  serialization path (the tabular exporters honor it; JSON does not yet).
+
 **CSV: dataTypeInSecondRow option to toggle the SQL-type row:**
 
 Added `CodecCsvOptions.OPTION_DATA_TYPE_IN_SECOND_ROW` (`"codec.csv.dataTypeInSecondRow"`),

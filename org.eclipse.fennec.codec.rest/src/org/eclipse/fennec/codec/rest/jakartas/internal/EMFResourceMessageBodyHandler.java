@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Map;
 
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -131,6 +132,13 @@ public class EMFResourceMessageBodyHandler<R extends Resource, W extends Resourc
 	
 	public ResourceSetFactory getResourceSetFactory() {
 		return (ResourceSetFactory) requestContextProvider.get().getProperty(JakartaRestConstants.RESOLVED_RESOURCE_SET_FACTORY);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	protected Map<String, Object> getClientCodecOptions() {
+		Object value = requestContextProvider.get().getProperty(JakartaRestConstants.CLIENT_CODEC_OPTIONS);
+		return value instanceof Map ? (Map<String, Object>) value : Map.of();
 	}
 	
 	@Reference(unbind = "removeAnnotationConverter", cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)

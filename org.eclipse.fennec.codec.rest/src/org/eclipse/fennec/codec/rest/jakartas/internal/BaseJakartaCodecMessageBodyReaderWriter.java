@@ -102,6 +102,8 @@ try {
 	options.put(XMLResource.OPTION_URI_HANDLER, new XMLURIHandler(t.getURI()));
 
 	handleAnnotedOptions(annotations, options, resourceSet, true);
+	// Client-supplied (whitelisted) options win over endpoint annotations.
+	options.putAll(getClientCodecOptions());
 
 	referenceResource.save(entityStream, options);
 
@@ -145,6 +147,8 @@ try {
 	options.put(XMLResource.OPTION_URI_HANDLER, xmluriHandler);
 
 	handleAnnotedOptions(annotations, options, resourceSet, false);
+	// Client-supplied (whitelisted) options win over endpoint annotations.
+	options.putAll(getClientCodecOptions());
 
 	if(!options.containsKey(CodecResource.CODEC_ROOT_TYPE)) {
 		modelInfo.getEClassifierForClass(type).ifPresent(ec -> options.put(CodecResource.CODEC_ROOT_TYPE, ec));
@@ -165,6 +169,17 @@ try {
 
 
 protected abstract ResourceSetFactory getResourceSetFactory();
+
+/**
+ * Returns the whitelisted codec options the client supplied for this request (set by
+ * {@code ClientCodecOptionsFilter}), to be merged into the load/save options. Defaults to an
+ * empty map; subclasses with access to the {@code ContainerRequestContext} override it.
+ *
+ * @return the client codec options; never {@code null}
+ */
+protected Map<String, Object> getClientCodecOptions() {
+	return Map.of();
+}
 
 private String determinContentType(MediaType mediatype, Annotation[] annotations) {
 return Arrays.asList(annotations).stream().filter(ResourceOverwriteContentType.class::isInstance)

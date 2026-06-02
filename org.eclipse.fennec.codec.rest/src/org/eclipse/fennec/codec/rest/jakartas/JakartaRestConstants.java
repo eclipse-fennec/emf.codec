@@ -19,7 +19,21 @@ package org.eclipse.fennec.codec.rest.jakartas;
  * @since May 19, 2026
  */
 public interface JakartaRestConstants {
-	
+
 	String RESOLVED_RESOURCE_SET_FACTORY = "resolved.resource.set.factory";
+
+	/**
+	 * Request-context property under which {@code ClientCodecOptionsFilter} stores the whitelisted,
+	 * parsed codec options supplied by the client (a {@code Map<String, Object>}). Read by the codec
+	 * message-body reader/writer and merged into the load/save options.
+	 */
+	String CLIENT_CODEC_OPTIONS = "client.codec.options";
+
+	/**
+	 * Name of the request header carrying client-supplied codec options as comma-separated
+	 * {@code key=value} pairs, e.g.
+	 * {@code Codec-Options: codec.tabular.referenceMode=FLAT, codec.csv.dataTypeInSecondRow=false}.
+	 */
+	String CODEC_OPTIONS_HEADER = "Codec-Options";
 
 }

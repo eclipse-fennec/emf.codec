@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -171,5 +172,12 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 	@Override
 	protected ResourceSetFactory getResourceSetFactory() {
 		return (ResourceSetFactory) requestContextProvider.get().getProperty(JakartaRestConstants.RESOLVED_RESOURCE_SET_FACTORY);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	protected Map<String, Object> getClientCodecOptions() {
+		Object value = requestContextProvider.get().getProperty(JakartaRestConstants.CLIENT_CODEC_OPTIONS);
+		return value instanceof Map ? (Map<String, Object>) value : Map.of();
 	}
 }
