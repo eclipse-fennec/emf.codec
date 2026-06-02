@@ -8,7 +8,9 @@
 	jakarta.inject.jakarta.inject-api;version=latest,\
 	org.eclipse.fennec.model.metadata,\
 	org.eclipse.fennec.emf.osgi.model.info,\
-	org.osgi.service.jakartars
-	
+	org.osgi.service.jakartars,\
+	org.glassfish.hk2.api,\
+	org.glassfish.jersey.core.jersey-common
+
 #So inherited @Reference are put in the service description xml
 -dsannotations-options: inherit

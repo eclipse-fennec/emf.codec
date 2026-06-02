@@ -3,12 +3,6 @@ biz.aQute:biz.aQute.gogo.commands.provider:1.9.0
 biz.aQute.bnd:biz.aQute.bnd.annotation:6.4.0
 biz.aQute:biz.aQute.wrapper.hamcrest:1.9.0
 
-jakarta.activation:jakarta.activation-api:2.1.1
-jakarta.annotation:jakarta.annotation-api:2.1.1
-jakarta.ws.rs:jakarta.ws.rs-api:2.1.6
-jakarta.ws.rs:jakarta.ws.rs-api:3.1.0
-jakarta.xml.bind:jakarta.xml.bind-api:4.0.0
-jakarta.inject:jakarta.inject-api:2.0.1
 
 javax.json:javax.json-api:1.1.4
 
@@ -75,7 +69,6 @@ org.eclipse.platform:org.eclipse.equinox.preferences:3.10.100
 org.eclipse.jdt:org.eclipse.jdt.core:3.32.0
 org.eclipse.platform:org.eclipse.osgi:3.18.200
 org.eclipse.platform:org.eclipse.text:3.12.300
-org.eclipse.parsson:jakarta.json:1.1.2
 
 
 org.osgi:org.osgi.annotation.versioning:1.1.2
@@ -100,7 +93,6 @@ org.osgi:org.osgi.service.http:1.2.2
 org.osgi:org.osgi.service.http.whiteboard:1.1.0
 org.osgi:org.osgi.service.servlet:2.0.0
 org.osgi:org.osgi.service.jaxrs:1.0.0
-org.osgi:org.osgi.service.jakartars:2.0.0
 org.osgi:org.osgi.service.jdbc:1.1.0
 org.osgi:org.osgi.service.log:1.5.0
 org.osgi:org.osgi.service.packageadmin:1.2.1
@@ -152,3 +144,4 @@ org.eclipse.fennec.bnd:org.eclipse.fennec.jacoco.bnd.library:0.0.9
 org.eclipse.fennec.bnd:org.eclipse.fennec.osgitest.bnd.library:0.0.9
 org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bnd.library.workspace:0.1.2
 org.eclipse.fennec.models:org.eclipse.fennec.common.models.library:0.0.1-SNAPSHOT
+org.eclipse.osgi-technology.rest:org.eclipse.osgitech.rest.bnd.library:1.2.3
