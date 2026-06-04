@@ -31,6 +31,7 @@ public class OdsOverridableCodecOptions implements RestOverridableCodecOptions {
         return Map.of(
                 CodecTabularOptions.OPTION_REFERENCE_MODE, String.class,
                 CodecOdsOptions.OPTION_STYLE_HEADER, Boolean.class,
-                CodecOdsOptions.OPTION_ADJUST_COLUMN_WIDTH, Boolean.class);
+                CodecOdsOptions.OPTION_ADJUST_COLUMN_WIDTH, Boolean.class,
+                CodecOdsOptions.OPTION_GENERATE_LINKS, Boolean.class);
     }
 }

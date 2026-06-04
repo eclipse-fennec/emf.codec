@@ -26,18 +26,19 @@
 
 **Phase 2 deliverables actually shipped:**
 
-- `org.eclipse.fennec.codec.ods` bundle wired against `com.github.miachm.sods:SODS:1.8.3` (added to `cnf/central.mvn`).
-- `OdsRenderer` — `TabularDocumentRenderer<OutputStream>` that maps `Table` → `Sheet` (with `<schema>.<name>` prefix when a schema is set) and `JoinTable` → `Sheet`. Dispatches on the concrete `Cell` subclass so numbers/booleans/dates land as native sods values (no SQL-type row; cells are typed). Header row optionally styled (bold, light grey, centered); column widths auto-adjusted by default.
-- `CodecOdsOptions` — two ODS-only knobs: `codec.ods.styleHeader` and `codec.ods.adjustColumnWidth` (both default `true`).
+- `org.eclipse.fennec.codec.ods` bundle wired against the forked `com.github.miachm.sods` (1.10.0, in `cnf/local`) carrying the [PR #63](https://github.com/miachm/SODS/pull/63) `LinkedValue` patch — see "FK hyperlinks" below. (Originally wired against stock `com.github.miachm.sods:SODS:1.8.3`, which has no link API.)
+- `OdsRenderer` — `TabularDocumentRenderer<OutputStream>` that maps `Table` → `Sheet` (with `<schema>.<name>` prefix when a schema is set) and `JoinTable` → `Sheet`. Dispatches on the concrete `Cell` subclass so numbers/booleans/dates land as native sods values (no SQL-type row; cells are typed). Header row optionally styled (bold, light grey, centered); column widths auto-adjusted by default. Two-pass design (create all sheets first, then fill) so FK links resolve their target sheet regardless of table order — mirrors the XLSX renderer.
+- `CodecOdsOptions` — three ODS-only knobs: `codec.ods.styleHeader`, `codec.ods.adjustColumnWidth`, and `codec.ods.generateLinks` (all default `true`).
+- FK hyperlinks (FK → target sheet) — **shipped 2026-06-04.** `FkCell`s become a `LinkedValue` to `#<target-sheet>.A1` (resolved via `getTargetEClass()`) when `codec.ods.generateLinks` is on (default). Because the sods writer drops a cell's value once a link is attached, a linked FK carries its id as the link's *display text* and is therefore a string cell (vs XLSX, where POI keeps the value numeric and attaches the hyperlink alongside). Same `LinkedValue → addLinkedValue` mechanism the gecko exporter used; needs the forked sods (stock builds have no link API).
 - `OdsFormatProvider` — registered for `.ods`. Unlike CSV's IGNORE-mode Jackson detour, all three reference modes flow through `TabularDocumentDelegate + OdsRenderer`.
 - `OdsResourceFactoryComponent` — DS component for `.ods` / `application/vnd.oasis.opendocument.spreadsheet`.
-- Tests in `OdsRendererTest` cover IGNORE, FLAT, SQL_TABLES (with FK link), multi-valued PREFER_FK_COLUMN (FK-on-child column named after the parent EClass), schema-as-sheet-prefix, and the empty-resource short-circuit. Tests round-trip through `new SpreadSheet(InputStream)` and assert on the resulting sods model.
+- Tests in `OdsRendererTest` cover IGNORE, FLAT, SQL_TABLES, multi-valued PREFER_FK_COLUMN (FK-on-child column named after the parent EClass), schema-as-sheet-prefix, and the empty-resource short-circuit. FK-link tests assert on the raw `content.xml` (the sods reader does not parse links back, so they cannot be round-tripped through `new SpreadSheet(InputStream)`): default-on emits `#Product.A1`, `generateLinks=false` keeps the FK numeric and emits no link, and the schema prefix is honoured in the link target (`#hr.Product.A1`). The non-link tests round-trip through `new SpreadSheet(InputStream)` and assert on the resulting sods model.
 
 **Phase 3 deliverables actually shipped:**
 
 - `org.eclipse.fennec.codec.xlsx` bundle wired against `org.apache.servicemix.bundles:org.apache.servicemix.bundles.poi:5.3.0_1` (added to `cnf/central.mvn`).
 - `XlsxRenderer` — `TabularDocumentRenderer<OutputStream>` using POI's `XSSFWorkbook`. Per-`Table` and per-`JoinTable` sheet; sheet names go through `WorkbookUtil.createSafeSheetName` then truncated to POI's 31-character limit with `~1`/`~2` collision suffixes. Two-pass design (compute all final sheet names first, then create sheets) so FK hyperlinks resolve their target sheet regardless of table order. Workbook-level `CellStyle` caching for header / date / hyperlink styles (date styles keyed by format string to stay under POI's 64K style limit).
-- `FkCell`s render as a numeric value plus a `HyperlinkType.DOCUMENT` hyperlink to `'<target-sheet>'!A1` when {@code codec.xlsx.generateLinks} is on (default `true`). XLSX therefore ships clickable FKs from day one — what we deferred for ODS we get for free here because POI exposes the API natively.
+- `FkCell`s render as a numeric value plus a `HyperlinkType.DOCUMENT` hyperlink to `'<target-sheet>'!A1` when {@code codec.xlsx.generateLinks} is on (default `true`). POI keeps the cell numeric AND attaches the hyperlink; ODS (using the forked sods `LinkedValue`) instead turns the linked FK into a string carrying the id as link text — see the ODS section. Both default to linking FKs.
 - `CodecXlsxOptions` — five XLSX-only knobs: `styleHeader`, `adjustColumnWidth`, `freezeHeaderRow`, `generateLinks` (all default `true`), `defaultDateFormat` (default `"m/d/yy h:mm"`).
 - `XlsxFormatProvider` — registered for `.xlsx`. All three reference modes flow through `TabularDocumentDelegate + XlsxRenderer` (no Jackson-pipeline detour needed — cells are typed).
 - `XlsxResourceFactoryComponent` — DS component for `.xlsx` / `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
@@ -68,24 +69,14 @@ What POI does **not** import (so we don't need): `com.zaxxer.SparseBitSet`, `cur
 
 - ODS reading — no requirement on the horizon; out of scope.
 - `CodecValueWriter` support in tabular renderers (still open from phase 1).
-- ODS hyperlinks (FK → target sheet) — gecko's exporter used a forked sods 1.6.2 carrying the patch from
-  upstream PR [#63](https://github.com/miachm/SODS/pull/63), which adds `LinkedValue` and
-  `Range.addLinkedValue` / `Range.setLinkedValues`. Verified against the 1.8.3 sources jar in `~/.m2`:
-  no `LinkedValue` class is present, and no `link` / `hyperlink` / `href` / `url` method exists on
-  `Cell` or `Range` (the only `href` occurrences are internal namespace plumbing for embedded
-  images and charts). The version bump between 1.6.2 and 1.8.3 looks to be chart-related, not the
-  PR #63 work. Re-open if a real consumer asks for clickable FKs — would require either a vendored
-  fork (gecko-style) or contributing the patch upstream and waiting for a release.
-
-  Pre-existing gecko fork to reuse if we decide to: `org.gecko.com.github.miachm.sods` in the
-  `geckoprojects-emf-utils` repo vendors the patched 1.6.2 jar at
-  `cnf/local/com.github.miachm.sods/com.github.miachm.sods-1.6.2.jar` and exports
-  `com.github.miachm.sods` as an OSGi bundle. Its `bnd.bnd` calls out the rationale verbatim:
-  *"This is a fork of https://github.com/miachm/SODS. We provide this, until
-  https://github.com/miachm/SODS/pull/63 or something similar is available on maven central."*
-  Adopting that bundle here would mean pinning to 1.6.2 (losing every upstream change since —
-  notably the charts work that pushed the version to 1.8.3), so the trade-off is real and should
-  be a deliberate call rather than a default.
+- ~~ODS hyperlinks (FK → target sheet)~~ — **Resolved 2026-06-04.** A consumer asked for clickable
+  FKs (Person.address_id → Address sheet), so we adopted a vendored fork carrying the
+  [PR #63](https://github.com/miachm/SODS/pull/63) `LinkedValue` patch — rebased onto **1.10.0**
+  (not the old gecko-pinned 1.6.2, so no upstream changes are lost) and dropped into
+  `cnf/local/com.github.miachm.sods/com.github.miachm.sods-1.10.0.jar`. `OdsRenderer` now emits the
+  links; see the phase-2 deliverables section above for the details and the value-type caveat. The
+  fork source lives at `/opt/git/my-SODS` (branch `linked-values`); note its reader does not parse
+  links back, only the writer emits them.
 
 **Phase 4 deliverables actually shipped:**
 

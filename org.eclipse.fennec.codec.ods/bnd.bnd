@@ -14,7 +14,7 @@ Bundle-Description: ODS format provider for the Fennec EMF Codec
 	tools.jackson.core.jackson-core;version=latest,\
 	tools.jackson.core.jackson-databind;version=latest,\
 	com.fasterxml.jackson.core.jackson-annotations;version=latest,\
-	com.github.miachm.sods
+	com.github.miachm.sods;version=latest
 	
 -testpath: \
 	org.eclipse.fennec.codec.tests;version=snapshot
