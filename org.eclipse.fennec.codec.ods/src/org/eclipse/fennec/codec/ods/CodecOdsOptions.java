@@ -40,4 +40,18 @@ public interface CodecOdsOptions {
      * Value: {@code Boolean} or its {@code String} form. Default: {@code true}.
      */
     String OPTION_ADJUST_COLUMN_WIDTH = "codec.ods.adjustColumnWidth";
+
+    /**
+     * Whether foreign-key cells (emitted in {@code SQL_TABLES} reference mode)
+     * become clickable hyperlinks pointing at the first row of their target
+     * sheet ({@code #<target-sheet>.A1}).
+     * <p>
+     * Mirrors {@code CodecXlsxOptions.OPTION_GENERATE_LINKS}. Note that the
+     * {@code sods} writer represents a linked cell as a string carrying the FK
+     * id as the link's display text — so when links are enabled the FK column is
+     * a clickable string rather than a numeric value.
+     * <p>
+     * Value: {@code Boolean} or its {@code String} form. Default: {@code true}.
+     */
+    String OPTION_GENERATE_LINKS = "codec.ods.generateLinks";
 }

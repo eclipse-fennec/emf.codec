@@ -20,9 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAttribute;
@@ -136,6 +139,19 @@ class OdsRendererTest {
         return new SpreadSheet(new ByteArrayInputStream(bytes));
     }
 
+    /** Extracts the {@code content.xml} entry from an ODS (zip) byte array. */
+    private static String contentXml(byte[] odsBytes) throws IOException {
+        try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(odsBytes))) {
+            ZipEntry entry;
+            while ((entry = zip.getNextEntry()) != null) {
+                if ("content.xml".equals(entry.getName())) {
+                    return new String(zip.readAllBytes(), StandardCharsets.UTF_8);
+                }
+            }
+        }
+        throw new AssertionError("content.xml not found in ODS output");
+    }
+
     private static Sheet sheetByName(SpreadSheet doc, String name) {
         for (Sheet s : doc.getSheets()) {
             if (name.equals(s.getName())) {
@@ -220,8 +236,13 @@ class OdsRendererTest {
         EObject product = createProduct("p-001", "Widget");
         EObject warehouse = createWarehouse("Acme Warehouse", product, List.of());
 
-        byte[] bytes = save(List.of(warehouse), Map.of(
-                CodecTabularOptions.OPTION_REFERENCE_MODE, ReferenceMode.SQL_TABLES));
+        // Links off so the FK stays a numeric value this test can assert on; the
+        // linking behaviour has dedicated tests below.
+        Map<String, Object> options = new HashMap<>();
+        options.put(CodecTabularOptions.OPTION_REFERENCE_MODE, ReferenceMode.SQL_TABLES);
+        options.put(CodecOdsOptions.OPTION_GENERATE_LINKS, false);
+
+        byte[] bytes = save(List.of(warehouse), options);
         SpreadSheet doc = load(bytes);
 
         Sheet warehouseSheet = sheetByName(doc, "Warehouse");
@@ -262,8 +283,12 @@ class OdsRendererTest {
         EObject p2 = createProduct("p-002", "B");
         EObject warehouse = createWarehouse("Acme", null, List.of(p1, p2));
 
-        byte[] bytes = save(List.of(warehouse), Map.of(
-                CodecTabularOptions.OPTION_REFERENCE_MODE, ReferenceMode.SQL_TABLES));
+        // Links off so the FK column stays numeric for this structural assertion.
+        Map<String, Object> options = new HashMap<>();
+        options.put(CodecTabularOptions.OPTION_REFERENCE_MODE, ReferenceMode.SQL_TABLES);
+        options.put(CodecOdsOptions.OPTION_GENERATE_LINKS, false);
+
+        byte[] bytes = save(List.of(warehouse), options);
         SpreadSheet doc = load(bytes);
 
         Sheet productSheet = sheetByName(doc, "Product");
@@ -277,6 +302,71 @@ class OdsRendererTest {
                         + headersOf(productSheet));
         assertEquals(1L, asLong(productSheet.getRange(1, childFkIdx).getValue()));
         assertEquals(1L, asLong(productSheet.getRange(2, childFkIdx).getValue()));
+    }
+
+    // ========================================================================
+    // SQL_TABLES — cross-table hyperlinks (FkCell → target sheet)
+    // ========================================================================
+
+    @Test
+    @DisplayName("SQL_TABLES: FK cells link to the target sheet by default")
+    void sqlTablesGeneratesLinksByDefault() throws IOException {
+        EObject product = createProduct("p-001", "Widget");
+        EObject warehouse = createWarehouse("Acme Warehouse", product, List.of());
+
+        // No generateLinks option -> default true.
+        byte[] bytes = save(List.of(warehouse), Map.of(
+                CodecTabularOptions.OPTION_REFERENCE_MODE, ReferenceMode.SQL_TABLES));
+
+        // Links are written but the sods reader does not parse them back, so we
+        // assert on the raw content.xml rather than a reloaded SpreadSheet.
+        String content = contentXml(bytes);
+        assertTrue(content.contains("#Product.A1"),
+                () -> "expected a hyperlink to '#Product.A1' in content.xml");
+        assertTrue(content.contains("text:a") || content.contains(":a "),
+                "expected a text:a hyperlink element in content.xml");
+    }
+
+    @Test
+    @DisplayName("SQL_TABLES: generateLinks=false keeps FK numeric and emits no links")
+    void generateLinksFalseSuppressesLinks() throws IOException {
+        EObject product = createProduct("p-001", "Widget");
+        EObject warehouse = createWarehouse("Acme Warehouse", product, List.of());
+
+        Map<String, Object> options = new HashMap<>();
+        options.put(CodecTabularOptions.OPTION_REFERENCE_MODE, ReferenceMode.SQL_TABLES);
+        options.put(CodecOdsOptions.OPTION_GENERATE_LINKS, false);
+
+        byte[] bytes = save(List.of(warehouse), options);
+
+        String content = contentXml(bytes);
+        assertFalse(content.contains("#Product.A1"),
+                "no sheet hyperlink expected when generateLinks=false");
+
+        // FK round-trips as a numeric value when not linked.
+        SpreadSheet doc = load(bytes);
+        Sheet warehouseSheet = sheetByName(doc, "Warehouse");
+        assertNotNull(warehouseSheet, () -> "Warehouse sheet missing; have " + sheetNames(doc));
+        int wFkIdx = columnIndex(warehouseSheet, "featured_id");
+        assertTrue(wFkIdx >= 0, "featured_id missing on Warehouse");
+        assertEquals(1L, asLong(warehouseSheet.getRange(1, wFkIdx).getValue()));
+    }
+
+    @Test
+    @DisplayName("schema prefix is honoured in the link target sheet name")
+    void linkTargetUsesSchemaPrefixedSheetName() throws IOException {
+        EObject product = createProduct("p-001", "Widget");
+        EObject warehouse = createWarehouse("Acme", product, List.of());
+
+        Map<String, Object> options = new HashMap<>();
+        options.put(CodecTabularOptions.OPTION_REFERENCE_MODE, ReferenceMode.SQL_TABLES);
+        options.put(CodecTabularOptions.OPTION_SCHEMAS, Map.of(testPackage, "hr"));
+
+        byte[] bytes = save(List.of(warehouse), options);
+
+        String content = contentXml(bytes);
+        assertTrue(content.contains("#hr.Product.A1"),
+                () -> "expected link target '#hr.Product.A1' in content.xml");
     }
 
     @Test

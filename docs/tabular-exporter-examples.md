@@ -166,7 +166,9 @@ resource.save(out, Map.of(
 ## ODS
 
 OpenDocument Spreadsheet. One `Sheet` per `Table`/`JoinTable`. Cells carry
-native types (numbers, dates, booleans), not strings.
+native types (numbers, dates, booleans), not strings. In `SQL_TABLES` mode,
+`featured_id` cells on the `Warehouse` sheet are clickable hyperlinks to the
+`Product` sheet (`#Product.A1`) by default.
 
 ```java
 Resource resource = resourceSet.createResource(URI.createFileURI("warehouse.ods"));
@@ -180,10 +182,19 @@ resource.save(out, Map.of(
 ```java
 resource.save(out, Map.of(
     CodecOdsOptions.OPTION_STYLE_HEADER,         Boolean.TRUE,   // default
-    CodecOdsOptions.OPTION_ADJUST_COLUMN_WIDTH,  Boolean.TRUE)); // default
+    CodecOdsOptions.OPTION_ADJUST_COLUMN_WIDTH,  Boolean.TRUE,   // default
+    CodecOdsOptions.OPTION_GENERATE_LINKS,       Boolean.TRUE)); // default
 ```
 
-Schema option produces a sheet-name prefix (`hr.Warehouse`):
+FK hyperlinks need the [forked sods](https://github.com/miachm/SODS/pull/63)
+that carries `LinkedValue` / `Range.addLinkedValue` (the `com.github.miachm.sods`
+bundle in `cnf/local`). Note the sods writer represents a linked cell as a
+*string* carrying the FK id as the link text — so with links on, the FK column is
+a clickable string rather than a numeric value. Disable with
+`OPTION_GENERATE_LINKS = Boolean.FALSE` to keep numeric FKs.
+
+Schema option produces a sheet-name prefix (`hr.Warehouse`); link targets follow
+the prefixed name (`#hr.Product.A1`):
 
 ```java
 resource.save(out, Map.of(
@@ -195,8 +206,9 @@ resource.save(out, Map.of(
 
 ## XLSX
 
-Microsoft Excel via Apache POI. Same shape as ODS plus clickable FK hyperlinks
-(on by default), frozen header row, auto-sized columns.
+Microsoft Excel via Apache POI. Same shape as ODS, with clickable FK hyperlinks
+(on by default), frozen header row, auto-sized columns. Unlike ODS, POI keeps the
+FK cell *numeric* and attaches the hyperlink alongside.
 
 ```java
 Resource resource = resourceSet.createResource(URI.createFileURI("warehouse.xlsx"));

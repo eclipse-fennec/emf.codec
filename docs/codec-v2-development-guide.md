@@ -36,7 +36,31 @@ original to surface gaps in the reverse (`EPackage → JSON Schema`) path.
   of truth.
 - Full `:org.eclipse.fennec.codec.jsonschema.tests:testOSGi` green (50 tests).
 
-**Session Summary (2026-06-02 latest):**
+**Session Summary (2026-06-04 latest):**
+
+**ODS: clickable FK hyperlinks (FK → target sheet), parity with XLSX:**
+
+Closes the long-deferred "ODS hyperlinks" item. In `SQL_TABLES` mode, an `FkCell` now becomes a
+clickable link to the first row of its target sheet (`#<target-sheet>.A1`), so e.g. clicking
+`address_id` on a `Person` sheet jumps to the `Address` sheet — matching what XLSX already did.
+
+- Depends on the vendored sods fork carrying [PR #63](https://github.com/miachm/SODS/pull/63)
+  (`LinkedValue` + `Range.addLinkedValue`), rebased onto **1.10.0** and dropped into
+  `cnf/local/com.github.miachm.sods/`. Fork source: `/opt/git/my-SODS` (branch `linked-values`).
+- `CodecOdsOptions.OPTION_GENERATE_LINKS` (`"codec.ods.generateLinks"`), **default `true`** — mirrors
+  `CodecXlsxOptions.OPTION_GENERATE_LINKS`, and added to `OdsOverridableCodecOptions`'s REST
+  client-override whitelist (parity with XLSX).
+- `OdsRenderer` reworked into a **two-pass** design (create every `Sheet` first, then fill) so an FK
+  can resolve a link to a target table visited later — same approach as `XlsxRenderer`. Link target
+  resolved via `FkCell.getTargetEClass()` → `Map<EClass, Sheet>`.
+- **Value-type caveat:** the sods writer drops a cell's value once a link is attached, so a linked FK
+  carries its id as the link's *display text* and is a **string** cell (XLSX keeps it numeric +
+  hyperlink). With `generateLinks=false` the FK stays numeric (prior behavior).
+- **Tests:** `OdsRendererTest` — FK-link tests assert on the raw `content.xml` because the sods
+  *reader* does not parse links back (only the writer emits them); the two pre-existing structural
+  SQL_TABLES tests now pass `generateLinks=false` to keep asserting numeric FKs.
+
+**Session Summary (2026-06-02):**
 
 **REST: client-overridable codec options (whitelisted, via `Codec-Options` header):**
 
