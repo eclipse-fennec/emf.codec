@@ -1,0 +1,17 @@
+{
+  ":configurator:resource-version": 1,
+
+  "org.apache.felix.http~testHttp": {
+    "org.osgi.service.http.port": "8085",
+    "org.osgi.service.http.host": "localhost",
+    "org.apache.felix.http.context_path": "/",
+    "org.apache.felix.http.name": "Codec Playground",
+    "org.apache.felix.http.runtime.init.id": "testHttp"
+  },
+  "JakartarsServletWhiteboardRuntimeComponent~testRest": {
+    "jersey.jakartars.whiteboard.name": "Codec Playground",
+    "jersey.context.path": "rest",
+    "name": "codec-playground",
+    "osgi.http.whiteboard.target": "(id=testHttp)"
+  }
+}
