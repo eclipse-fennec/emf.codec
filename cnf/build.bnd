@@ -58,6 +58,15 @@ javac.target: 17
  	aQute.bnd.repository.p2.provider.P2Repository; \
  	url = https://download.eclipse.org/modeling/emf/compare/updates/releases/latest/; \
  	name = EMFCompare
+ 	
+-plugin.5.JitPack: \
+    aQute.bnd.repository.maven.provider.MavenBndRepository; \
+        snapshotUrl="https://jitpack.io/"; \
+        releaseUrl=https://jitpack.io; \
+        index=${.}/ext/jitpack.mvn; \
+        readOnly=true; \
+        poll.time=-1; \
+        name="JitPack"
 
 -fixupmessages: \
 	"No translation";is:=ignore,\
