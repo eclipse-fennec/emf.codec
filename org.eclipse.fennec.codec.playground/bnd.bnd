@@ -1,0 +1,15 @@
+-library: enableEMF
+-buildpath: \
+	org.apache.felix.gogo.runtime,\
+	org.eclipse.fennec.codec,\
+	org.eclipse.fennec.model.metadata,\
+	org.gecko.emf.osgi.example.model.basic,\
+	org.eclipse.fennec.codec.tabular,\
+	org.eclipse.fennec.codec.tabular.model,\
+	org.osgi.service.jakartars,\
+	jakarta.ws.rs-api;version=latest
+	
+-includeresource: OSGI-INF/configurator/=config/
+Require-Capability: \
+	osgi.extender;filter:='(osgi.extender=osgi.configurator)',\
+	osgi.implementation;filter:='(&(osgi.implementation=osgi.cm)(version>=1.6.0)(!(version>=2.0.0)))'
