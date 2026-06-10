@@ -6,13 +6,4 @@
 		readOnly            = true;\
 		name="Eclipse Fennec Codec - ${Bundle-Version}"
 		
--plugin.JitPack: \
-    aQute.bnd.repository.maven.provider.MavenBndRepository; \
-        snapshotUrl="https://jitpack.io/"; \
-        releaseUrl=https://jitpack.io; \
-        index=\${.}jitpack.mvn; \
-        readOnly=true; \
-        poll.time=-1; \
-        name="JitPack"
-		
 -require-bnd: "(version>=7.2.0)"
