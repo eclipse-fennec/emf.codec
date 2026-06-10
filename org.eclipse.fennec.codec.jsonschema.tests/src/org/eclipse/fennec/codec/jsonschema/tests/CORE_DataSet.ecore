@@ -1,0 +1,629 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="CORE_DataSet" nsURI="https://civitasconnect.digital/core-dataset/v1"
+    nsPrefix="coreDataSet">
+  <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+    <details key="schema" value="https://json-schema.org/draft/2020-12/schema"/>
+    <details key="originalTitle" value="CORE DataSet"/>
+  </eAnnotations>
+  <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+    <details key="documentation" value="A CORE DataSet: data structures (JSON Schema), declarative mappings, pipelines, data sources and data sinks."/>
+  </eAnnotations>
+  <eClassifiers xsi:type="ecore:EClass" name="DataSource">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="A data source that feeds structured data into a pipeline."/>
+    </eAnnotations>
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="description" value="&quot;A data source that feeds structured data into a pipeline.&quot;"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="connectionType" lowerBound="1"
+        eType="#//DataSourceConnectionType">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="description" value="&quot;Protocol: mqtt (MQTT broker), database (JDBC lookup source), http (HTTP endpoint)&quot;"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Protocol: mqtt (MQTT broker), database (JDBC lookup source), http (HTTP endpoint)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataStructure" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="brokerUrl" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="topic" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="clientId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="qos" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="minimum" value="0"/>
+        <details key="maximum" value="2"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="jdbcUrl" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="description" value="&quot;JDBC connection URL (database sources).&quot;"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JDBC connection URL (database sources)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lookupTable" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="description" value="&quot;Table to query for enrichment lookups.&quot;"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Table to query for enrichment lookups."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lookupKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="description" value="&quot;Column used as lookup key (matched against the runtime lookup value).&quot;"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Column used as lookup key (matched against the runtime lookup value)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataSink">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="A data sink that receives structured data from a pipeline."/>
+    </eAnnotations>
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="description" value="&quot;A data sink that receives structured data from a pipeline.&quot;"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="connectionType" lowerBound="1"
+        eType="#//DataSinkConnectionType">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="description" value="&quot;Protocol: sql (JDBC/PostgreSQL), http (HTTP endpoint e.g. FROST-Server)&quot;"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Protocol: sql (JDBC/PostgreSQL), http (HTTP endpoint e.g. FROST-Server)"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataStructure" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="jdbcUrl" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="tableName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dbSchema" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="username" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="password" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="url" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="description" value="&quot;HTTP endpoint URL (http sinks).&quot;"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="HTTP endpoint URL (http sinks)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="method" eType="#//DataSinkMethod">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="default" value="&quot;POST&quot;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="contentType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="default" value="&quot;application/json&quot;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Mapping">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="A named declarative mapping between two dataStructures."/>
+    </eAnnotations>
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="description" value="&quot;A named declarative mapping between two dataStructures.&quot;"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="source" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="target" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fields" upperBound="-1"
+        eType="#//FieldsMapEntry" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CopyFieldOperation" eSuperTypes="#//MappingOperation">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="additionalProperties" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="op" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="const" value="copy"/>
+        <details key="constType" value="STRING"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sourcePath" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ConcatFieldOperation" eSuperTypes="#//MappingOperation">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="additionalProperties" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="op" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="const" value="concat"/>
+        <details key="constType" value="STRING"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sourcePaths" lowerBound="1"
+        upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="items" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="separator" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MappingOperation" abstract="true">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="oneOfRefUnion" value="true"/>
+    </eAnnotations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MappingFieldBase" abstract="true">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="originalName" value="MappingField"/>
+      <details key="commonBase" value="true"/>
+    </eAnnotations>
+    <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+      <details key="name" value="MappingField"/>
+    </eAnnotations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Pipeline">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="debug" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="nodes" upperBound="-1"
+        eType="#//PipelineNode">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/PipelineNode"/>
+        <details key="noTypeInfo" value="true"/>
+        <details key="items" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="edges" upperBound="-1"
+        eType="#//PipelineEdge">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/PipelineEdge"/>
+        <details key="noTypeInfo" value="true"/>
+        <details key="items" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Position">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="x" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="y" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PipelineNode" abstract="true">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Discriminated union of pipeline node types."/>
+    </eAnnotations>
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="oneOfRefUnion" value="true"/>
+    </eAnnotations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="StartNode" eSuperTypes="#//PipelineNode">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="additionalProperties" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="const" value="start"/>
+        <details key="constType" value="STRING"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="x-ui-position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Canvas position in the Pipeline Editor (x-ui-* = UI annotation, separate from domain model)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EndNode" eSuperTypes="#//PipelineNode">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="additionalProperties" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="const" value="end"/>
+        <details key="constType" value="STRING"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="x-ui-position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Canvas position in the Pipeline Editor (x-ui-* = UI annotation, separate from domain model)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SourceNode" eSuperTypes="#//PipelineNode">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="additionalProperties" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="const" value="source"/>
+        <details key="constType" value="STRING"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sourceRef" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="x-ui-position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Canvas position in the Pipeline Editor (x-ui-* = UI annotation, separate from domain model)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MappingNode" eSuperTypes="#//PipelineNode">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="additionalProperties" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="const" value="mapping"/>
+        <details key="constType" value="STRING"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mappingRef" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="x-ui-position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Canvas position in the Pipeline Editor (x-ui-* = UI annotation, separate from domain model)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SinkNode" eSuperTypes="#//PipelineNode">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="additionalProperties" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="const" value="sink"/>
+        <details key="constType" value="STRING"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="sinkRef" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="x-ui-position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Canvas position in the Pipeline Editor (x-ui-* = UI annotation, separate from domain model)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PipelineEdge">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="source" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="target" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" eType="#//PipelineEdgeKind">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="default" value="&quot;data&quot;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="FilterNode" eSuperTypes="#//PipelineNode">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Routes flow files based on a JSONPath expression. Records matching the expression continue downstream; non-matching records are dropped."/>
+    </eAnnotations>
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="additionalProperties" value="false"/>
+      <details key="description" value="&quot;Routes flow files based on a JSONPath expression. Records matching the expression continue downstream; non-matching records are dropped.&quot;"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="const" value="filter"/>
+        <details key="constType" value="STRING"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="expression" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="description" value="&quot;JSONPath boolean expression, e.g. \&quot;$.no2.quality != 'bad'\&quot;. Records not matching are discarded.&quot;"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSONPath boolean expression, e.g. &quot;$.no2.quality != 'bad'&quot;. Records not matching are discarded."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="x-ui-position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EnrichNode" eSuperTypes="#//PipelineNode">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Enriches flow records by joining with a lookup DataSource (e.g. a database table). The lookup key is extracted from the incoming record."/>
+    </eAnnotations>
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="additionalProperties" value="false"/>
+      <details key="description" value="&quot;Enriches flow records by joining with a lookup DataSource (e.g. a database table). The lookup key is extracted from the incoming record.&quot;"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="const" value="enrich"/>
+        <details key="constType" value="STRING"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lookupSourceRef" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="description" value="&quot;CORE URN of the DataSource to look up (must have connectionType: database).&quot;"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="CORE URN of the DataSource to look up (must have connectionType: database)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lookupKey" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="description" value="&quot;JSONPath to the field in the incoming record used as the lookup key, e.g. \&quot;$.stationId\&quot;.&quot;"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSONPath to the field in the incoming record used as the lookup key, e.g. &quot;$.stationId&quot;."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="x-ui-position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SplitNode" eSuperTypes="#//PipelineNode">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Splits one incoming flow record into N outgoing records. The JOLT mapping connected upstream must produce a JSON array; SplitNode creates one flow file per array element."/>
+    </eAnnotations>
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="additionalProperties" value="false"/>
+      <details key="description" value="&quot;Splits one incoming flow record into N outgoing records. The JOLT mapping connected upstream must produce a JSON array; SplitNode creates one flow file per array element.&quot;"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="const" value="split"/>
+        <details key="constType" value="STRING"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="x-ui-position" eType="#//Position">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Position"/>
+        <details key="noTypeInfo" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CORE_DataSet">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="A CORE DataSet: data structures (JSON Schema), declarative mappings, pipelines, data sources and data sinks."/>
+    </eAnnotations>
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="rootClass" value="true"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="$schema" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="title" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="version" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataStructureRefs" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="items" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="URNs of DataStructures stored in the Apicurio registry."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mappingRefs" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="items" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="URNs of Mappings stored in the Apicurio registry."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pipelineRefs" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="items" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="URNs of Pipelines stored in the Apicurio registry."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataSourceRefs" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="items" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="URNs of DataSources stored in the Apicurio registry."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dataSinkRefs" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="items" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="URNs of DataSinks stored in the Apicurio registry."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dataStructures" upperBound="-1"
+        eType="#//DataStructuresMapEntry" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Named JSON Schema definitions. Present in resolved API responses; in storage replaced by dataStructureRefs when Apicurio is active."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="mappings" upperBound="-1"
+        eType="#//Mapping">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Mapping"/>
+        <details key="noTypeInfo" value="true"/>
+        <details key="items" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Declarative field mappings between dataStructures."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pipelines" upperBound="-1"
+        eType="#//Pipeline">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/Pipeline"/>
+        <details key="noTypeInfo" value="true"/>
+        <details key="items" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Integration pipelines as directed acyclic graphs."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dataSources" upperBound="-1"
+        eType="#//DataSource">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/DataSource"/>
+        <details key="noTypeInfo" value="true"/>
+        <details key="items" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Named data sources."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dataSinks" upperBound="-1"
+        eType="#//DataSink">
+      <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+        <details key="ref" value="#/$defs/DataSink"/>
+        <details key="noTypeInfo" value="true"/>
+        <details key="items" value="true"/>
+      </eAnnotations>
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Named data sinks."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DataSinkMethod">
+    <eLiterals name="POST" literal="POST"/>
+    <eLiterals name="PUT" value="1" literal="PUT"/>
+    <eLiterals name="PATCH" value="2" literal="PATCH"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MappingFieldVariant1" eSuperTypes="#//MappingFieldBase">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="originalName" value="MappingField"/>
+      <details key="variant" value="Variant1"/>
+    </eAnnotations>
+    <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+      <details key="name" value="MappingField"/>
+    </eAnnotations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MappingFieldVariant0" eSuperTypes="#//MappingFieldBase">
+    <eAnnotations source="http://fennec.eclipse.org/jsonschema">
+      <details key="originalName" value="MappingField"/>
+      <details key="variant" value="Variant0"/>
+    </eAnnotations>
+    <eAnnotations source="http:///org/eclipse/emf/ecore/util/ExtendedMetaData">
+      <details key="name" value="MappingField"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PipelineEdgeKind">
+    <eLiterals name="data" literal="data"/>
+    <eLiterals name="control" value="1" literal="control"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DataSinkConnectionType">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Protocol: sql (JDBC/PostgreSQL), http (HTTP endpoint e.g. FROST-Server)"/>
+    </eAnnotations>
+    <eLiterals name="sql" literal="sql"/>
+    <eLiterals name="http" value="1" literal="http"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataStructure"/>
+  <eClassifiers xsi:type="ecore:EClass" name="FieldsMapEntry" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//MappingFieldBase"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DataStructuresMapEntry" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//DataStructure"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="DataSourceConnectionType">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Protocol: mqtt (MQTT broker), database (JDBC lookup source), http (HTTP endpoint)"/>
+    </eAnnotations>
+    <eLiterals name="mqtt" literal="mqtt"/>
+    <eLiterals name="database" value="1" literal="database"/>
+    <eLiterals name="http" value="2" literal="http"/>
+  </eClassifiers>
+</ecore:EPackage>

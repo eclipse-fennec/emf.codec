@@ -431,6 +431,66 @@ The element type is derived from:
 
 ---
 
+## Round-Trip Fidelity (schema → EPackage → schema)
+
+> **Implications for users.** Conversion is bidirectional but **not lossless**. A
+> JSON Schema imported to an `EPackage` and exported again is *semantically
+> equivalent for instance data* but **structurally different** from the source.
+> If you keep the original `.schema.json` as the source of truth, do **not**
+> expect the exported schema to be byte- or shape-identical, and do not feed the
+> exported schema back to a consumer that relies on the constructs listed below.
+
+The forward conversion (JSON Schema → EMF) deliberately *normalizes* several JSON
+Schema constructs into first-class EMF concepts. The reverse conversion (EMF →
+JSON Schema) emits the EMF view, which does not reconstruct the original
+construct. The differences are predictable and fall into four groups:
+
+| # | Source construct | After round-trip | Why |
+|---|------------------|------------------|-----|
+| 1 | Inline `enum`, anonymous `additionalProperties` object types | Promoted to **named entries in `$defs`** (`<Owner><Property>` enums, `…MapEntry` classes, anonymous map value types) | The importer materializes every anonymous type as a named EMF classifier; the exporter writes one definition per classifier. |
+| 2 | `additionalProperties: { … }` **maps** | Emitted as a **`type: array`** of map-entry objects; the property is no longer in `required` | Maps become a synthetic `…MapEntry` `EClass` + a multi-valued containment reference; the exporter renders that reference as an array. |
+| 3 | `oneOf` of `$ref`s / `string \| object` unions | The abstract union base loses its **`oneOf`** and becomes a bare `object`; variant arms are flattened | `oneOf`-of-`$ref` is imported as an abstract supertype with subtypes (inheritance), which the exporter renders as `allOf`/objects, not `oneOf`. |
+| 4 | `$ref` collections | May lose `type: array` and `required` membership when modeled as non-containment references | Non-containment multi-valued references are emitted without the array wrapper. |
+
+**What *does* round-trip reliably:** object/property structure, scalar types,
+single-valued attributes and their bounds, containment hierarchies, supertypes
+(as `allOf`), enum *literals*, and `required` for plain single-valued properties.
+
+**Cosmetic, non-semantic differences you can ignore:** the exporter always writes
+`additionalProperties: false` on closed objects, adds `x-*` vendor extensions (see
+[Vendor Extensions](#vendor-extensions-x--properties)), decorates optional scalars
+as `["<type>", "null"]`, and re-derives `$id` / `title` / `description`.
+
+These groups are pinned by an integration test (see below) so any future change
+to round-trip behavior is caught and re-reviewed.
+
+### Verifying / tracking round-trip behavior
+
+`JsonSchemaRoundTripComparisonIntegrationTest` (in
+`org.eclipse.fennec.codec.jsonschema.tests`) round-trips the bundled sample
+schemas (`core-ir.schema.json`, `mapping.schema.json`) **schema → EPackage →
+schema** through the registered `application/schema+json` resource and runs a
+*semantic* JSON-Schema diff against the original. The diff normalizes away the
+cosmetic differences above (`allOf` inheritance is flattened, the
+`additionalProperties: false` policy and `x-*`/`$id`/`description` keywords are
+ignored, `["string","null"]` is treated as `string`) so that only the four
+structural-gap groups remain.
+
+The remaining gaps are asserted against a **documented baseline** inside the test
+(`EXPECTED_CORE_IR_GAPS`, `EXPECTED_MAPPING_GAPS`), grouped by the four causes
+above. The test is green today; it fails when the reverse converter changes:
+
+- a **closed** gap means an entry should be removed from the baseline (progress),
+- a **new** gap is flagged as a potential regression to investigate.
+
+Run it with:
+
+```bash
+./gradlew :org.eclipse.fennec.codec.jsonschema.tests:testOSGi
+```
+
+---
+
 ## Diagnostics
 
 Unresolvable `$ref` links, unsupported `allOf`/`anyOf` constructs, or missing type information produce `JsonSchemaConversionDiagnostic` entries. In standalone mode these are surfaced as `Resource.getWarnings()`. In programmatic use retrieve them via `JsonSchemaToEPackageConverter.getDiagnostics()`.

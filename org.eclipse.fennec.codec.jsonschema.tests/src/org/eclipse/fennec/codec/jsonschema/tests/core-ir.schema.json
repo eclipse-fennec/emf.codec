@@ -1,0 +1,703 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://civitasconnect.digital/core-dataset/v1",
+  "title": "CORE DataSet",
+  "description": "A CORE DataSet: data structures (JSON Schema), declarative mappings, pipelines, data sources and data sinks.",
+  "type": "object",
+  "required": [
+    "id"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "dataStructureRefs": {
+      "description": "URNs of DataStructures stored in the Apicurio registry.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mappingRefs": {
+      "description": "URNs of Mappings stored in the Apicurio registry.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pipelineRefs": {
+      "description": "URNs of Pipelines stored in the Apicurio registry.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dataSourceRefs": {
+      "description": "URNs of DataSources stored in the Apicurio registry.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dataSinkRefs": {
+      "description": "URNs of DataSinks stored in the Apicurio registry.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dataStructures": {
+      "description": "Named JSON Schema definitions. Present in resolved API responses; in storage replaced by dataStructureRefs when Apicurio is active.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "mappings": {
+      "description": "Declarative field mappings between dataStructures.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Mapping"
+      }
+    },
+    "pipelines": {
+      "description": "Integration pipelines as directed acyclic graphs.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Pipeline"
+      }
+    },
+    "dataSources": {
+      "description": "Named data sources.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/DataSource"
+      }
+    },
+    "dataSinks": {
+      "description": "Named data sinks.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/DataSink"
+      }
+    }
+  },
+  "$defs": {
+    "DataSource": {
+      "description": "A data source that feeds structured data into a pipeline.",
+      "type": "object",
+      "required": [
+        "id",
+        "connectionType"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "connectionType": {
+          "type": "string",
+          "enum": [
+            "mqtt",
+            "database",
+            "http"
+          ],
+          "description": "Protocol: mqtt (MQTT broker), database (JDBC lookup source), http (HTTP endpoint)"
+        },
+        "dataStructure": {
+          "type": "string",
+          "x-core-ref": {
+            "type": "DataStructure",
+            "collection": "dataStructures",
+            "key": "$key"
+          }
+        },
+        "brokerUrl": {
+          "type": "string"
+        },
+        "topic": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "qos": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "jdbcUrl": {
+          "type": "string",
+          "description": "JDBC connection URL (database sources)."
+        },
+        "lookupTable": {
+          "type": "string",
+          "description": "Table to query for enrichment lookups."
+        },
+        "lookupKey": {
+          "type": "string",
+          "description": "Column used as lookup key (matched against the runtime lookup value)."
+        }
+      }
+    },
+    "DataSink": {
+      "description": "A data sink that receives structured data from a pipeline.",
+      "type": "object",
+      "required": [
+        "id",
+        "connectionType"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "connectionType": {
+          "type": "string",
+          "enum": [
+            "sql",
+            "http"
+          ],
+          "description": "Protocol: sql (JDBC/PostgreSQL), http (HTTP endpoint e.g. FROST-Server)"
+        },
+        "dataStructure": {
+          "type": "string",
+          "x-core-ref": {
+            "type": "DataStructure",
+            "collection": "dataStructures",
+            "key": "$key"
+          }
+        },
+        "jdbcUrl": {
+          "type": "string"
+        },
+        "tableName": {
+          "type": "string"
+        },
+        "dbSchema": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "description": "HTTP endpoint URL (http sinks)."
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "POST",
+            "PUT",
+            "PATCH"
+          ],
+          "default": "POST"
+        },
+        "contentType": {
+          "type": "string",
+          "default": "application/json"
+        }
+      }
+    },
+    "Mapping": {
+      "description": "A named declarative mapping between two dataStructures.",
+      "type": "object",
+      "required": [
+        "id",
+        "source",
+        "target",
+        "fields"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string",
+          "x-core-ref": {
+            "type": "DataStructure",
+            "collection": "dataStructures",
+            "key": "$key"
+          }
+        },
+        "target": {
+          "type": "string",
+          "x-core-ref": {
+            "type": "DataStructure",
+            "collection": "dataStructures",
+            "key": "$key"
+          }
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/MappingField"
+          }
+        }
+      }
+    },
+    "CopyFieldOperation": {
+      "type": "object",
+      "required": [
+        "op",
+        "sourcePath"
+      ],
+      "properties": {
+        "op": {
+          "type": "string",
+          "const": "copy"
+        },
+        "sourcePath": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConcatFieldOperation": {
+      "type": "object",
+      "required": [
+        "op",
+        "sourcePaths"
+      ],
+      "properties": {
+        "op": {
+          "type": "string",
+          "const": "concat"
+        },
+        "sourcePaths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "separator": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MappingOperation": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CopyFieldOperation"
+        },
+        {
+          "$ref": "#/$defs/ConcatFieldOperation"
+        }
+      ]
+    },
+    "MappingField": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/MappingOperation"
+        }
+      ]
+    },
+    "Pipeline": {
+      "type": "object",
+      "required": [
+        "id",
+        "nodes",
+        "edges"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "debug": {
+          "type": "boolean"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PipelineNode"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PipelineEdge"
+          }
+        }
+      }
+    },
+    "Position": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    },
+    "PipelineNode": {
+      "description": "Discriminated union of pipeline node types.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/StartNode"
+        },
+        {
+          "$ref": "#/$defs/EndNode"
+        },
+        {
+          "$ref": "#/$defs/SourceNode"
+        },
+        {
+          "$ref": "#/$defs/MappingNode"
+        },
+        {
+          "$ref": "#/$defs/SinkNode"
+        },
+        {
+          "$ref": "#/$defs/FilterNode"
+        },
+        {
+          "$ref": "#/$defs/EnrichNode"
+        },
+        {
+          "$ref": "#/$defs/SplitNode"
+        }
+      ]
+    },
+    "StartNode": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "const": "start"
+        },
+        "label": {
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/Position"
+        },
+        "x-ui-position": {
+          "description": "Canvas position in the Pipeline Editor (x-ui-* = UI annotation, separate from domain model).",
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EndNode": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "const": "end"
+        },
+        "label": {
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/Position"
+        },
+        "x-ui-position": {
+          "description": "Canvas position in the Pipeline Editor (x-ui-* = UI annotation, separate from domain model).",
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SourceNode": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "sourceRef"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "const": "source"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/Position"
+        },
+        "sourceRef": {
+          "type": "string",
+          "x-core-ref": {
+            "type": "DataSource",
+            "collection": "dataSources",
+            "key": "id"
+          }
+        },
+        "x-ui-position": {
+          "description": "Canvas position in the Pipeline Editor (x-ui-* = UI annotation, separate from domain model).",
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MappingNode": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "mappingRef"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "const": "mapping"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/Position"
+        },
+        "mappingRef": {
+          "type": "string",
+          "x-core-ref": {
+            "type": "Mapping",
+            "collection": "mappings",
+            "key": "id"
+          }
+        },
+        "x-ui-position": {
+          "description": "Canvas position in the Pipeline Editor (x-ui-* = UI annotation, separate from domain model).",
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SinkNode": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "sinkRef"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "const": "sink"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/Position"
+        },
+        "sinkRef": {
+          "type": "string",
+          "x-core-ref": {
+            "type": "DataSink",
+            "collection": "dataSinks",
+            "key": "id"
+          }
+        },
+        "x-ui-position": {
+          "description": "Canvas position in the Pipeline Editor (x-ui-* = UI annotation, separate from domain model).",
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PipelineEdge": {
+      "type": "object",
+      "required": [
+        "id",
+        "source",
+        "target"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "data",
+            "control"
+          ],
+          "default": "data"
+        }
+      }
+    },
+    "FilterNode": {
+      "description": "Routes flow files based on a JSONPath expression. Records matching the expression continue downstream; non-matching records are dropped.",
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "expression"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "const": "filter"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "expression": {
+          "type": "string",
+          "description": "JSONPath boolean expression, e.g. \"$.no2.quality != 'bad'\". Records not matching are discarded."
+        },
+        "x-ui-position": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EnrichNode": {
+      "description": "Enriches flow records by joining with a lookup DataSource (e.g. a database table). The lookup key is extracted from the incoming record.",
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "lookupSourceRef",
+        "lookupKey"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "const": "enrich"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "lookupSourceRef": {
+          "type": "string",
+          "description": "CORE URN of the DataSource to look up (must have connectionType: database)."
+        },
+        "lookupKey": {
+          "type": "string",
+          "description": "JSONPath to the field in the incoming record used as the lookup key, e.g. \"$.stationId\"."
+        },
+        "x-ui-position": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SplitNode": {
+      "description": "Splits one incoming flow record into N outgoing records. The JOLT mapping connected upstream must produce a JSON array; SplitNode creates one flow file per array element.",
+      "type": "object",
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "const": "split"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "x-ui-position": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

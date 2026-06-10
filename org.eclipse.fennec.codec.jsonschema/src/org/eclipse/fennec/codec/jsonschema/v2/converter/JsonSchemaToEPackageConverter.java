@@ -500,6 +500,9 @@ public class JsonSchemaToEPackageConverter {
 			String originalTitle = rootNode.get("title").asString();
 			addEAnnotation(ePackage, AnnotationSources.JSONSCHEMA, "originalTitle", originalTitle);
 			ePackage.setName(sanitizeName(originalTitle));
+			if (ePackage.getNsPrefix() == null || ePackage.getNsPrefix().isEmpty()) {
+				ePackage.setNsPrefix(deriveNsPrefix(originalTitle));
+			}
 		}
 
 		// description → documentation
@@ -691,6 +694,12 @@ public class JsonSchemaToEPackageConverter {
 
 		// Handle oneOf - discriminated union or variants
 		if (schemaNode.has("oneOf")) {
+			// A oneOf whose options are all $refs to independently-defined classes
+			// models an abstract supertype: the named definition becomes an abstract
+			// EClass and each referenced class becomes a concrete subtype.
+			if (isAllRefOneOf(schemaNode.get("oneOf"))) {
+				return createAbstractRefUnion(schemaNode, name, qualifiedName);
+			}
 			return processOneOf(schemaNode, name, qualifiedName);
 		}
 
@@ -739,6 +748,50 @@ public class JsonSchemaToEPackageConverter {
 		} else {
 			return createContextSpecificVariants(schemaNode, oneOfArray, name, qualifiedName);
 		}
+	}
+
+	/**
+	 * Returns {@code true} when every entry of the given oneOf array is a bare
+	 * {@code $ref} (no inline schema). Such a oneOf models an abstract supertype
+	 * over independently-defined classes.
+	 */
+	private boolean isAllRefOneOf(JsonNode oneOfArray) {
+		if (oneOfArray == null || !oneOfArray.isArray() || oneOfArray.isEmpty()) {
+			return false;
+		}
+		for (JsonNode entry : oneOfArray) {
+			if (!entry.has("$ref")) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Creates an abstract EClass for a {@code oneOf} of {@code $ref}s and records
+	 * the referenced classes as deferred subtypes (resolved in
+	 * {@link #resolveAnyOfReferences()} once all definitions exist).
+	 */
+	private EClass createAbstractRefUnion(JsonNode schemaNode, String name, String qualifiedName) {
+		EClass abstractBase = ecoreFactory.createEClass();
+		abstractBase.setName(capitalizeFirst(name));
+		abstractBase.setAbstract(true);
+
+		if (schemaNode.has("description")) {
+			addEAnnotation(abstractBase, AnnotationSources.GEN_MODEL,
+					"documentation", schemaNode.get("description").asString());
+		}
+		addEAnnotation(abstractBase, AnnotationSources.JSONSCHEMA, "oneOfRefUnion", "true");
+
+		classifierMap.put(qualifiedName, abstractBase);
+
+		List<String> subTypeNames = new ArrayList<>();
+		for (JsonNode entry : schemaNode.get("oneOf")) {
+			subTypeNames.add(extractSchemaNameFromRef(entry.get("$ref").asString()));
+		}
+		anyOfRefMap.put(abstractBase, subTypeNames);
+
+		return abstractBase;
 	}
 
 	/**
@@ -1194,7 +1247,10 @@ public class JsonSchemaToEPackageConverter {
 			for (String property : propertiesNode.propertyNames()) {
 				EStructuralFeature feature = createStructuralFeature(propertiesNode.get(property), property, qualifiedName);
 				if (feature != null) {
-					if (requiredNode != null && arrayContains(requiredNode, feature.getName())) {
+					// 'required' only raises the lower bound of single-valued features; for
+					// multi-valued features the lower bound is governed by minItems.
+					if (requiredNode != null && arrayContains(requiredNode, feature.getName())
+							&& feature.getUpperBound() == 1) {
 						feature.setLowerBound(1);
 					}
 					eClass.getEStructuralFeatures().add(feature);
@@ -1491,6 +1547,16 @@ public class JsonSchemaToEPackageConverter {
 			feature = createOneOfFeature(propertyNode, name, contextPath);
 		}
 
+		// Fallback: a property with no type/$ref/enum/const/anyOf/oneOf accepts any
+		// JSON value → model it as an EJavaObject attribute rather than dropping it.
+		if (feature == null) {
+			EAttribute attribute = ecoreFactory.createEAttribute();
+			attribute.setName(name);
+			attribute.setEType(EcorePackage.Literals.EJAVA_OBJECT);
+			preserveAdditionalSchemaProperties(propertyNode, attribute);
+			feature = attribute;
+		}
+
 		// Handle x-containment extension
 		if (feature instanceof EReference ref && propertyNode.has("x-containment")) {
 			ref.setContainment(propertyNode.get("x-containment").asBoolean());
@@ -1730,9 +1796,11 @@ public class JsonSchemaToEPackageConverter {
 
 	private EStructuralFeature createStringFeature(JsonNode propertyNode, String name, String contextPath) {
 		if (propertyNode.has("enum")) {
-			EEnum eEnum = createEEnum(propertyNode, ARTIFICIAL_CLASSIFIER_PREFIX + (artificialClassifierCounter++), contextPath);
-			addEAnnotation(eEnum, AnnotationSources.JSONSCHEMA, "artificial", "true");
-			classifierMap.put(contextPath + "/" + eEnum.getName(), eEnum);
+			// Name the enum after its owning class and property (e.g. DataSource.connectionType
+			// → DataSourceConnectionType) rather than an artificial placeholder.
+			String enumName = deriveEnumName(contextPath, name);
+			EEnum eEnum = createEEnum(propertyNode, enumName, contextPath);
+			classifierMap.put(eEnum.getName(), eEnum);
 
 			var feature = ecoreFactory.createEAttribute();
 			feature.setName(name);
@@ -1749,6 +1817,13 @@ public class JsonSchemaToEPackageConverter {
 	}
 
 	private EStructuralFeature createObjectFeature(JsonNode propertyNode, String name, String contextPath) {
+		// An object with (object) additionalProperties and no fixed properties models
+		// a string-keyed map → an EMF MapEntry class plus a multi-valued containment ref.
+		JsonNode additionalProps = propertyNode.get("additionalProperties");
+		if (!propertyNode.has("properties") && additionalProps != null && additionalProps.isObject()) {
+			return createMapEntryFeature(propertyNode, name, contextPath, additionalProps);
+		}
+
 		String artificialName = ARTIFICIAL_CLASSIFIER_PREFIX + (artificialClassifierCounter++);
 		EClass eClass = createEClass(propertyNode, artificialName, contextPath + "/" + artificialName);
 		addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "artificial", "true");
@@ -1765,6 +1840,60 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		return reference;
+	}
+
+	/**
+	 * Creates a string-keyed EMF map entry for a JSON Schema {@code object} with
+	 * {@code additionalProperties}.
+	 * <p>
+	 * Produces a {@code <Property>MapEntry} EClass (with
+	 * {@code instanceClassName = java.util.Map$Entry}, a {@code key:EString} and a
+	 * containment {@code value} reference) and returns a multi-valued containment
+	 * reference to it for the owning class. The value type is the referenced class
+	 * when {@code additionalProperties} is a {@code $ref}, otherwise a freshly
+	 * created (de-pluralized) value class.
+	 */
+	private EStructuralFeature createMapEntryFeature(JsonNode propertyNode, String name,
+													 String contextPath, JsonNode additionalProps) {
+		String entryName = capitalizeFirst(name) + "MapEntry";
+
+		EClass entryClass = ecoreFactory.createEClass();
+		entryClass.setName(entryName);
+		entryClass.setInstanceClassName("java.util.Map$Entry");
+
+		EAttribute keyAttr = ecoreFactory.createEAttribute();
+		keyAttr.setName("key");
+		keyAttr.setEType(EcorePackage.Literals.ESTRING);
+		entryClass.getEStructuralFeatures().add(keyAttr);
+
+		EReference valueRef = ecoreFactory.createEReference();
+		valueRef.setName("value");
+		valueRef.setContainment(true);
+		entryClass.getEStructuralFeatures().add(valueRef);
+
+		if (additionalProps.has("$ref")) {
+			String refName = extractSchemaNameFromRef(additionalProps.get("$ref").asString());
+			if (classifierMap.containsKey(refName)) {
+				valueRef.setEType(classifierMap.get(refName));
+			} else {
+				deferredReferences.add(new DeferredTypeReference(valueRef, refName));
+			}
+		} else {
+			// additionalProperties is an inline (object) schema → dedicated value class
+			String valueClassName = capitalizeFirst(depluralize(name));
+			EClass valueClass = createEClass(additionalProps, valueClassName, valueClassName);
+			classifierMap.put(valueClassName, valueClass);
+			valueRef.setEType(valueClass);
+		}
+
+		classifierMap.put(contextPath + "/" + entryName, entryClass);
+
+		EReference mapRef = ecoreFactory.createEReference();
+		mapRef.setName(name);
+		mapRef.setEType(entryClass);
+		mapRef.setContainment(true);
+		mapRef.setUpperBound(-1);
+		return mapRef;
 	}
 
 	private EReference createMultiValueReference(JsonNode jsonNode, String name, String contextPath) {
@@ -1893,7 +2022,8 @@ public class JsonSchemaToEPackageConverter {
 			JsonNode propertySchema = propertiesNode.get(propName);
 			EStructuralFeature feature = createStructuralFeature(propertySchema, propName, "");
 			if (feature != null) {
-				if (requiredProps.contains(propName)) {
+				// 'required' only raises the lower bound of single-valued features.
+				if (requiredProps.contains(propName) && feature.getUpperBound() == 1) {
 					feature.setLowerBound(1);
 				}
 				rootClass.getEStructuralFeatures().add(feature);
@@ -2321,6 +2451,59 @@ public class JsonSchemaToEPackageConverter {
 
 	private String sanitizeName(String name) {
 		return name.replaceAll("[^a-zA-Z0-9_]", "_");
+	}
+
+	/**
+	 * Derives a camelCase nsPrefix from a schema title, e.g.
+	 * {@code "CORE DataSet"} → {@code "coreDataSet"}. The first token is
+	 * lower-cased, subsequent tokens have their first letter capitalized.
+	 */
+	private String deriveNsPrefix(String title) {
+		if (title == null) {
+			return "schema";
+		}
+		String[] tokens = title.split("[^a-zA-Z0-9]+");
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (String token : tokens) {
+			if (token.isEmpty()) {
+				continue;
+			}
+			if (first) {
+				sb.append(token.toLowerCase());
+				first = false;
+			} else {
+				sb.append(Character.toUpperCase(token.charAt(0))).append(token.substring(1));
+			}
+		}
+		return sb.length() == 0 ? "schema" : sb.toString();
+	}
+
+	/**
+	 * Derives an enum classifier name from its owning definition and property,
+	 * e.g. owning class {@code DataSource} + property {@code connectionType} →
+	 * {@code DataSourceConnectionType}. Falls back to the capitalized property
+	 * name when there is no owning context (e.g. root-level properties).
+	 */
+	private String deriveEnumName(String contextPath, String property) {
+		String owner = contextPath == null ? "" : contextPath;
+		int slash = owner.lastIndexOf('/');
+		if (slash >= 0) {
+			owner = owner.substring(slash + 1);
+		}
+		return capitalizeFirst(owner) + capitalizeFirst(property);
+	}
+
+	/**
+	 * Removes a trailing plural {@code "s"} from a (lower-camel) name, e.g.
+	 * {@code "dataStructures"} → {@code "dataStructure"}. Returns the name
+	 * unchanged when it does not end in {@code "s"}.
+	 */
+	private String depluralize(String name) {
+		if (name != null && name.length() > 1 && name.endsWith("s")) {
+			return name.substring(0, name.length() - 1);
+		}
+		return name;
 	}
 
 	private String capitalizeFirst(String str) {
