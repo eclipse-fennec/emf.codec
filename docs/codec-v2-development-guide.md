@@ -2,7 +2,39 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-06-02
+**Last Updated:** 2026-06-10
+
+**Session Summary (2026-06-10 latest):**
+
+**JSON Schema round-trip gap test + end-user round-trip fidelity docs:**
+
+Added `JsonSchemaRoundTripComparisonIntegrationTest` (in
+`org.eclipse.fennec.codec.jsonschema.tests`) — round-trips the bundled sample schemas
+(`core-ir.schema.json`, `mapping.schema.json`) **schema → EPackage → schema** through the
+registered `application/schema+json` resource and runs a *semantic* JSON-Schema diff against the
+original to surface gaps in the reverse (`EPackage → JSON Schema`) path.
+
+- The differ normalizes cosmetic, non-semantic differences so only real structural losses remain:
+  `allOf` inheritance is flattened (merging `$ref` parents + inline members), the
+  `additionalProperties: false` closed-object policy is ignored when the source is silent, and
+  documentation/identity keywords (`description`/`title`/`$id`/`$schema`/`$anchor`), `x-*` vendor
+  extensions, and `["string","null"]` nullability decoration are ignored.
+- Remaining gaps are asserted against a **documented baseline** (`EXPECTED_CORE_IR_GAPS`,
+  `EXPECTED_MAPPING_GAPS`), grouped by four causes: (1) synthetic classifiers (inline enums,
+  `…MapEntry`, anonymous map value types) leak into `$defs`; (2) `additionalProperties` maps
+  round-trip as `type:array` and drop from `required`; (3) `oneOf` unions are not reconstructed
+  (abstract base loses `oneOf`; `MappingField` variants flattened); (4) `$ref` collections lose
+  `type:array` + `required` membership. Green today; a **closed** gap ⇒ shrink the baseline, a
+  **new** gap ⇒ flagged as a regression.
+- These groups match the "deliberately not handled" scope of the
+  `jsonschema-to-ecore-conversion` work; closing them would require schema-side `x-` hints
+  (e.g. `x-containment`, an enum-name hint, a `MappingField`-collapse marker).
+- End-user documentation added: new **"Round-Trip Fidelity (schema → EPackage → schema)"** section
+  in `org.eclipse.fennec.codec.jsonschema/jsonschema-architecture.md` — a what-survives /
+  what-doesn't table with the implication that an exported schema is semantically equivalent for
+  instance data but structurally different, so the original `.schema.json` should remain the source
+  of truth.
+- Full `:org.eclipse.fennec.codec.jsonschema.tests:testOSGi` green (50 tests).
 
 **Session Summary (2026-06-02 latest):**
 

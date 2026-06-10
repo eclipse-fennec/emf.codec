@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id":     "https://civitasconnect.digital/core/mapping/v1",
+  "title":   "CORE Mapping",
+  "description": "A declarative field-to-field mapping between two CORE DataStructures. Each exported Mapping document carries '$schema': 'https://civitasconnect.digital/core/mapping/v1' so it is self-describing.\n\nNote: the 'x-core-ref' annotations on 'source' and 'target' express a semantic constraint (the value must be the name of a known DataStructure). This constraint can only be fully enforced when the Mapping is validated in the context of a CORE DataSet manifest (core-ir.schema.json).",
+  "type": "object",
+  "required": ["id", "source", "target", "fields"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "https://civitasconnect.digital/core/mapping/v1"
+    },
+    "id":          { "type": "string", "description": "CORE URN of this mapping." },
+    "label":       { "type": "string", "description": "Human-readable display name." },
+    "description": { "type": "string" },
+    "source": {
+      "type": "string",
+      "description": "Name of the source DataStructure (the schema being read from).",
+      "x-core-ref": { "type": "DataStructure", "collection": "dataStructures", "key": "$key" }
+    },
+    "target": {
+      "type": "string",
+      "description": "Name of the target DataStructure (the schema being written to).",
+      "x-core-ref": { "type": "DataStructure", "collection": "dataStructures", "key": "$key" }
+    },
+    "fields": {
+      "type": "object",
+      "description": "Map of target field paths to their field operations.",
+      "additionalProperties": { "$ref": "#/$defs/MappingField" }
+    }
+  },
+  "$defs": {
+    "CopyFieldOperation": {
+      "description": "Copies a value from a source field path.",
+      "type": "object",
+      "required": ["op", "sourcePath"],
+      "properties": {
+        "op":         { "type": "string", "const": "copy" },
+        "sourcePath": { "type": "string", "description": "JSONPath expression, e.g. '$.sensorId'." }
+      },
+      "additionalProperties": false
+    },
+    "ConcatFieldOperation": {
+      "description": "Concatenates multiple source field values with an optional separator.",
+      "type": "object",
+      "required": ["op", "sourcePaths"],
+      "properties": {
+        "op":          { "type": "string", "const": "concat" },
+        "sourcePaths": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "separator":   { "type": "string", "default": "" }
+      },
+      "additionalProperties": false
+    },
+    "ConstFieldOperation": {
+      "description": "Writes a constant literal value into the target field regardless of source data.",
+      "type": "object",
+      "required": ["op", "value"],
+      "properties": {
+        "op":    { "type": "string", "const": "const" },
+        "value": { "description": "The constant value. Can be a string, number, or boolean." }
+      },
+      "additionalProperties": false
+    },
+    "MappingOperation": {
+      "description": "A single field mapping rule.",
+      "oneOf": [
+        { "$ref": "#/$defs/CopyFieldOperation" },
+        { "$ref": "#/$defs/ConcatFieldOperation" },
+        { "$ref": "#/$defs/ConstFieldOperation" }
+      ]
+    },
+    "MappingField": {
+      "description": "A field mapping — either a shorthand source path string or a full operation object.",
+      "oneOf": [
+        { "type": "string", "description": "Shorthand for a copy operation: value is the source path." },
+        { "$ref": "#/$defs/MappingOperation" }
+      ]
+    }
+  }
+}
