@@ -1,2 +1,0 @@
-#Deps needed for ods exporter: We use the sha of our PR till a new minor release with our change included is in maven central 
-com.github.miachm:SODS:68689f7

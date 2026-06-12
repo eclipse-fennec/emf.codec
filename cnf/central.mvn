@@ -149,7 +149,7 @@ org.eclipse.fennec.models:org.eclipse.fennec.common.models.library:0.0.1-SNAPSHO
 de.siegmar:fastcsv:4.2.0
 
 #Deps needed for ods exporter
-#com.github.miachm.sods:SODS:1.9.0
+com.github.miachm.sods:SODS:1.10.0
 
 #Deps needed for xslx exporter
 org.apache.servicemix.bundles:org.apache.servicemix.bundles.poi:5.3.0_1
