@@ -63,4 +63,5 @@
 	org.eclipse.fennec.codec.rlang;version=snapshot,\
 	org.eclipse.fennec.codec.tabular;version=snapshot,\
 	org.eclipse.fennec.codec.tabular.model;version=snapshot,\
-	org.eclipse.fennec.codec.xlsx;version=snapshot
+	org.eclipse.fennec.codec.xlsx;version=snapshot,\
+	com.github.miachm.sods;version='[1.10.0,1.10.1)'

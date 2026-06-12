@@ -19,5 +19,4 @@ Bundle-Description: ODS format provider for the Fennec EMF Codec
 -testpath: \
 	org.eclipse.fennec.codec.tests;version=snapshot
 	
-Export-Package: com.github.miachm.sods;version="1.9.0"
 -privatepackage: org.eclipse.fennec.codec.ods
