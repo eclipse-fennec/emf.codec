@@ -4,7 +4,7 @@ This document consolidates all active plans for completing the codec migration. 
 Spec Compliance Refactoring Plan and the Deprecated API Migration Plan into a single phased roadmap.
 
 **Created:** 2026-02-02
-**Updated:** 2026-02-17
+**Updated:** 2026-06-12
 
 **Related documents:**
 - [`docs/codec-v2-development-guide.md`](codec-v2-development-guide.md) — Session continuity, current state
@@ -20,8 +20,9 @@ Spec Compliance Refactoring Plan and the Deprecated API Migration Plan into a si
 4. [Plan C: Documentation Examples](#4-plan-c-documentation-examples-deferred)
 5. [Plan E: Multi-Format Support](#5-plan-e-multi-format-support)
 6. [Plan F: TCK Test Suite](#6-plan-f-tck-test-suite)
-7. [Execution Roadmap](#7-execution-roadmap)
-8. [Critical Files Reference](#8-critical-files-reference)
+7. [Plan G: RDF Format Support (Jena)](#7-plan-g-rdf-format-support-jena)
+8. [Execution Roadmap](#8-execution-roadmap)
+9. [Critical Files Reference](#9-critical-files-reference)
 
 ---
 
@@ -62,6 +63,7 @@ The 8-step package migration from `codec.v2.*` to `codec.*` is **complete**:
 | **Plan C** | Documentation examples (deferred from spec review) | Not Started |
 | ~~**Plan E**~~ | ~~Multi-format support (BSON, CBOR, YAML)~~ | ✅ COMPLETE |
 | ~~**Plan F**~~ | ~~TCK test suite (3 phases, 18 abstract TCKs)~~ | ✅ COMPLETE |
+| **Plan G** | RDF format support (RDF/XML, Turtle, JSON-LD) via Apache Jena | Not Started |
 
 ---
 
@@ -739,7 +741,257 @@ public class BsonEMapTCKTest extends AbstractEMapTCK {
 
 ---
 
-## 7. Execution Roadmap
+## 7. Plan G: RDF Format Support (Jena)
+
+**Status:** Not Started (planned 2026-06-12)
+
+**Goal:** Support RDF serialization formats — RDF/XML, Turtle, JSON-LD (plus N-Triples nearly for free) — in the codec via Apache Jena. One implementation builds/reads an in-memory Jena `Model`; the concrete syntax is selected at the I/O boundary via Jena's `RDFDataMgr`/`Lang`.
+
+**Background:** A working PoC exists at `n:\git\civitas\civitas-core-development\PoCs\dcatemf\` (`org.eclipse.fennec.emf.jena.EMFJenaMapper` + `JenaResourceImpl`/`JenaResourceFactoryImpl`). It demonstrates a cycle-aware EObject→Jena-Model traversal with a solid Java→XSD datatype mapping and a `PlainLiteral` convention for language-tagged literals. The Spring parts of the PoC are HTTP transport glue and are not relevant here.
+
+**What carries over from the PoC:** traversal skeleton with cycle detection, XSD datatype table, namespace prefix registration from `EPackage.nsPrefix/nsURI`, `PlainLiteral` → langString convention, the Lang/content-type registration list.
+
+**What does NOT carry over:**
+- The PoC ignores all codec configuration (ID/type strategies, feature keys, serialize gates, value writers) — every decision point must be routed through `ConfigurationResolver`.
+- Predicate IRIs come from `EcoreUtil.getURI(feature)` (e.g. `http://www.w3.org/ns/dcat#//Catalog/title`) — EMF-internal, not interoperable vocabulary IRIs like `dct:title`. Needs annotation-driven predicate mapping.
+- **Known PoC bug:** `model.createResource(nsPrefix + ":" + className)` — Jena does not expand prefixes in `createResource()`, so the rdf:type IRI is the literal string `"dcat:Catalog"`. Must always use full IRIs.
+- No RDF→EObject direction exists at all.
+
+### Architecture
+
+RDF is graph-based, not a token stream. Like the CSV provider's `SQL_TABLES` mode, the RDF delegates **bypass the Jackson token pipeline** and walk the EMF graph directly, applying codec options themselves via the resolver-aware overload `CodecFormatProvider.createWriter(target, rootObjects, saveOptions, resolver)`.
+
+```
+WRITE:  EObject graph ──RdfModelBuilder──▶ Jena Model ──RDFDataMgr.write(Lang)──▶ OutputStream
+                          (resolver-aware                  (syntax chosen by ext /
+                           custom traversal)                content type / option)
+
+READ:   InputStream ──RDFDataMgr.read(Lang)──▶ Jena Model ──RdfModelReader──▶ EObject graph
+                                                              (rdf:type IRI → EClass,
+                                                               2-pass reference resolution)
+```
+
+| Component | Role |
+|-----------|------|
+| `RdfFormatProvider` | `CodecFormatProvider<InputStream, OutputStream>`; one provider, all RDF syntaxes; `supportsArrayRoot()` = true (multiple roots = multiple typed resources in one graph) |
+| `RdfWriterDelegate` | `FormatDelegate<OutputStream>`; ignores token methods, exposes the custom traversal; `flush()` writes the Model |
+| `RdfModelBuilder` | The actual traversal: EObject graph → Jena Model (port of PoC mapper, config-driven) |
+| `RdfReaderDelegate` / `RdfModelReader` | Jena Model → EObject graph |
+| `RdfResourceFactoryComponent` | OSGi DS `Resource.Factory` for extensions `ttl`, `jsonld`, `rdf`, `nt` and content types `text/turtle`, `application/ld+json`, `application/rdf+xml`, `application/n-triples` |
+
+### Key Design Decisions (to be fixed in spec chapter `21-rdf.md`)
+
+| Decision | Proposed Choice | Rationale |
+|----------|-----------------|-----------|
+| **Syntax selection** | File extension / content type, overridable by save/load option `codec.rdf.lang` | Mirrors how Jena `Lang` works; one bundle covers all syntaxes |
+| **Instance IRI generation** | Resolved ID (existing `idStrategy`/`idFeatures`) + new `rdfBaseIri` prefix; blank node if no ID resolvable | Reuses codec ID machinery; blank nodes are the natural RDF fallback |
+| **rdf:type IRI** | Default `EPackage.nsURI` + `#`/`/` + `EClass.name` (full IRI, never prefixed string); overridable per class via `rdfTypeIri` | Fixes PoC bug; allows mapping to standard vocabularies (`dcat:Catalog`) |
+| **Predicate IRI** | Default: package nsURI + feature key (resolved `key` from FeatureConfig); overridable per feature via `rdfPredicateIri` | Interop with real vocabularies (`dct:title`) requires explicit mapping |
+| **Containment** | Plain triples; contained objects without ID become blank nodes | Simple, valid RDF; named graphs deferred (see Non-Goals) |
+| **Non-containment refs** | Object property to the target's IRI; target's triples only emitted if in same Resource (otherwise IRI-only, like PLAIN format) | Matches codec PLAIN/STRUCTURED semantics in RDF terms |
+| **Language-tagged literals** | Support the `PlainLiteral` EClass convention (value+lang) detected structurally via new `rdfLangString` annotation; plus per-attribute fixed `rdfLang` | PoC convention proven with DCAT-AP; annotation makes it model-driven instead of name-based |
+| **Datatypes** | Port PoC Java→XSD table; honor existing `valueWriter`/`dateFormat` config before falling back to typed literals | Consistency with other formats |
+| **Type resolution on read** | rdf:type IRI → EClass via registered EPackages + `rdfTypeIri` reverse map; honor `fallbackStrategy` (ERROR/SKIP/FALLBACK) for unknown types | Reuses discriminator fallback semantics |
+| **Jackson** | Not used at all for RDF | RDF is a graph; Jena's Model API is the right abstraction |
+
+**Non-Goals (this plan):** named-graph/TriG support, SPARQL endpoints, OWL/RDFS schema generation from Ecore (an `EPackage → OWL ontology` converter à la jsonschema is a possible future Plan), streaming for very large graphs (Model is built in memory).
+
+### New Annotation Keys (annotation source `http://eclipse.org/fennec/codec`)
+
+| Key | Scope | Default | Meaning |
+|-----|-------|---------|---------|
+| `rdfBaseIri` | EPackage, EClass | (none) | Base IRI prefix for instance IRIs (`baseIri` + resolved ID) |
+| `rdfTypeIri` | EClass | nsURI-derived | Full IRI for rdf:type triple |
+| `rdfPredicateIri` | EAttribute, EReference | nsURI + key | Full predicate IRI for the feature |
+| `rdfLangString` | EClass | false | Marks a value+lang EClass to be emitted as a language-tagged literal |
+| `rdfLang` | EAttribute | (none) | Fixed language tag for a string attribute |
+
+Load/save options: `codec.rdf.lang` (TURTLE / JSONLD / RDFXML / NTRIPLES), `codec.rdf.baseIri`, `codec.rdf.prefixes` (Map<String,String> extra prefix registrations).
+
+### Risks / Open Questions
+
+1. **Jena OSGi readiness** — Jena 4.x/5.x jars are not OSGi bundles; `jena-osgi` is unmaintained. Likely needs bnd-wrapping/repackaging (same approach as the michaods repackaging, commit `70ba8e3`). **Resolve in Step G1 before anything else.**
+2. **Jena dependency weight** — `jena-arq` pulls a large dependency tree; check what the minimal set for parse/write is (`jena-core` + `jena-arq` is expected).
+3. **JSON-LD flavor** — Jena 4.x: JSON-LD 1.1 via titanium-json-ld. Decide whether `@context` shaping (framing) is in scope or plain expanded/compacted output suffices for v1. Proposal: plain output for v1, framing deferred.
+4. **Read-path ID extraction** — when instance IRIs are `baseIri + id`, reading must strip the base to recover the ID feature value. Needs a documented, reversible rule.
+5. **Unordered graphs** — RDF has no feature/field order; many-valued features have no guaranteed order after round-trip (RDF multi-valued properties are sets unless rdf:List is used). Decide: document as known limitation vs. `rdf:List`/`rdf:Seq` opt-in. Proposal: document limitation for v1.
+
+### Implementation Steps (Commit-Friendly)
+
+#### Step G0: Spec chapter ── Not Started
+**Project:** `docs`
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| G0a | `docs/codec-v2-spec/21-rdf.md` | Spec chapter: mapping rules (instance IRI, type IRI, predicate IRI, literals, references, blank nodes), annotation keys, load/save options, read-path resolution, limitations |
+| G0b | `docs/codec-v2-spec/16-annotation-reference.md` | Register the new `rdf*` annotation keys |
+
+**Verify:** Spec review with user — design decisions above confirmed/amended before code.
+
+---
+
+#### Step G1: Dependencies + bundle skeleton ── Not Started
+**Project:** `cnf`, `org.eclipse.fennec.codec.rdf` (new)
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| G1a | `cnf/central.mvn` | Add Apache Jena (`jena-core`, `jena-arq` + transitive minimum) |
+| G1b | (investigation) | Verify OSGi header situation; if jars are not bundles, repackage/wrap (michaods pattern) |
+| G1c | `org.eclipse.fennec.codec.rdf/bnd.bnd` + `package-info.java` | New bundle, depends on codec.api, codec, Jena |
+| G1d | `org.eclipse.fennec.codec.rdf/test/.../JenaSmokeTest.java` | Smoke test: build a tiny Model, write Turtle + JSON-LD + RDF/XML, parse back — proves the dependency works in the build |
+
+**Verify:** `./gradlew :org.eclipse.fennec.codec.rdf:test` passes
+
+---
+
+#### Step G2: Metadata extension ── Not Started
+**Project:** `codec.metadata`, `codec.api`
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| G2a | `codec.metadata/model/codec.ecore` | Add `RdfSerializationConfig` fields to aspects (baseIri, typeIri, predicateIri, langString, lang) + regenerate |
+| G2b | `codec.metadata/.../CodecAspectProvider.java` | Parse `rdf*` keys; validation (e.g. `rdfPredicateIri` must be absolute IRI, `rdfTypeIri` only on EClass) |
+| G2c | `codec.api/.../config/RdfConfig.java` | Config record + merge semantics, exposed via `ConfigurationResolver` |
+| G2d | tests | `RdfConfigSpecTest`, `RdfConfigResolverSpecTest`, misconfig cases in `CodecAspectProviderMisconfigTest` (follow existing `*ConfigSpecTest` pattern) |
+
+**Verify:** `./gradlew :org.eclipse.fennec.codec.metadata:test :org.eclipse.fennec.codec.api:test`
+
+---
+
+#### Step G3: Writer ── Not Started
+**Project:** `codec.rdf`
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| G3a | `codec.rdf/.../RdfModelBuilder.java` | EObject graph → Jena Model. Port PoC traversal (cycle detection, datatype table, prefix registration); route IRIs/gates/values through `ConfigurationResolver`; fix prefix-expansion bug; blank nodes for ID-less objects |
+| G3b | `codec.rdf/.../RdfWriterDelegate.java` | `FormatDelegate<OutputStream>`; holds roots+options+resolver; `flush()` → `RDFDataMgr.write(out, model, lang)` |
+| G3c | `codec.rdf/test/.../RdfModelBuilderTest.java` | Unit tests against the Model (not text): type triples, literals, langStrings, references, cycles, blank nodes |
+
+**Verify:** `./gradlew :org.eclipse.fennec.codec.rdf:test`
+
+---
+
+#### Step G4: Format provider + resource factory ── Not Started
+**Project:** `codec.rdf`
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| G4a | `codec.rdf/.../RdfFormatProvider.java` | Lang resolution (URI ext → content type → `codec.rdf.lang` option), `validateSaveOptions()` for ext/lang mismatch warnings |
+| G4b | `codec.rdf/.../RdfResourceFactoryComponent.java` | OSGi DS component for `ttl`/`jsonld`/`rdf`/`nt` + content types |
+| G4c | `codec.rdf/test/.../RdfFormatProviderTest.java` | Lang selection matrix, save-option validation |
+
+**Verify:** `./gradlew :org.eclipse.fennec.codec.rdf:test` — end-to-end save of a CodecResource as Turtle/JSON-LD/RDF/XML works
+
+---
+
+#### Step G5: Reader ── Not Started
+**Project:** `codec.rdf`
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| G5a | `codec.rdf/.../RdfModelReader.java` | Pass 1: typed resources → EClass resolution (`rdfTypeIri` reverse map, nsURI heuristic, `fallbackStrategy`), create EObjects, set attributes (XSD→Java, langString reassembly). Pass 2: resolve object properties to containment/cross references; IRI → ID extraction |
+| G5b | `codec.rdf/.../RdfReaderDelegate.java` | `FormatReaderDelegate<InputStream>`: `RDFDataMgr.read` + `RdfModelReader`, populate Resource contents |
+| G5c | `codec.rdf/test/.../RdfModelReaderTest.java` | Unit tests: type resolution incl. fallback ERROR/SKIP/FALLBACK, blank node containment, dangling IRI refs (proxy vs diagnostic) |
+
+**Verify:** `./gradlew :org.eclipse.fennec.codec.rdf:test`
+
+---
+
+#### Step G6: Round-trip + TCK integration ── Not Started
+**Project:** `codec.rdf`, `codec.tests`
+
+See [Test Strategy](#test-strategy-plan-g) below for full detail.
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| G6a | `codec.rdf/test/.../RdfRoundTripTest.java` | Parameterized over TURTLE/JSONLD/RDFXML/NTRIPLES: save → load → `EcoreUtil.equals` |
+| G6b | `codec.rdf/test/.../Rdf*TCKTest.java` | Concrete subclasses for the **applicable** abstract TCKs (see applicability matrix) |
+| G6c | `codec.rdf/test/.../RdfGraphIsomorphismTest.java` | Model-level assertions via `Model.isIsomorphicWith()` |
+| G6d | `codec.rdf/test/.../DcatInteropTest.java` | DCAT-AP fixture (from PoC models): output parses strictly with riot, expected vocabulary IRIs present |
+
+**Verify:** `./gradlew :org.eclipse.fennec.codec.rdf:test`
+
+---
+
+#### Step G7: Documentation + handoff ── Not Started
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| G7a | `docs/codec-v2-spec/21-rdf.md` | Reconcile spec with implementation reality |
+| G7b | `docs/codec-v2-development-guide.md` | Update current state |
+| G7c | `org.eclipse.fennec.codec.rdf/readme.md` | Usage examples per syntax, annotation cookbook (DCAT mapping example) |
+
+---
+
+### Test Strategy (Plan G)
+
+RDF differs from every existing format in two ways that shape the strategy: output is an **unordered graph** (text comparison is meaningless — blank node labels and statement order vary), and the same Model serializes to **multiple syntaxes**. Therefore: assert on graphs, not strings; run everything per-Lang via parameterization.
+
+#### Layer 1: Unit tests (per component, steps G2–G5)
+
+- **Config/metadata** (`codec.metadata`, `codec.api`): `RdfConfigSpecTest` + `RdfConfigResolverSpecTest` following the established `*ConfigSpecTest` pattern — merge cascade (options → factory → module → annotation → default), scope chain (feature → class → global), validation diagnostics for malformed IRIs and misplaced keys.
+- **Writer** (`RdfModelBuilderTest`): assert directly on the Jena `Model` (statement queries), never on serialized text. Cases: rdf:type IRIs (incl. the PoC prefix bug as a regression test), every row of the XSD datatype table, langString emission, single/many features, serialize gates (null/empty/default), containment → blank nodes, cross-references → IRI objects, cyclic graphs terminate, shared objects emit triples once.
+- **Reader** (`RdfModelReaderTest`): hand-built Models as input (no parsing involved). Cases: type resolution + ERROR/SKIP/FALLBACK, attribute coercion XSD→Java, langString reassembly, blank-node containment, IRI → ID extraction, dangling references, multiple roots.
+
+#### Layer 2: Round-trip tests (step G6a)
+
+`@ParameterizedTest` over `Lang.TURTLE, Lang.JSONLD, Lang.RDFXML, Lang.NTRIPLES`:
+
+1. **EMF-level:** EObject graph → save(lang) → load(lang) → `EcoreUtil.equals()` with original. **Caveat:** many-valued feature order is NOT preserved in RDF (sets, not lists) — round-trip assertions on many-valued features must compare as multisets, not sequences. This is the one place RDF legitimately diverges from the other formats' TCK expectations.
+2. **Graph-level:** save → parse → save → parse; assert `model1.isIsomorphicWith(model2)`. Catches lossy writer/reader asymmetries that EMF-level comparison can mask.
+
+#### Layer 3: TCK reuse (step G6b)
+
+Reuse the Plan F abstract TCKs via concrete `Rdf*TCKTest` subclasses (`createFormatProvider()` → `RdfFormatProvider`, extension `ttl`) — **with an applicability review per suite**. Expected matrix:
+
+| TCK Suite | Applicable? | Note |
+|-----------|-------------|------|
+| Attribute types, Enum, Complex round-trip | ✅ | Direct |
+| Multi-valued attributes | ⚠️ | Order-insensitive comparison needed (see Layer 2 caveat) |
+| Containment / non-containment refs | ✅ | Blank nodes / IRIs |
+| Type / ID strategy | ⚠️ | Strategies surface as IRI shapes, not JSON keys — may need RDF-specific assertions |
+| Polymorphism, SuperType | ✅ | rdf:type carries the concrete class; supertype triples optional |
+| Reference format (PLAIN/STRUCTURED) | ⚠️ | Both collapse to IRI objects in RDF — verify expectation or exclude with rationale |
+| Visibility, Force, Global Ignore, Strictness | ✅ | Config gates are format-agnostic |
+| Value handling, Custom value R/W, Custom key, ExtMetadata | ✅ | Key feeds the default predicate IRI |
+| EMap | ⚠️ | Decide mapping (entry blank nodes) in spec first |
+| Array root | ✅ | Multiple typed roots in one graph |
+| Large payload (1000 objects) | ✅ | Also serves as memory sanity check for the in-Model approach |
+
+Every suite excluded or weakened gets a one-line rationale in the test class — no silent skips.
+
+#### Layer 4: Interoperability & conformance (step G6d)
+
+This layer exists because round-trip tests only prove self-consistency — RDF's whole point is that *other* tools consume it.
+
+- **Strict parse check:** every produced output must parse with Jena riot in strict mode (errors, not warnings) for its declared Lang. Run as part of the parameterized round-trip.
+- **DCAT-AP fixture:** port the PoC's DCAT model (Catalog/Dataset/PlainLiteral) as a test fixture with `rdf*` annotations mapping to the real vocabularies; assert the output contains `http://www.w3.org/ns/dcat#Catalog`, `http://purl.org/dc/terms/title` with `@de` language tags etc. — i.e., the annotation mapping produces *standard* DCAT, not EMF-shaped IRIs.
+- **Cross-syntax equivalence:** the same input saved as Turtle, JSON-LD, and RDF/XML must yield isomorphic Models when parsed back.
+- **Optional (stretch):** SHACL validation of the DCAT fixture against DCAT-AP shapes (Jena ships a SHACL engine — no new dependency).
+
+#### Layer 5: Negative & robustness tests
+
+- Unknown rdf:type IRI on load → fallbackStrategy ERROR throws / SKIP drops with diagnostic / FALLBACK instantiates fallback EClass.
+- Malformed input per Lang (truncated Turtle, invalid JSON-LD) → clean `IOException`/diagnostics, no partial Resource contents.
+- Literal/datatype mismatches (e.g. `"abc"^^xsd:int`) → diagnostic, honoring LENIENT/STRICT `DeserializationMode`.
+- IRI edge cases: IDs needing percent-encoding, missing `rdfBaseIri` with ID present, blank-node-only graphs.
+- Save-option validation: `.ttl` URI + `codec.rdf.lang=JSONLD` → warning from `validateSaveOptions()`.
+
+#### Test data
+
+- Reuse existing TCK ecores (`test-tck*.ecore`) for Layer 3.
+- New `test-rdf-annotations.ecore`: small model exercising every `rdf*` key (vocabulary-mapped class, langString class, fixed-lang attribute, baseIri).
+- New `test-rdf-dcat.ecore`: trimmed DCAT-AP fixture for Layer 4 (ported from PoC `dcatap.ecore`/`rdf.ecore`).
+
+#### Exit criteria
+
+- All applicable TCK suites green for `ttl` (reference syntax) + round-trip layer green for all four Langs.
+- DCAT interop test proves standard-vocabulary output.
+- `./gradlew build` green; no `testOSGi` usage (per project rules).
+
+---
+
+## 8. Execution Roadmap
 
 ### Recommended Order
 
@@ -773,6 +1025,16 @@ Plan F (TCK Test Suite) — ✅ COMPLETE (2026-02-17):
   F2: P1 Feature strategy TCKs (7 abstract suites)
   F3: P2 Advanced feature TCKs (10 abstract suites + 8 ecore models)
   F4: Bug fixes (array root, supportsArrayRoot, BSON valueConsumed)
+
+Plan G (RDF Format Support via Jena) — Not Started (planned 2026-06-12):
+  G0: Spec chapter 21-rdf.md (spec-first — confirm design decisions)
+  G1: Jena dependency + OSGi wrapping check + bundle skeleton
+  G2: Metadata extension (rdf* annotation keys, RdfConfig)
+  G3: Writer (RdfModelBuilder + RdfWriterDelegate)
+  G4: RdfFormatProvider + ResourceFactory (Lang selection)
+  G5: Reader (RdfModelReader + RdfReaderDelegate)
+  G6: Round-trip + TCK subclasses + DCAT interop tests
+  G7: Docs + dev guide update
 ```
 
 **Notes:**
@@ -830,7 +1092,7 @@ Plan F (TCK Test Suite) — ✅ COMPLETE (2026-02-17):
 
 ---
 
-## 8. Critical Files Reference
+## 9. Critical Files Reference
 
 ### Plan B: Files to Modify
 
