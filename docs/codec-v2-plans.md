@@ -4,7 +4,7 @@ This document consolidates all active plans for completing the codec migration. 
 Spec Compliance Refactoring Plan and the Deprecated API Migration Plan into a single phased roadmap.
 
 **Created:** 2026-02-02
-**Updated:** 2026-06-12
+**Updated:** 2026-06-24
 
 **Related documents:**
 - [`docs/codec-v2-development-guide.md`](codec-v2-development-guide.md) — Session continuity, current state
@@ -21,8 +21,9 @@ Spec Compliance Refactoring Plan and the Deprecated API Migration Plan into a si
 5. [Plan E: Multi-Format Support](#5-plan-e-multi-format-support)
 6. [Plan F: TCK Test Suite](#6-plan-f-tck-test-suite)
 7. [Plan G: RDF Format Support (Jena)](#7-plan-g-rdf-format-support-jena)
-8. [Execution Roadmap](#8-execution-roadmap)
-9. [Critical Files Reference](#9-critical-files-reference)
+8. [Plan H: MetamodelFormatProvider Interface](#8-plan-h-metamodelformatprovider-interface)
+9. [Execution Roadmap](#9-execution-roadmap)
+10. [Critical Files Reference](#10-critical-files-reference)
 
 ---
 
@@ -64,6 +65,7 @@ The 8-step package migration from `codec.v2.*` to `codec.*` is **complete**:
 | ~~**Plan E**~~ | ~~Multi-format support (BSON, CBOR, YAML)~~ | ✅ COMPLETE |
 | ~~**Plan F**~~ | ~~TCK test suite (3 phases, 18 abstract TCKs)~~ | ✅ COMPLETE |
 | **Plan G** | RDF format support (RDF/XML, Turtle, JSON-LD) via Apache Jena | Not Started |
+| **Plan H** | MetamodelFormatProvider interface — formal abstraction for metamodel converters | Not Started |
 
 ---
 
@@ -991,7 +993,127 @@ This layer exists because round-trip tests only prove self-consistency — RDF's
 
 ---
 
-## 8. Execution Roadmap
+## 8. Plan H: MetamodelFormatProvider Interface
+
+**Status:** Not Started (planned 2026-06-24)
+
+**Goal:** Introduce a `MetamodelFormatProvider` interface in `codec.api` as a formal parallel to `CodecFormatProvider`, explicitly categorising metamodel-to-metamodel converters (JSON Schema, OpenAPI, and future formats such as OData CSDL, XSD, OWL ontology) as a distinct architectural family separate from instance serializers.
+
+**Motivation:** `CodecFormatProvider` (and its `FormatDelegate` mechanism) is designed for *instance serialization* — it walks an EMF EObject graph and emits/consumes data values. JSON Schema and OpenAPI operate at a fundamentally different level: they convert an *EPackage/EClass metamodel* into a schema document that describes the type shape. Currently these converters share no interface, making the pattern invisible. Formalising `MetamodelFormatProvider` will:
+- Make the architectural distinction explicit and discoverable
+- Provide a common registration/discovery point (OSGi service registry, options-driven factory)
+- Allow future metamodel converters (OData CSDL, XSD, GraphQL schema, OWL) to follow the same pattern
+- Enable a shared `MetamodelResourceFactory` that dispatches by file extension, mirroring `CodecFormatResourceFactory` on the instance side
+
+### Architecture
+
+```
+Instance serialization (existing):            Metamodel conversion (Plan H):
+
+  CodecFormatProvider<W,R>                      MetamodelFormatProvider
+        │                                               │
+  FormatDelegate<T>                          ┌──────────┴──────────┐
+  FormatReaderDelegate<S>                    │                     │
+        │                              JsonSchemaMetamodel   OpenApiMetamodel
+  CSV / ODS / XLSX / R /               FormatProvider        FormatProvider
+  BSON / CBOR / YAML / RDF          (refactored from         (refactored from
+                                    existing converters)     existing converters)
+                                               │
+                                    (future: OData CSDL, XSD, GraphQL schema, OWL, ...)
+```
+
+The key distinction:
+- `CodecFormatProvider`: `EObject instances → bytes` / `bytes → EObject instances`
+- `MetamodelFormatProvider`: `EPackage/EClass → schema document` / `schema document → EPackage/EClass`
+
+### Interface Design
+
+```java
+// codec.api — org.eclipse.fennec.codec.api/.../format/MetamodelFormatProvider.java
+public interface MetamodelFormatProvider {
+
+    void saveMetamodel(EPackage ePackage, OutputStream target, Map<String, Object> options)
+            throws IOException;
+
+    EPackage loadMetamodel(InputStream source, Map<String, Object> options)
+            throws IOException;
+
+    Set<String> getSupportedExtensions();
+
+    Set<String> getSupportedMediaTypes();
+}
+```
+
+No generic parameters — metamodel I/O is always byte-stream oriented (unlike BSON's in-memory `BsonDocument`). The internal schema object (`JsonNode`, OpenAPI POJO) is an implementation detail hidden behind the interface.
+
+### Implementation Steps
+
+#### Step H1: MetamodelFormatProvider interface — Not Started
+**Project:** `codec.api`
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| H1a | `codec.api/.../format/MetamodelFormatProvider.java` | Interface with `saveMetamodel()`, `loadMetamodel()`, `getSupportedExtensions()`, `getSupportedMediaTypes()` |
+
+**Verify:** `./gradlew :org.eclipse.fennec.codec.api:test` passes
+
+---
+
+#### Step H2: JSON Schema refactoring — Not Started
+**Project:** `codec.jsonschema`
+
+Introduce a `JsonSchemaMetamodelFormatProvider` that wraps the existing converters and implements the new interface; have `JsonSchemaResourceImpl` delegate to it.
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| H2a | `codec.jsonschema/.../JsonSchemaMetamodelFormatProvider.java` | Implements `MetamodelFormatProvider`; wraps `EPackageToJsonSchemaConverter` + `JsonSchemaToEPackageConverter` |
+| H2b | `codec.jsonschema/.../JsonSchemaResourceImpl.java` | Delegate `doLoad`/`doSave` to `JsonSchemaMetamodelFormatProvider`; remove direct converter calls |
+| H2c | `codec.jsonschema/test/...` | Verify all existing tests pass unchanged |
+
+**Verify:** `./gradlew :org.eclipse.fennec.codec.jsonschema:test` passes
+
+---
+
+#### Step H3: OpenAPI refactoring — Not Started
+**Project:** `codec.openapi`
+
+Same pattern as H2.
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| H3a | `codec.openapi/.../OpenApiMetamodelFormatProvider.java` | Implements `MetamodelFormatProvider`; wraps existing OpenAPI converters |
+| H3b | `codec.openapi/.../OpenApiResourceImpl.java` | Delegate to `OpenApiMetamodelFormatProvider` |
+| H3c | `codec.openapi/test/...` | Verify all existing tests pass unchanged |
+
+**Verify:** `./gradlew :org.eclipse.fennec.codec.openapi:test` passes
+
+---
+
+#### Step H4: MetamodelResourceFactory — Not Started
+**Project:** `codec`
+
+A shared EMF `Resource.Factory` that accepts any `MetamodelFormatProvider` and dispatches by file extension, mirroring `CodecFormatResourceFactory` on the instance side.
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| H4a | `codec/.../resource/MetamodelResource.java` | EMF Resource; delegates `doLoad`/`doSave` to its provider |
+| H4b | `codec/.../resource/MetamodelResourceFactory.java` | `Resource.Factory` that creates a `MetamodelResource` for the given provider |
+| H4c | `codec/test/.../resource/MetamodelResourceFactoryTest.java` | Round-trip test using a minimal mock provider |
+
+**Verify:** `./gradlew :org.eclipse.fennec.codec:test` passes
+
+---
+
+#### Step H5: Documentation — Not Started
+
+| Sub-step | File | Description |
+|----------|------|-------------|
+| H5a | `docs/codec-v2-spec/` | Add or update a spec chapter on the two-format-family distinction (instance serializers vs. metamodel converters) and the `MetamodelFormatProvider` contract |
+| H5b | `docs/codec-v2-development-guide.md` | Update current state |
+
+---
+
+## 9. Execution Roadmap
 
 ### Recommended Order
 
@@ -1035,6 +1157,13 @@ Plan G (RDF Format Support via Jena) — Not Started (planned 2026-06-12):
   G5: Reader (RdfModelReader + RdfReaderDelegate)
   G6: Round-trip + TCK subclasses + DCAT interop tests
   G7: Docs + dev guide update
+
+Plan H (MetamodelFormatProvider Interface) — Not Started (planned 2026-06-24):
+  H1: MetamodelFormatProvider interface in codec.api
+  H2: Refactor JSON Schema to implement it (JsonSchemaMetamodelFormatProvider)
+  H3: Refactor OpenAPI to implement it (OpenApiMetamodelFormatProvider)
+  H4: MetamodelResourceFactory + MetamodelResource (shared dispatch by extension)
+  H5: Spec chapter on two-format-family distinction + dev guide update
 ```
 
 **Notes:**
@@ -1092,7 +1221,7 @@ Plan G (RDF Format Support via Jena) — Not Started (planned 2026-06-12):
 
 ---
 
-## 9. Critical Files Reference
+## 10. Critical Files Reference
 
 ### Plan B: Files to Modify
 
