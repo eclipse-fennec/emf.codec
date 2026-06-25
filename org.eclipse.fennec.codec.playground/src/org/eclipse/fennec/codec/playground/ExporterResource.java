@@ -52,7 +52,11 @@ public class ExporterResource {
 	      "application/vnd.oasis.opendocument.spreadsheet",
 	      "application/x-rdata",
 	      "application/x-rdata-zip",
-	      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+	      "application/json",
+	      "application/yaml",
+	      "text/yaml",
+	      "application/bson"
 	  })
 
     public Response export(EObject eObject) {

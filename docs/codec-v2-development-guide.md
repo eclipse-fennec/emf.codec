@@ -2,7 +2,27 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-06-10
+**Last Updated:** 2026-06-25
+
+**Session Summary (2026-06-25 latest):**
+
+**`idOnTop` bug fix + EIDAttribute feature promotion (JSON/YAML path):**
+
+Fixed two related issues in `CodecEObjectSerializer` so that `idOnTop` behaves consistently across all formats (JSON, YAML, BSON, CBOR) and matches the tabular exporter behaviour.
+
+*Bug 1 — Default field order was wrong:*
+`buildSerializationEntries()` added the `_id` entry first (before `_type`/`_supertype`), making the default output `{"_id":…,"_type":…}` instead of the spec-mandated `{"_type":…,"_id":…}` (§8.7, `idOnTop=false`). Fixed by reordering entry construction: type → supertype → id → features.
+
+*Bug 2 — `idOnTop=true` did not float the EIDAttribute feature:*
+The tabular exporters' `idOnTop` floats the EClass's `getEIDAttribute()` column to front. The JSON path only floated the synthetic `_id` key; the actual `eID=true` attribute (e.g. `personId`) stayed in its natural declaration position. Fixed by extending `applyOrdering()` with an `EClass` parameter: it now resolves the EIDAttribute's JSON key via `config.resolveFeatureConfig(eClass.getEIDAttribute())` and floats it alongside `_id`. Handles both the plain-`idOnTop` and `sortAlphabetically+idOnTop` cases.
+
+*Files changed:*
+- `org.eclipse.fennec.codec/src/.../ser/CodecEObjectSerializer.java` — reordered `buildSerializationEntries()`, updated `applyOrdering()` signature + implementation
+- `org.eclipse.fennec.codec/test/.../resource/CodecResourceIdTest.java` — added `IdOnTopOrderingTests` nested class (5 tests: default order, `idOnTop` via resolver, `idOnTop` as save option, EIDAttribute feature to front, EIDAttribute feature before `_type`)
+
+*Spec updated:* `docs/codec-v2-spec/09-id.md` §8.7 (serialization order table + flow diagram).
+
+---
 
 **Session Summary (2026-06-10 latest):**
 
@@ -1110,6 +1130,20 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 3. isChangeable() pre-check not documented
 
 ### 7.3 Fixed Bugs
+
+**2026-06-25:**
+✅ **`idOnTop=true` had no effect on JSON/YAML field order** (`CodecEObjectSerializer`)
+- `buildSerializationEntries()` added `_id` before `_type`, so `idOnTop=true` was a no-op for the `_id` key (already first) and `idOnTop=false` produced wrong order (`{"_id":…,"_type":…}` instead of spec `{"_type":…,"_id":…}`)
+- Additionally, `idOnTop` only moved the synthetic `_id` key; the `eID=true` EAttribute feature remained in declaration order, inconsistent with tabular exporters where `idOnTop` floats `getEIDAttribute()` to front
+- Fix 1: reordered `buildSerializationEntries()` → type → supertype → id → features (spec §8.7 default order)
+- Fix 2: `applyOrdering()` now accepts `EClass`, resolves the EIDAttribute's JSON key, and floats it alongside `_id` when `idOnTop=true`
+- Tests: `CodecResourceIdTest.IdOnTopOrderingTests` (5 tests)
+
+✅ **BSON serializes document twice** (`BsonFormatProvider.BsonStreamWriter`)
+- `BsonStreamWriter.flush()` and `close()` both called `serializeToStream()`, writing the in-memory `BsonDocument` to the `OutputStream` twice
+- Root cause: Jackson's `GeneratorBase.close()` calls `flush()` before `_closeInput()`, so both fire during every normal `CodecResource.save()` — resulting in two complete BSON documents in the output stream
+- Fix: removed `serializeToStream()` from `flush()`; the document is now serialized only in `close()`. `flush()` is a no-op for the in-memory delegate (`BsonFormatDelegate.flush()` does nothing)
+- Regression test: `BsonFormatProviderTest.StreamWriterDocumentCount` — calls `writer.flush()` + `writer.close()` in sequence and asserts exactly one BSON document in the output (verified by parsing the raw 4-byte length-prefixed BSON framing)
 
 **2026-02-17:**
 ✅ **Array root serialization crash** (CodecResource)

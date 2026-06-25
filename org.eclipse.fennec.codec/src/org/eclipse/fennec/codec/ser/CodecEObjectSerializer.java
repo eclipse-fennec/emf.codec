@@ -125,7 +125,7 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
                 eClass, typeConfig, idConfig, superTypeConfig);
 
         // Apply ordering
-        entries = applyOrdering(entries, idConfig);
+        entries = applyOrdering(entries, idConfig, eClass);
 
         // Create serialization state with value cache
         SerializationState state = new SerializationState(value);
@@ -158,22 +158,19 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
 
         Map<String, SerializationEntry> entries = new LinkedHashMap<>();
 
-        // Add ID entry (the entry itself handles FEATURE_ONLY mode via shouldSerialize())
-        if (idConfig != null) {
-            IdSerializationEntry idEntry = new IdSerializationEntry(idConfig, eClass);
-            entries.put(idEntry.getKey(), idEntry);
-        }
-
         // Determine if type format is STRUCTURED
         boolean isStructuredFormat = typeConfig != null && typeConfig.isInclude()
                 && typeConfig.getFormat() == SerializationFormat.STRUCTURED;
 
-        // Create supertype entry if enabled
+        // Create supertype entry if enabled (needed before type entry for STRUCTURED format)
         SuperTypeSerializationEntry superTypeEntry = null;
         if (superTypeConfig != null && superTypeConfig.isSerialize()) {
             superTypeEntry = new SuperTypeSerializationEntry(
                     superTypeConfig, eClass, config.isSmartCompression());
         }
+
+        // Default order: _type → _supertype → _id → features  (spec §8.7, idOnTop=false)
+        // With idOnTop=true, applyOrdering() promotes _id before _type.
 
         // Add type entry (if include is enabled)
         if (typeConfig != null && typeConfig.isInclude()) {
@@ -194,6 +191,12 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
         // (for STRUCTURED format, supertype is embedded inside _type object)
         if (superTypeEntry != null && !isStructuredFormat) {
             entries.put(superTypeEntry.getKey(), superTypeEntry);
+        }
+
+        // Add ID entry after type/supertype (the entry itself handles FEATURE_ONLY/NONE via shouldSerialize())
+        if (idConfig != null) {
+            IdSerializationEntry idEntry = new IdSerializationEntry(idConfig, eClass);
+            entries.put(idEntry.getKey(), idEntry);
         }
 
         // Add feature entries
@@ -243,11 +246,26 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
      */
     private Map<String, SerializationEntry> applyOrdering(
             Map<String, SerializationEntry> entries,
-            IdConfig idConfig) {
+            IdConfig idConfig,
+            EClass eClass) {
 
         boolean sortAlphabetically = config.isSortPropertiesAlphabetically();
         boolean idOnTop = idConfig != null && idConfig.isOnTop();
         String idKey = idConfig != null ? idConfig.getKey() : null;
+
+        // Resolve the EIDAttribute feature key (e.g. "id") so idOnTop floats it as well.
+        // This is distinct from idKey ("_id") — the synthetic codec key.
+        String idFeatureKey = null;
+        if (idOnTop && eClass != null) {
+            EAttribute eIdAttr = eClass.getEIDAttribute();
+            if (eIdAttr != null) {
+                FeatureConfig fConfig = config.resolveFeatureConfig(eIdAttr);
+                String fKey = fConfig.getKey() != null ? fConfig.getKey() : eIdAttr.getName();
+                if (!fKey.equals(idKey) && entries.containsKey(fKey)) {
+                    idFeatureKey = fKey;
+                }
+            }
+        }
 
         if (!sortAlphabetically && !idOnTop) {
             return entries;
@@ -257,15 +275,26 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
 
         if (sortAlphabetically) {
             TreeMap<String, SerializationEntry> sorted = new TreeMap<>(entries);
-            if (idOnTop && idKey != null && sorted.containsKey(idKey)) {
-                ordered.put(idKey, sorted.remove(idKey));
+            if (idOnTop) {
+                if (idKey != null && sorted.containsKey(idKey)) {
+                    ordered.put(idKey, sorted.remove(idKey));
+                }
+                if (idFeatureKey != null && sorted.containsKey(idFeatureKey)) {
+                    ordered.put(idFeatureKey, sorted.remove(idFeatureKey));
+                }
             }
             ordered.putAll(sorted);
-        } else if (idOnTop && idKey != null && entries.containsKey(idKey)) {
-            ordered.put(idKey, entries.get(idKey));
+        } else if (idOnTop) {
+            if (idKey != null && entries.containsKey(idKey)) {
+                ordered.put(idKey, entries.get(idKey));
+            }
+            if (idFeatureKey != null) {
+                ordered.put(idFeatureKey, entries.get(idFeatureKey));
+            }
             for (Map.Entry<String, SerializationEntry> entry : entries.entrySet()) {
-                if (!entry.getKey().equals(idKey)) {
-                    ordered.put(entry.getKey(), entry.getValue());
+                String key = entry.getKey();
+                if (!key.equals(idKey) && !key.equals(idFeatureKey)) {
+                    ordered.put(key, entry.getValue());
                 }
             }
         } else {

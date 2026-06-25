@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.bson.BsonBinaryWriter;
 import org.bson.BsonDocument;
@@ -29,6 +30,7 @@ import org.bson.codecs.BsonDocumentCodec;
 import org.bson.codecs.EncoderContext;
 import org.bson.io.BasicOutputBuffer;
 import org.eclipse.fennec.codec.constants.CodecOptions;
+import org.eclipse.fennec.codec.format.FormatDelegate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -130,7 +132,7 @@ class BsonFormatProviderTest {
             assertEquals(100L * 1024 * 1024, CodecOptions.DEFAULT_MAX_PAYLOAD_SIZE);
         }
 
-        private byte[] createSmallBsonDocument() {
+        private static byte[] createSmallBsonDocument() {
             BsonDocument doc = new BsonDocument();
             doc.append("name", new BsonString("test"));
             doc.append("value", new BsonString("hello"));
@@ -140,6 +142,47 @@ class BsonFormatProviderTest {
                 new BsonDocumentCodec().encode(writer, doc, EncoderContext.builder().build());
             }
             return buffer.toByteArray();
+        }
+    }
+
+    @Nested
+    @DisplayName("Stream writer document count")
+    class StreamWriterDocumentCount {
+
+        @Test
+        @DisplayName("flush() then close() writes exactly one BSON document")
+        void writesExactlyOneDocument() throws IOException {
+            BsonFormatProvider provider = new BsonFormatProvider();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+            FormatDelegate<OutputStream> writer = provider.createWriter(out);
+            writer.writeStartObject();
+            writer.writeName("name");
+            writer.writeString("Ada");
+            writer.writeEndObject();
+            // Reproduce the sequence Jackson's GeneratorBase.close() uses:
+            // flush() first, then close() via _closeInput().
+            writer.flush();
+            writer.close();
+
+            assertEquals(1, countBsonDocuments(out.toByteArray()),
+                    "Expected exactly 1 BSON document; BsonStreamWriter.flush() and close() "
+                    + "both call serializeToStream(), writing the document twice");
+        }
+
+        private static int countBsonDocuments(byte[] bytes) {
+            int count = 0;
+            int pos = 0;
+            while (pos + 4 <= bytes.length) {
+                int docLen = (bytes[pos] & 0xFF)
+                        | ((bytes[pos + 1] & 0xFF) << 8)
+                        | ((bytes[pos + 2] & 0xFF) << 16)
+                        | ((bytes[pos + 3] & 0xFF) << 24);
+                if (docLen <= 0 || pos + docLen > bytes.length) break;
+                pos += docLen;
+                count++;
+            }
+            return count;
         }
     }
 }

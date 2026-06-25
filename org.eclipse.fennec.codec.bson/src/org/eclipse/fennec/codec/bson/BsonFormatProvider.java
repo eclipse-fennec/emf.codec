@@ -228,7 +228,6 @@ public class BsonFormatProvider implements CodecFormatProvider<InputStream, Outp
         @Override
         public void flush() throws IOException {
             delegate.flush();
-            serializeToStream();
         }
 
         @Override

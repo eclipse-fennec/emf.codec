@@ -37,9 +37,9 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ServiceScope;
 
-@Component(service = ExporterCommand.class, scope = ServiceScope.PROTOTYPE)
+@Component(service = TabularExporterCommand.class, scope = ServiceScope.PROTOTYPE)
 @GogoCommand(scope = "exporter", function = "export")
-public class ExporterCommand {
+public class TabularExporterCommand {
 
 	@Reference
 	BasicPackage basicPackage;

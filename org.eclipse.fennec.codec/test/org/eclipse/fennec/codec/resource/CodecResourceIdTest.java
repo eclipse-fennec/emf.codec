@@ -556,6 +556,122 @@ class CodecResourceIdTest {
         }
     }
 
+    // ========================================================================
+    // idOnTop Ordering Tests
+    // ========================================================================
+
+    @Nested
+    @DisplayName("idOnTop field ordering")
+    class IdOnTopOrderingTests {
+
+        @Test
+        @DisplayName("default (idOnTop=false) puts _type before _id when type is included")
+        void defaultOrderPutsTypeBeforeId() throws IOException {
+            EObject person = createPerson("john-123", "John Doe");
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .moduleProperties(Map.of("typeInclude", true))
+                    .build();
+
+            String json = serialize(person, resolver);
+
+            int typePos = json.indexOf("\"_type\"");
+            int idPos = json.indexOf("\"_id\"");
+
+            assertTrue(typePos >= 0, "_type should be present. JSON: " + json);
+            assertTrue(idPos >= 0, "_id should be present. JSON: " + json);
+            assertTrue(typePos < idPos,
+                    "_type should appear before _id when idOnTop=false (default). JSON: " + json);
+        }
+
+        @Test
+        @DisplayName("idOnTop=true puts _id before _type when type is included")
+        void idOnTopPutsIdBeforeType() throws IOException {
+            EObject person = createPerson("john-123", "John Doe");
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .moduleProperties(Map.of("typeInclude", true, "idOnTop", true))
+                    .build();
+
+            String json = serialize(person, resolver);
+
+            int typePos = json.indexOf("\"_type\"");
+            int idPos = json.indexOf("\"_id\"");
+
+            assertTrue(typePos >= 0, "_type should be present. JSON: " + json);
+            assertTrue(idPos >= 0, "_id should be present. JSON: " + json);
+            assertTrue(idPos < typePos,
+                    "_id should appear before _type when idOnTop=true. JSON: " + json);
+        }
+
+        @Test
+        @DisplayName("idOnTop=true as save option (REST path) puts _id before _type")
+        void idOnTopAsSaveOptionPutsIdBeforeType() throws IOException {
+            EObject person = createPerson("john-123", "John Doe");
+
+            // Resolver only sets typeInclude; idOnTop comes as a save option (REST path)
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .moduleProperties(Map.of("typeInclude", true))
+                    .build();
+
+            CodecResource resource = createResource(resolver);
+            resource.getContents().add(person);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            resource.save(out, Map.of("idOnTop", true));
+            String json = out.toString(java.nio.charset.StandardCharsets.UTF_8);
+
+            int typePos = json.indexOf("\"_type\"");
+            int idPos = json.indexOf("\"_id\"");
+
+            assertTrue(typePos >= 0, "_type should be present. JSON: " + json);
+            assertTrue(idPos >= 0, "_id should be present. JSON: " + json);
+            assertTrue(idPos < typePos,
+                    "_id should appear before _type when idOnTop=true passed as save option. JSON: " + json);
+        }
+
+        @Test
+        @DisplayName("idOnTop=true also floats the EIDAttribute feature to front")
+        void idOnTopFloatsIdFeatureToFront() throws IOException {
+            // Person's EIDAttribute has JSON key "personId"; idOnTop should place it before other features
+            EObject person = createPerson("john-123", "John Doe");
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .moduleProperties(Map.of("idOnTop", true))
+                    .build();
+
+            String json = serialize(person, resolver);
+
+            int idFeaturePos = json.indexOf("\"personId\"");
+            int namePos = json.indexOf("\"name\"");
+
+            assertTrue(idFeaturePos >= 0, "personId feature should be present. JSON: " + json);
+            assertTrue(namePos >= 0, "name feature should be present. JSON: " + json);
+            assertTrue(idFeaturePos < namePos,
+                    "personId feature should appear before other features when idOnTop=true. JSON: " + json);
+        }
+
+        @Test
+        @DisplayName("idOnTop=true floats EIDAttribute feature before _type")
+        void idOnTopFloatsIdFeatureBeforeType() throws IOException {
+            EObject person = createPerson("john-123", "John Doe");
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .moduleProperties(Map.of("typeInclude", true, "idOnTop", true))
+                    .build();
+
+            String json = serialize(person, resolver);
+
+            int idFeaturePos = json.indexOf("\"personId\"");
+            int typePos = json.indexOf("\"_type\"");
+
+            assertTrue(idFeaturePos >= 0, "personId feature should be present. JSON: " + json);
+            assertTrue(typePos >= 0, "_type should be present. JSON: " + json);
+            assertTrue(idFeaturePos < typePos,
+                    "personId feature should appear before _type when idOnTop=true. JSON: " + json);
+        }
+    }
+
     @Nested
     @DisplayName("Round-trip tests")
     class RoundTripTests {
