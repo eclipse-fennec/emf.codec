@@ -32,6 +32,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.format.impl.JacksonFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
@@ -431,6 +432,62 @@ class FormatDelegateJsonRoundTripTest {
     }
 
     // ========================================================================
+    // Field Order Tests
+    // ========================================================================
+
+    @Nested
+    @DisplayName("Field ordering")
+    class FieldOrder {
+
+        @Test
+        @DisplayName("ALPHABETICAL fieldOrder sorts JSON keys alphabetically")
+        void alphabeticalFieldOrderSortsKeysAlphabetically() throws IOException {
+            EObject person = createPerson();
+            person.eSet(nameAttribute, "Alice");
+            person.eSet(ageAttribute, 30);
+            person.eSet(scoreAttribute, 1.5);
+
+            Map<String, Object> saveOptions = new HashMap<>();
+            saveOptions.put(ConfigProperty.FIELD_ORDER.getKey(), "ALPHABETICAL");
+            String json = serialize(person, saveOptions);
+
+            // Declaration order: name, age, score
+            // Alphabetical order: age, name, score
+            int ageIdx = json.indexOf("\"age\"");
+            int nameIdx = json.indexOf("\"name\"");
+            int scoreIdx = json.indexOf("\"score\"");
+
+            assertTrue(ageIdx >= 0, "age key must be present");
+            assertTrue(nameIdx >= 0, "name key must be present");
+            assertTrue(scoreIdx >= 0, "score key must be present");
+            assertTrue(ageIdx < nameIdx, "age should appear before name in alphabetical order but was: " + json);
+            assertTrue(nameIdx < scoreIdx, "name should appear before score in alphabetical order but was: " + json);
+        }
+
+        @Test
+        @DisplayName("default fieldOrder preserves EClass declaration order")
+        void defaultFieldOrderPreservesDeclarationOrder() throws IOException {
+            EObject person = createPerson();
+            person.eSet(nameAttribute, "Alice");
+            person.eSet(ageAttribute, 30);
+            person.eSet(scoreAttribute, 1.5);
+
+            String json = serialize(person);
+
+            // Declaration order: name (1st), age (2nd), score (4th)
+            int nameIdx = json.indexOf("\"name\"");
+            int ageIdx = json.indexOf("\"age\"");
+            int scoreIdx = json.indexOf("\"score\"");
+
+            assertTrue(nameIdx >= 0, "name key must be present");
+            assertTrue(ageIdx >= 0, "age key must be present");
+            assertTrue(scoreIdx >= 0, "score key must be present");
+            assertTrue(nameIdx < ageIdx, "name should appear before age in declaration order but was: " + json);
+            assertTrue(ageIdx < scoreIdx, "age should appear before score in declaration order but was: " + json);
+        }
+    }
+
+    // ========================================================================
     // Helper Methods
     // ========================================================================
 
@@ -440,6 +497,16 @@ class FormatDelegateJsonRoundTripTest {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         resource.save(out, Collections.emptyMap());
+
+        return out.toString(StandardCharsets.UTF_8);
+    }
+
+    private String serialize(EObject object, Map<String, Object> saveOptions) throws IOException {
+        CodecResource resource = createResource();
+        resource.getContents().add(object);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        resource.save(out, saveOptions);
 
         return out.toString(StandardCharsets.UTF_8);
     }
