@@ -2,7 +2,23 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-06-25
+**Last Updated:** 2026-06-26
+
+**Session Summary (2026-06-26 latest):**
+
+**Fix issue #31 — `fieldOrder=ALPHABETICAL` not honored in JSON/Jackson serialization:**
+
+`ConfigProperty.FIELD_ORDER` was declared and used by tabular exporters (`TabularDocumentBuilder`) but never read in the Jackson serialization path. `CodecResource.createObjectMapper()` did not extract it from the `ConfigurationResolver`, so `CodecModule` always built with `sortPropertiesAlphabetically=false`, making alphabetical ordering effectively dead in JSON/YAML/BSON/CBOR.
+
+*Fix:* Two lines added in `CodecResource.createObjectMapper()` — read `ConfigProperty.FIELD_ORDER` from the operation resolver (which already includes save/load options via `enrichWithOptions`) and map `"ALPHABETICAL"` to the boolean passed to `CodecModule.Builder.sortPropertiesAlphabetically()`. The existing sorting logic in `CodecEObjectSerializer.applyOrdering()` was already correct; it just was never triggered.
+
+*Files changed:*
+- `org.eclipse.fennec.codec/src/.../resource/CodecResource.java` — extract `FIELD_ORDER` + wire `sortPropertiesAlphabetically` into module builder
+
+*Tests added:*
+- `FormatDelegateJsonRoundTripTest.FieldOrder` — `alphabeticalFieldOrderSortsKeysAlphabetically` (was failing, now passes) + `defaultFieldOrderPreservesDeclarationOrder` (control test)
+
+---
 
 **Session Summary (2026-06-25 latest):**
 
@@ -99,8 +115,8 @@ endpoint annotation. Full design + as-built in `docs/codec-rest-client-overridab
   annotation path via `CodecOptionValues.parse`.
 - Secure by default (empty whitelist ⇒ ignored). Risky keys (expand, typeStrategy, value writers)
   deliberately not contributed. Tests: `ClientCodecOptionsFilterTest`.
-- Follow-up noted separately: `FIELD_ORDER`/alphabetical ordering is still unwired in the Jackson
-  serialization path (the tabular exporters honor it; JSON does not yet).
+- ~~Follow-up noted separately: `FIELD_ORDER`/alphabetical ordering is still unwired in the Jackson
+  serialization path (the tabular exporters honor it; JSON does not yet).~~ **Fixed 2026-06-26 (issue #31).**
 
 **CSV: dataTypeInSecondRow option to toggle the SQL-type row:**
 
@@ -121,9 +137,9 @@ threaded through `writeTable`/`writeJoinTableToZipEntry`. Tests: `CsvWriterTest.
   the eID attribute floats ahead of the other own columns.
 - Shared helpers `orderColumns(...)`, `resolveAlphabetical(opts)`, `resolveIdOnTop(eClass, …)` in
   `TabularDocumentBuilder`. Tests in `TabularDocumentBuilderOptionTest`.
-- Scope: exporters only. NOTE/follow-up: `FIELD_ORDER` is declared but **not wired into the Jackson
+- Scope: exporters only. ~~NOTE/follow-up: `FIELD_ORDER` is declared but **not wired into the Jackson
   serialization path** anywhere (`sortPropertiesAlphabetically` is never set from options) — open a
-  separate issue to wire alphabetical ordering into JSON/Jackson for full consistency.
+  separate issue to wire alphabetical ordering into JSON/Jackson for full consistency.~~ **Fixed 2026-06-26 (issue #31).**
 
 **Unify tabular export on one path; honor value gate + enumSerialization everywhere:**
 
@@ -1130,6 +1146,12 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 3. isChangeable() pre-check not documented
 
 ### 7.3 Fixed Bugs
+
+**2026-06-26:**
+✅ **`fieldOrder=ALPHABETICAL` ignored in JSON/Jackson serialization** (`CodecResource`, issue #31)
+- `createObjectMapper()` never read `ConfigProperty.FIELD_ORDER` from the resolver, so `CodecModule` was always built with `sortPropertiesAlphabetically=false`
+- Fix: extract `FIELD_ORDER` from `operationResolver` and pass `"ALPHABETICAL".equalsIgnoreCase(fieldOrder)` to `CodecModule.Builder.sortPropertiesAlphabetically()`
+- Tests: `FormatDelegateJsonRoundTripTest.FieldOrder` (2 tests)
 
 **2026-06-25:**
 ✅ **`idOnTop=true` had no effect on JSON/YAML field order** (`CodecEObjectSerializer`)
