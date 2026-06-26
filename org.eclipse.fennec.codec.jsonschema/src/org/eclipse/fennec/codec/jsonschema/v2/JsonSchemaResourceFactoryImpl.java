@@ -19,12 +19,15 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
+import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 /**
  * Resource factory for JSON Schema resources.
@@ -50,7 +53,8 @@ import org.osgi.service.component.annotations.Reference;
 public class JsonSchemaResourceFactoryImpl extends ResourceFactoryImpl {
 	
 	private final MetadataService metadataService;
-	
+	private volatile CodecValueRegistry valueRegistry;
+
 	/**
 	 * OSGi DS constructor with injected MetadataService.
 	 *
@@ -60,7 +64,7 @@ public class JsonSchemaResourceFactoryImpl extends ResourceFactoryImpl {
 	public JsonSchemaResourceFactoryImpl(@Reference MetadataService metadataService) {
 		this.metadataService = metadataService;
 	}
-	
+
 	/**
 	 * Non-OSGi constructor for standalone usage.
 	 */
@@ -68,8 +72,19 @@ public class JsonSchemaResourceFactoryImpl extends ResourceFactoryImpl {
 		MetadataWhiteboard whiteboard = MetadataServiceFactory.create();
 		this.metadataService = whiteboard;
 	}
-	
-	
+
+	@Reference(
+			cardinality = ReferenceCardinality.OPTIONAL,
+			policy = ReferencePolicy.DYNAMIC,
+			unbind = "unsetValueRegistry"
+	)
+	void setValueRegistry(CodecValueRegistry registry) {
+		this.valueRegistry = registry;
+	}
+
+	void unsetValueRegistry(CodecValueRegistry registry) {
+		this.valueRegistry = null;
+	}
 
 	/**
 	 * Creates a JSON Schema resource for the given URI.
@@ -79,7 +94,7 @@ public class JsonSchemaResourceFactoryImpl extends ResourceFactoryImpl {
 	 */
 	@Override
 	public Resource createResource(URI uri) {
-		return new JsonSchemaResourceImpl(uri, metadataService);
+		return new JsonSchemaResourceImpl(uri, metadataService, valueRegistry);
 	}
 	
 	/**

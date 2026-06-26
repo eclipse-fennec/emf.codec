@@ -357,6 +357,69 @@ class CodecResourceCustomValueTest {
     }
 
     @Nested
+    @DisplayName("Name Binding Tests (via options)")
+    class NameBindingTests {
+
+        @Test
+        @DisplayName("Writer name binding via save options resolves from registry")
+        void writerNameBindingViaSaveOptions() throws IOException {
+            CodecValueWriter<String, EAttribute> uppercaseWriter = new CodecValueWriter<>() {
+                @Override
+                public String getName() {
+                    return "uppercase";
+                }
+
+                @Override
+                public void write(String value, EAttribute feature, CodecWriterContext ctx) throws IOException {
+                    ctx.getGenerator().writeString(value.toUpperCase());
+                }
+            };
+
+            valueRegistry.register(uppercaseWriter);
+
+            EObject person = createPerson("alice", 30);
+            ConfigurationResolver resolver = ConfigurationResolver.defaults();
+
+            Map<String, Object> saveOptions = Map.of(
+                    CodecOptions.CODEC_FEATURE_VALUE_WRITERS, Map.of(nameAttribute, "uppercase")
+            );
+
+            String json = serializeWithOptions(person, resolver, valueRegistry, saveOptions);
+            assertTrue(json.contains("\"ALICE\""), "Should contain uppercase ALICE, but got: " + json);
+        }
+
+        @Test
+        @DisplayName("Reader name binding via load options resolves from registry")
+        void readerNameBindingViaLoadOptions() throws IOException {
+            CodecValueReader<String, EAttribute> lowercaseReader = new CodecValueReader<>() {
+                @Override
+                public String getName() {
+                    return "lowercase";
+                }
+
+                @Override
+                public String read(CodecReaderContext ctx, EAttribute feature) throws IOException {
+                    return ctx.getParser().getString().toLowerCase();
+                }
+            };
+
+            valueRegistry.register(lowercaseReader);
+
+            String json = "{\"name\": \"UPPERCASE_NAME\", \"age\": 25}";
+            ConfigurationResolver resolver = ConfigurationResolver.defaults();
+
+            Map<String, Object> loadOptions = Map.of(
+                    CodecResource.CODEC_ROOT_TYPE, personClass,
+                    CodecOptions.CODEC_FEATURE_VALUE_READERS, Map.of(nameAttribute, "lowercase")
+            );
+
+            EObject loaded = deserializeWithOptions(json, resolver, valueRegistry, loadOptions);
+            assertNotNull(loaded);
+            assertEquals("uppercase_name", loaded.eGet(nameAttribute));
+        }
+    }
+
+    @Nested
     @DisplayName("Instance Binding Tests (via options)")
     class InstanceBindingTests {
 

@@ -20,9 +20,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
-import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
-import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 import org.osgi.service.component.annotations.Activate;
@@ -48,7 +46,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 public class CodecResourceFactoryComponent extends ResourceFactoryImpl {
 
 	private final MetadataService metadataService;
-	private final CodecValueRegistry valueRegistry = new CodecValueRegistry();
+	private volatile CodecValueRegistry valueRegistry;
 	private volatile ConfigurationResolver resolver = ConfigurationResolver.defaults();
 
 	@Activate
@@ -57,41 +55,27 @@ public class CodecResourceFactoryComponent extends ResourceFactoryImpl {
 		this.metadataService = metadataService;
 	}
 
-	// --- Whiteboard: Custom Value Writers ---
 	@Reference(
-			cardinality = ReferenceCardinality.MULTIPLE,
+			cardinality = ReferenceCardinality.OPTIONAL,
 			policy = ReferencePolicy.DYNAMIC,
-			unbind = "removeValueWriter"
-			)
-	void addValueWriter(CodecValueWriter<?, ?> writer) {
-		valueRegistry.register(writer);
+			unbind = "unsetValueRegistry"
+	)
+	void setValueRegistry(CodecValueRegistry registry) {
+		this.valueRegistry = registry;
 	}
 
-	void removeValueWriter(CodecValueWriter<?, ?> writer) {
-		valueRegistry.unregisterWriter(writer.getName());
-	}
-
-	// --- Whiteboard: Custom Value Readers ---
-	@Reference(
-			cardinality = ReferenceCardinality.MULTIPLE,
-			policy = ReferencePolicy.DYNAMIC,
-			unbind = "removeValueReader"
-			)
-	void addValueReader(CodecValueReader<?, ?> reader) {
-		valueRegistry.register(reader);
-	}
-
-	void removeValueReader(CodecValueReader<?, ?> reader) {
-		valueRegistry.unregisterReader(reader.getName());
+	void unsetValueRegistry(CodecValueRegistry registry) {
+		this.valueRegistry = null;
 	}
 
 	@Override
 	public Resource createResource(URI uri) {
+		CodecValueRegistry reg = valueRegistry;
 		return new CodecResource(
 				uri,
 				metadataService,
 				resolver,
-				valueRegistry.copy(),  // snapshot to avoid concurrent modification
+				reg != null ? reg.copy() : null,
 				null,                  // mapperBuilder (default)
 				null,                  // formatProvider (JSON = null)
 				null                   // typeDiscriminatorReader (built internally)

@@ -29,6 +29,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.CodecOptions;
+import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
@@ -124,15 +125,81 @@ public abstract class AbstractCustomValueTCK {
         assertEquals(3.14, (Double) loaded.eGet(valueAttr), 0.001);
     }
 
+    @Test
+    @DisplayName("writer resolved by name from registry via save options")
+    void writerResolvedByNameFromRegistry() throws IOException {
+        UppercaseWriter uppercaseWriter = new UppercaseWriter();
+
+        CodecValueRegistry registry = new CodecValueRegistry();
+        registry.register(uppercaseWriter);
+
+        EObject record = testPackage.getEFactoryInstance().create(dataRecordClass);
+        record.eSet(idAttr, "rec-2");
+        record.eSet(labelAttr, "hello");
+        record.eSet(valueAttr, 1.0);
+
+        CodecResource saveResource = createResource(registry);
+        saveResource.getContents().add(record);
+
+        Map<String, Object> saveOptions = new HashMap<>();
+        saveOptions.put(CodecOptions.CODEC_FEATURE_VALUE_WRITERS, Map.of(labelAttr, "uppercaseWriter"));
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        saveResource.save(out, saveOptions);
+
+        // Verify the serialized form contains the uppercase value
+        String serialized = out.toString(java.nio.charset.StandardCharsets.UTF_8);
+        assertNotNull(serialized);
+        assertEquals(true, serialized.contains("HELLO"),
+                "Serialized output should contain uppercase HELLO, but got: " + serialized);
+    }
+
+    @Test
+    @DisplayName("reader resolved by name from registry via load options")
+    void readerResolvedByNameFromRegistry() throws IOException {
+        LowercaseReader lowercaseReader = new LowercaseReader();
+
+        CodecValueRegistry registry = new CodecValueRegistry();
+        registry.register(lowercaseReader);
+
+        EObject record = testPackage.getEFactoryInstance().create(dataRecordClass);
+        record.eSet(idAttr, "rec-3");
+        record.eSet(labelAttr, "UPPERCASE");
+        record.eSet(valueAttr, 2.0);
+
+        // Serialize without any custom writer (plain)
+        CodecResource saveResource = createResource(null);
+        saveResource.getContents().add(record);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        saveResource.save(out, Map.of());
+
+        // Deserialize with the lowercase reader resolved by name
+        CodecResource loadResource = createResource(registry);
+        Map<String, Object> loadOptions = new HashMap<>();
+        loadOptions.put(CodecResource.CODEC_ROOT_TYPE, dataRecordClass);
+        loadOptions.put(CodecOptions.CODEC_FEATURE_VALUE_READERS, Map.of(labelAttr, "lowercaseReader"));
+
+        loadResource.load(new ByteArrayInputStream(out.toByteArray()), loadOptions);
+
+        EObject loaded = loadResource.getContents().isEmpty() ? null : loadResource.getContents().get(0);
+        assertNotNull(loaded);
+        assertEquals("uppercase", loaded.eGet(labelAttr),
+                "Label should be lowercase after name-resolved reader");
+    }
+
     // ========================================================================
     // Helpers
     // ========================================================================
 
     private CodecResource createResource() {
+        return createResource(null);
+    }
+
+    private CodecResource createResource(CodecValueRegistry registry) {
         return new CodecResource(
                 URI.createURI("test://customvalue." + getFileExtension()),
                 metadataService, ConfigurationResolver.defaults(),
-                null, null, createFormatProvider());
+                registry, null, createFormatProvider());
     }
 
     /**
