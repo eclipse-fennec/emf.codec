@@ -431,16 +431,21 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="schemas" upperBound="-1"
         eType="#//SchemaEntry" containment="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="OpenAPI-conformant JSON Schema representation. Always populated during deserialization."/>
+        <details key="documentation" value="OpenAPI-conformant JSON Schema representation (SchemaEntry EMap). No longer populated by the codec — use schemasPackage for EMF access. Kept for backward compatibility; will be removed in a future release."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="ignore" value="true"/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="schemasPackage" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EPackage"
         containment="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="EMF-native representation of schemas. Populated during deserialization if JSON-Schema to EPackage conversion succeeds. Not serialized (derived from schemas)."/>
+        <details key="documentation" value="EMF-native representation of the OpenAPI schemas section. Read from and written to the JSON 'schemas' key via EPackageValueReader/EPackageValueWriter — no post-processing required."/>
       </eAnnotations>
       <eAnnotations source="http://eclipse.org/fennec/codec">
-        <details key="serialize" value="false"/>
+        <details key="key" value="schemas"/>
+        <details key="valueReaderName" value="jsonSchemaToEPackage"/>
+        <details key="valueWriterName" value="ePackageToOpenApiSchemas"/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="responses" upperBound="-1"
