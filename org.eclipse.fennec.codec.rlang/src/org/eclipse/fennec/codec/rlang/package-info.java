@@ -15,7 +15,7 @@
 @org.osgi.annotation.bundle.Capability(
 		namespace = "emf.configurator",
 		name = "RESOURCE_FACTORY",
-		attribute = "emf.configuratorName=FennecCodecBson",
+		attribute = "emf.configuratorName=FennecCodecRLang",
 		version = "1.0.0"
 )
-package org.eclipse.fennec.codec.bson;
+package org.eclipse.fennec.codec.rlang;

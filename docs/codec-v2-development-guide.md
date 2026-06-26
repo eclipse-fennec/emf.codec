@@ -29,6 +29,36 @@ Added regression tests to prevent the crash from being reintroduced:
 
 ---
 
+**OSGi `@RequireCodec*` meta-annotations and `@Capability` declarations for all format bundles:**
+
+Added the OSGi resolver wiring pattern used by gecko (`emf.configurator` namespace) to every codec format bundle, so consumers can declare their format dependencies declaratively rather than spelling out raw `Require-Capability` headers.
+
+*Pattern* — for each format bundle, three artefacts are created:
+1. `annotation/RequireCodec<Format>.java` — a `@Retention(CLASS)` `@Target({TYPE, PACKAGE})` meta-annotation carrying `@Requirement(namespace="emf.configurator", name="RESOURCE_FACTORY", filter="(emf.configuratorName=FennecCodec<Format>)")`. Consumers place this on their `package-info.java` or type.
+2. `annotation/package-info.java` — exports the new annotation package (`@Export @Version("1.0.0")`).
+3. Main package's `package-info.java` — adds `@Capability(namespace="emf.configurator", name="RESOURCE_FACTORY", attribute="emf.configuratorName=FennecCodec<Format>", version="1.0.0")` so bnd embeds the matching `Provide-Capability` header in the bundle manifest.
+
+*Bundles covered and capability names:*
+
+| Bundle | Annotation | Capability name |
+|--------|-----------|-----------------|
+| `org.eclipse.fennec.codec.rest` | `@RequireCodecMessageBodyReaderWriter` | `fennec.codec.rest` ns, `messagebody` name |
+| `org.eclipse.fennec.codec` | `@RequireCodecJson` | `FennecCodecJson` |
+| `org.eclipse.fennec.codec.yaml` | `@RequireCodecYaml` | `FennecCodecYaml` |
+| `org.eclipse.fennec.codec.bson` | `@RequireCodecBson` | `FennecCodecBson` |
+| `org.eclipse.fennec.codec.cbor` | `@RequireCodecCbor` | `FennecCodecCbor` |
+| `org.eclipse.fennec.codec.csv` | `@RequireCodecCsv` | `FennecCodecCsv` |
+| `org.eclipse.fennec.codec.ods` | `@RequireCodecOds` | `FennecCodecOds` |
+| `org.eclipse.fennec.codec.xlsx` | `@RequireCodecXlsx` | `FennecCodecXlsx` |
+| `org.eclipse.fennec.codec.rlang` | `@RequireCodecRLang` | `FennecCodecRLang` |
+| `org.eclipse.fennec.codec.jsonschema` | `@RequireCodecJsonSchema` (in `v2.annotation`) | `FennecCodecJsonSchema` |
+
+*Note:* The `codec.rest` bundle uses its own `fennec.codec.rest` namespace (capability `messagebody`) rather than `emf.configurator`, because `@RequireCodecMessageBodyReaderWriter` requires the JAX-RS message body reader/writer component, not a resource factory.
+
+The `@Capability` for jsonschema goes on `v2/package-info.java` because `JsonSchemaResourceFactoryImpl` lives in `org.eclipse.fennec.codec.jsonschema.v2`; the annotation class lives in `v2.annotation`.
+
+---
+
 **Session Summary (2026-06-25 latest):**
 
 **`idOnTop` bug fix + EIDAttribute feature promotion (JSON/YAML path):**

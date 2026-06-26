@@ -12,10 +12,4 @@
  ********************************************************************/
 @org.osgi.annotation.bundle.Export
 @org.osgi.annotation.versioning.Version("1.0.0")
-@org.osgi.annotation.bundle.Capability(
-		namespace = "emf.configurator",
-		name = "RESOURCE_FACTORY",
-		attribute = "emf.configuratorName=FennecCodecBson",
-		version = "1.0.0"
-)
-package org.eclipse.fennec.codec.bson;
+package org.eclipse.fennec.codec.bson.annotation;
