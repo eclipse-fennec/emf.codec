@@ -84,28 +84,28 @@ public class JsonSchemaResourceImpl extends CodecResource {
 	 * @param uri the resource URI
 	 */
 	public JsonSchemaResourceImpl(URI uri, MetadataService metadataService) {
-		super(uri, metadataService, createResolver(), createValueRegistry(), null);
+		this(uri, metadataService, null);
+	}
+
+	public JsonSchemaResourceImpl(URI uri, MetadataService metadataService, CodecValueRegistry registry) {
+		super(uri, metadataService, createResolver(),
+				registry != null ? registry : createFallbackValueRegistry(), null);
 		this.ePackageToSchemaConverter = new EPackageToJsonSchemaConverter();
 		this.schemaToEPackageConverter = new JsonSchemaToEPackageConverter();
-		
 	}
-	
+
 	private static ConfigurationResolver createResolver() {
 		return ConfigurationResolver.builder()
-				.typeInclude(false)  // jsonschema doesn't use _type for root				
+				.typeInclude(false)  // jsonschema doesn't use _type for root
 				.build();
 	}
 
-	private static CodecValueRegistry createValueRegistry() {
+	private static CodecValueRegistry createFallbackValueRegistry() {
 		CodecValueRegistry registry = new CodecValueRegistry();
-
-		// Register readers and writers for EPackage <-> JsonSchema and EClass <-> JsonSchema 
 		registry.register(new EPackageValueReader());
 		registry.register(new EPackageValueWriter());
-		
 		registry.register(new EClassValueReader());
 		registry.register(new EClassValueWriter());
-
 		return registry;
 	}
 

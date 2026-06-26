@@ -16,6 +16,14 @@ package org.eclipse.fennec.codec.playground;
 
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.fennec.codec.annotation.RequireCodecJson;
+import org.eclipse.fennec.codec.bson.annotation.RequireCodecBson;
+import org.eclipse.fennec.codec.csv.annotation.RequireCodecCsv;
+import org.eclipse.fennec.codec.ods.annotation.RequireCodecOds;
+import org.eclipse.fennec.codec.rest.annotations.RequireCodecMessageBodyReaderWriter;
+import org.eclipse.fennec.codec.rlang.annotation.RequireCodecRLang;
+import org.eclipse.fennec.codec.xlsx.annotation.RequireCodecXlsx;
+import org.eclipse.fennec.codec.yaml.annotation.RequireCodecYaml;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsName;
@@ -33,6 +41,14 @@ import jakarta.ws.rs.core.Response;
  * @author ilenia
  * @since Jun 3, 2026
  */
+@RequireCodecJson
+@RequireCodecCsv
+@RequireCodecOds
+@RequireCodecXlsx
+@RequireCodecRLang
+@RequireCodecYaml
+@RequireCodecBson
+@RequireCodecMessageBodyReaderWriter
 @JakartarsResource()
 @JakartarsName("ExporterResource")
 @Component(name = "ExporterResource", service = ExporterResource.class, scope = ServiceScope.PROTOTYPE)

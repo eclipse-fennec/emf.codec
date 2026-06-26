@@ -450,6 +450,9 @@ public class CodecResource extends ResourceImpl {
     private <T> void doSaveWithFormat(OutputStream outputStream,
             Map<String, Object> effectiveOptions, ConfigurationResolver operationResolver) throws IOException {
         CodecFormatProvider<?, T> provider = (CodecFormatProvider<?, T>) formatProvider;
+        if (valueRegistry != null) {
+            effectiveOptions.put(CodecOptions.INTERNAL_VALUE_REGISTRY, valueRegistry);
+        }
         FormatDelegate<T> delegate = provider.createWriter((T) outputStream, getContents(),
                 effectiveOptions, operationResolver);
 

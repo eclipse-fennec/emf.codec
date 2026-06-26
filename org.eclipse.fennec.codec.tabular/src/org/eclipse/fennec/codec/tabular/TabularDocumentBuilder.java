@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.tabular;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayDeque;
@@ -41,7 +43,18 @@ import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.eclipse.fennec.codec.config.IdConfig;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
+import org.eclipse.fennec.codec.value.CodecValueRegistry;
+import org.eclipse.fennec.codec.value.CodecValueWriter;
+import org.eclipse.fennec.codec.value.CodecWriterContext;
+import org.eclipse.fennec.codec.value.EffectiveCodecConfig;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.json.JsonMapper;
 import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
 import org.eclipse.fennec.codec.tabular.model.tabular.BigDecimalCell;
 import org.eclipse.fennec.codec.tabular.model.tabular.BinaryCell;
@@ -115,10 +128,15 @@ public final class TabularDocumentBuilder {
 
         DiagnosticCollector diagnostics = new DiagnosticCollector();
 
+        CodecValueRegistry registry = opts.get(CodecOptions.INTERNAL_VALUE_REGISTRY) instanceof CodecValueRegistry r ? r : null;
+        @SuppressWarnings("unchecked")
+        Map<EStructuralFeature, String> featureWriters = opts.get(CodecOptions.CODEC_FEATURE_VALUE_WRITERS) instanceof Map<?, ?> m
+                ? (Map<EStructuralFeature, String>) m : null;
+
         switch (mode) {
-            case IGNORE -> buildIgnore(rootList, opts, resolver, diagnostics, doc);
-            case FLAT -> buildFlat(rootList, opts, resolver, diagnostics, doc);
-            case SQL_TABLES -> buildSqlTables(rootList, opts, resolver, diagnostics, doc);
+            case IGNORE -> buildIgnore(rootList, opts, resolver, diagnostics, doc, registry, featureWriters);
+            case FLAT -> buildFlat(rootList, opts, resolver, diagnostics, doc, registry, featureWriters);
+            case SQL_TABLES -> buildSqlTables(rootList, opts, resolver, diagnostics, doc, registry, featureWriters);
         }
         return doc;
     }
@@ -128,7 +146,8 @@ public final class TabularDocumentBuilder {
     // ========================================================================
 
     private static void buildIgnore(List<? extends EObject> roots, Map<String, Object> opts,
-            ConfigurationResolver resolver, DiagnosticCollector diagnostics, TabularDocument doc) {
+            ConfigurationResolver resolver, DiagnosticCollector diagnostics, TabularDocument doc,
+            CodecValueRegistry registry, Map<EStructuralFeature, String> featureWriters) {
 
         if (roots.isEmpty()) {
             return;
@@ -188,7 +207,7 @@ public final class TabularDocumentBuilder {
             for (EAttribute attr : attrColumns) {
                 FeatureConfig fc = resolveFeatureConfig(attr, resolver, diagnostics);
                 row.getCells().add(passesValueGate(root, attr, fc)
-                        ? makeAttributeCell(root, attr, fc)
+                        ? makeAttributeCell(root, attr, fc, registry, featureWriters)
                         : TabularFactory.eINSTANCE.createEmptyCell());
             }
             table.getRows().add(row);
@@ -201,7 +220,8 @@ public final class TabularDocumentBuilder {
     // ========================================================================
 
     private static void buildFlat(List<? extends EObject> roots, Map<String, Object> opts,
-            ConfigurationResolver resolver, DiagnosticCollector diagnostics, TabularDocument doc) {
+            ConfigurationResolver resolver, DiagnosticCollector diagnostics, TabularDocument doc,
+            CodecValueRegistry registry, Map<EStructuralFeature, String> featureWriters) {
 
         Map<?, ?> columnTypeOverrides = optionAsMap(opts, CodecTabularOptions.OPTION_COLUMN_TYPES);
 
@@ -219,7 +239,7 @@ public final class TabularDocumentBuilder {
             }
             LinkedHashMap<String, Cell> rowMap = new LinkedHashMap<>();
             Deque<EObject> pathStack = new ArrayDeque<>();
-            flatten(root, "", rowMap, columnOrder, columnAttributes, pathStack, resolver, diagnostics);
+            flatten(root, "", rowMap, columnOrder, columnAttributes, pathStack, resolver, diagnostics, registry, featureWriters);
             rowMaps.add(rowMap);
         }
 
@@ -274,7 +294,8 @@ public final class TabularDocumentBuilder {
     private static void flatten(EObject obj, String prefix,
             LinkedHashMap<String, Cell> rowMap, LinkedHashSet<String> columnOrder,
             Map<String, EAttribute> columnAttributes, Deque<EObject> path,
-            ConfigurationResolver resolver, DiagnosticCollector diagnostics) {
+            ConfigurationResolver resolver, DiagnosticCollector diagnostics,
+            CodecValueRegistry registry, Map<EStructuralFeature, String> featureWriters) {
 
         // Identity-based cycle guard.
         for (EObject ancestor : path) {
@@ -301,7 +322,7 @@ public final class TabularDocumentBuilder {
                         continue;
                     }
                     String column = prefix + resolvedKey;
-                    rowMap.put(column, makeAttributeCell(obj, attr, fc));
+                    rowMap.put(column, makeAttributeCell(obj, attr, fc, registry, featureWriters));
                     columnOrder.add(column);
                     columnAttributes.putIfAbsent(column, attr);
                 } else if (feat instanceof EReference ref) {
@@ -316,14 +337,15 @@ public final class TabularDocumentBuilder {
                                 if (item instanceof EObject child) {
                                     flatten(child, prefix + resolvedKey + "." + idx + ".",
                                             rowMap, columnOrder, columnAttributes, path,
-                                            resolver, diagnostics);
+                                            resolver, diagnostics, registry, featureWriters);
                                 }
                                 idx++;
                             }
                         }
                     } else if (value instanceof EObject child) {
                         flatten(child, prefix + resolvedKey + ".",
-                                rowMap, columnOrder, columnAttributes, path, resolver, diagnostics);
+                                rowMap, columnOrder, columnAttributes, path, resolver, diagnostics,
+                                registry, featureWriters);
                     }
                 }
             }
@@ -357,7 +379,8 @@ public final class TabularDocumentBuilder {
     }
 
     private static void buildSqlTables(List<? extends EObject> roots, Map<String, Object> opts,
-            ConfigurationResolver resolver, DiagnosticCollector diagnostics, TabularDocument doc) {
+            ConfigurationResolver resolver, DiagnosticCollector diagnostics, TabularDocument doc,
+            CodecValueRegistry registry, Map<EStructuralFeature, String> featureWriters) {
 
         MultiValuedRefStrategy strategy = resolveMultiValuedRefStrategy(opts);
         Map<?, ?> columnTypeOverrides = optionAsMap(opts, CodecTabularOptions.OPTION_COLUMN_TYPES);
@@ -369,7 +392,8 @@ public final class TabularDocumentBuilder {
         boolean alphabetical = resolveAlphabetical(opts);
         for (Map.Entry<EClass, List<EObject>> entry : walk.byClass.entrySet()) {
             Table table = buildTableForEClass(entry.getKey(), entry.getValue(), walk,
-                    columnTypeOverrides, fkSuffix, schemas, resolver, diagnostics, alphabetical);
+                    columnTypeOverrides, fkSuffix, schemas, resolver, diagnostics, alphabetical,
+                    registry, featureWriters);
             doc.getTables().add(table);
         }
         for (Map.Entry<JoinTableKey, List<JoinTableEntry>> entry : walk.joinTableEntries.entrySet()) {
@@ -447,7 +471,8 @@ public final class TabularDocumentBuilder {
 
     private static Table buildTableForEClass(EClass eClass, List<EObject> objects, WalkResult walk,
             Map<?, ?> columnTypeOverrides, String fkSuffix, Map<?, ?> schemas,
-            ConfigurationResolver resolver, DiagnosticCollector diagnostics, boolean alphabetical) {
+            ConfigurationResolver resolver, DiagnosticCollector diagnostics, boolean alphabetical,
+            CodecValueRegistry registry, Map<EStructuralFeature, String> featureWriters) {
 
         Table table = TabularFactory.eINSTANCE.createTable();
         table.setEClass(eClass);
@@ -551,7 +576,7 @@ public final class TabularDocumentBuilder {
                 } else {
                     EAttribute attr = (EAttribute) oc.feature();
                     row.getCells().add(passesValueGate(obj, attr, oc.config())
-                            ? makeAttributeCell(obj, attr, oc.config())
+                            ? makeAttributeCell(obj, attr, oc.config(), registry, featureWriters)
                             : TabularFactory.eINSTANCE.createEmptyCell());
                 }
             }
@@ -635,11 +660,29 @@ public final class TabularDocumentBuilder {
     // Cell construction — typed cells dispatched on the EAttribute's EType.
     // ========================================================================
 
-    private static Cell makeAttributeCell(EObject obj, EAttribute attr, FeatureConfig fc) {
+    @SuppressWarnings("unchecked")
+    private static Cell makeAttributeCell(EObject obj, EAttribute attr, FeatureConfig fc,
+            CodecValueRegistry registry, Map<EStructuralFeature, String> featureWriters) {
         Object value = obj.eGet(attr);
         if (value == null) {
             return TabularFactory.eINSTANCE.createEmptyCell();
         }
+
+        // Apply a named CodecValueWriter when one is configured for this attribute.
+        if (registry != null && featureWriters != null) {
+            String writerName = featureWriters.get(attr);
+            if (writerName != null) {
+                CodecValueWriter<Object, EAttribute> writer =
+                        (CodecValueWriter<Object, EAttribute>) registry.getWriter(writerName).orElse(null);
+                if (writer != null) {
+                    Cell cell = invokeWriterAsCell(writer, value, attr);
+                    if (cell != null) {
+                        return cell;
+                    }
+                }
+            }
+        }
+
         String dateFormat = fc != null ? fc.getDateFormat() : null;
         EnumSerializationStrategy enumStrategy = fc != null ? fc.getEnumSerialization() : null;
 
@@ -660,6 +703,70 @@ public final class TabularDocumentBuilder {
             return cell;
         }
         return makeScalarCell(value, dateFormat, enumStrategy);
+    }
+
+    /**
+     * Invokes a {@link CodecValueWriter} by routing it through a temporary Jackson generator,
+     * then reads the produced JSON token back as a typed {@link Cell}.
+     */
+    private static Cell invokeWriterAsCell(CodecValueWriter<Object, EAttribute> writer,
+            Object value, EAttribute attr) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectMapper mapper = JsonMapper.builder().build();
+            try (JsonGenerator gen = mapper.createGenerator(baos)) {
+                writer.write(value, attr, new MinimalWriterContext(gen));
+            }
+            try (JsonParser parser = mapper.createParser(baos.toByteArray())) {
+                JsonToken token = parser.nextToken();
+                if (token == null) {
+                    return null;
+                }
+                switch (token) {
+                    case VALUE_STRING: {
+                        StringCell cell = TabularFactory.eINSTANCE.createStringCell();
+                        cell.setValue(parser.getString());
+                        return cell;
+                    }
+                    case VALUE_NUMBER_INT: {
+                        LongCell cell = TabularFactory.eINSTANCE.createLongCell();
+                        cell.setValue(parser.getLongValue());
+                        return cell;
+                    }
+                    case VALUE_NUMBER_FLOAT: {
+                        DoubleCell cell = TabularFactory.eINSTANCE.createDoubleCell();
+                        cell.setValue(parser.getDoubleValue());
+                        return cell;
+                    }
+                    case VALUE_TRUE: case VALUE_FALSE: {
+                        BooleanCell cell = TabularFactory.eINSTANCE.createBooleanCell();
+                        cell.setValue(parser.getBooleanValue());
+                        return cell;
+                    }
+                    default:
+                        return null;
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.warning(() -> "TabularDocumentBuilder: value writer failed for attribute '"
+                    + attr.getName() + "': " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Minimal {@link CodecWriterContext} backed by a capturing {@link JsonGenerator}. */
+    private static final class MinimalWriterContext implements CodecWriterContext {
+        private final JsonGenerator gen;
+        private final DiagnosticCollector diagnostics = new DiagnosticCollector();
+
+        MinimalWriterContext(JsonGenerator gen) {
+            this.gen = gen;
+        }
+
+        @Override public JsonGenerator getGenerator() { return gen; }
+        @Override public SerializationContext getJacksonContext() { return null; }
+        @Override public EffectiveCodecConfig getConfig() { return null; }
+        @Override public DiagnosticCollector getDiagnostics() { return diagnostics; }
     }
 
     private static Cell makeScalarCell(Object value, String dateFormat,

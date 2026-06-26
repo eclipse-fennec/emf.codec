@@ -1,13 +1,22 @@
 -library: enableEMF
 -buildpath: \
 	org.apache.felix.gogo.runtime,\
-	org.eclipse.fennec.codec,\
-	org.eclipse.fennec.model.metadata,\
-	org.gecko.emf.osgi.example.model.basic,\
-	org.eclipse.fennec.codec.tabular,\
-	org.eclipse.fennec.codec.tabular.model,\
-	org.osgi.service.jakartars,\
-	jakarta.ws.rs-api;version=latest
+	org.eclipse.fennec.codec;version=snapshot,\
+	org.eclipse.fennec.codec.api;version=snapshot,\
+	tools.jackson.core.jackson-core;version=latest,\
+	org.eclipse.fennec.model.metadata;version=snapshot,\
+	org.gecko.emf.osgi.example.model.basic;version=latest,\
+	org.eclipse.fennec.codec.tabular;version=snapshot,\
+	org.eclipse.fennec.codec.tabular.model;version=snapshot,\
+	org.osgi.service.jakartars;version=latest,\
+	jakarta.ws.rs-api;version=latest,\
+	org.eclipse.fennec.codec.csv;version=snapshot,\
+	org.eclipse.fennec.codec.ods;version=snapshot,\
+	org.eclipse.fennec.codec.xlsx;version=snapshot,\
+	org.eclipse.fennec.codec.rlang;version=snapshot,\
+	org.eclipse.fennec.codec.bson;version=snapshot,\
+	org.eclipse.fennec.codec.yaml;version=snapshot,\
+	org.eclipse.fennec.codec.rest;version=snapshot
 	
 -includeresource: OSGI-INF/configurator/=config/
 Require-Capability: \

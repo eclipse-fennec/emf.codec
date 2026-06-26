@@ -790,7 +790,21 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
             }
         }
 
-        // Priority 2: Use pre-resolved reader from registry
+        // Priority 2: Name-based binding from options (runtime override)
+        if (ctxt != null && entryContext != null) {
+            String readerName = ContextHelper.getFeatureValueReader(ctxt, attribute);
+            if (readerName != null && !readerName.isEmpty()) {
+                CodecValueRegistry registry = entryContext.getValueRegistry();
+                if (registry != null) {
+                    CodecValueReader<?, ?> namedReader = registry.getReader(readerName).orElse(null);
+                    if (namedReader != null) {
+                        return (CodecValueReader<Object, EAttribute>) namedReader;
+                    }
+                }
+            }
+        }
+
+        // Priority 3: Pre-resolved reader from registry (via valueReaderName annotation/config)
         return customReader;
     }
 

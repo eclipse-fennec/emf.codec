@@ -20,12 +20,15 @@ import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.tabular.CodecTabularOptions;
+import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 /**
  * OSGi DS component that registers a {@link Resource.Factory} for CSV-style
@@ -65,10 +68,24 @@ public class CsvResourceFactoryComponent extends ResourceFactoryImpl {
     private static final String SQL_TABLES_EXTENSION = "csvz";
 
     private final MetadataService metadataService;
+    private volatile CodecValueRegistry valueRegistry;
 
     @Activate
     public CsvResourceFactoryComponent(@Reference MetadataService metadataService) {
         this.metadataService = metadataService;
+    }
+
+    @Reference(
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetValueRegistry"
+    )
+    void setValueRegistry(CodecValueRegistry registry) {
+        this.valueRegistry = registry;
+    }
+
+    void unsetValueRegistry(CodecValueRegistry registry) {
+        this.valueRegistry = null;
     }
 
     @Override
@@ -78,10 +95,11 @@ public class CsvResourceFactoryComponent extends ResourceFactoryImpl {
                         Map.of(CodecTabularOptions.OPTION_REFERENCE_MODE,
                                 ReferenceMode.SQL_TABLES))
                 : new CsvFormatProvider();
+        CodecValueRegistry reg = valueRegistry;
         return new CodecResource(
                 uri, metadataService,
                 ConfigurationResolver.defaults(),
-                null, null,
+                reg != null ? reg.copy() : null, null,
                 provider);
     }
 

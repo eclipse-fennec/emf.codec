@@ -94,16 +94,9 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
 	bnd.identity;id='org.eclipse.fennec.codec.playground',\
 	bnd.identity;id='org.gecko.emf.osgi.example.model.basic',\
-	bnd.identity;id='org.eclipse.fennec.codec.csv',\
-	bnd.identity;id='org.eclipse.fennec.codec.ods',\
-	bnd.identity;id='org.eclipse.fennec.codec.rlang',\
-	bnd.identity;id='org.eclipse.fennec.codec.xlsx',\
 	bnd.identity;id='org.apache.logging.log4j.api',\
 	bnd.identity;id='org.apache.servicemix.bundles.xmlbeans',\
 	bnd.identity;id='org.apache.commons.commons-collections4',\
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.component',\
-	bnd.identity;id='org.apache.commons.commons-io',\
-	bnd.identity;id='org.eclipse.fennec.codec.rest',\
-	bnd.identity;id='org.eclipse.fennec.codec.bson',\
-	bnd.identity;id='org.eclipse.fennec.codec.yaml'
+	bnd.identity;id='org.apache.commons.commons-io'
 -runee: JavaSE-21

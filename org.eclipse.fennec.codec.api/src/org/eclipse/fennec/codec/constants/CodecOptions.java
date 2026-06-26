@@ -579,4 +579,11 @@ public final class CodecOptions {
      */
     public static final String CODEC_THROW_ON_VALIDATION_WARNINGS =
             "codec.throwOnValidationWarnings";
+
+    /**
+     * Internal: {@code CodecValueRegistry} instance forwarded from {@code CodecResource} to
+     * format delegates (e.g. tabular) so that named value writers can be resolved at
+     * serialization time. Not a user-facing option — set automatically by the infrastructure.
+     */
+    public static final String INTERNAL_VALUE_REGISTRY = "codec.internal.valueRegistry";
 }

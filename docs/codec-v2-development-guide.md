@@ -77,6 +77,37 @@ The `@Capability` for jsonschema goes on `v2/package-info.java` because `JsonSch
 
 ---
 
+**Fix: `CODEC_FEATURE_VALUE_WRITERS` name-based binding silently ignored; tabular path now supports custom value writers:**
+
+Two related issues fixed, both in the `CODEC_FEATURE_VALUE_WRITERS` / `CODEC_FEATURE_VALUE_READERS` option paths.
+
+*Issue 1 — Name-based binding ignored in Jackson path (JSON/YAML/BSON/CBOR):*
+`ContextHelper.getFeatureValueWriter()` and `getFeatureValueReader()` existed but were never called inside `resolveEffectiveWriter()` / `resolveEffectiveReader()`. Passing `CODEC_FEATURE_VALUE_WRITERS = Map.of(attr, "myWriterName")` silently fell through to the default serializer.
+
+Fix: added Priority 2 (name lookup from `CodecValueRegistry`) in both `AttributeSerializationEntry` and `AttributeDeserializationEntry`, between Priority 1 (instance binding via `CODEC_FEATURE_VALUE_WRITER_INSTANCES`) and Priority 3 (annotation-resolved writer name).
+
+*Issue 2 — Custom value writers silently ignored in tabular path (CSV/ODS/XLSX/R-Lang):*
+`TabularDocumentBuilder` builds typed `Cell` objects directly from `EObject.eGet()` values without going through `AttributeSerializationEntry`, so `CODEC_FEATURE_VALUE_WRITERS` had no effect.
+
+Fix:
+- Added `CodecOptions.INTERNAL_VALUE_REGISTRY` (in `codec.api`) to carry the `CodecValueRegistry` through `effectiveOptions` from `CodecResource` to `TabularDocumentBuilder`, avoiding a circular dependency (tabular depends on codec; codec must not depend on tabular).
+- Threaded `registry` + `featureWriters` map through the entire tabular build chain (`buildIgnore`, `buildFlat`, `buildSqlTables`, `makeAttributeCell`).
+- Added `invokeWriterAsCell()` + `MinimalWriterContext` — invokes the writer through a temporary `JsonMapper` generator, captures the output as bytes, reads it back via a `JsonParser`, and maps the token type to the appropriate `Cell` subtype (String/Long/Double/Boolean).
+
+*TCK coverage extended:*
+Added `writerResolvedByNameFromRegistry()` and `readerResolvedByNameFromRegistry()` to `AbstractCustomValueTCK`. YAML, CBOR, and BSON automatically inherit both tests.
+
+*Files changed:*
+- `org.eclipse.fennec.codec.api/src/.../constants/CodecOptions.java` — `INTERNAL_VALUE_REGISTRY`
+- `org.eclipse.fennec.codec/src/.../ser/AttributeSerializationEntry.java` — Priority 2 in `resolveEffectiveWriter()`
+- `org.eclipse.fennec.codec/src/.../deser/AttributeDeserializationEntry.java` — Priority 2 in `resolveEffectiveReader()`
+- `org.eclipse.fennec.codec/src/.../resource/CodecResource.java` — inject registry into `effectiveOptions`
+- `org.eclipse.fennec.codec.tabular/src/.../TabularDocumentBuilder.java` — `invokeWriterAsCell()`, `MinimalWriterContext`, registry/featureWriters threading
+- `org.eclipse.fennec.codec.tests/src/.../tck/AbstractCustomValueTCK.java` — 2 new name-binding TCK tests + `createResource(CodecValueRegistry)` helper
+- `org.eclipse.fennec.codec/test/.../CodecResourceCustomValueTest.java` — `NameBindingTests` nested class (2 tests)
+
+---
+
 **Session Summary (2026-06-25 latest):**
 
 **`idOnTop` bug fix + EIDAttribute feature promotion (JSON/YAML path):**
@@ -216,8 +247,8 @@ path silently skipped them — so the same object exported as CSV-IGNORE vs ODS-
   the IGNORE special case is gone. `CsvFormatDelegate` deleted (unreferenced).
 - Behavior change: ODS/XLSX/R IGNORE are now option-aware (null/default/empty columns drop unless the
   matching `serialize*` option is set) — the intended consistency fix.
-- Out of scope (follow-ups): id/type strategy (`_id`/`_type` columns) for the tabular grid; custom
-  value writers (`CodecValueWriter`) on the tabular path — CSV IGNORE no longer supports them.
+- Out of scope (follow-up): id/type strategy (`_id`/`_type` columns) for the tabular grid.
+- ~~Custom value writers (`CodecValueWriter`) on the tabular path~~ — **Fixed 2026-06-26**: `CODEC_FEATURE_VALUE_WRITERS` is now supported in `TabularDocumentBuilder` via `invokeWriterAsCell` + `MinimalWriterContext`; see §7.3.
 - Tests: `CsvEnumSerializationTest` (CSV enum strategies), `TabularDocumentBuilderOptionTest`
   (format-agnostic value gate + enums); updated `TabularDocumentBuilderCellTypingTest`'s null-cell
   test to keep the column via `serializeNull(true)`. Full `./gradlew build` green.
@@ -1220,6 +1251,16 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 - Affected all properties read in `CodecResource.createObjectMapper()`: `FIELD_ORDER`, `SMART_COMPRESSION`, `DATE_FORMAT`, `IGNORE_FEATURES`, `USE_NAMES_FROM_EXTENDED_METADATA`, all `EXPAND_*`
 - Fix: replaced manual `containsKey(key)` loop with `ConfigMergeHelper.getValue()`, which already tries both key forms and is used by every `mergeWith()` path
 - Tests: `ConfigurationResolverTest.GetGlobalProperty` (5 tests)
+
+✅ **`CODEC_FEATURE_VALUE_WRITERS` name-based binding silently ignored** (`AttributeSerializationEntry`, `AttributeDeserializationEntry`)
+- `ContextHelper.getFeatureValueWriter/Reader()` existed but was never called in `resolveEffectiveWriter/Reader()` — passing a writer/reader name via `CODEC_FEATURE_VALUE_WRITERS`/`READERS` options silently fell through to the default serializer in all Jackson-based formats (JSON, YAML, BSON, CBOR)
+- Fix: added Priority 2 (name-based lookup from registry) in both entry classes, between Priority 1 (instance binding via `CODEC_FEATURE_VALUE_WRITER_INSTANCES`) and Priority 3 (annotation-resolved writer name)
+- Tests: `CodecResourceCustomValueTest.NameBindingTests` (2 tests); `AbstractCustomValueTCK` extended with `writerResolvedByNameFromRegistry` + `readerResolvedByNameFromRegistry` (automatically run by YAML, CBOR, BSON TCK subclasses)
+
+✅ **`CODEC_FEATURE_VALUE_WRITERS` silently ignored on the tabular path (CSV/ODS/XLSX/R-Lang)** (`TabularDocumentBuilder`)
+- `TabularDocumentBuilder` builds `Cell` objects directly from `EObject.eGet()` values, bypassing `AttributeSerializationEntry` entirely — `CODEC_FEATURE_VALUE_WRITERS` had no effect regardless of what was configured
+- Fix: added `CodecOptions.INTERNAL_VALUE_REGISTRY` (in `codec.api`) to carry the `CodecValueRegistry` through `effectiveOptions` from `CodecResource` without a circular dependency; threaded `registry` + `featureWriters` map through the entire tabular build chain; added `invokeWriterAsCell()` + `MinimalWriterContext` to invoke the writer via a temporary Jackson generator and map the resulting token to the appropriate `Cell` subtype (String/Long/Double/Boolean)
+- Verified with Gogo command `exportWithWriter CSV FLAT` in playground bundle
 
 **2026-06-25:**
 ✅ **`idOnTop=true` had no effect on JSON/YAML field order** (`CodecEObjectSerializer`)

@@ -308,7 +308,21 @@ public class AttributeSerializationEntry implements SerializationEntry {
             }
         }
 
-        // Priority 2: Use pre-resolved writer from registry
+        // Priority 2: Name-based binding from options (runtime override)
+        if (ctxt != null && entryContext != null) {
+            String writerName = ContextHelper.getFeatureValueWriter(ctxt, attribute);
+            if (writerName != null && !writerName.isEmpty()) {
+                CodecValueRegistry registry = entryContext.getValueRegistry();
+                if (registry != null) {
+                    CodecValueWriter<?, ?> namedWriter = registry.getWriter(writerName).orElse(null);
+                    if (namedWriter != null) {
+                        return (CodecValueWriter<Object, EAttribute>) namedWriter;
+                    }
+                }
+            }
+        }
+
+        // Priority 3: Pre-resolved writer from registry (via valueWriterName annotation/config)
         return customWriter;
     }
 }

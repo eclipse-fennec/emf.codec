@@ -24,6 +24,7 @@ import org.apache.felix.service.command.annotations.GogoCommand;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.tabular.CodecTabularOptions;
 import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
 import org.gecko.emf.osgi.example.model.basic.Address;
@@ -38,7 +39,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ServiceScope;
 
 @Component(service = TabularExporterCommand.class, scope = ServiceScope.PROTOTYPE)
-@GogoCommand(scope = "exporter", function = "export")
+@GogoCommand(scope = "exporter", function = {"export", "exportWithWriter"})
 public class TabularExporterCommand {
 
 	@Reference
@@ -51,17 +52,31 @@ public class TabularExporterCommand {
 
 	@Descriptor("Export a test object in a resource with the provided URI")
 	public void export(
-			@Descriptor("The type of the export. Could be CSV, ODS, XLSX or R") 
-			String type, 
+			@Descriptor("The type of the export. Could be CSV, ODS, XLSX or R")
+			String type,
 			@Descriptor("The mode for the exporter. Could be IGNORE, FLAT, SQL_TABLES")
 			String mode
 			) throws IOException {
+		doExport(type, mode, new HashMap<>());
+	}
 
+	@Descriptor("Export a test object using the appendSuffix value writer on Person#firstName")
+	public void exportWithWriter(
+			@Descriptor("The type of the export. Could be CSV, ODS, XLSX or R")
+			String type,
+			@Descriptor("The mode for the exporter. Could be IGNORE, FLAT, SQL_TABLES")
+			String mode
+			) throws IOException {
+		Map<String, Object> extra = new HashMap<>();
+		extra.put(CodecOptions.CODEC_FEATURE_VALUE_WRITERS,
+				Map.of(basicPackage.getPerson_FirstName(), "appendSuffix"));
+		doExport(type, mode, extra);
+	}
+
+	private void doExport(String type, String mode, Map<String, Object> options) throws IOException {
 		URI uri = null;
 		ReferenceMode referenceMode = ReferenceMode.valueOf(mode);
-		Map<String, Object> effective = new HashMap<>();
-		effective.putIfAbsent(CodecTabularOptions.OPTION_REFERENCE_MODE,
-				ReferenceMode.valueOf(mode));
+		options.put(CodecTabularOptions.OPTION_REFERENCE_MODE, referenceMode);
 		switch(type) {
 		case "CSV":
 			if(ReferenceMode.SQL_TABLES.equals(referenceMode)) {
@@ -79,27 +94,26 @@ public class TabularExporterCommand {
 		case "R":
 			if(ReferenceMode.SQL_TABLES.equals(referenceMode)) {
 				uri = URI.createURI(TEMP_FOLDER.resolve(UUID.randomUUID().toString().concat(".rdataz")).toString());
-				effective.put("codec.rlang.dataframePerFile", true);
+				options.put("codec.rlang.dataframePerFile", true);
 			} else {
 				uri = URI.createURI(TEMP_FOLDER.resolve(UUID.randomUUID().toString().concat(".RData")).toString());
 			}
+			break;
 		default:
 			System.err.println(String.format("Exporter type %s not supported!", type));
+			return;
 		}
 
 		Resource resource = resourceSet.createResource(uri);
-		Person person1 = createPerson("John", "Doe");
-		Person person2 = createPerson("Mario", "Rossi");
-		resource.getContents().add(person1);
-		resource.getContents().add(person2);
-		
+		resource.getContents().add(createPerson("John", "Doe"));
+		resource.getContents().add(createPerson("Mario", "Rossi"));
+
 		try {
-			resource.save(effective);
+			resource.save(options);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 		System.out.println(String.format("Result saved in %s", uri.toString()));
-
 	}
 
 	private Person createPerson(String firstName, String lastName) {

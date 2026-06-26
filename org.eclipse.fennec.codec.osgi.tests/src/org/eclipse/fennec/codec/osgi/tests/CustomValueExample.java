@@ -34,6 +34,7 @@ import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
+import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
@@ -66,9 +67,15 @@ public class CustomValueExample {
     @InjectService
     MetadataService metadataService;
 
+    @InjectService
+    CodecValueRegistry valueRegistry;
+
     private EcoreHelper ecoreHelper;
     private EPackage pkg;
     private ServiceRegistration<EPackage> pkgReg;
+    private ServiceRegistration<?> perTestWriterReg;
+    private ServiceRegistration<?> perTestReaderReg;
+    private BundleContext ctx;
 
     private EClass eventClass;
     private EAttribute eventIdAttr;
@@ -144,6 +151,7 @@ public class CustomValueExample {
 
     @BeforeEach
     public void setUp(@InjectBundleContext BundleContext ctx) throws IOException {
+        this.ctx = ctx;
         ecoreHelper = new EcoreHelper();
         pkg = ecoreHelper.loadEcore(ECORE, CustomValueExample.class);
         EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
@@ -157,6 +165,14 @@ public class CustomValueExample {
 
     @AfterEach
     public void tearDown() {
+        if (perTestWriterReg != null) {
+            perTestWriterReg.unregister();
+            perTestWriterReg = null;
+        }
+        if (perTestReaderReg != null) {
+            perTestReaderReg.unregister();
+            perTestReaderReg = null;
+        }
         pkgReg.unregister();
         EPackage.Registry.INSTANCE.remove(pkg.getNsURI());
         ecoreHelper.releaseAll();
@@ -239,5 +255,59 @@ public class CustomValueExample {
 
         EObject loaded = loadResource.getContents().get(0);
         assertEquals(millis, loaded.eGet(timestampAttr));
+    }
+
+    @Test
+    @DisplayName("Writer resolved by name from OSGi registry — 'Hello' serialized as 'HELLO'")
+    @SuppressWarnings("unchecked")
+    void writerResolvedByNameFromOsgiRegistry() throws IOException {
+        perTestWriterReg = ctx.registerService(CodecValueWriter.class, new UppercaseWriter(), null);
+
+        EObject event = pkg.getEFactoryInstance().create(eventClass);
+        event.eSet(eventIdAttr, "e3");
+        event.eSet(titleAttr, "Hello");
+
+        Map<String, Object> saveOptions = Map.of(
+                CodecOptions.CODEC_FEATURE_VALUE_WRITERS, Map.of(titleAttr, "uppercase"));
+
+        CodecResource saveResource = new CodecResource(
+                URI.createURI("test://custom-name.json"), metadataService,
+                ConfigurationResolver.defaults(), valueRegistry, null);
+        saveResource.getContents().add(event);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        saveResource.save(out, saveOptions);
+
+        assertTrue(out.toString(StandardCharsets.UTF_8).contains("\"HELLO\""),
+                "Should contain uppercase HELLO");
+    }
+
+    @Test
+    @DisplayName("Reader resolved by name from OSGi registry — 'HELLO' deserialized as 'hello'")
+    @SuppressWarnings("unchecked")
+    void readerResolvedByNameFromOsgiRegistry() throws IOException {
+        perTestReaderReg = ctx.registerService(CodecValueReader.class, new LowercaseReader(), null);
+
+        EObject event = pkg.getEFactoryInstance().create(eventClass);
+        event.eSet(eventIdAttr, "e4");
+        event.eSet(titleAttr, "HELLO");
+
+        CodecResource saveResource = new CodecResource(
+                URI.createURI("test://custom-name.json"), metadataService,
+                ConfigurationResolver.defaults(), null, null);
+        saveResource.getContents().add(event);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        saveResource.save(out, Map.of());
+
+        Map<String, Object> loadOptions = new HashMap<>();
+        loadOptions.put(CodecResource.CODEC_ROOT_TYPE, eventClass);
+        loadOptions.put(CodecOptions.CODEC_FEATURE_VALUE_READERS, Map.of(titleAttr, "lowercase"));
+
+        CodecResource loadResource = new CodecResource(
+                URI.createURI("test://custom-name.json"), metadataService,
+                ConfigurationResolver.defaults(), valueRegistry, null);
+        loadResource.load(new ByteArrayInputStream(out.toByteArray()), loadOptions);
+
+        EObject loaded = loadResource.getContents().get(0);
+        assertEquals("hello", loaded.eGet(titleAttr));
     }
 }
