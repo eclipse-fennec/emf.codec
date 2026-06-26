@@ -1167,4 +1167,77 @@ class ConfigurationResolverTest {
                     "EClass-based config should take priority");
         }
     }
+
+    @Nested
+    @DisplayName("getGlobalProperty")
+    class GetGlobalProperty {
+
+        @Test
+        @DisplayName("finds property using short key (without codec. prefix)")
+        void findsPropertyUsingShortKey() {
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .optionsProperties(Map.of(ConfigProperty.FIELD_ORDER.getKey(), "ALPHABETICAL"))
+                    .build();
+
+            String value = resolver.getGlobalProperty(ConfigProperty.FIELD_ORDER);
+            assertEquals("ALPHABETICAL", value);
+        }
+
+        @Test
+        @DisplayName("finds property using codec. prefixed key (issue #13)")
+        void findsPropertyUsingPrefixedKey() {
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .optionsProperties(Map.of(ConfigProperty.FIELD_ORDER.getPropertyKey(), "ALPHABETICAL"))
+                    .build();
+
+            String value = resolver.getGlobalProperty(ConfigProperty.FIELD_ORDER);
+            assertEquals("ALPHABETICAL", value,
+                    "getGlobalProperty must accept both 'fieldOrder' and 'codec.fieldOrder' as keys");
+        }
+
+        @Test
+        @DisplayName("short key takes priority over prefixed key when both present")
+        void shortKeyTakesPriorityOverPrefixedKey() {
+            Map<String, Object> options = new HashMap<>();
+            options.put(ConfigProperty.FIELD_ORDER.getKey(), "DECLARATION");
+            options.put(ConfigProperty.FIELD_ORDER.getPropertyKey(), "ALPHABETICAL");
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .optionsProperties(options)
+                    .build();
+
+            String value = resolver.getGlobalProperty(ConfigProperty.FIELD_ORDER);
+            assertEquals("DECLARATION", value, "short key should win when both are present");
+        }
+
+        @Test
+        @DisplayName("returns default when property is absent")
+        void returnsDefaultWhenAbsent() {
+            ConfigurationResolver resolver = ConfigurationResolver.builder().build();
+
+            String value = resolver.getGlobalProperty(ConfigProperty.FIELD_ORDER);
+            assertEquals(ConfigProperty.FIELD_ORDER.getDefaultValue(), value);
+        }
+
+        @Test
+        @DisplayName("prefixed key found across all five config sources")
+        void prefixedKeyFoundAcrossAllSources() {
+            for (String label : new String[] { "options", "resource", "factory", "module", "annotation" }) {
+                Map<String, Object> props = Map.of(ConfigProperty.FIELD_ORDER.getPropertyKey(), "ALPHABETICAL");
+
+                ConfigurationResolver.Builder b = ConfigurationResolver.builder();
+                switch (label) {
+                    case "options"    -> b.optionsProperties(props);
+                    case "resource"   -> b.resourceProperties(props);
+                    case "factory"    -> b.factoryProperties(props);
+                    case "module"     -> b.moduleProperties(props);
+                    case "annotation" -> b.annotationProperties(props);
+                }
+
+                String value = b.build().getGlobalProperty(ConfigProperty.FIELD_ORDER);
+                assertEquals("ALPHABETICAL", value,
+                        "prefixed key must be found in " + label + " source");
+            }
+        }
+    }
 }

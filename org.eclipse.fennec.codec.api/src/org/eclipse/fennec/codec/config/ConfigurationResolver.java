@@ -786,17 +786,15 @@ public final class ConfigurationResolver {
      */
     @SuppressWarnings("unchecked")
     public <T> T getGlobalProperty(ConfigProperty property) {
-        // Search in priority order (highest first)
+        // Search in priority order (highest first).
+        // ConfigMergeHelper.getValue() accepts both "key" and "codec.key" forms (issue #13).
         Map<String, Object>[] sources = new Map[] {
             optionsProperties, resourceProperties, factoryProperties, moduleProperties, annotationProperties
         };
-        String key = property.getKey();
         for (Map<String, Object> source : sources) {
-            if (source != null && source.containsKey(key)) {
-                Object value = source.get(key);
-                if (value != null) {
-                    return (T) value;
-                }
+            T value = ConfigMergeHelper.getValue(source, property);
+            if (value != null) {
+                return value;
             }
         }
         return property.getDefaultValue();

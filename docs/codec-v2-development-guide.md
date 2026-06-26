@@ -15,6 +15,24 @@ Added regression tests to prevent the crash from being reintroduced:
 
 ---
 
+**Fix issue #13 — `getGlobalProperty()` ignores `codec.`-prefixed keys:**
+
+`ConfigurationResolver.getGlobalProperty()` looked up property values using only the short key (e.g. `"fieldOrder"`) via a raw `Map.containsKey()` call. If a caller passed the `codec.`-prefixed form (e.g. `Map.of("codec.fieldOrder", "ALPHABETICAL")`), as the `getKey()` javadoc says to do, the value was silently not found and the property fell back to its default.
+
+This affected every caller of `getGlobalProperty()` in `CodecResource.createObjectMapper()`: `FIELD_ORDER`, `SMART_COMPRESSION`, `DATE_FORMAT`, `IGNORE_FEATURES`, `USE_NAMES_FROM_EXTENDED_METADATA`, and all `EXPAND_*` properties.
+
+The inconsistency was that `ConfigMergeHelper.getValue()` — used by every `TypeConfig.mergeWith()` / `FeatureConfig.mergeWith()` call — already tried both forms. `getGlobalProperty()` was the only path that did not.
+
+*Fix:* Replace the manual `source.containsKey(key)` loop in `getGlobalProperty()` with `ConfigMergeHelper.getValue(source, property)`, which checks both the short key and the prefixed key.
+
+*Files changed:*
+- `org.eclipse.fennec.codec.api/src/.../config/ConfigurationResolver.java` — `getGlobalProperty()` now uses `ConfigMergeHelper.getValue()`
+
+*Tests added:*
+- `ConfigurationResolverTest.GetGlobalProperty` (5 tests): short key found, prefixed key found, short key wins when both present, default returned when absent, prefixed key found across all five config sources.
+
+---
+
 **Fix issue #31 — `fieldOrder=ALPHABETICAL` not honored in JSON/Jackson serialization:**
 
 `ConfigProperty.FIELD_ORDER` was declared and used by tabular exporters (`TabularDocumentBuilder`) but never read in the Jackson serialization path. `CodecResource.createObjectMapper()` did not extract it from the `ConfigurationResolver`, so `CodecModule` always built with `sortPropertiesAlphabetically=false`, making alphabetical ordering effectively dead in JSON/YAML/BSON/CBOR.
@@ -1196,6 +1214,12 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 - `createObjectMapper()` never read `ConfigProperty.FIELD_ORDER` from the resolver, so `CodecModule` was always built with `sortPropertiesAlphabetically=false`
 - Fix: extract `FIELD_ORDER` from `operationResolver` and pass `"ALPHABETICAL".equalsIgnoreCase(fieldOrder)` to `CodecModule.Builder.sortPropertiesAlphabetically()`
 - Tests: `FormatDelegateJsonRoundTripTest.FieldOrder` (2 tests)
+
+✅ **`getGlobalProperty()` ignores `codec.`-prefixed keys** (`ConfigurationResolver`, issue #13)
+- `getGlobalProperty()` only looked up the short key (`"fieldOrder"`) via a raw map lookup; passing `"codec.fieldOrder"` (as the javadoc suggests) silently fell back to the default
+- Affected all properties read in `CodecResource.createObjectMapper()`: `FIELD_ORDER`, `SMART_COMPRESSION`, `DATE_FORMAT`, `IGNORE_FEATURES`, `USE_NAMES_FROM_EXTENDED_METADATA`, all `EXPAND_*`
+- Fix: replaced manual `containsKey(key)` loop with `ConfigMergeHelper.getValue()`, which already tries both key forms and is used by every `mergeWith()` path
+- Tests: `ConfigurationResolverTest.GetGlobalProperty` (5 tests)
 
 **2026-06-25:**
 ✅ **`idOnTop=true` had no effect on JSON/YAML field order** (`CodecEObjectSerializer`)
