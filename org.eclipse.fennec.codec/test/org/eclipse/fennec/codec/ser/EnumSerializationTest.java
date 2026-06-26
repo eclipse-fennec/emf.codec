@@ -330,6 +330,58 @@ class EnumSerializationTest {
     }
 
     // ========================================================================
+    // Unknown Enum Values
+    // ========================================================================
+
+    @Nested
+    @DisplayName("Unknown enum values")
+    class UnknownEnumValues {
+
+        @Test
+        @DisplayName("tolerates unknown string enum value — object loaded, field keeps default")
+        void toleratesUnknownStringEnumValue() throws IOException {
+            String json = "{\"name\":\"Test Task\",\"status\":\"ARCHIVED\"}";
+
+            EObject loaded = deserialize(json, EnumSerializationStrategy.LITERAL);
+
+            assertNotNull(loaded, "Deserialization must complete and return an object");
+            assertEquals("Test Task", loaded.eGet(nameAttribute), "Other fields must still be loaded");
+            // Status should fall back to the default (PENDING) because unknown value is skipped
+            assertEquals(pendingLiteral.getInstance(), loaded.eGet(statusAttribute),
+                    "Unknown enum value should leave the field at its default");
+        }
+
+        @Test
+        @DisplayName("tolerates unknown integer enum value — object loaded, field keeps default")
+        void toleratesUnknownIntegerEnumValue() throws IOException {
+            String json = "{\"name\":\"Test Task\",\"status\":99}";
+
+            EObject loaded = deserialize(json, EnumSerializationStrategy.VALUE);
+
+            assertNotNull(loaded, "Deserialization must complete and return an object");
+            assertEquals("Test Task", loaded.eGet(nameAttribute), "Other fields must still be loaded");
+            assertEquals(pendingLiteral.getInstance(), loaded.eGet(statusAttribute),
+                    "Unknown integer enum value should leave the field at its default");
+        }
+
+        @Test
+        @DisplayName("tolerates unknown values in multi-valued enum array — known values preserved")
+        @SuppressWarnings("unchecked")
+        void toleratesUnknownValuesInMultiValuedEnumArray() throws IOException {
+            // "ARCHIVED" is unknown; "pending" and "Active" are valid literals
+            String json = "{\"name\":\"Test Task\",\"previousStatuses\":[\"pending\",\"ARCHIVED\",\"Active\"]}";
+
+            EObject loaded = deserialize(json, EnumSerializationStrategy.LITERAL);
+
+            assertNotNull(loaded, "Deserialization must complete and return an object");
+            List<Object> statuses = (List<Object>) loaded.eGet(previousStatusesAttribute);
+            assertEquals(2, statuses.size(), "Known values must be kept; unknown entry must be skipped");
+            assertEquals(pendingLiteral.getInstance(), statuses.get(0));
+            assertEquals(activeLiteral.getInstance(), statuses.get(1));
+        }
+    }
+
+    // ========================================================================
     // Helper Methods
     // ========================================================================
 

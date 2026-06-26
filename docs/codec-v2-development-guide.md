@@ -6,6 +6,15 @@ This document provides context for continuing codec development across sessions.
 
 **Session Summary (2026-06-26 latest):**
 
+**Verified issue #11 — enum deserialization with unknown values no longer crashes:**
+
+Issue #11 reported a `NullPointerException` ("Cannot invoke `EEnumLiteral.getInstance()` because `literal` is null") when deserializing JSON containing an enum value not present in the EMF model. Investigation showed that `convertEnumFromString` and `convertEnumFromInteger` in `AttributeDeserializationEntry` already have null guards on the lookup result and return `null` for unknown values; `deserializeSingleValued` then skips the `eSet`, leaving the attribute at its default. The fix was already in place — no code change required.
+
+Added regression tests to prevent the crash from being reintroduced:
+- `EnumSerializationTest.UnknownEnumValues` (3 tests): unknown string value, unknown integer value, unknown value in multi-valued array — all assert no exception, other fields still loaded, and known values preserved.
+
+---
+
 **Fix issue #31 — `fieldOrder=ALPHABETICAL` not honored in JSON/Jackson serialization:**
 
 `ConfigProperty.FIELD_ORDER` was declared and used by tabular exporters (`TabularDocumentBuilder`) but never read in the Jackson serialization path. `CodecResource.createObjectMapper()` did not extract it from the `ConfigurationResolver`, so `CodecModule` always built with `sortPropertiesAlphabetically=false`, making alphabetical ordering effectively dead in JSON/YAML/BSON/CBOR.
@@ -1148,6 +1157,11 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 ### 7.3 Fixed Bugs
 
 **2026-06-26:**
+✅ **Enum deserialization crash on unknown values** (`AttributeDeserializationEntry`, issue #11)
+- NPE ("Cannot invoke `EEnumLiteral.getInstance()` because `literal` is null") when JSON contained an enum value not in the model
+- Already fixed: `convertEnumFromString`/`convertEnumFromInteger` return `null` for unknown lookups; `deserializeSingleValued` skips `eSet` when value is null, leaving the field at its default
+- Regression tests added: `EnumSerializationTest.UnknownEnumValues` (3 tests: unknown string, unknown integer, unknown value in multi-valued array)
+
 ✅ **`fieldOrder=ALPHABETICAL` ignored in JSON/Jackson serialization** (`CodecResource`, issue #31)
 - `createObjectMapper()` never read `ConfigProperty.FIELD_ORDER` from the resolver, so `CodecModule` was always built with `sortPropertiesAlphabetically=false`
 - Fix: extract `FIELD_ORDER` from `operationResolver` and pass `"ALPHABETICAL".equalsIgnoreCase(fieldOrder)` to `CodecModule.Builder.sortPropertiesAlphabetically()`
