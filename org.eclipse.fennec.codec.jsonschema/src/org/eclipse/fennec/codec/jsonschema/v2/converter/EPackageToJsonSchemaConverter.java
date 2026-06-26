@@ -1302,6 +1302,12 @@ public class EPackageToJsonSchemaConverter {
 	}
 
 	private void writeSingleValuedReference(EReference eReference, EClassifier type, JsonGenerator gen) throws IOException {
+		if (type == null) {
+			// Unresolved reference type — emit an open schema that accepts any value
+			gen.writeStartObject();
+			gen.writeEndObject();
+			return;
+		}
 		if (eReference.isContainment()) {
 			if (((EClass) type).isAbstract()) {
 				gen.writeStartObject();

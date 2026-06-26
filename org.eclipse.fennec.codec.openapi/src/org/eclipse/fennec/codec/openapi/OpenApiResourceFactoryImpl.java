@@ -17,7 +17,9 @@ import java.util.Objects;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
+import org.eclipse.fennec.codec.jsonschema.v2.value.EPackageValueReader;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
+import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
@@ -48,30 +50,39 @@ import org.osgi.service.component.annotations.ServiceScope;
 public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 
 	private final MetadataService metadataService;
+	private final CodecValueRegistry valueRegistry;
 
 	/**
-	 * OSGi DS constructor with injected MetadataService.
-	 *
-	 * @param metadataService the metadata service
+	 * OSGi DS constructor — MetadataService and CodecValueRegistry are injected.
+	 * The registry already contains all {@code @Component}-annotated readers/writers,
+	 * including {@link OperationValueReader} and {@link OpenApiSchemasValueWriter}.
 	 */
 	@Activate
-	public OpenApiResourceFactoryImpl(@Reference MetadataService metadataService) {
+	public OpenApiResourceFactoryImpl(@Reference MetadataService metadataService,
+			@Reference CodecValueRegistry valueRegistry) {
 		this.metadataService = metadataService;
+		this.valueRegistry = valueRegistry;
 		PackageMetadata packageMetadata = this.metadataService.getPackageMetadata(OpenApiPackage.eNS_URI);
 		Objects.requireNonNull(packageMetadata, "The OpenApi Model is required to get this resource factory work");
 	}
 
 	/**
 	 * Non-OSGi constructor for standalone usage.
+	 * Builds a local registry with the readers/writers needed by OpenAPI resources.
 	 */
 	public OpenApiResourceFactoryImpl() {
 		MetadataWhiteboard whiteboard = MetadataServiceFactory.create();
 		whiteboard.registerPackage(OpenApiPackage.eINSTANCE);
 		this.metadataService = whiteboard;
+		CodecValueRegistry registry = new CodecValueRegistry();
+		registry.register(new OperationValueReader());
+		registry.register(new EPackageValueReader());
+		registry.register(new OpenApiSchemasValueWriter());
+		this.valueRegistry = registry;
 	}
 
 	@Override
 	public Resource createResource(URI uri) {
-		return new OpenApiResourceImpl(uri, metadataService);
+		return new OpenApiResourceImpl(uri, metadataService, valueRegistry);
 	}
 }

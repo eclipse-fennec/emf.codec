@@ -3849,10 +3849,18 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 			   "key", "$ref"
 		   });
 		addAnnotation
+		  (getComponents_Schemas(),
+		   source,
+		   new String[] {
+			   "ignore", "true"
+		   });
+		addAnnotation
 		  (getComponents_SchemasPackage(),
 		   source,
 		   new String[] {
-			   "serialize", "false"
+			   "key", "schemas",
+			   "valueReaderName", "jsonSchemaToEPackage",
+			   "valueWriterName", "ePackageToOpenApiSchemas"
 		   });
 	}
 

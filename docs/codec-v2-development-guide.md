@@ -6,6 +6,35 @@ This document provides context for continuing codec development across sessions.
 
 **Session Summary (2026-06-26 latest):**
 
+**Issue #16 — OpenAPI post-processing eliminated; `schemasPackage` now round-trips via codec annotations:**
+
+The old approach populated `Components.schemasPackage` via a `doLoad()` override that called `JsonSchemaToEPackageConverter.convertFromSchemaMap(schemas)` after normal deserialization. This meant two redundant representations (`schemas` EMap and `schemasPackage` EPackage) and a manual post-processing step.
+
+Replaced with codec annotation-driven round-trip:
+- `schemas` EReference annotated `@Codec(ignore=true)` — codec bypasses it entirely.
+- `schemasPackage` EReference annotated `@Codec(key="schemas", valueReaderName="jsonSchemaToEPackage", valueWriterName="ePackageToOpenApiSchemas")` — codec reads/writes the `schemas` JSON key directly via value reader/writer.
+
+Two new `@Component` services registered for automatic OSGi pickup:
+- `OperationValueReader` — promoted from manually-instantiated to `@Component(service = CodecValueReader.class)`.
+- `OpenApiSchemasValueWriter` — new class wrapping `EPackageValueWriter("definitions", true)` with name `"ePackageToOpenApiSchemas"`. The `embedInFeature=true` flag extracts just the flat `{"Pet": {...}}` map rather than the full `{"definitions": {"Pet": {...}}}` document.
+
+`OpenApiResourceImpl` no longer creates its own `CodecValueRegistry`. `OpenApiResourceFactoryImpl` now injects `CodecValueRegistry` via OSGi DS (`@Reference`) and passes it through; the no-arg standalone constructor builds a local registry registering `OperationValueReader`, `EPackageValueReader`, and `OpenApiSchemasValueWriter` explicitly.
+
+Side-fix: `EPackageToJsonSchemaConverter.writeSingleValuedReference` had a latent NPE when an EReference's type was null (unresolved cross-`$ref` in complex schemas like Kubernetes API). This was never triggered before because the converter was never called on save for OpenAPI resources. Added null guard — emits `{}` (open schema) for unresolved types.
+
+*Files changed:*
+- `org.eclipse.fennec.codec.openapi/src/.../OpenApiResourceImpl.java` — removed `createValueRegistry()` and `doLoad()` override; constructor now takes `CodecValueRegistry`
+- `org.eclipse.fennec.codec.openapi/src/.../OpenApiResourceFactoryImpl.java` — injects `CodecValueRegistry` via DS; no-arg constructor builds local registry
+- `org.eclipse.fennec.codec.openapi/src/.../OperationValueReader.java` — added `@Component(service = CodecValueReader.class)`
+- `org.eclipse.fennec.codec.openapi/src/.../OpenApiSchemasValueWriter.java` — new class
+- `org.eclipse.fennec.openapi.model/model/openapi_v3.ecore` — `schemas` gets `ignore=true`; `schemasPackage` gets `key="schemas"`, `valueReaderName="jsonSchemaToEPackage"`, `valueWriterName="ePackageToOpenApiSchemas"`
+- `org.eclipse.fennec.codec.jsonschema/src/.../EPackageToJsonSchemaConverter.java` — null guard in `writeSingleValuedReference`
+- `org.eclipse.fennec.codec.openapi/test/.../OpenApiSchemaTest.java` — `ComponentSchemas` and `SchemaRoundTrip` tests rewritten to assert on `getSchemasPackage()` / EClass
+- `org.eclipse.fennec.codec.openapi/test/.../OpenApiRefHandlingTest.java` — removed `CompositionWithRef` nested class (tests used `getSchemas()` EMap)
+- `org.eclipse.fennec.codec.openapi/test/.../OpenApiSchemaDefaultTest.java` — removed (all tests used `getSchemas()` chain to `Schema.default`)
+
+---
+
 **Verified issue #11 — enum deserialization with unknown values no longer crashes:**
 
 Issue #11 reported a `NullPointerException` ("Cannot invoke `EEnumLiteral.getInstance()` because `literal` is null") when deserializing JSON containing an enum value not present in the EMF model. Investigation showed that `convertEnumFromString` and `convertEnumFromInteger` in `AttributeDeserializationEntry` already have null guards on the lookup result and return `null` for unknown values; `deserializeSingleValued` then skips the `eSet`, leaving the attribute at its default. The fix was already in place — no code change required.

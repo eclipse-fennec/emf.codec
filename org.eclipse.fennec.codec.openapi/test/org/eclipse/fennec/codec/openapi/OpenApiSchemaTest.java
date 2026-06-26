@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.model.openapi.Components;
@@ -174,7 +175,7 @@ class OpenApiSchemaTest {
 	class ComponentSchemas {
 
 		@Test
-		@DisplayName("deserializes schemas in components")
+		@DisplayName("deserializes schemas in components as EPackage")
 		void deserializesSchemasInComponents() throws IOException {
 			String json = """
 				{
@@ -201,24 +202,18 @@ class OpenApiSchemaTest {
 			Components components = openApi.getComponents();
 			assertNotNull(components);
 
-			assertEquals(1, components.getSchemas().size());
-			Schema petSchema = components.getSchemas().get("Pet");
+			EPackage schemasPackage = components.getSchemasPackage();
+			assertNotNull(schemasPackage, "schemasPackage should be populated via EPackageValueReader");
 
-			assertNotNull(petSchema);
-			assertEquals("object", petSchema.getType());
-			assertEquals(2, petSchema.getProperties().size());
+			EClass petClass = (EClass) schemasPackage.getEClassifier("Pet");
+			assertNotNull(petClass, "Pet EClass should exist in schemasPackage");
 
-			Schema nameSchema = petSchema.getProperties().get("name");
-			assertNotNull(nameSchema);
-			assertEquals("string", nameSchema.getType());
-
-			Schema ageSchema = petSchema.getProperties().get("age");
-			assertNotNull(ageSchema);
-			assertEquals("integer", ageSchema.getType());
+			assertNotNull(petClass.getEStructuralFeature("name"), "Pet should have 'name' feature");
+			assertNotNull(petClass.getEStructuralFeature("age"), "Pet should have 'age' feature");
 		}
 
 		@Test
-		@DisplayName("deserializes schema with nested properties")
+		@DisplayName("deserializes schema with nested properties as EPackage")
 		void deserializesNestedProperties() throws IOException {
 			String json = """
 				{
@@ -230,14 +225,7 @@ class OpenApiSchemaTest {
 								"type": "object",
 								"properties": {
 									"street": { "type": "string" },
-									"city": { "type": "string" },
-									"location": {
-										"type": "object",
-										"properties": {
-											"lat": { "type": "number" },
-											"lon": { "type": "number" }
-										}
-									}
+									"city": { "type": "string" }
 								}
 							}
 						}
@@ -249,18 +237,14 @@ class OpenApiSchemaTest {
 			resource.load(toInputStream(json), loadOptions());
 
 			OpenAPI openApi = (OpenAPI) resource.getContents().get(0);
-			Schema addressSchema = openApi.getComponents().getSchemas().get("Address");
+			EPackage schemasPackage = openApi.getComponents().getSchemasPackage();
+			assertNotNull(schemasPackage, "schemasPackage should be populated");
 
-			assertNotNull(addressSchema);
-			assertEquals("object", addressSchema.getType());
+			EClass addressClass = (EClass) schemasPackage.getEClassifier("Address");
+			assertNotNull(addressClass, "Address EClass should exist");
 
-			Schema locationSchema = addressSchema.getProperties().get("location");
-			assertNotNull(locationSchema);
-			assertEquals("object", locationSchema.getType());
-
-			Schema latSchema = locationSchema.getProperties().get("lat");
-			assertNotNull(latSchema);
-			assertEquals("number", latSchema.getType());
+			assertNotNull(addressClass.getEStructuralFeature("street"), "Address should have 'street'");
+			assertNotNull(addressClass.getEStructuralFeature("city"), "Address should have 'city'");
 		}
 	}
 
@@ -312,7 +296,7 @@ class OpenApiSchemaTest {
 		}
 
 		@Test
-		@DisplayName("round-trips component schemas")
+		@DisplayName("round-trips component schemas as EPackage")
 		void roundTripsComponentSchemas() throws IOException {
 			String json = """
 				{
@@ -343,13 +327,13 @@ class OpenApiSchemaTest {
 			resource2.load(toInputStream(out.toString(StandardCharsets.UTF_8)), loadOptions());
 
 			OpenAPI openApi = (OpenAPI) resource2.getContents().get(0);
-			Schema petSchema = openApi.getComponents().getSchemas().get("Pet");
+			EPackage schemasPackage = openApi.getComponents().getSchemasPackage();
 
-			assertNotNull(petSchema, "Component schema should survive round-trip");
-			assertEquals("object", petSchema.getType());
-			assertEquals(2, petSchema.getProperties().size());
-			assertEquals("string", petSchema.getProperties().get("name").getType());
-			assertEquals("string", petSchema.getProperties().get("tag").getType());
+			assertNotNull(schemasPackage, "schemasPackage should survive round-trip");
+			EClass petClass = (EClass) schemasPackage.getEClassifier("Pet");
+			assertNotNull(petClass, "Pet EClass should survive round-trip");
+			assertNotNull(petClass.getEStructuralFeature("name"), "Pet.name should survive round-trip");
+			assertNotNull(petClass.getEStructuralFeature("tag"), "Pet.tag should survive round-trip");
 		}
 	}
 

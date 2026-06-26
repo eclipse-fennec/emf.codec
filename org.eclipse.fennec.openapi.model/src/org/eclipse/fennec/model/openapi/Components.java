@@ -57,11 +57,12 @@ public interface Components extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * OpenAPI-conformant JSON Schema representation. Always populated during deserialization.
+	 * OpenAPI-conformant JSON Schema representation (SchemaEntry EMap). No longer populated by the codec — use schemasPackage for EMF access. Kept for backward compatibility; will be removed in a future release.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Schemas</em>' map.
 	 * @see org.eclipse.fennec.model.openapi.OpenApiPackage#getComponents_Schemas()
 	 * @model mapType="org.eclipse.fennec.model.openapi.SchemaEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.openapi.Schema&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec ignore='true'"
 	 * @generated
 	 */
 	EMap<String, Schema> getSchemas();
@@ -71,13 +72,13 @@ public interface Components extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * EMF-native representation of schemas. Populated during deserialization if JSON-Schema to EPackage conversion succeeds. Not serialized (derived from schemas).
+	 * EMF-native representation of the OpenAPI schemas section. Read from and written to the JSON 'schemas' key via EPackageValueReader/EPackageValueWriter — no post-processing required.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Schemas Package</em>' containment reference.
 	 * @see #setSchemasPackage(EPackage)
 	 * @see org.eclipse.fennec.model.openapi.OpenApiPackage#getComponents_SchemasPackage()
 	 * @model containment="true"
-	 *        annotation="http://eclipse.org/fennec/codec serialize='false'"
+	 *        annotation="http://eclipse.org/fennec/codec key='schemas' valueReaderName='jsonSchemaToEPackage' valueWriterName='ePackageToOpenApiSchemas'"
 	 * @generated
 	 */
 	EPackage getSchemasPackage();
