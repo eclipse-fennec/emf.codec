@@ -13,6 +13,7 @@
 package org.eclipse.fennec.codec.osgi.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -130,6 +131,40 @@ public class EMapExample {
         assertEquals("localhost", loadedProps.get("host"));
         assertEquals("8080", loadedProps.get("port"));
         assertEquals("true", loadedProps.get("debug"));
+    }
+
+    @Test
+    @DisplayName("Flatten EMap entries into parent object")
+    @SuppressWarnings("unchecked")
+    void flattenedMapSerialization() throws IOException {
+        EObject config = pkg.getEFactoryInstance().create(configClass);
+        config.eSet(configNameAttr, "llm-request");
+
+        EMap<String, String> props = (EMap<String, String>) config.eGet(propertiesRef);
+        props.put("reasoning_effort", "high");
+        props.put("provider", "openai");
+
+        Map<EReference, Map<String, Object>> refConfig = new HashMap<>();
+        refConfig.put(propertiesRef, Map.of("flatten", "true"));
+
+        CodecResource resource = new CodecResource(
+                URI.createURI("out.json"), metadataService,
+                ConfigurationResolver.defaults(), null);
+        resource.getContents().add(config);
+
+        Map<String, Object> saveOptions = new HashMap<>();
+        saveOptions.put("codec.eReferenceConfig", refConfig);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        resource.save(out, saveOptions);
+        String json = out.toString(StandardCharsets.UTF_8);
+
+        assertTrue(json.contains("\"reasoning_effort\""),
+                "Expected 'reasoning_effort' at root level in: " + json);
+        assertTrue(json.contains("\"provider\""),
+                "Expected 'provider' at root level in: " + json);
+        assertFalse(json.contains("\"properties\""),
+                "Expected no 'properties' wrapper key in: " + json);
     }
 
     @Test

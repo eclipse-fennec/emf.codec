@@ -175,6 +175,9 @@ public enum ConfigProperty {
     VALUE_WRITER_NAME("valueWriterName", String.class, null,
         levels(GLOBAL, ECLASS, FEATURE), directions(WRITE)),
 
+    FLATTEN("flatten", Boolean.class, false,
+        levels(FEATURE), directions(WRITE)),
+
     // ========================================================================
     // Reference Properties (11.6)
     // ========================================================================

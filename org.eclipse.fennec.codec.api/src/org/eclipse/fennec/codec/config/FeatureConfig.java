@@ -46,6 +46,7 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
     private final String dateFormat;
     private final String valueReaderName;
     private final String valueWriterName;
+    private final boolean flatten;
 
     private FeatureConfig(Builder builder) {
         this.key = builder.key;
@@ -61,6 +62,7 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
         this.dateFormat = builder.dateFormat;
         this.valueReaderName = builder.valueReaderName;
         this.valueWriterName = builder.valueWriterName;
+        this.flatten = builder.flatten;
     }
 
     // ========================================================================
@@ -169,6 +171,16 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
         return valueWriterName;
     }
 
+    /**
+     * Returns whether this EMap containment reference should be flattened into the parent object.
+     * When true, the feature key is omitted and each map entry's key/value pair is written
+     * directly into the enclosing JSON object.
+     * Default: false
+     */
+    public boolean isFlatten() {
+        return flatten;
+    }
+
     // ========================================================================
     // Computed properties
     // ========================================================================
@@ -256,6 +268,7 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
                 .dateFormat(getString(source, ConfigProperty.DATE_FORMAT, this.dateFormat))
                 .valueReaderName(getString(source, ConfigProperty.VALUE_READER_NAME, this.valueReaderName))
                 .valueWriterName(getString(source, ConfigProperty.VALUE_WRITER_NAME, this.valueWriterName))
+                .flatten(getBoolean(source, ConfigProperty.FLATTEN, this.flatten))
                 .build();
     }
 
@@ -321,7 +334,8 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
                 .enumSerialization(this.enumSerialization)
                 .dateFormat(this.dateFormat)
                 .valueReaderName(this.valueReaderName)
-                .valueWriterName(this.valueWriterName);
+                .valueWriterName(this.valueWriterName)
+                .flatten(this.flatten);
     }
 
     /**
@@ -345,6 +359,7 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
         private String dateFormat = ConfigProperty.DATE_FORMAT.getDefaultValue();
         private String valueReaderName = ConfigProperty.VALUE_READER_NAME.getDefaultValue();
         private String valueWriterName = ConfigProperty.VALUE_WRITER_NAME.getDefaultValue();
+        private boolean flatten = ConfigProperty.FLATTEN.getDefaultValue();
 
         private Builder() {}
 
@@ -410,6 +425,11 @@ public final class FeatureConfig implements Mergeable<FeatureConfig> {
 
         public Builder valueWriterName(String valueWriterName) {
             this.valueWriterName = valueWriterName;
+            return this;
+        }
+
+        public Builder flatten(boolean flatten) {
+            this.flatten = flatten;
             return this;
         }
 

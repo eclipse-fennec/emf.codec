@@ -215,6 +215,12 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             return;
         }
 
+        if (config.isFlatten() && reference.isMany() && value instanceof EList<?> list
+                && EMapHelper.isMapEntryReference(reference)) {
+            serializeFlattenedEMap(list, gen, ctxt);
+            return;
+        }
+
         gen.writeName(config.getKey());
 
         if (reference.isMany() && value instanceof EList<?> list) {
@@ -422,6 +428,24 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         }
 
         gen.writeEndObject();
+    }
+
+    private void serializeFlattenedEMap(List<?> entries, JsonGenerator gen, SerializationContext ctxt) {
+        EClass entryClass = reference.getEReferenceType();
+        var keyFeature = EMapHelper.getKeyFeature(entryClass);
+        var valueFeature = EMapHelper.getValueFeature(entryClass);
+
+        for (Object item : entries) {
+            if (item instanceof EObject entry) {
+                Object keyValue = entry.eGet(keyFeature);
+                String key = keyValue != null ? keyValue.toString() : "";
+
+                gen.writeName(key);
+
+                Object value = entry.eGet(valueFeature);
+                serializeMapEntryValue(value, valueFeature, gen, ctxt);
+            }
+        }
     }
 
     private void serializeMapEntryValue(Object value, org.eclipse.emf.ecore.EStructuralFeature valueFeature,

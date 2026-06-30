@@ -2,7 +2,39 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-06-26
+**Last Updated:** 2026-06-30
+
+**Session Summary (2026-06-30 latest):**
+
+**New feature: `flatten` annotation for EMap containment references:**
+
+LLM API gateways (LiteLLM, Bifrost) accept provider-specific extra parameters as flat top-level keys in an OpenAI-compatible request body. Modeling these in EMF as an `EMap<String, String>` containment reference caused the codec to wrap them under the feature name (`"extraParameters": { "k": "v" }`), which those APIs reject. No existing hook could suppress the feature key — `CodecValueWriter` / `ReferenceValueWriter` are both called after `gen.writeName(key)` has already fired.
+
+Added a `flatten` flag: when set on a containment `EReference` whose type is an EMap entry class (`instanceTypeName = "java.util.Map$Entry"`), the serializer omits the feature key entirely and writes each map entry's key/value pair directly into the enclosing JSON object.
+
+*Files changed:*
+- `org.eclipse.fennec.codec.api/src/.../config/ConfigProperty.java` — `FLATTEN` entry (FEATURE scope, WRITE, default `false`)
+- `org.eclipse.fennec.codec.api/src/.../config/FeatureConfig.java` — `flatten` field, `isFlatten()`, builder setter, `toBuilder()`, `mergeWith()`
+- `org.eclipse.fennec.codec.api/src/.../constants/CodecOptions.java` — `CODEC_FLATTEN = "codec.flatten"`
+- `org.eclipse.fennec.codec/src/.../ser/ReferenceSerializationEntry.java` — early-return flatten path in `serialize()`; new `serializeFlattenedEMap()` method (same as `serializeEMap()` without the object wrapper)
+
+*How to use:* Pass via `CODEC_EREFERENCE_CONFIG` save option:
+```java
+Map<EReference, Map<String, Object>> refConfig = new HashMap<>();
+refConfig.put(extraParametersRef, Map.of("flatten", "true"));
+options.put("codec.eReferenceConfig", refConfig);
+resource.save(out, options);
+```
+Annotation-based config (`flatten=true` in the EAnnotation detail map) works automatically through the existing `ConfigurationResolver` / `mergeWith()` pipeline.
+
+*Constraint:* `flatten` is silently ignored on non-EMap references or single-valued references — only many-valued EMap containment references are affected.
+
+*Tests added:*
+- `org.eclipse.fennec.codec.osgi.tests/EMapExample.flattenedMapSerialization()` — verifies entries appear at root level with no container key, using runtime `CODEC_EREFERENCE_CONFIG` option
+
+*Out of scope (tracked separately):* The reverse operation — routing unknown flat keys back into an EMap containment reference during deserialization.
+
+---
 
 **Session Summary (2026-06-26 latest):**
 
