@@ -459,6 +459,14 @@ public final class CodecOptions {
      */
     public static final String CODEC_VALUE_WRITER_NAME = "codec.valueWriterName";
 
+    /**
+     * Flatten an EMap containment reference into the parent JSON object.
+     * When true, the feature key is omitted and each map entry's key/value pair is written
+     * directly into the enclosing JSON object.
+     * <p>Value: {@code Boolean} or {@code "true"/"false"}, default: false</p>
+     */
+    public static final String CODEC_FLATTEN = "codec.flatten";
+
     // ========================================================================
     // DISCRIMINATOR / TYPE MAPPING CONFIGURATION
     // ========================================================================
