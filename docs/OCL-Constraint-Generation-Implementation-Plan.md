@@ -1,6 +1,9 @@
 # JSON Schema Validation Keywords → OCL Invariants (Phase 2 + Phase 4)
 
-**Status:** Implemented (tests green)
+**Status:** Implemented and verified — unit tests green, and confirmed
+end-to-end against the live m2x OCL engine via the playground (see
+[String literal escaping (found via live testing)](#string-literal-escaping-found-via-live-testing)
+for a real bug this live test caught and the fix).
 **Related:** [JSON Schema Validation to EMF/OCL Mapping Guide](JSON.Schema.Validation.to.EMFOCL.Mapping.Guide.md)
 **Scope:** Phase 2 (Assertion Keywords to OCL Invariants) in full, and Phase 4
 (OpenAPI Extensions & Formats) **limited to `format` (`uuid`/`email`)** — see
@@ -79,6 +82,40 @@ Whichever OCL engine is registered under that URI at runtime (Eclipse OCL,
 its Pivot dialect, or `emf.m2x`, which serves both its native URI
 `http://www.eclipse.org/fennec/m2x/ocl/1.0` and the legacy Pivot URI
 `http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot`) does the evaluating.
+
+### String literal escaping (found via live testing)
+
+Live-testing against the m2x engine (via
+`org.eclipse.fennec.codec.playground`'s `JsonschemaOCLResource` — a
+`/jsonschema-ocl/schema` + `/jsonschema-ocl/validate` REST pair for manually
+exercising schema→EPackage→OCL→`Diagnostician` end-to-end) surfaced a real
+bug that the unit test suite couldn't catch, since it never invokes an
+actual OCL parser: a `format: email` invariant failed with `OCL parse error:
+token recognition error at: ''^[^@\\s'`.
+
+Root cause: m2x's `STRING_LITERAL` grammar rule (`Ocl.g4:290-296`) only
+recognizes a fixed whitelist of backslash escapes (`\\`, `\'`, `\"`, `\n`,
+`\t`, `\r`, `\f`, `\b`, `\xHH`, `\uHHHH`, octal) — a bare `\s` or `\.` is a
+lexer error, and there is **no doubled-quote (`''`) escape** for a literal
+quote (unlike the classic OMG OCL / SQL convention). `JsonSchemaOclConstraintGenerator.oclStringLiteral()`
+originally only doubled quotes (`''`) and never escaped backslashes at all —
+wrong on both counts for this grammar. Fixed to: escape every literal
+backslash as `\\` first, then escape every literal quote as `\'` (order
+matters, so quote-escaping doesn't double the backslash just introduced).
+
+Separately, `unquote()` was upgraded from naive quote-stripping (matching
+`EPackageToJsonSchemaConverter`'s existing but JSON-escape-unaware
+convention) to a real Jackson `readTree` parse, falling back to the raw
+value if it isn't valid JSON (needed for the unquoted `format` annotation
+value) — otherwise a `pattern` value containing a JSON-escaped backslash
+(e.g. `"^\\d+$"`) would come out of `unquote()` still double-escaped, and
+`oclStringLiteral()` would double it again into garbage.
+
+**Caveat:** this escaping convention is specific to m2x's grammar. A real
+Eclipse OCL / Pivot delegate follows the OMG-standard doubled-quote
+convention instead and may not accept `\'`-style escapes. If this generator
+is ever used against a non-m2x delegate, the escaping strategy may need to
+be made delegate-aware.
 
 ## Changes
 

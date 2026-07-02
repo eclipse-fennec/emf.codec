@@ -16,7 +16,11 @@
 	org.eclipse.fennec.codec.rlang;version=snapshot,\
 	org.eclipse.fennec.codec.bson;version=snapshot,\
 	org.eclipse.fennec.codec.yaml;version=snapshot,\
-	org.eclipse.fennec.codec.rest;version=snapshot
+	org.eclipse.fennec.codec.rest;version=snapshot,\
+	org.eclipse.fennec.codec.jsonschema;version=snapshot,\
+	org.eclipse.fennec.m2x.ocl.api,\
+	org.eclipse.fennec.m2x.ocl.model,\
+	tools.jackson.core.jackson-databind
 	
 -includeresource: OSGI-INF/configurator/=config/
 Require-Capability: \
