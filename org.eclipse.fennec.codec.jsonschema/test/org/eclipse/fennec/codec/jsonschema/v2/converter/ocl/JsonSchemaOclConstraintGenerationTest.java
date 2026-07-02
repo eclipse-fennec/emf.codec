@@ -13,6 +13,7 @@
 package org.eclipse.fennec.codec.jsonschema.v2.converter.ocl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -140,7 +141,7 @@ class JsonSchemaOclConstraintGenerationTest {
 		}
 
 		@Test
-		@DisplayName("pattern containing a single quote is escaped as ''")
+		@DisplayName("pattern containing a single quote is escaped as \\' (m2x grammar has no doubled-quote escape)")
 		void patternWithQuoteIsEscaped() {
 			EPackage pkg = newPackage("p");
 			EClass person = newClass(pkg, "Person");
@@ -149,8 +150,23 @@ class JsonSchemaOclConstraintGenerationTest {
 
 			new JsonSchemaOclConstraintGenerator().generate(pkg, DEFAULT_DELEGATE_URI);
 
-			assertEquals("self.nickname.matches('^don''t panic$')",
+			assertEquals("self.nickname.matches('^don\\'t panic$')",
 					constraintExpr(person, DEFAULT_DELEGATE_URI, "nickname_pattern"));
+		}
+
+		@Test
+		@DisplayName("pattern containing a regex backslash escape is doubled for the OCL string literal")
+		void patternWithBackslashIsEscaped() {
+			EPackage pkg = newPackage("p");
+			EClass person = newClass(pkg, "Person");
+			EAttribute code = newAttribute(person, "code", EcorePackage.Literals.ESTRING);
+			// JSON-encoded "^\d+$" (a regex matching one-or-more digits)
+			annotate(code, "pattern", "\"^\\\\d+$\"");
+
+			new JsonSchemaOclConstraintGenerator().generate(pkg, DEFAULT_DELEGATE_URI);
+
+			assertEquals("self.code.matches('^\\\\d+$')",
+					constraintExpr(person, DEFAULT_DELEGATE_URI, "code_pattern"));
 		}
 
 		@Test
@@ -294,6 +310,7 @@ class JsonSchemaOclConstraintGenerationTest {
 
 			String expr = constraintExpr(entity, DEFAULT_DELEGATE_URI, "id_format");
 			assertTrue(expr.startsWith("self.id.matches('"), expr);
+			assertNoUnescapedBackslash(expr);
 		}
 
 		@Test
@@ -308,6 +325,19 @@ class JsonSchemaOclConstraintGenerationTest {
 
 			String expr = constraintExpr(contact, DEFAULT_DELEGATE_URI, "email_format");
 			assertTrue(expr.startsWith("self.email.matches('"), expr);
+			// The email regex contains \s and \. - every backslash must be doubled for the
+			// m2x OCL grammar's STRING_LITERAL rule (Ocl.g4), which has no bare \s/\. escape.
+			assertNoUnescapedBackslash(expr);
+		}
+
+		/**
+		 * Asserts every backslash in an OCL string literal is part of a doubled
+		 * escape pair ({@code \\}), matching the m2x grammar's STRING_LITERAL rule.
+		 */
+		private void assertNoUnescapedBackslash(String oclExpression) {
+			String withoutEscapedBackslashes = oclExpression.replace("\\\\", "");
+			assertFalse(withoutEscapedBackslashes.contains("\\"),
+					"Found an unescaped backslash in generated OCL: " + oclExpression);
 		}
 
 		@Test

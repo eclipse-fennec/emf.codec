@@ -34,6 +34,10 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaConversionDiagnostic;
 
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+
 /**
  * Compiles JSON Schema assertion keywords (Phase 2 of the JSON Schema
  * Validation to EMF/OCL Mapping Guide) and the {@code format} keyword
@@ -217,15 +221,47 @@ public class JsonSchemaOclConstraintGenerator {
 		}
 	}
 
+	/**
+	 * Unquotes and JSON-unescapes an annotation detail value.
+	 * <p>
+	 * Most {@code JSONSCHEMA}-source detail values were stored via Jackson
+	 * {@code JsonNode.toString()}, so a string keyword (e.g. {@code pattern}) is
+	 * JSON-quoted with JSON escaping applied (e.g. {@code \\d} for a literal
+	 * backslash-d). {@code format} is the exception — it is stored unquoted via
+	 * {@code JsonNode.asString()}. Parsing as JSON and falling back to the raw
+	 * value on failure handles both cases without needing to know which applies.
+	 * </p>
+	 */
 	private String unquote(String raw) {
-		if (raw != null && raw.length() >= 2 && raw.startsWith("\"") && raw.endsWith("\"")) {
-			return raw.substring(1, raw.length() - 1);
+		if (raw == null) {
+			return null;
+		}
+		try {
+			ObjectMapper mapper = JsonMapper.builder().build();
+			JsonNode node = mapper.readTree(raw);
+			if (node.isTextual()) {
+				return node.asString();
+			}
+		} catch (Exception e) {
+			// Not valid JSON (e.g. an already-unquoted `format` value) - use as-is.
 		}
 		return raw;
 	}
 
+	/**
+	 * Builds an OCL single-quoted string literal.
+	 * <p>
+	 * The m2x OCL grammar ({@code Ocl.g4}'s {@code STRING_LITERAL} rule) only
+	 * recognizes a fixed whitelist of backslash escapes and has no doubled-quote
+	 * escape (unlike the classic OMG OCL/SQL convention) — a literal backslash
+	 * must be doubled ({@code \\}) and a literal quote escaped as {@code \'}.
+	 * Backslashes are escaped first so the quote-escaping step doesn't double the
+	 * backslash it just introduced.
+	 * </p>
+	 */
 	private String oclStringLiteral(String raw) {
-		return "'" + raw.replace("'", "''") + "'";
+		String escaped = raw.replace("\\", "\\\\").replace("'", "\\'");
+		return "'" + escaped + "'";
 	}
 
 	private void applyInvariants(EClass eClass, Map<String, String> invariants, String delegateUri,

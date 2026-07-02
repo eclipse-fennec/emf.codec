@@ -8,7 +8,8 @@
 	fennecJacoco,\
 	fennecEMF,\
 	fennecEMFModels,\
-	jakartaREST
+	jakartaREST,\
+	fennecM2X
 
 # Needed because we enabled library 'fennec'
 # Activate baselining
