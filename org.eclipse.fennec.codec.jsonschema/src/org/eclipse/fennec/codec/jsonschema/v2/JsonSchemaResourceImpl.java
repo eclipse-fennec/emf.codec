@@ -29,6 +29,7 @@ import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.EPackageToJsonSchemaConverter;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaConversionDiagnostic;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaToEPackageConverter;
+import org.eclipse.fennec.codec.jsonschema.v2.converter.ocl.JsonSchemaOclConstraintGenerator;
 import org.eclipse.fennec.codec.jsonschema.v2.value.EClassValueReader;
 import org.eclipse.fennec.codec.jsonschema.v2.value.EClassValueWriter;
 import org.eclipse.fennec.codec.jsonschema.v2.value.EPackageValueReader;
@@ -117,7 +118,9 @@ public class JsonSchemaResourceImpl extends CodecResource {
 	 * </p>
 	 *
 	 * @param inputStream the input stream containing JSON Schema
-	 * @param options load options (supports {@link #OPTION_SCHEMA_FEATURE})
+	 * @param options load options (supports {@link CodecJsonSchemaOptions#OPTION_SCHEMA_FEATURE},
+	 *                {@link CodecJsonSchemaOptions#OPTION_GENERATE_OCL_CONSTRAINTS} and
+	 *                {@link CodecJsonSchemaOptions#OPTION_OCL_DELEGATE_URI})
 	 * @throws IOException if loading fails
 	 */
 	@Override
@@ -137,6 +140,12 @@ public class JsonSchemaResourceImpl extends CodecResource {
 		}
 		if (eObj != null) {
 			getContents().add(eObj);
+		}
+
+		if (eObj != null && extractOption(options, CodecJsonSchemaOptions.OPTION_GENERATE_OCL_CONSTRAINTS, Boolean.FALSE)) {
+			String delegateUri = extractOption(options, CodecJsonSchemaOptions.OPTION_OCL_DELEGATE_URI,
+					CodecJsonSchemaOptions.DEFAULT_OCL_DELEGATE_URI);
+			getWarnings().addAll(new JsonSchemaOclConstraintGenerator().generate(eObj, delegateUri));
 		}
 
 		// Transfer conversion diagnostics to resource warnings
