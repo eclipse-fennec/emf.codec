@@ -2,7 +2,35 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-06-30
+**Last Updated:** 2026-07-02
+
+**Session Summary (2026-07-02):**
+
+**New feature: JSON Schema validation keywords compiled to OCL invariants (Phase 2 + Phase 4 of the EMF/OCL mapping guide):**
+
+`JsonSchemaToEPackageConverter` already parsed and preserved every assertion keyword (`minLength`, `maxLength`, `pattern`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `uniqueItems`) and `format` as inert `EAnnotation` details under `AnnotationSources.JSONSCHEMA`, but nothing ever turned them into an enforceable constraint. Added an opt-in load option that compiles these into real OCL invariants, wired using EMF's standard validation-delegate annotation convention — the delegate URI itself is configurable, so it works against classic Eclipse OCL, its Pivot dialect, or Data In Motion's own `/opt/git/emf.m2x` OCL engine, without fennec-codec ever taking a compile/runtime dependency on any OCL implementation.
+
+*Design doc:* `docs/OCL-Constraint-Generation-Implementation-Plan.md` — full rationale, including why `minItems`/`maxItems` are out of scope (already enforced structurally via `lowerBound`/`upperBound`) and why Phase 4's `discriminator` keyword is **not** implemented: every discriminated-union pattern in this converter (`discriminatorKey`/`discriminatedUnion`, `commonBase`/`variant`, `multiType`/`variantIndex`) discriminates structurally — the concrete `EClass` itself is the type tag — and never retains a literal discriminator field on the object to assert against, so the guide's `self.oclIsTypeOf(Dog) implies self.type = 'Dog'` pattern has nothing real to check here.
+
+*How constraints become enforceable (not just decorative):* three annotations, per EMF's standard convention (confirmed against `emf.m2x`'s `OclValidationDelegateFactory` + its `ocl-user-guide.md` §9): (1) `EPackage` annotation, source `EcorePackage.eNS_URI`, detail `validationDelegates` = the delegate URI; (2) `EClass` annotation, same source, detail `constraints` = space-separated invariant names; (3) `EClass` annotation, source = the delegate URI, with `invariantName -> oclExpression` details. Whichever `EValidator.ValidationDelegate` is registered for that URI at runtime does the evaluating.
+
+*New options (`CodecJsonSchemaOptions`):*
+- `OPTION_GENERATE_OCL_CONSTRAINTS` (`"codec.jsonschema.generateOclConstraints"`, boolean, default `false`)
+- `OPTION_OCL_DELEGATE_URI` (`"codec.jsonschema.oclDelegateUri"`, String, default `DEFAULT_OCL_DELEGATE_URI` = the Eclipse OCL Pivot URI, which `emf.m2x` also serves as an alias)
+
+*Files changed:*
+- `org.eclipse.fennec.codec.jsonschema/src/.../converter/ocl/JsonSchemaOclConstraintGenerator.java` — new. Post-processing pass, decoupled from `JsonSchemaToEPackageConverter`; only reads the `JSONSCHEMA`-source annotations already written. Invariant naming: `<featureName>_<keyword>` (e.g. `age_minimum`). `multipleOf` requires an integer-typed feature (OCL `mod()` is integer-only); `exclusiveMinimum`/`exclusiveMaximum` require the Draft 2020-12 numeric form (legacy Draft-04 boolean form is skipped); `uniqueItems` requires a multi-valued feature; `format` is limited to `uuid`/`email` via a small extensible regex table — unrecognized formats are silently left alone. Unmappable combinations are skipped with a `JsonSchemaConversionDiagnostic` warning, not a hard failure.
+- `org.eclipse.fennec.codec.jsonschema/src/.../converter/JsonSchemaConversionDiagnostic.java` — `Code.OCL_GENERATION_SKIPPED` + `oclGenerationSkipped(keyword, location, reason)` factory
+- `org.eclipse.fennec.codec.jsonschema/src/.../constants/CodecJsonSchemaOptions.java` — the two new option constants
+- `org.eclipse.fennec.codec.jsonschema/src/.../JsonSchemaResourceImpl.java` — `doLoad` invokes the generator when the option is set, merges its diagnostics into `getWarnings()`
+- `docs/codec-options-reference.md` — new option rows under "JSON Schema"
+
+*Tests added:*
+- `org.eclipse.fennec.codec.jsonschema/test/.../converter/ocl/JsonSchemaOclConstraintGenerationTest.java` — unit tests on the generator (each keyword, escaping, integer/multi-valued type guards, custom delegate URI, merge-with-existing-annotations behavior, EClass-with-no-owning-EPackage diagnostic) plus end-to-end tests through `JsonSchemaResourceImpl` (option off by default, option on, custom delegate URI). All green.
+
+*Out of scope (noted in the design doc, not tracked as a bug):* an end-to-end test that installs `emf.m2x`'s `OclEngineImpl.installDelegates()` and evaluates a real object against the generated invariants — would need a new test-scope dependency on `org.eclipse.fennec.m2x.ocl.engine`; fennec-codec currently has zero references to `emf.m2x` in any Gradle file. Also out of scope: OCL generation for JSON Schema logical/conditional applicators (`if`/`then`/`else`, `allOf`/`anyOf`/`oneOf` — mapping guide §3), which was explicitly not requested this session.
+
+---
 
 **Session Summary (2026-06-30 latest):**
 

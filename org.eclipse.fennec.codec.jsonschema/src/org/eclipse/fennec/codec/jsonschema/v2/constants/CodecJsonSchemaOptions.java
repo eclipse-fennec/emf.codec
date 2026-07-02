@@ -159,4 +159,51 @@ public interface CodecJsonSchemaOptions {
 	 */
 	public static final String OPTION_INLINE_REFS = "codec.jsonschema.inlineRefs";
 
+	/**
+	 * When set to {@code true}, JSON Schema validation keywords that restrict a
+	 * value (e.g. {@code minLength}, {@code pattern}, {@code minimum},
+	 * {@code multipleOf}, {@code uniqueItems}) and OpenAPI discriminator/format
+	 * extensions are compiled into OCL invariants and attached to the generated
+	 * {@code EClass}es using EMF's standard validation-delegate annotation
+	 * convention.
+	 * <p>
+	 * Keywords that are already enforced structurally (e.g. {@code minItems}/
+	 * {@code maxItems} via {@code lowerBound}/{@code upperBound}) are unaffected.
+	 * Keywords that cannot be compiled into OCL are skipped with a warning
+	 * diagnostic (see {@code resource.getWarnings()}).
+	 * </p>
+	 * <p>
+	 * fennec-codec does not depend on any OCL engine to generate these
+	 * annotations; see {@link #OPTION_OCL_DELEGATE_URI} for how the actual
+	 * evaluation engine is selected at runtime.
+	 * </p>
+	 * <p>
+	 * Default: {@code false} (no OCL invariants are generated)
+	 * </p>
+	 */
+	public static final String OPTION_GENERATE_OCL_CONSTRAINTS = "codec.jsonschema.generateOclConstraints";
+
+	/**
+	 * The EMF validation-delegate URI to register generated OCL invariants
+	 * under. Only relevant when {@link #OPTION_GENERATE_OCL_CONSTRAINTS} is
+	 * enabled.
+	 * <p>
+	 * Any URI can be supplied as long as a corresponding
+	 * {@code EValidator.ValidationDelegate} is registered for it at runtime
+	 * (Eclipse OCL, its Pivot dialect, or a third-party engine such as
+	 * {@code org.eclipse.fennec.m2x.ocl.engine}, which serves both its native
+	 * URI and the legacy Pivot URI).
+	 * </p>
+	 * <p>
+	 * Default: {@value #DEFAULT_OCL_DELEGATE_URI}
+	 * </p>
+	 */
+	public static final String OPTION_OCL_DELEGATE_URI = "codec.jsonschema.oclDelegateUri";
+
+	/**
+	 * Default value for {@link #OPTION_OCL_DELEGATE_URI}: the Eclipse OCL
+	 * Pivot validation-delegate URI.
+	 */
+	public static final String DEFAULT_OCL_DELEGATE_URI = "http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot";
+
 }

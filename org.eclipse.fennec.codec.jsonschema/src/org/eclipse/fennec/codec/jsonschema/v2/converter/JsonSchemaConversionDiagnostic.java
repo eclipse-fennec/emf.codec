@@ -42,6 +42,8 @@ public class JsonSchemaConversionDiagnostic implements Resource.Diagnostic {
 		UNSUPPORTED_FEATURE,
 		/** Feature partially supported (preserved as annotation) */
 		PARTIAL_SUPPORT,
+		/** A JSON Schema keyword could not be compiled into an OCL invariant */
+		OCL_GENERATION_SKIPPED,
 		/** General conversion warning */
 		GENERAL_WARNING,
 		/** General conversion error */
@@ -187,6 +189,22 @@ public class JsonSchemaConversionDiagnostic implements Resource.Diagnostic {
 			"Keyword '" + keyword + "' is partially supported: " + detail,
 			location,
 			Code.PARTIAL_SUPPORT
+		);
+	}
+
+	/**
+	 * Creates a diagnostic for a keyword that could not be compiled into an OCL invariant.
+	 *
+	 * @param keyword the JSON Schema keyword that was skipped
+	 * @param location the location (e.g., EClass/feature name) where the keyword was found
+	 * @param reason why OCL generation was skipped
+	 * @return the diagnostic
+	 */
+	public static JsonSchemaConversionDiagnostic oclGenerationSkipped(String keyword, String location, String reason) {
+		return new JsonSchemaConversionDiagnostic(
+			"OCL invariant generation skipped for keyword '" + keyword + "': " + reason,
+			location,
+			Code.OCL_GENERATION_SKIPPED
 		);
 	}
 }
