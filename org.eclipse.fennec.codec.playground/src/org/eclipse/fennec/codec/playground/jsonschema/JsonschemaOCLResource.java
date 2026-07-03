@@ -19,8 +19,6 @@ import java.util.Map;
 
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -62,8 +60,8 @@ import tools.jackson.databind.node.ObjectNode;
  * to carry a {@code "_type": "<nsUri>#//<ClassName>"} field (the standard codec URI type strategy,
  * see {@code CodecOptions.CODEC_TYPE_STRATEGY}), which the codec resolves directly against
  * {@link EPackage.Registry#INSTANCE} via {@code TypeResolutionHelper.resolveFromUri} — the same
- * registry the {@code /schema} endpoint populates. The {@code /schema} response includes the exact
- * {@code _type} string to use for each class.
+ * registry the {@code /schema} endpoint populates. The {@code /schema} response is the registered
+ * {@code EPackage}'s nsURI, the prefix to use when building {@code _type} values.
  * </p>
  *
  * @author ilenia
@@ -89,7 +87,7 @@ public class JsonschemaOCLResource {
 	@POST
 	@Path("/schema")
 	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
 	public Response registerSchema(String schemaJson) {
 		Resource resource = null;
 		try {
@@ -110,16 +108,7 @@ public class JsonschemaOCLResource {
 
 			EPackage.Registry.INSTANCE.put(ePackage.getNsURI(), ePackage);
 
-			ObjectMapper mapper = JsonMapper.builder().build();
-			ObjectNode responseNode = mapper.createObjectNode();
-			responseNode.put("nsUri", ePackage.getNsURI());
-			ObjectNode types = responseNode.putObject("types");
-			for (EClassifier classifier : ePackage.getEClassifiers()) {
-				if (classifier instanceof EClass) {
-					types.put(classifier.getName(), ePackage.getNsURI() + "#//" + classifier.getName());
-				}
-			}
-			return Response.ok(responseNode.toString()).build();
+			return Response.ok(ePackage.getNsURI()).build();
 		} catch (Exception e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		} finally {
