@@ -1,0 +1,96 @@
+name: Documentation site
+
+# Builds the VitePress documentation site (curated docs from ./docs, synced by
+# docs-site/sync-guides.mjs) and publishes it to GitHub Pages under a versioned
+# sub-path — https://eclipse-fennec.github.io/emf.codec/<branch>/ — matching the
+# org convention. A root index.html redirect sends /emf.codec/ to the current
+# version.
+#
+# Runs on pushes to the snapshot branch that actually touch the docs (or on
+# manual dispatch), independently of the release build. Unlike emf.m2x there is
+# no p2 update site to merge, so this workflow builds and deploys on its own.
+on:
+  push:
+    branches:
+      - snapshot
+    paths:
+      - 'docs/**'
+      - 'docs-site/**'
+      - '.github/workflows/docs-pages.yml'
+  workflow_dispatch:
+
+# Serialize Pages publishing; let an in-flight deploy finish before the next.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build docs site
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # lastUpdated git timestamps
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+      - name: Install dependencies
+        working-directory: docs-site
+        run: npm ci
+      - name: Build with VitePress
+        working-directory: docs-site
+        env:
+          DOCS_BRANCH: ${{ github.ref_name }}
+        run: npm run docs:build
+      - name: Assemble site
+        run: |
+          set -euo pipefail
+          branch="${{ github.ref_name }}"
+          out="site"
+          rm -rf "$out"
+          mkdir -p "$out/${branch}"
+          cp -r docs-site/docs/.vitepress/dist/. "$out/${branch}/"
+          # Disable Jekyll so /.vitepress-style asset paths are served verbatim.
+          touch "$out/.nojekyll"
+          # Root redirect so https://eclipse-fennec.github.io/emf.codec/ lands on
+          # the current docs version. Replaced by a real version picker once
+          # `latest` (= main) is published.
+          cat > "$out/index.html" <<HTML
+          <!doctype html><meta charset="utf-8">
+          <title>Fennec Codec</title>
+          <meta http-equiv="refresh" content="0; url=./${branch}/">
+          <link rel="canonical" href="./${branch}/">
+          <p>Redirecting to <a href="./${branch}/">the Fennec Codec documentation</a>&hellip;</p>
+          HTML
+          echo "site:"; find "$out" -maxdepth 2 -type d | sort
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write # publish to GitHub Pages
+      id-token: write # OIDC token for the Pages deployment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
