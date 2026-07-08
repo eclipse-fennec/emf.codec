@@ -71,7 +71,6 @@ class CodecProfileBuildTest {
     private EClass addressClass;
     private EAttribute nameAttr;
 
-    @SuppressWarnings("restriction")
 	@BeforeEach
     void setUp() {
         service = new MetadataServiceImpl();

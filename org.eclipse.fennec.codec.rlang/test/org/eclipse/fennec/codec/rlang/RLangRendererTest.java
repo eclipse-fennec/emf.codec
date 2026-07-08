@@ -287,7 +287,6 @@ class RLangRendererTest {
         double[] doubles; // REAL, POSIXCT
         String[] strings; // STRING (null entry = NA)
         boolean[] na;     // INT/REAL/LOGICAL NA mask
-        List<String> classAttr; // class attribute when withAttr
     }
 
     private static final class RDataReader {
@@ -412,7 +411,8 @@ class RLangRendererTest {
                     }
                     String attrName = readSymbol(in);
                     if ("class".equals(attrName)) {
-                        col.classAttr = List.of(readStringVector(in));
+                        // consume the class attribute trailer (not asserted)
+                        readStringVector(in);
                     } else {
                         skipAny(in);
                     }

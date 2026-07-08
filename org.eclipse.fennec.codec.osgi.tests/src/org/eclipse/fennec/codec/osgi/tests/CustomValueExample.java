@@ -259,7 +259,6 @@ public class CustomValueExample {
 
     @Test
     @DisplayName("Writer resolved by name from OSGi registry — 'Hello' serialized as 'HELLO'")
-    @SuppressWarnings("unchecked")
     void writerResolvedByNameFromOsgiRegistry() throws IOException {
         perTestWriterReg = ctx.registerService(CodecValueWriter.class, new UppercaseWriter(), null);
 
@@ -283,7 +282,6 @@ public class CustomValueExample {
 
     @Test
     @DisplayName("Reader resolved by name from OSGi registry — 'HELLO' deserialized as 'hello'")
-    @SuppressWarnings("unchecked")
     void readerResolvedByNameFromOsgiRegistry() throws IOException {
         perTestReaderReg = ctx.registerService(CodecValueReader.class, new LowercaseReader(), null);
 

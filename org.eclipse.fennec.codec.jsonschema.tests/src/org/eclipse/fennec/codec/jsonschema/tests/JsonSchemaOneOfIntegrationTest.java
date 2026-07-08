@@ -25,11 +25,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
@@ -74,65 +71,12 @@ public class JsonSchemaOneOfIntegrationTest {
 	private EPackage pkg;
 	private ServiceRegistration<EPackage> pkgReg;
 
-	private EClass abstractAddress;
-	private EClass abstractName;
-	private EClass address;
-	private EClass businessAddress;
-	private EClass verySpecificAddress;
-	private EClass middleName;
-	private EClass lastName;
-	private EClass myClass;
-
-	private EAttribute addressAttr;
-	private EAttribute businessAddressAttr;
-	private EAttribute verySpecificAddressAttr;
-
-	private EAttribute nameAttr;
-	private EAttribute lastNameAttr;
-	private EAttribute middleNameAttr;
-
-	private EReference addressRef;
-	private EReference nameRef;
-	private EReference addressesRef;
-	private EReference namesRef;
-	private EReference nonContainedAddressRef;
-	private EReference nonContainedNameRef;
-	private EReference nonContainedAddressesRef;
-	private EReference nonContainedNamesRef;
-
-
 	@BeforeEach
 	public void setUp(@InjectBundleContext BundleContext ctx) throws IOException {
 		ecoreHelper = new EcoreHelper();
 		pkg = ecoreHelper.loadEcore(ECORE, JsonSchemaOneOfIntegrationTest.class);
 		EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
 		pkgReg = ctx.registerService(EPackage.class, pkg, null);
-
-		abstractAddress = EcoreHelper.getEClass(pkg, "AbstractAddress");
-		abstractName = EcoreHelper.getEClass(pkg, "AbstractName");
-		address = EcoreHelper.getEClass(pkg, "Address");
-		businessAddress = EcoreHelper.getEClass(pkg, "BusinessAddress");
-		verySpecificAddress = EcoreHelper.getEClass(pkg, "VerySpecificAddress");
-		middleName = EcoreHelper.getEClass(pkg, "MiddleName");
-		lastName = EcoreHelper.getEClass(pkg, "LastName");
-		myClass = EcoreHelper.getEClass(pkg, "MyClass");
-
-		addressAttr = (EAttribute) EcoreHelper.getFeature(address, "address");
-		businessAddressAttr = (EAttribute) EcoreHelper.getFeature(businessAddress, "businessAddress");
-		verySpecificAddressAttr = (EAttribute) EcoreHelper.getFeature(verySpecificAddress, "verySpecificAddress");
-
-		nameAttr = (EAttribute) EcoreHelper.getFeature(abstractName, "name");
-		middleNameAttr = (EAttribute) EcoreHelper.getFeature(middleName, "middleName");
-		lastNameAttr = (EAttribute) EcoreHelper.getFeature(lastName, "lastName");
-
-		addressRef = (EReference) EcoreHelper.getFeature(myClass, "address");
-		nameRef = (EReference) EcoreHelper.getFeature(myClass, "name");
-		addressesRef = (EReference) EcoreHelper.getFeature(myClass, "addresses");
-		namesRef = (EReference) EcoreHelper.getFeature(myClass, "names");
-		nonContainedAddressRef = (EReference) EcoreHelper.getFeature(myClass, "nonContainedAddress");
-		nonContainedNameRef = (EReference) EcoreHelper.getFeature(myClass, "nonContainedName");
-		nonContainedAddressesRef = (EReference) EcoreHelper.getFeature(myClass, "nonContainedAddresses");
-		nonContainedNamesRef = (EReference) EcoreHelper.getFeature(myClass, "nonContainedNames");
 	}
 
 	@AfterEach

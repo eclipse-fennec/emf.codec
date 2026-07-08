@@ -69,6 +69,18 @@ public class CsvFormatProvider implements CodecFormatProvider<InputStream, Outpu
         this.options = options != null ? options : Collections.emptyMap();
     }
 
+    /**
+     * The optional root {@link EClass} this provider was configured with, or {@code null}.
+     * <p>
+     * The tabular pipeline derives its structure from the root objects/options passed to
+     * {@link #createWriter}, so this class is not consumed during writing; the getter exposes
+     * the configured value for callers that want to introspect the provider.
+     * </p>
+     */
+    public EClass getRootEClass() {
+        return rootEClass;
+    }
+
     @Override
     public String getFormatId() {
         return "csv";

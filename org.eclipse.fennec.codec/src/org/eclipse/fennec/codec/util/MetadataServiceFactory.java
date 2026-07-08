@@ -61,7 +61,6 @@ public final class MetadataServiceFactory {
      * @param handlers optional metadata handlers to register on the whiteboard
      * @return a new MetadataWhiteboard configured for codec serialization
      */
-    @SuppressWarnings("restriction")
     public static MetadataWhiteboard create(MetadataHandler... handlers) {
         MetadataServiceImpl service = new MetadataServiceImpl();
         service.registerAspectProvider(new CodecAspectProvider());

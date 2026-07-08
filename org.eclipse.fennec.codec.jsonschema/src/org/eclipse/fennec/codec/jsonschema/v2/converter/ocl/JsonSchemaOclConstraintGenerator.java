@@ -239,7 +239,7 @@ public class JsonSchemaOclConstraintGenerator {
 		try {
 			ObjectMapper mapper = JsonMapper.builder().build();
 			JsonNode node = mapper.readTree(raw);
-			if (node.isTextual()) {
+			if (node.isString()) {
 				return node.asString();
 			}
 		} catch (Exception e) {

@@ -34,7 +34,6 @@ import org.eclipse.fennec.model.openapi.Operation;
 import org.eclipse.fennec.model.openapi.Parameter;
 import org.eclipse.fennec.model.openapi.ParameterLocation;
 import org.eclipse.fennec.model.openapi.PathItem;
-import org.eclipse.fennec.model.openapi.Schema;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

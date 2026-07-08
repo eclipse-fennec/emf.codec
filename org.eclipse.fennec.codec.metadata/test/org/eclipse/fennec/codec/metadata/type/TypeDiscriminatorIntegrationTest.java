@@ -41,7 +41,6 @@ class TypeDiscriminatorIntegrationTest {
     private MetadataWhiteboard metadataService;
     private CodecAspectProvider codecAspectProvider;
 
-    @SuppressWarnings("restriction")
 	@BeforeEach
     void setUp() {
         metadataService = new MetadataServiceImpl();
