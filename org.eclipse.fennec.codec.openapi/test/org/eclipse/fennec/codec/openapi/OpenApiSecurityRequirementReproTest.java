@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -28,27 +29,22 @@ import org.eclipse.fennec.model.openapi.OpenAPI;
 import org.eclipse.fennec.model.openapi.OpenApiPackage;
 import org.eclipse.fennec.model.openapi.Operation;
 import org.eclipse.fennec.model.openapi.SecurityRequirement;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+
 /**
- * Reproducer for <a href="https://github.com/eclipse-fennec/emf.codec/issues/44">#44</a>:
- * security requirements lose their dynamic scheme names — {@code {"api_key": []}} deserializes
- * to a {@link SecurityRequirement} with an <b>empty</b> {@code schemes} EMap (the JSON object
- * IS the map, the model wraps it in a {@code schemes} feature the generic deserializer cannot
- * match). Affects {@code OpenAPI.security} and {@code Operation.security} alike;
- * {@code components/securitySchemes} works.
- * <p>
- * Suggested fix (see issue): a {@code SecurityRequirementValueReader} next to
- * {@link OperationValueReader}, registered in {@link OpenApiResourceFactoryImpl} and bound via
- * {@code valueReaderName} annotations on the two {@code security} features, plus the mirror
- * writer for round-trips. {@code OpenApiSecurityTest.deserializesGlobalSecurityRequirements}
- * should be sharpened along with the fix (it currently only asserts the list size).
- * <p>
- * Enable when fixing #44.
+ * Regression test for <a href="https://github.com/eclipse-fennec/emf.codec/issues/44">#44</a>:
+ * security requirements lost their dynamic scheme names — {@code {"api_key": []}} deserialized
+ * to a {@link SecurityRequirement} with an empty {@code schemes} EMap, because the JSON object
+ * IS the map (dynamic scheme names as field names) while the model wraps it in a
+ * {@code schemes} feature the generic deserializer cannot match. Fixed by
+ * {@link SecurityRequirementValueReader}/{@link SecurityRequirementValueWriter}, bound via
+ * {@code valueReaderName}/{@code valueWriterName} annotations on {@code OpenAPI.security} and
+ * {@code Operation.security}.
  */
-@Disabled("Reproducer for https://github.com/eclipse-fennec/emf.codec/issues/44 — enable when fixing")
 @DisplayName("Security requirements: scheme names + scopes must survive loading (#44)")
 class OpenApiSecurityRequirementReproTest {
 
@@ -104,12 +100,37 @@ class OpenApiSecurityRequirementReproTest {
 		assertEquals(List.of("read:pets"), listPets.getSecurity().get(0).getSchemes().get("oauth2"));
 	}
 
+	@Test
+	@DisplayName("security requirements round-trip in OpenAPI shape")
+	void securityRequirementsRoundTrip() throws IOException {
+		CodecResource resource = loadResource();
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		resource.save(out, null);
+		String savedJson = out.toString(StandardCharsets.UTF_8);
+
+		JsonNode saved = JsonMapper.builder().build().readTree(savedJson);
+		JsonNode security = saved.get("security");
+		assertNotNull(security, "saved document must contain the security array");
+		assertEquals(2, security.size());
+		assertEquals(0, security.get(0).get("api_key").size());
+		assertEquals("read:pets", security.get(1).get("oauth2").get(0).asString());
+		assertEquals("write:pets", security.get(1).get("oauth2").get(1).asString());
+
+		JsonNode operationSecurity = saved.at("/paths/~1pets/get/security");
+		assertEquals("read:pets", operationSecurity.get(0).get("oauth2").get(0).asString());
+	}
+
 	private OpenAPI load() throws IOException {
+		return (OpenAPI) loadResource().getContents().get(0);
+	}
+
+	private CodecResource loadResource() throws IOException {
 		OpenApiResourceFactoryImpl factory = new OpenApiResourceFactoryImpl();
 		CodecResource resource = (CodecResource) factory.createResource(URI.createURI("test://security.json"));
 		Map<String, Object> options = new HashMap<>();
 		options.put(CodecResource.CODEC_ROOT_TYPE, OpenApiPackage.Literals.OPEN_API);
 		resource.load(new ByteArrayInputStream(DOC.getBytes(StandardCharsets.UTF_8)), options);
-		return (OpenAPI) resource.getContents().get(0);
+		return resource;
 	}
 }

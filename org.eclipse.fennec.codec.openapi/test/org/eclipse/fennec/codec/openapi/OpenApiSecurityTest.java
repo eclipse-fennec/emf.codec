@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
@@ -30,6 +31,7 @@ import org.eclipse.fennec.model.openapi.Components;
 import org.eclipse.fennec.model.openapi.OAuthFlow;
 import org.eclipse.fennec.model.openapi.OpenAPI;
 import org.eclipse.fennec.model.openapi.OpenApiPackage;
+import org.eclipse.fennec.model.openapi.SecurityRequirement;
 import org.eclipse.fennec.model.openapi.SecurityScheme;
 import org.eclipse.fennec.model.openapi.SecuritySchemeType;
 import org.junit.jupiter.api.BeforeEach;
@@ -317,14 +319,16 @@ class OpenApiSecurityTest {
 
 			OpenAPI openApi = (OpenAPI) resource.getContents().get(0);
 
-			// Security requirements may have different structure - just verify they're loaded
 			assertNotNull(openApi.getSecurity());
-			// The security array should have 2 entries
 			assertEquals(2, openApi.getSecurity().size());
 
-			// Just verify the security requirements are present
-			assertNotNull(openApi.getSecurity().get(0));
-			assertNotNull(openApi.getSecurity().get(1));
+			SecurityRequirement apiKey = openApi.getSecurity().get(0);
+			assertEquals(1, apiKey.getSchemes().size());
+			assertEquals(List.of(), apiKey.getSchemes().get("api_key"));
+
+			SecurityRequirement oauth = openApi.getSecurity().get(1);
+			assertEquals(1, oauth.getSchemes().size());
+			assertEquals(List.of("read:pets", "write:pets"), oauth.getSchemes().get("oauth2"));
 		}
 	}
 

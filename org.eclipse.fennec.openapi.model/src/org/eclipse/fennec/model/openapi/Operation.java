@@ -271,6 +271,7 @@ public interface Operation extends EObject {
 	 * @return the value of the '<em>Security</em>' containment reference list.
 	 * @see org.eclipse.fennec.model.openapi.OpenApiPackage#getOperation_Security()
 	 * @model containment="true"
+	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='securityRequirement' valueWriterName='securityRequirement'"
 	 * @generated
 	 */
 	EList<SecurityRequirement> getSecurity();

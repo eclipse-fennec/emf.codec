@@ -2,7 +2,28 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-07-02
+**Last Updated:** 2026-07-10
+
+**Session Summary (2026-07-10):**
+
+**Fixed GitHub issue #43 — OpenAPI import: schema-to-schema `$ref` features in the generated schemas EPackage had `eType == null`:**
+
+In the embedded/direct-definitions mode (OpenAPI `components/schemas` content handed to `EPackageValueReader` → `converter.convert(jsonNode, null)`, so `schemaFeature == null`), `extractSchemaNameFromRef` left refs like `#/components/schemas/Category` as `components/schemas/Category`, while `classifierMap` holds `Category` — every deferred lookup missed and the `EReference` stayed untyped (ref only preserved as the `jsonschema`/`ref` EAnnotation). Fix in `JsonSchemaToEPackageConverter`: new `DEFINITION_CONTAINER_PREFIXES` (`components/schemas/`, `definitions/`, `$defs/`, `schemas/`, longest first) stripped as fallback when the `schemaFeature` prefix doesn't match. Deliberately prefix-stripping instead of last-path-segment so organizational-namespace keys (`configs/Name`) keep working. All `$ref` call sites go through this method, so array `items.$ref`, allOf, anyOf/oneOf and `additionalProperties` refs are covered too. Also stopped stamping `noTypeInfo=true` on `$ref` properties in `addCommonAnnotations` (a `$ref` schema has no `type` keyword by design); this also fixed a latent round-trip issue where a `{type: array, items: {$ref}}` feature inherited `noTypeInfo` from its items node and the writer then suppressed `"type": "array"`. Regression test: `OpenApiSchemasRefETypeReproTest` (was a disabled reproducer in the working tree).
+
+**Fixed GitHub issue #44 — OpenAPI security requirements lost their scheme names:**
+
+`{"api_key": []}` deserialized to an empty `SecurityRequirement`: in OpenAPI JSON the requirement object IS the map (dynamic scheme names as field names), while the model wraps entries in the `schemes` EMap feature — no `schemes` field exists in JSON for the generic deserializer to match. Fix following the established `OperationValueReader` pattern:
+- `org.eclipse.fennec.codec.openapi/src/.../SecurityRequirementValueReader.java` — new `ReferenceValueReader<SecurityRequirement>` (name `securityRequirement`), reads each JSON field as scheme→scopes EMap entry; `@Component(service = CodecValueReader.class)` for OSGi.
+- `org.eclipse.fennec.codec.openapi/src/.../SecurityRequirementValueWriter.java` — mirror `ReferenceValueWriter` (same name, separate registry map) writing `{ "<scheme>": [scopes...] }` so `save()` emits the OpenAPI shape.
+- `OpenApiResourceFactoryImpl` plain-Java constructor registers both.
+- `org.eclipse.fennec.openapi.model/model/openapi_v3.ecore` — `valueReaderName`/`valueWriterName = securityRequirement` codec EAnnotations on `OpenAPI.security` and `Operation.security`; model regenerated via `./gradlew :org.eclipse.fennec.openapi.model:generate --rerun-tasks` (the task considers itself UP-TO-DATE after ecore-only edits — force the rerun).
+- Tests: `OpenApiSecurityRequirementReproTest` enabled (global + per-operation + round-trip), `OpenApiSecurityTest.deserializesGlobalSecurityRequirements` sharpened to assert scheme names and scopes (it previously only asserted list size, which is how the data loss slipped through).
+
+Known related gap (noted in #44, possibly worth its own issue): `ReferenceDeserializationEntry.resolveRuntimeValueReader(...)` is a placeholder that always returns `null`, so the documented runtime alternative `CodecOptions.CODEC_FEATURE_VALUE_READERS` does not work.
+
+Both issues carried downstream workarounds in `eclipse-fennec/emf.util` (`OpenApiImporter.repairDanglingRefs(...)`, own `SecurityRequirementValueReader` + manual registry assembly) that can be removed once these fixes are released.
+
+---
 
 **Session Summary (2026-07-02):**
 

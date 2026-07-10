@@ -76,8 +76,10 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 		this.metadataService = whiteboard;
 		CodecValueRegistry registry = new CodecValueRegistry();
 		registry.register(new OperationValueReader());
+		registry.register(new SecurityRequirementValueReader());
 		registry.register(new EPackageValueReader());
 		registry.register(new OpenApiSchemasValueWriter());
+		registry.register(new SecurityRequirementValueWriter());
 		this.valueRegistry = registry;
 	}
 

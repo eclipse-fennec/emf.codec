@@ -138,15 +138,11 @@ public class JsonSchemaRoundTripComparisonIntegrationTest {
 			"#/$defs/PipelineNode/oneOf: present on original only",
 			"#/$defs/PipelineNode/type: type expected [] but was [object]",
 
-			// (4) $ref collections emitted as non-containment lose type:array and their
-			//     required membership.
-			"#/$defs/Pipeline/properties/edges/type: type expected [array] but was []",
-			"#/$defs/Pipeline/properties/nodes/type: type expected [array] but was []",
-			"#/$defs/Pipeline/required: required expected [edges, id, nodes] but was [id]",
-			"#/properties/dataSinks/type: type expected [array] but was []",
-			"#/properties/dataSources/type: type expected [array] but was []",
-			"#/properties/mappings/type: type expected [array] but was []",
-			"#/properties/pipelines/type: type expected [array] but was []");
+			// (4) $ref collections emitted as non-containment lose their required
+			//     membership. (Until issue #43 they also lost type:array — the
+			//     feature inherited a spurious noTypeInfo annotation from its
+			//     items node, suppressing "type": "array" on write.)
+			"#/$defs/Pipeline/required: required expected [edges, id, nodes] but was [id]");
 
 	/** The known reverse-conversion gaps for {@code mapping.schema.json}; see {@link #EXPECTED_CORE_IR_GAPS}. */
 	private static final List<String> EXPECTED_MAPPING_GAPS = List.of(

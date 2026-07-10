@@ -3741,6 +3741,13 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 	protected void createCodecAnnotations() {
 		String source = "http://eclipse.org/fennec/codec";
 		addAnnotation
+		  (getOpenAPI_Security(),
+		   source,
+		   new String[] {
+			   "valueReaderName", "securityRequirement",
+			   "valueWriterName", "securityRequirement"
+		   });
+		addAnnotation
 		  (getPathItem_Ref(),
 		   source,
 		   new String[] {
@@ -3799,6 +3806,13 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 		   source,
 		   new String[] {
 			   "serialize", "false"
+		   });
+		addAnnotation
+		  (getOperation_Security(),
+		   source,
+		   new String[] {
+			   "valueReaderName", "securityRequirement",
+			   "valueWriterName", "securityRequirement"
 		   });
 		addAnnotation
 		  (getParameter_Ref(),

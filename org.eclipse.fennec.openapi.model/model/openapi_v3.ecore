@@ -43,6 +43,10 @@
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Global security requirements that apply to all operations."/>
       </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="securityRequirement"/>
+        <details key="valueWriterName" value="securityRequirement"/>
+      </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="tags" upperBound="-1" eType="#//Tag"
         containment="true"/>
@@ -187,7 +191,12 @@
         eType="#//CallbackEntry" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="deprecated" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="security" upperBound="-1"
-        eType="#//SecurityRequirement" containment="true"/>
+        eType="#//SecurityRequirement" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="securityRequirement"/>
+        <details key="valueWriterName" value="securityRequirement"/>
+      </eAnnotations>
+    </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="servers" upperBound="-1"
         eType="#//Server" containment="true"/>
   </eClassifiers>
