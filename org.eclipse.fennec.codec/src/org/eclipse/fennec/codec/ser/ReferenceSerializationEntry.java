@@ -15,6 +15,7 @@ package org.eclipse.fennec.codec.ser;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
@@ -241,6 +242,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
     }
 
     private void serializeReference(EObject target, JsonGenerator gen, SerializationContext ctxt) {
+        ReferenceValueWriter<?> effectiveWriter = resolveEffectiveReferenceWriter(ctxt);
         if (reference.isContainment() && isCrossDocument(gen, target)) {
             writeReferenceObject(target, gen, true, ctxt);
         } else if (reference.isContainment()) {
@@ -248,19 +250,19 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             // TypeSerializationEntry uses this to find the correct discriminator value.
             ContextHelper.setCurrentSerializationReference(ctxt, reference);
             try {
-                if (referenceWriter != null) {
-                    writeWithReferenceWriter(target, gen, ctxt);
+                if (effectiveWriter != null) {
+                    writeWithReferenceWriter(effectiveWriter, target, gen, ctxt);
                 } else {
                     ctxt.writeValue(gen, target);
                 }
             } finally {
                 ContextHelper.clearCurrentSerializationReference(ctxt);
             }
-        } else if (referenceWriter != null) {
+        } else if (effectiveWriter != null) {
             // Non-containment with explicit ReferenceValueWriter (e.g., JSON Schema):
-            // the user annotated this feature with a custom writer, honour it
+            // the user bound a custom writer to this feature, honour it
             // regardless of containment mode.
-            writeWithReferenceWriter(target, gen, ctxt);
+            writeWithReferenceWriter(effectiveWriter, target, gen, ctxt);
         } else if (shouldExpandReference(target)) {
             serializeExpandedReference(target, gen, ctxt);
         } else {
@@ -268,14 +270,57 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         }
     }
 
+    /**
+     * Resolves the effective custom writer for this reference.
+     * <p>
+     * Priority order:
+     * <ol>
+     *   <li>Instance binding from options (CODEC_FEATURE_VALUE_WRITER_INSTANCES) —
+     *       bypasses the registry</li>
+     *   <li>Pre-resolved writer from registry (via valueWriterName config/annotation)</li>
+     * </ol>
+     * The deprecated name-based option CODEC_FEATURE_VALUE_WRITERS is not supported
+     * for references; a binding for this reference only produces a warning.
+     * </p>
+     *
+     * @param ctxt the serialization context (may be null)
+     * @return the effective writer, or null if none configured
+     */
+    private ReferenceValueWriter<?> resolveEffectiveReferenceWriter(SerializationContext ctxt) {
+        if (ctxt != null) {
+            Object instancesAttr = ctxt.getAttribute(ContextHelper.FEATURE_VALUE_WRITER_INSTANCES);
+            if (instancesAttr instanceof Map<?, ?> instancesMap) {
+                Object writer = instancesMap.get(reference);
+                if (writer instanceof ReferenceValueWriter<?> refWriter) {
+                    if (refWriter.canHandle(reference)) {
+                        return refWriter;
+                    }
+                    LOGGER.warning("ReferenceValueWriter instance '" + refWriter.getName() +
+                            "' cannot handle reference '" + reference.getName() + "' of type " +
+                            reference.getEReferenceType().getName() + ", falling back");
+                }
+            }
+
+            String runtimeWriterName = ContextHelper.getFeatureValueWriter(ctxt, reference);
+            if (runtimeWriterName != null && !runtimeWriterName.isEmpty() && referenceWriter == null) {
+                LOGGER.warning("CODEC_FEATURE_VALUE_WRITERS is deprecated and not supported for references — " +
+                        "writer '" + runtimeWriterName + "' for reference '" + reference.getName() +
+                        "' is ignored. Use CODEC_FEATURE_VALUE_WRITER_INSTANCES or the valueWriterName " +
+                        "config property instead.");
+            }
+        }
+        return referenceWriter;
+    }
+
     @SuppressWarnings("unchecked")
-    private void writeWithReferenceWriter(EObject target, JsonGenerator gen, SerializationContext ctxt) {
+    private void writeWithReferenceWriter(ReferenceValueWriter<?> writer, EObject target,
+            JsonGenerator gen, SerializationContext ctxt) {
         if (entryContext == null) {
             throw new IllegalStateException("CodecEntryContext required for custom reference writer");
         }
         try {
             CodecWriterContext writerCtx = entryContext.createWriterContext(gen, ctxt);
-            ((ReferenceValueWriter<EObject>) referenceWriter).write(target, reference, writerCtx);
+            ((ReferenceValueWriter<EObject>) writer).write(target, reference, writerCtx);
         } catch (IOException e) {
             throw new UncheckedIOException(
                     "Custom reference writer failed for reference: " + reference.getName(), e);

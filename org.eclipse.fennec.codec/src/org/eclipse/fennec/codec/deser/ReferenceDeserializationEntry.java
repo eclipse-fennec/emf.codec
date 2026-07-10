@@ -15,6 +15,7 @@ package org.eclipse.fennec.codec.deser;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -199,7 +200,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         JsonToken token = parser.currentToken();
 
         if (token == JsonToken.START_OBJECT) {
-            if (reference.isContainment() || referenceReader != null) {
+            if (reference.isContainment() || hasCustomReferenceReader(ctxt)) {
                 // Containment, or non-containment with explicit ReferenceValueReader:
                 // deserialize inline object using the custom reader if available
                 EObject child = deserializeContainedObject(state, parser, ctxt);
@@ -241,7 +242,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         int index = 0;
 
         while (parser.nextToken() != JsonToken.END_ARRAY) {
-            if (reference.isContainment() || referenceReader != null) {
+            if (reference.isContainment() || hasCustomReferenceReader(ctxt)) {
                 EObject child = deserializeContainedObject(state, parser, ctxt);
                 if (child != null) {
                     values.add(child);
@@ -260,7 +261,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     @SuppressWarnings("unchecked")
     private void deserializeSingleElement(DeserializationState state, JsonParser parser,
             DeserializationContext ctxt, EObject eObject, int index) {
-        if (reference.isContainment() || referenceReader != null) {
+        if (reference.isContainment() || hasCustomReferenceReader(ctxt)) {
             EObject child = deserializeContainedObject(state, parser, ctxt);
             if (child != null) {
                 ((List<EObject>) eObject.eGet(reference)).add(child);
@@ -282,9 +283,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      * Priority for type resolution (see spec 18-feature-type-hints.md):
      * <ol>
      *   <li>_type field in JSON (explicit type in data)</li>
-     *   <li>CODEC_FEATURE_VALUE_READERS option (runtime value reader)</li>
+     *   <li>CODEC_FEATURE_VALUE_READER_INSTANCES option (runtime reader instance)</li>
      *   <li>CODEC_FEATURE_TYPE_HINTS option (runtime type hint)</li>
-     *   <li>valueReaderName EAnnotation (static model config)</li>
+     *   <li>valueReaderName config property (load options / EAnnotation)</li>
      *   <li>EReference.eType (declared reference type)</li>
      * </ol>
      * </p>
@@ -304,44 +305,22 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     private EObject deserializeContainedObject(DeserializationState parentState, JsonParser parser,
             DeserializationContext ctxt) {
         try {
-            // Priority 1: Check for runtime value reader from CODEC_FEATURE_VALUE_READERS option
-            String runtimeReaderName = ContextHelper.getFeatureValueReader(ctxt, reference);
-            if (runtimeReaderName != null && !runtimeReaderName.isEmpty()) {
-                // Delegate to runtime-specified value reader
-                ReferenceValueReader<?> runtimeReader = resolveRuntimeValueReader(runtimeReaderName, ctxt);
-                if (runtimeReader != null && entryContext != null) {
-                    // Make type hint available to the reader via context
-                    EClass typeHint = ContextHelper.getFeatureTypeHint(ctxt, reference);
-                    if (typeHint != null) {
-                        ContextHelper.setCurrentFeatureTypeHint(ctxt, typeHint);
-                    }
-                    try {
-                        CodecReaderContext readerCtx = entryContext.createReaderContext(parser, ctxt);
-                        return runtimeReader.read(readerCtx, reference);
-                    } finally {
-                        ContextHelper.clearCurrentFeatureTypeHint(ctxt);
-                    }
-                } else if (runtimeReader == null) {
-                    String msg = "ValueReader '" + runtimeReaderName + "' not found for reference '" +
-                            reference.getName() + "', falling back to default";
-                    LOGGER.warning(msg);
-                    ContextHelper.addWarning(ctxt, msg, parser, "ReferenceDeserializationEntry");
-                }
-            }
-
-            // Priority 2: Check for runtime type hint from CODEC_FEATURE_TYPE_HINTS option
+            // Priority 1: Check for runtime type hint from CODEC_FEATURE_TYPE_HINTS option
             EClass runtimeTypeHint = ContextHelper.getFeatureTypeHint(ctxt, reference);
 
-            // Priority 3: Check for custom reference reader from EAnnotation (valueReaderName)
-            // (e.g., JSON Schema to EPackage for OpenAPI components/schemas)
-            if (referenceReader != null && entryContext != null) {
+            // Priority 2: Custom reference reader — an instance bound via
+            // CODEC_FEATURE_VALUE_READER_INSTANCES, or the pre-resolved reader from the
+            // valueReaderName config/annotation (e.g., JSON Schema to EPackage for
+            // OpenAPI components/schemas)
+            ReferenceValueReader<?> effectiveReader = resolveEffectiveReferenceReader(ctxt, parser);
+            if (effectiveReader != null && entryContext != null) {
                 // Make type hint available to the reader via context
                 if (runtimeTypeHint != null) {
                     ContextHelper.setCurrentFeatureTypeHint(ctxt, runtimeTypeHint);
                 }
                 try {
                     CodecReaderContext readerCtx = entryContext.createReaderContext(parser, ctxt);
-                    return referenceReader.read(readerCtx, reference);
+                    return effectiveReader.read(readerCtx, reference);
                 } finally {
                     ContextHelper.clearCurrentFeatureTypeHint(ctxt);
                 }
@@ -765,27 +744,69 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     }
 
     /**
-     * Resolves a ReferenceValueReader from the runtime value registry by name.
+     * Resolves the effective custom reader for this reference.
      * <p>
-     * This method looks up the reader from the CodecValueRegistry that was
-     * passed via the DeserializationContext.
+     * Priority order:
+     * <ol>
+     *   <li>Instance binding from options (CODEC_FEATURE_VALUE_READER_INSTANCES) —
+     *       bypasses the registry</li>
+     *   <li>Pre-resolved reader from registry (via valueReaderName config/annotation)</li>
+     * </ol>
+     * The deprecated name-based option CODEC_FEATURE_VALUE_READERS is not supported
+     * for references; a binding for this reference only produces a warning.
      * </p>
      *
-     * @param readerName the name of the value reader
-     * @param ctxt the deserialization context
-     * @return the resolved ReferenceValueReader, or null if not found
+     * @param ctxt the deserialization context (may be null)
+     * @param parser the parser, used for warning locations (may be null)
+     * @return the effective reader, or null if none configured
      */
-    private ReferenceValueReader<?> resolveRuntimeValueReader(String readerName, DeserializationContext ctxt) {
-        // The value registry should be available via the CodecModule configuration
-        // For now we rely on the registry that was passed to the constructor
-        // TODO: In future, we could look this up from a context attribute if needed
-        // For runtime readers, we'd need the registry to be accessible at deserialization time
-        LOGGER.fine(() -> "Looking up runtime value reader: " + readerName);
+    private ReferenceValueReader<?> resolveEffectiveReferenceReader(DeserializationContext ctxt, JsonParser parser) {
+        if (ctxt != null) {
+            Object instancesAttr = ctxt.getAttribute(ContextHelper.FEATURE_VALUE_READER_INSTANCES);
+            if (instancesAttr instanceof Map<?, ?> instancesMap) {
+                Object reader = instancesMap.get(reference);
+                if (reader instanceof ReferenceValueReader<?> refReader) {
+                    if (refReader.canHandle(reference)) {
+                        return refReader;
+                    }
+                    String msg = "ReferenceValueReader instance '" + refReader.getName() +
+                            "' cannot handle reference '" + reference.getName() + "' of type " +
+                            reference.getEReferenceType().getName() + ", falling back";
+                    LOGGER.warning(msg);
+                    ContextHelper.addWarning(ctxt, msg, parser, "ReferenceDeserializationEntry");
+                }
+            }
 
-        // Note: Runtime value readers require the CodecValueRegistry to be accessible
-        // This is a limitation - currently we only support readers configured via constructor
-        // A future enhancement would be to pass the registry via context
-        return null; // Placeholder - requires registry access enhancement
+            String runtimeReaderName = ContextHelper.getFeatureValueReader(ctxt, reference);
+            if (runtimeReaderName != null && !runtimeReaderName.isEmpty() && referenceReader == null) {
+                String msg = "CODEC_FEATURE_VALUE_READERS is deprecated and not supported for references — " +
+                        "reader '" + runtimeReaderName + "' for reference '" + reference.getName() +
+                        "' is ignored. Use CODEC_FEATURE_VALUE_READER_INSTANCES or the valueReaderName " +
+                        "config property instead.";
+                LOGGER.warning(msg);
+                ContextHelper.addWarning(ctxt, msg, parser, "ReferenceDeserializationEntry");
+            }
+        }
+        return referenceReader;
+    }
+
+    /**
+     * Returns true if a custom reference reader applies — either a runtime instance
+     * from options or the pre-resolved config/annotation reader. Used by the
+     * deserialization branches that must treat the value as an inline object even
+     * for non-containment references.
+     */
+    private boolean hasCustomReferenceReader(DeserializationContext ctxt) {
+        if (referenceReader != null) {
+            return true;
+        }
+        if (ctxt == null) {
+            return false;
+        }
+        Object instancesAttr = ctxt.getAttribute(ContextHelper.FEATURE_VALUE_READER_INSTANCES);
+        return instancesAttr instanceof Map<?, ?> instancesMap
+                && instancesMap.get(reference) instanceof ReferenceValueReader<?> refReader
+                && refReader.canHandle(reference);
     }
 
     /**

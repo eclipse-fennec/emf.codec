@@ -142,11 +142,22 @@ EAnnotations or `CodecModule` config.
 | `codec.rootType` | `CODEC_ROOT_TYPE` | EClass or URI String | Type hint for the root object during load. Required when the JSON has no `_type` field and the type cannot be inferred. |
 | `codec.rootSchema` | `CODEC_ROOT_SCHEMA` | String (nsURI) | EPackage namespace URI used as context for `NAME` strategy type resolution. |
 | `codec.featureTypeHints` | `CODEC_FEATURE_TYPE_HINTS` | Map\<String, EClass\> | Per-feature type hints keyed by feature name. |
-| `codec.valueReaders` | `CODEC_VALUE_READERS` | List\<CodecValueReader\> | Custom value reader instances to register for this operation. |
-| `codec.valueWriters` | `CODEC_VALUE_WRITERS` | List\<CodecValueWriter\> | Custom value writer instances to register for this operation. |
+| `codec.featureValueReaderInstances` | `CODEC_FEATURE_VALUE_READER_INSTANCES` | Map\<EStructuralFeature, CodecValueReader\> | Bind reader instances directly to features (bypasses the registry). Works for EAttributes and EReferences. |
+| `codec.featureValueWriterInstances` | `CODEC_FEATURE_VALUE_WRITER_INSTANCES` | Map\<EStructuralFeature, CodecValueWriter\> | Bind writer instances directly to features (bypasses the registry). Works for EAttributes and EReferences. |
+| `codec.featureValueReaders` | `CODEC_FEATURE_VALUE_READERS` | Map\<EStructuralFeature, String\> | **Deprecated** — bind registered readers via `"ClassName.featureName"` → `valueReaderName` instead. Attributes only; ignored for references. |
+| `codec.featureValueWriters` | `CODEC_FEATURE_VALUE_WRITERS` | Map\<EStructuralFeature, String\> | **Deprecated** — bind registered writers via `"ClassName.featureName"` → `valueWriterName` instead. Attributes only; ignored for references. |
 | `codec.eClassConfig` | `CODEC_ECLASS_CONFIG` | Map\<EClass, Map\> | Per-EClass option overrides applied at the EClass scope level. |
 | `codec.eReferenceConfig` | `CODEC_EREFERENCE_CONFIG` | Map\<EReference, Map\> | Per-EReference option overrides. |
 | `codec.eAttributeConfig` | `CODEC_EATTRIBUTE_CONFIG` | Map\<EAttribute, Map\> | Per-EAttribute option overrides. |
+
+> **Not supported — runtime registry registration:** there is no option to register
+> readers/writers into the `CodecValueRegistry` per load/save operation. In particular,
+> a reader/writer that a model annotation (`valueReaderName`/`valueWriterName`) refers to
+> cannot be supplied at load time — it must be in the registry when the resource is
+> created (factory, OSGi service, or programmatic registration). For ad-hoc cases bind an
+> instance per feature with `codec.featureValueReaderInstances`/`...WriterInstances`.
+> The former `codec.valueReaders`/`codec.valueWriters` options were never functional and
+> have been removed (issue #45).
 
 ---
 

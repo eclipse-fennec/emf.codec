@@ -252,71 +252,30 @@ options.put(CODEC_FEATURE_TYPE_HINTS, hints);
 
 > **See also:** [Custom Value Readers/Writers](14-custom-values.md) for complete value reader/writer documentation including interface definitions and examples.
 
-### 4.1 Global Reader/Writer Registration
-
-Register reader/writer instances to be available for the current operation. Readers/writers are registered using their `getName()` method.
-
-| Java Constant | Property Key | Value Type | Direction | Description |
-|---------------|--------------|------------|-----------|-------------|
-| `CODEC_VALUE_READERS` | `codec.valueReaders` | `List<CodecValueReader>` | Load | Readers to register (uses `getName()`) |
-| `CODEC_VALUE_WRITERS` | `codec.valueWriters` | `List<CodecValueWriter>` | Save | Writers to register (uses `getName()`) |
-
-**Usage:**
-```java
-Map<String, Object> options = Map.of(
-    "codec.valueReaders", List.of(
-        new ISODateReader(),           // registered as "isoDate"
-        new EPackageValueReader()      // registered as "jsonSchemaToEPackage"
-    ),
-    "codec.valueWriters", List.of(
-        new ISODateWriter(),           // registered as "isoDate"
-        new EPackageValueWriter()      // registered as "ePackageToJsonSchema"
-    )
-);
-
-resource.load(inputStream, options);
-```
-
-### 4.2 Per-Feature Binding by Name
-
-| Java Constant | Property Key | Value Type | Direction | Description |
-|---------------|--------------|------------|-----------|-------------|
-| `CODEC_FEATURE_VALUE_READERS` | `codec.featureValueReaders` | `Map<EStructuralFeature, String>` | Load | Reader names per feature |
-| `CODEC_FEATURE_VALUE_WRITERS` | `codec.featureValueWriters` | `Map<EStructuralFeature, String>` | Save | Writer names per feature |
-
-Provides ValueReader/Writer names for specific features. The reader/writer must be registered in the registry (via `codec.valueReaders`/`codec.valueWriters`, builder, or `CodecValueRegistry`).
-
-**Usage:**
-```java
-Map<String, Object> options = Map.of(
-    // First register the readers
-    "codec.valueReaders", List.of(new ISODateReader(), new EPackageValueReader()),
-
-    // Then bind by name
-    "codec.featureValueReaders", Map.of(
-        OpenAPIPackage.eINSTANCE.getExample_Value(), "dynamicJsonReader",
-        OpenAPIPackage.eINSTANCE.getComponents_Schemas(), "jsonSchemaToEPackage"
-    )
-);
-
-resource.load(inputStream, options);
-```
-
-### 4.3 Per-Feature Direct Instance Binding
+### 4.1 Per-Feature Direct Instance Binding
 
 | Java Constant | Property Key | Value Type | Direction | Description |
 |---------------|--------------|------------|-----------|-------------|
 | `CODEC_FEATURE_VALUE_READER_INSTANCES` | `codec.featureValueReaderInstances` | `Map<EStructuralFeature, CodecValueReader>` | Load | Reader instances per feature |
 | `CODEC_FEATURE_VALUE_WRITER_INSTANCES` | `codec.featureValueWriterInstances` | `Map<EStructuralFeature, CodecValueWriter>` | Save | Writer instances per feature |
 
-Directly bind reader/writer instances to specific features. This bypasses the registry - useful for one-off customizations.
+Directly bind reader/writer instances to specific features. This bypasses the registry and
+is **the supported runtime mechanism** for ad-hoc customizations. It works for:
+
+- **EAttributes** — bind an `AttributeValueReader`/`AttributeValueWriter` (or generic `CodecValueReader`/`CodecValueWriter`)
+- **EReferences** — bind a `ReferenceValueReader`/`ReferenceValueWriter` (containment and non-containment; for multi-valued references the reader/writer is invoked per element)
+
+An instance binding takes priority over a `valueReaderName`/`valueWriterName` binding from
+config or model annotations. If a bound instance's `canHandle(...)` rejects the reference,
+a warning is emitted and the codec falls back to the config/annotation reader or default
+handling.
 
 **Usage:**
 ```java
 Map<String, Object> options = Map.of(
     "codec.featureValueReaderInstances", Map.of(
-        MyPackage.Literals.PERSON__CREATED_AT, new ISODateReader(),
-        MyPackage.Literals.PERSON__UPDATED_AT, new ISODateReader()
+        MyPackage.Literals.PERSON__CREATED_AT, new ISODateReader(),          // EAttribute
+        MyPackage.Literals.PERSON__ADDRESS, new CompactAddressReader()       // EReference
     ),
     "codec.featureValueWriterInstances", Map.of(
         MyPackage.Literals.PERSON__CREATED_AT, new ISODateWriter()
@@ -325,6 +284,46 @@ Map<String, Object> options = Map.of(
 
 resource.save(outputStream, options);
 ```
+
+### 4.2 Per-Feature Binding by Name (deprecated)
+
+| Java Constant | Property Key | Value Type | Direction | Description |
+|---------------|--------------|------------|-----------|-------------|
+| `CODEC_FEATURE_VALUE_READERS` | `codec.featureValueReaders` | `Map<EStructuralFeature, String>` | Load | **Deprecated** — reader names per feature |
+| `CODEC_FEATURE_VALUE_WRITERS` | `codec.featureValueWriters` | `Map<EStructuralFeature, String>` | Save | **Deprecated** — writer names per feature |
+
+**Deprecated.** Binding a *registered* reader/writer name to a feature per operation is
+already covered by the general configuration resolution (see
+[Config Resolution](02-config-resolution.md)): pass a `"ClassName.featureName"` entry with
+a `valueReaderName`/`valueWriterName` property in the load/save options. For *unregistered*
+readers/writers use instance binding (§4.1).
+
+```java
+// Supported replacement: bind a registered reader via config resolution
+Map<String, Object> options = Map.of(
+    "OpenAPI.security", Map.of("valueReaderName", "securityRequirement")
+);
+```
+
+Note: these options only ever worked for **EAttributes**. For EReferences they were always
+ignored; since their deprecation a binding for a reference produces a warning diagnostic.
+
+### 4.3 Runtime Registration (not supported)
+
+There is deliberately **no** load/save option to register readers/writers into the
+`CodecValueRegistry` per operation. Readers/writers resolved by name — whether through
+`valueReaderName`/`valueWriterName` model annotations or config properties — must already
+be present in the registry when the resource is created (registered at factory/module
+construction, via OSGi services, or programmatically on the `CodecValueRegistry`).
+
+In particular the following edge case is **not implemented**: a model annotation
+(`valueReaderName`) declaring a reader that the caller supplies only at load time. Callers
+in that situation must either register the reader on the registry before creating the
+resource, or bind an instance per feature with §4.1.
+
+*History:* the former options `CODEC_VALUE_READERS`/`CODEC_VALUE_WRITERS`
+(`codec.valueReaders`/`codec.valueWriters`) specified exactly this, but were never
+implemented and have been removed (see issue #45).
 
 ---
 
@@ -391,9 +390,9 @@ When deserializing a feature, the codec resolves type information in this order:
 | Priority | Source | Description |
 |----------|--------|-------------|
 | 1 (highest) | `_type` field in JSON | Explicit type information in the data |
-| 2 | `CODEC_FEATURE_VALUE_READERS` | Load option - ValueReader name |
+| 2 | `CODEC_FEATURE_VALUE_READER_INSTANCES` | Load option - ValueReader instance |
 | 3 | `CODEC_FEATURE_TYPE_HINTS` | Load option - EClass hint |
-| 4 | EAnnotation `valueReaderName` | Static model configuration |
+| 4 | `valueReaderName` config property | Load/save options (`"ClassName.featureName"`) or EAnnotation |
 | 5 | Standard type resolution | Uses declared reference type |
 
 ### 6.1 Resolution Flow
@@ -405,15 +404,15 @@ Deserializing EObject-typed feature
     │       │
     │       └─ YES: Use _type for type resolution
     │
-    ├─ CODEC_FEATURE_VALUE_READERS contains entry for this feature?
+    ├─ CODEC_FEATURE_VALUE_READER_INSTANCES contains entry for this feature?
     │       │
-    │       └─ YES: Delegate to registered ValueReader
+    │       └─ YES: Delegate to the bound ValueReader instance
     │
     ├─ CODEC_FEATURE_TYPE_HINTS contains entry for this feature?
     │       │
     │       └─ YES: Use EClass as concrete type
     │
-    ├─ EAnnotation specifies valueReaderName?
+    ├─ valueReaderName configured (options or EAnnotation)?
     │       │
     │       └─ YES: Delegate to registered reader
     │
@@ -426,7 +425,7 @@ Deserializing EObject-typed feature
 
 ### 6.2 Why ValueReader has Priority over EClass Hint
 
-When both `CODEC_FEATURE_VALUE_READERS` and `CODEC_FEATURE_TYPE_HINTS` have entries for the same feature, the ValueReader takes priority because:
+When both `CODEC_FEATURE_VALUE_READER_INSTANCES` and `CODEC_FEATURE_TYPE_HINTS` have entries for the same feature, the ValueReader takes priority because:
 
 1. **Full Control**: A ValueReader provides complete control over deserialization
 2. **Complex Types**: Some features need custom parsing logic, not just type instantiation
@@ -452,13 +451,13 @@ typeHints.put(
 );
 loadOptions.put(CodecOptions.CODEC_FEATURE_TYPE_HINTS, typeHints);
 
-// ValueReaders for complex cases
-Map<EStructuralFeature, String> readerHints = new HashMap<>();
-readerHints.put(
+// ValueReader instances for complex cases
+Map<EStructuralFeature, CodecValueReader> readerInstances = new HashMap<>();
+readerInstances.put(
     OpenAPIPackage.eINSTANCE.getComponents_Schemas(),
-    "jsonSchemaToEPackage"
+    new EPackageValueReader()
 );
-loadOptions.put(CodecOptions.CODEC_FEATURE_VALUE_READERS, readerHints);
+loadOptions.put(CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES, readerInstances);
 
 resource.load(inputStream, loadOptions);
 ```
@@ -536,12 +535,10 @@ Map<String, Object> options = CodecOptionsBuilder.create()
 
 | Java Constant | Property Key | Value Type | Purpose |
 |---------------|--------------|------------|---------|
-| `CODEC_VALUE_READERS` | `codec.valueReaders` | `List<CodecValueReader>` | Readers to register (uses `getName()`) |
-| `CODEC_VALUE_WRITERS` | `codec.valueWriters` | `List<CodecValueWriter>` | Writers to register (uses `getName()`) |
-| `CODEC_FEATURE_VALUE_READERS` | `codec.featureValueReaders` | `Map<EStructuralFeature, String>` | Reader names per feature |
-| `CODEC_FEATURE_VALUE_WRITERS` | `codec.featureValueWriters` | `Map<EStructuralFeature, String>` | Writer names per feature |
 | `CODEC_FEATURE_VALUE_READER_INSTANCES` | `codec.featureValueReaderInstances` | `Map<EStructuralFeature, CodecValueReader>` | Reader instances per feature |
 | `CODEC_FEATURE_VALUE_WRITER_INSTANCES` | `codec.featureValueWriterInstances` | `Map<EStructuralFeature, CodecValueWriter>` | Writer instances per feature |
+| `CODEC_FEATURE_VALUE_READERS` | `codec.featureValueReaders` | `Map<EStructuralFeature, String>` | **Deprecated** — use config resolution (`valueReaderName`) or instances |
+| `CODEC_FEATURE_VALUE_WRITERS` | `codec.featureValueWriters` | `Map<EStructuralFeature, String>` | **Deprecated** — use config resolution (`valueWriterName`) or instances |
 
 ---
 

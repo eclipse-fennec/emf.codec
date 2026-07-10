@@ -29,6 +29,7 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
@@ -37,6 +38,8 @@ import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
+import org.eclipse.fennec.codec.value.ReferenceValueReader;
+import org.eclipse.fennec.codec.value.ReferenceValueWriter;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
@@ -44,6 +47,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 
 /**
  * Integration tests for custom value readers/writers in CodecResource.
@@ -477,6 +483,334 @@ class CodecResourceCustomValueTest {
             EObject loaded = deserializeWithOptions(json, resolver, valueRegistry, loadOptions);
             assertNotNull(loaded);
             assertEquals("uppercase_name", loaded.eGet(nameAttribute));
+        }
+    }
+
+    @Nested
+    @DisplayName("Reference Instance Binding Tests (via options)")
+    class ReferenceInstanceBindingTests {
+
+        private EClass addressClass;
+        private EClass companyClass;
+        private EReference addressReference;
+        private EReference employeesReference;
+        private EAttribute streetAttribute;
+        private EAttribute cityAttribute;
+
+        @BeforeEach
+        void setUpReferences() {
+            addressClass = EcoreHelper.getEClass(testPackage, "Address");
+            companyClass = EcoreHelper.getEClass(testPackage, "Company");
+            addressReference = (EReference) EcoreHelper.getFeature(personClass, "address");
+            employeesReference = (EReference) EcoreHelper.getFeature(companyClass, "employees");
+            streetAttribute = (EAttribute) EcoreHelper.getFeature(addressClass, "street");
+            cityAttribute = (EAttribute) EcoreHelper.getFeature(addressClass, "city");
+        }
+
+        /** Reads an Address from the compact shape {@code {"compact": "street|city"}}. */
+        private ReferenceValueReader<EObject> compactAddressReader() {
+            return new ReferenceValueReader<>() {
+                @Override
+                public String getName() {
+                    return "compactAddress";
+                }
+
+                @Override
+                public boolean canHandle(EReference reference) {
+                    return reference.getEReferenceType() == addressClass;
+                }
+
+                @Override
+                public EObject read(CodecReaderContext ctx, EReference reference) throws IOException {
+                    JsonParser parser = ctx.getParser();
+                    String compact = null;
+                    while (parser.nextToken() != JsonToken.END_OBJECT) {
+                        if ("compact".equals(parser.currentName())) {
+                            parser.nextToken();
+                            compact = parser.getString();
+                        }
+                    }
+                    if (compact == null) {
+                        return null;
+                    }
+                    String[] parts = compact.split("\\|");
+                    EObject address = testPackage.getEFactoryInstance().create(addressClass);
+                    address.eSet(streetAttribute, parts[0]);
+                    address.eSet(cityAttribute, parts[1]);
+                    return address;
+                }
+            };
+        }
+
+        @Test
+        @DisplayName("Reader instance binding applies to a single-valued containment reference")
+        void readerInstanceBindingForContainmentReference() throws IOException {
+            String json = "{\"name\": \"Alice\", \"age\": 30, \"address\": {\"compact\": \"Main St|Springfield\"}}";
+            ConfigurationResolver resolver = ConfigurationResolver.defaults();
+
+            Map<String, Object> loadOptions = Map.of(
+                    CodecResource.CODEC_ROOT_TYPE, personClass,
+                    CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES, Map.of(addressReference, compactAddressReader())
+            );
+
+            EObject loaded = deserializeWithOptions(json, resolver, valueRegistry, loadOptions);
+            assertNotNull(loaded);
+            EObject address = (EObject) loaded.eGet(addressReference);
+            assertNotNull(address, "custom reference reader must produce the Address");
+            assertEquals("Main St", address.eGet(streetAttribute));
+            assertEquals("Springfield", address.eGet(cityAttribute));
+        }
+
+        @Test
+        @DisplayName("Reader instance binding applies per element of a multi-valued containment reference")
+        void readerInstanceBindingForMultiValuedContainmentReference() throws IOException {
+            ReferenceValueReader<EObject> compactPersonReader = new ReferenceValueReader<>() {
+                @Override
+                public String getName() {
+                    return "compactPerson";
+                }
+
+                @Override
+                public boolean canHandle(EReference reference) {
+                    return reference.getEReferenceType() == personClass;
+                }
+
+                @Override
+                public EObject read(CodecReaderContext ctx, EReference reference) throws IOException {
+                    JsonParser parser = ctx.getParser();
+                    String name = null;
+                    while (parser.nextToken() != JsonToken.END_OBJECT) {
+                        if ("n".equals(parser.currentName())) {
+                            parser.nextToken();
+                            name = parser.getString();
+                        }
+                    }
+                    EObject person = testPackage.getEFactoryInstance().create(personClass);
+                    person.eSet(nameAttribute, name);
+                    return person;
+                }
+            };
+
+            String json = "{\"name\": \"ACME\", \"employees\": [{\"n\": \"Alice\"}, {\"n\": \"Bob\"}]}";
+            ConfigurationResolver resolver = ConfigurationResolver.defaults();
+
+            Map<String, Object> loadOptions = Map.of(
+                    CodecResource.CODEC_ROOT_TYPE, companyClass,
+                    CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES, Map.of(employeesReference, compactPersonReader)
+            );
+
+            EObject company = deserializeWithOptions(json, resolver, valueRegistry, loadOptions);
+            assertNotNull(company);
+            @SuppressWarnings("unchecked")
+            java.util.List<EObject> employees = (java.util.List<EObject>) company.eGet(employeesReference);
+            assertEquals(2, employees.size(), "custom reference reader must produce every element");
+            assertEquals("Alice", employees.get(0).eGet(nameAttribute));
+            assertEquals("Bob", employees.get(1).eGet(nameAttribute));
+        }
+
+        @Test
+        @DisplayName("Reader instance binding applies to a non-containment reference")
+        void readerInstanceBindingForNonContainmentReference() throws IOException {
+            EReference managerReference = (EReference) EcoreHelper.getFeature(personClass, "manager");
+            ReferenceValueReader<EObject> compactPersonReader = new ReferenceValueReader<>() {
+                @Override
+                public String getName() {
+                    return "compactPerson";
+                }
+
+                @Override
+                public boolean canHandle(EReference reference) {
+                    return reference.getEReferenceType() == personClass;
+                }
+
+                @Override
+                public EObject read(CodecReaderContext ctx, EReference reference) throws IOException {
+                    JsonParser parser = ctx.getParser();
+                    String name = null;
+                    while (parser.nextToken() != JsonToken.END_OBJECT) {
+                        if ("n".equals(parser.currentName())) {
+                            parser.nextToken();
+                            name = parser.getString();
+                        }
+                    }
+                    EObject person = testPackage.getEFactoryInstance().create(personClass);
+                    person.eSet(nameAttribute, name);
+                    return person;
+                }
+            };
+
+            String json = "{\"name\": \"Alice\", \"manager\": {\"n\": \"Boss\"}}";
+            ConfigurationResolver resolver = ConfigurationResolver.defaults();
+
+            Map<String, Object> loadOptions = Map.of(
+                    CodecResource.CODEC_ROOT_TYPE, personClass,
+                    CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES, Map.of(managerReference, compactPersonReader)
+            );
+
+            EObject loaded = deserializeWithOptions(json, resolver, valueRegistry, loadOptions);
+            assertNotNull(loaded);
+            EObject manager = (EObject) loaded.eGet(managerReference);
+            assertNotNull(manager, "custom reader must apply to the non-containment reference");
+            assertEquals("Boss", manager.eGet(nameAttribute));
+        }
+
+        @Test
+        @DisplayName("Writer instance binding applies per element of a multi-valued containment reference")
+        void writerInstanceBindingForMultiValuedContainmentReference() throws IOException {
+            ReferenceValueWriter<EObject> compactPersonWriter = new ReferenceValueWriter<>() {
+                @Override
+                public String getName() {
+                    return "compactPerson";
+                }
+
+                @Override
+                public boolean canHandle(EReference reference) {
+                    return reference.getEReferenceType() == personClass;
+                }
+
+                @Override
+                public void write(EObject value, EReference reference, CodecWriterContext ctx) throws IOException {
+                    ctx.getGenerator().writeStartObject();
+                    ctx.getGenerator().writeStringProperty("n", (String) value.eGet(nameAttribute));
+                    ctx.getGenerator().writeEndObject();
+                }
+            };
+
+            EObject company = testPackage.getEFactoryInstance().create(companyClass);
+            company.eSet(EcoreHelper.getFeature(companyClass, "name"), "ACME");
+            @SuppressWarnings("unchecked")
+            java.util.List<EObject> employees = (java.util.List<EObject>) company.eGet(employeesReference);
+            employees.add(createPerson("Alice", 30));
+            employees.add(createPerson("Bob", 25));
+
+            ConfigurationResolver resolver = ConfigurationResolver.defaults();
+            Map<String, Object> saveOptions = Map.of(
+                    CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES, Map.of(employeesReference, compactPersonWriter)
+            );
+
+            String json = serializeWithOptions(company, resolver, valueRegistry, saveOptions);
+            assertTrue(json.contains("\"n\""), "custom writer must produce the compact shape, but got: " + json);
+            assertTrue(json.contains("Alice") && json.contains("Bob"), "both elements expected, but got: " + json);
+            assertFalse(json.contains("\"name\":\"Alice\""), "default Person shape must not be written, but got: " + json);
+        }
+
+        @Test
+        @DisplayName("Rejected canHandle falls back to default deserialization")
+        void readerInstanceCanHandleRejectionFallsBack() throws IOException {
+            ReferenceValueReader<EObject> rejectingReader = new ReferenceValueReader<>() {
+                @Override
+                public String getName() {
+                    return "rejecting";
+                }
+
+                @Override
+                public boolean canHandle(EReference reference) {
+                    return false;
+                }
+
+                @Override
+                public EObject read(CodecReaderContext ctx, EReference reference) throws IOException {
+                    throw new IllegalStateException("must never be called");
+                }
+            };
+
+            String json = "{\"name\": \"Alice\", \"address\": {\"street\": \"Main St\", \"city\": \"Springfield\"}}";
+            ConfigurationResolver resolver = ConfigurationResolver.defaults();
+
+            Map<String, Object> loadOptions = Map.of(
+                    CodecResource.CODEC_ROOT_TYPE, personClass,
+                    CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES, Map.of(addressReference, rejectingReader)
+            );
+
+            EObject loaded = deserializeWithOptions(json, resolver, valueRegistry, loadOptions);
+            assertNotNull(loaded);
+            EObject address = (EObject) loaded.eGet(addressReference);
+            assertNotNull(address, "default deserialization must apply when canHandle rejects");
+            assertEquals("Main St", address.eGet(streetAttribute));
+        }
+
+        @Test
+        @DisplayName("Reader instance takes priority over a config-bound registry reader")
+        void readerInstanceTakesPriorityOverConfigBoundReader() throws IOException {
+            ReferenceValueReader<EObject> registryReader = new ReferenceValueReader<>() {
+                @Override
+                public String getName() {
+                    return "registryAddress";
+                }
+
+                @Override
+                public boolean canHandle(EReference reference) {
+                    return reference.getEReferenceType() == addressClass;
+                }
+
+                @Override
+                public EObject read(CodecReaderContext ctx, EReference reference) throws IOException {
+                    ctx.getParser().skipChildren();
+                    EObject address = testPackage.getEFactoryInstance().create(addressClass);
+                    address.eSet(streetAttribute, "FROM_REGISTRY");
+                    return address;
+                }
+            };
+            valueRegistry.register(registryReader);
+
+            String json = "{\"name\": \"Alice\", \"address\": {\"compact\": \"Main St|Springfield\"}}";
+            ConfigurationResolver resolver = ConfigurationResolver.defaults();
+
+            Map<String, Object> loadOptions = Map.of(
+                    CodecResource.CODEC_ROOT_TYPE, personClass,
+                    // Config path binds the registry reader ...
+                    CodecOptions.CODEC_EREFERENCE_CONFIG,
+                    Map.of(addressReference, Map.of(CodecOptions.CODEC_VALUE_READER_NAME, "registryAddress")),
+                    // ... but the bound instance must win
+                    CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES, Map.of(addressReference, compactAddressReader())
+            );
+
+            EObject loaded = deserializeWithOptions(json, resolver, valueRegistry, loadOptions);
+            assertNotNull(loaded);
+            EObject address = (EObject) loaded.eGet(addressReference);
+            assertNotNull(address);
+            assertEquals("Main St", address.eGet(streetAttribute),
+                    "instance binding must take priority over the config-bound registry reader");
+        }
+
+        @Test
+        @DisplayName("Writer instance binding applies to a single-valued containment reference")
+        void writerInstanceBindingForContainmentReference() throws IOException {
+            ReferenceValueWriter<EObject> compactAddressWriter = new ReferenceValueWriter<>() {
+                @Override
+                public String getName() {
+                    return "compactAddress";
+                }
+
+                @Override
+                public boolean canHandle(EReference reference) {
+                    return reference.getEReferenceType() == addressClass;
+                }
+
+                @Override
+                public void write(EObject value, EReference reference, CodecWriterContext ctx) throws IOException {
+                    ctx.getGenerator().writeStartObject();
+                    ctx.getGenerator().writeStringProperty("compact",
+                            value.eGet(streetAttribute) + "|" + value.eGet(cityAttribute));
+                    ctx.getGenerator().writeEndObject();
+                }
+            };
+
+            EObject person = createPerson("Alice", 30);
+            EObject address = testPackage.getEFactoryInstance().create(addressClass);
+            address.eSet(streetAttribute, "Main St");
+            address.eSet(cityAttribute, "Springfield");
+            person.eSet(addressReference, address);
+
+            ConfigurationResolver resolver = ConfigurationResolver.defaults();
+            Map<String, Object> saveOptions = Map.of(
+                    CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES, Map.of(addressReference, compactAddressWriter)
+            );
+
+            String json = serializeWithOptions(person, resolver, valueRegistry, saveOptions);
+            assertTrue(json.contains("\"compact\""), "custom reference writer must produce the compact shape, but got: " + json);
+            assertTrue(json.contains("Main St|Springfield"), "compact value expected, but got: " + json);
+            assertFalse(json.contains("\"street\""), "default Address shape must not be written, but got: " + json);
         }
     }
 

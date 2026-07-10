@@ -832,8 +832,6 @@ public class CodecResource extends ResourceImpl {
             CodecOptions.CODEC_FEATURE_TYPE_HINTS,
             CodecOptions.CODEC_TYPE_HINT_MODE,
             CodecOptions.CODEC_DESERIALIZATION_MODE,
-            CodecOptions.CODEC_VALUE_READERS,
-            CodecOptions.CODEC_VALUE_WRITERS,
             CodecOptions.CODEC_FEATURE_VALUE_READERS,
             CodecOptions.CODEC_FEATURE_VALUE_WRITERS,
             CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES,

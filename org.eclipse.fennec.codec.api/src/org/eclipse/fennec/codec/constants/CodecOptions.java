@@ -87,38 +87,54 @@ public final class CodecOptions {
     public static final String CODEC_DESERIALIZATION_MODE = "codec.deserializationMode";
 
     /**
-     * Load option: Value readers to register.
-     * <p>Value: {@code Collection<CodecValueReader>}</p>
-     */
-    public static final String CODEC_VALUE_READERS = "codec.valueReaders";
-
-    /**
-     * Save option: Value writers to register.
-     * <p>Value: {@code Collection<CodecValueWriter>}</p>
-     */
-    public static final String CODEC_VALUE_WRITERS = "codec.valueWriters";
-
-    /**
      * Load option: Per-feature value reader names.
      * <p>Value: {@code Map<EStructuralFeature, String>}</p>
+     *
+     * @deprecated Redundant with the general config resolution: bind a registered reader
+     *             per load via the {@code "ClassName.featureName"} load option with a
+     *             {@code valueReaderName} entry (see spec 02-config-resolution.md), or bind
+     *             an unregistered instance with
+     *             {@link #CODEC_FEATURE_VALUE_READER_INSTANCES}. Only ever worked for
+     *             attributes; for references it is ignored with a warning.
      */
+    @Deprecated
     public static final String CODEC_FEATURE_VALUE_READERS = "codec.featureValueReaders";
 
     /**
      * Save option: Per-feature value writer names.
      * <p>Value: {@code Map<EStructuralFeature, String>}</p>
+     *
+     * @deprecated Redundant with the general config resolution: bind a registered writer
+     *             per save via the {@code "ClassName.featureName"} save option with a
+     *             {@code valueWriterName} entry (see spec 02-config-resolution.md), or bind
+     *             an unregistered instance with
+     *             {@link #CODEC_FEATURE_VALUE_WRITER_INSTANCES}. Only ever worked for
+     *             attributes; for references it is ignored with a warning.
      */
+    @Deprecated
     public static final String CODEC_FEATURE_VALUE_WRITERS = "codec.featureValueWriters";
 
     /**
      * Load option: Per-feature value reader instances.
      * <p>Value: {@code Map<EStructuralFeature, CodecValueReader>}</p>
+     * <p>
+     * Binds reader instances directly to features, bypassing the registry — the supported
+     * runtime mechanism for ad-hoc readers. Supports {@code AttributeValueReader}s on
+     * EAttributes and {@code ReferenceValueReader}s on EReferences (containment and
+     * non-containment). Takes priority over {@code valueReaderName} config/annotations.
+     * </p>
      */
     public static final String CODEC_FEATURE_VALUE_READER_INSTANCES = "codec.featureValueReaderInstances";
 
     /**
      * Save option: Per-feature value writer instances.
      * <p>Value: {@code Map<EStructuralFeature, CodecValueWriter>}</p>
+     * <p>
+     * Binds writer instances directly to features, bypassing the registry — the supported
+     * runtime mechanism for ad-hoc writers. Supports {@code AttributeValueWriter}s on
+     * EAttributes and {@code ReferenceValueWriter}s on EReferences (containment and
+     * non-containment). Takes priority over {@code valueWriterName} config/annotations.
+     * </p>
      */
     public static final String CODEC_FEATURE_VALUE_WRITER_INSTANCES = "codec.featureValueWriterInstances";
 

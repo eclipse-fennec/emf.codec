@@ -6,7 +6,7 @@
 
 > **See also:**
 > - [Annotation Reference](16-annotation-reference.md) (Feature Configuration) for `valueReaderName` and `valueWriterName` keys
-> - [Load/Save Options](13-load-save-options.md) for `CODEC_FEATURE_VALUE_READERS` and `CODEC_FEATURE_VALUE_WRITERS`
+> - [Load/Save Options](13-load-save-options.md) for `CODEC_FEATURE_VALUE_READER_INSTANCES` and `CODEC_FEATURE_VALUE_WRITER_INSTANCES`
 
 ---
 
@@ -815,52 +815,41 @@ Custom value reader/writer resolution follows the standard configuration hierarc
 
 > **See also:** [Load/Save Options](13-load-save-options.md) for complete option reference.
 
-#### Global Reader/Writer Registration
-
-Register readers/writers to the registry for the current operation:
-
-| Option Key | Type | Description |
-|------------|------|-------------|
-| `codec.valueReaders` | `List<CodecValueReader>` | Readers to register (uses `getName()`) |
-| `codec.valueWriters` | `List<CodecValueWriter>` | Writers to register (uses `getName()`) |
-
-**Example:**
-```java
-Map<String, Object> options = Map.of(
-    "codec.valueReaders", List.of(new ISODateReader(), new EPackageValueReader()),
-    "codec.valueWriters", List.of(new ISODateWriter(), new EPackageValueWriter())
-);
-resource.load(inputStream, options);
-```
-
 #### Per-Feature Binding
 
 Bind readers/writers to specific features:
 
 | Option Key | Type | Description |
 |------------|------|-------------|
-| `codec.featureValueReaders` | `Map<EStructuralFeature, String>` | Reader names per feature |
-| `codec.featureValueWriters` | `Map<EStructuralFeature, String>` | Writer names per feature |
-| `codec.featureValueReaderInstances` | `Map<EStructuralFeature, CodecValueReader>` | Reader instances per feature (direct binding) |
-| `codec.featureValueWriterInstances` | `Map<EStructuralFeature, CodecValueWriter>` | Writer instances per feature (direct binding) |
+| `codec.featureValueReaderInstances` | `Map<EStructuralFeature, CodecValueReader>` | Reader instances per feature (direct binding, bypasses registry) |
+| `codec.featureValueWriterInstances` | `Map<EStructuralFeature, CodecValueWriter>` | Writer instances per feature (direct binding, bypasses registry) |
+| `codec.featureValueReaders` | `Map<EStructuralFeature, String>` | **Deprecated** — use config resolution (`valueReaderName`) or instances |
+| `codec.featureValueWriters` | `Map<EStructuralFeature, String>` | **Deprecated** — use config resolution (`valueWriterName`) or instances |
+
+Instance binding works for EAttributes and EReferences alike (see
+[Load/Save Options §4](13-load-save-options.md)). To bind a *registered* reader/writer by
+name per operation, use the general config resolution instead
+(`"ClassName.featureName"` → `valueReaderName`/`valueWriterName`).
 
 **Example:**
 ```java
 Map<String, Object> options = Map.of(
-    // Register readers globally
-    "codec.valueReaders", List.of(new ISODateReader()),
-
-    // Bind by name (requires reader in registry)
-    "codec.featureValueReaders", Map.of(
-        MyPackage.Literals.PERSON__CREATED_AT, "isoDate"
-    ),
-
-    // Or bind instance directly (bypasses registry)
+    // Bind an instance directly (bypasses registry)
     "codec.featureValueReaderInstances", Map.of(
         MyPackage.Literals.PERSON__UPDATED_AT, new ISODateReader()
-    )
+    ),
+
+    // Bind a registered reader by name via config resolution
+    "Person.createdAt", Map.of("valueReaderName", "isoDate")
 );
 ```
+
+> **Note — no runtime registration:** there is deliberately no option to register
+> readers/writers into the `CodecValueRegistry` per load/save operation (the former
+> `codec.valueReaders`/`codec.valueWriters` options were never implemented and have been
+> removed, see issue #45). Readers/writers resolved by name — including those referenced
+> by `valueReaderName`/`valueWriterName` model annotations — must be present in the
+> registry when the resource is created.
 
 ---
 
