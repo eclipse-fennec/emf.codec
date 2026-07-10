@@ -77,6 +77,14 @@ public class JsonSchemaToEPackageConverter {
 	/** Threshold for determining if properties are "similar enough" to extract to common base */
 	private static final double SIMILARITY_THRESHOLD = 0.3;
 
+	/**
+	 * Well-known definition-container prefixes that a JSON-pointer $ref may carry in
+	 * front of the schema name, ordered longest first ("components/schemas" before
+	 * "schemas"). Used as fallback when the ref does not match {@link #schemaFeature}.
+	 */
+	private static final String[] DEFINITION_CONTAINER_PREFIXES = {
+			"components/schemas/", "definitions/", "$defs/", "schemas/"};
+
 	private final EcoreFactory ecoreFactory = EcoreFactory.eINSTANCE;
 
 	private Map<String, EClassifier> classifierMap;
@@ -2333,7 +2341,9 @@ public class JsonSchemaToEPackageConverter {
 			String constType = constNode.isArray() ? constNode.get(0).getNodeType().toString() : constNode.getNodeType().toString();
 			addEAnnotation(feature, AnnotationSources.JSONSCHEMA, "constType", constType);
 		}
-		if (!propertyNode.has("type")) {
+		// A $ref schema has no "type" keyword by design — only stamp the marker for
+		// schemas that genuinely carry no type information.
+		if (!propertyNode.has("type") && !propertyNode.has("$ref")) {
 			addEAnnotation(feature, AnnotationSources.JSONSCHEMA, isArrayItems ? "noArrayItemsTypeInfo" : "noTypeInfo", "true");
 		}
 		if (propertyNode.has("uniqueItems")) {
@@ -2435,7 +2445,18 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		if (schemaFeature != null && refPath.startsWith(schemaFeature + "/")) {
-			refPath = refPath.substring(schemaFeature.length() + 1);
+			return refPath.substring(schemaFeature.length() + 1);
+		}
+
+		// Refs may carry the full document pointer even though the definitions were
+		// handed to the converter directly, e.g. OpenAPI "components/schemas" content
+		// read via EPackageValueReader (schemaFeature == null while refs are
+		// "#/components/schemas/Name"). Strip the known definition-container prefixes
+		// so the remaining path matches the classifier-map key.
+		for (String containerPrefix : DEFINITION_CONTAINER_PREFIXES) {
+			if (refPath.startsWith(containerPrefix)) {
+				return refPath.substring(containerPrefix.length());
+			}
 		}
 
 		return refPath;
