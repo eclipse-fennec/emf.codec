@@ -58,9 +58,9 @@ This repository follows the conventions documented in
   first — your problem may already be reported.
 * When filing a new issue, include the Fennec Codec version, Java version,
   format (`json`, `bson`, `cbor`, `yaml`, …), and a minimal reproducer.
-* Security issues must **not** be reported as public GitHub issues. Send
-  them privately to the project leads or to
-  [security@eclipse.org](mailto:security@eclipse.org).
+* Security issues must **not** be reported as public GitHub issues. Follow
+  the coordinated-disclosure process described in [SECURITY.md](SECURITY.md)
+  instead.
 
 ## Contributing code
 

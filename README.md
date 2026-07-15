@@ -6,6 +6,9 @@ An EMF codec framework built on Jackson 3.x for serializing and deserializing EM
 
 ## Documentation
 
+The published documentation site is at
+[eclipse-fennec.github.io/emf.codec/snapshot](https://eclipse-fennec.github.io/emf.codec/snapshot/).
+
 The complete codec specification is available in [`docs/codec-v2-spec/`](docs/codec-v2-spec/00-overview.md):
 
 - **[00 - Overview & Table of Contents](docs/codec-v2-spec/00-overview.md)** - Start here
