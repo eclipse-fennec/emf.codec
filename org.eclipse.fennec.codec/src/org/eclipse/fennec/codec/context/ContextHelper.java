@@ -525,12 +525,44 @@ public final class ContextHelper {
     }
 
     /**
+     * Gets the EMF Resource from the serialization context.
+     * <p>
+     * This provides a fallback for generators that do not use
+     * {@code CodecWriteContext} (e.g., {@code FormatDelegateGenerator}), so the
+     * serializer can still detect cross-document references and build the
+     * correct reference URI.
+     * </p>
+     *
+     * @param ctxt the serialization context
+     * @return the EMF Resource, or null if not set
+     */
+    public static Resource getResource(SerializationContext ctxt) {
+        if (ctxt == null) {
+            return null;
+        }
+        Object value = ctxt.getAttribute(RESOURCE);
+        return value instanceof Resource ? (Resource) value : null;
+    }
+
+    /**
      * Sets the EMF Resource in the deserialization context.
      *
      * @param ctxt the deserialization context
      * @param resource the EMF Resource
      */
     public static void setResource(DeserializationContext ctxt, Resource resource) {
+        if (ctxt != null) {
+            ctxt.setAttribute(RESOURCE, resource);
+        }
+    }
+
+    /**
+     * Sets the EMF Resource in the serialization context.
+     *
+     * @param ctxt the serialization context
+     * @param resource the EMF Resource
+     */
+    public static void setResource(SerializationContext ctxt, Resource resource) {
         if (ctxt != null) {
             ctxt.setAttribute(RESOURCE, resource);
         }

@@ -552,7 +552,7 @@ class ContextHelperTest {
         @Test
         @DisplayName("getResource returns null for null context")
         void getResourceNullContext() {
-            assertNull(ContextHelper.getResource(null));
+            assertNull(ContextHelper.getResource((DeserializationContext) null));
         }
 
         @Test
@@ -578,7 +578,7 @@ class ContextHelperTest {
         void setResourceNullContext() {
             Resource resource =
                     mock(Resource.class);
-            assertDoesNotThrow(() -> ContextHelper.setResource(null, resource));
+            assertDoesNotThrow(() -> ContextHelper.setResource((DeserializationContext) null, resource));
         }
 
         @Test
