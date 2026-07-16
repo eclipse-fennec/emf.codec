@@ -468,6 +468,11 @@ public class CodecResource extends ResourceImpl {
 
             var writer = mapper.writerFor(EObject.class);
 
+            // Provide the source resource as a fallback for cross-document
+            // reference detection: FormatDelegateGenerator carries a plain
+            // Jackson stream context, not a CodecWriteContext (issue #50).
+            writer = writer.withAttribute(ContextHelper.RESOURCE, this);
+
             // Set feature value writer instances if provided
             Object valueWriterInstancesOption = effectiveOptions.get(
                     CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES);

@@ -243,7 +243,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
 
     private void serializeReference(EObject target, JsonGenerator gen, SerializationContext ctxt) {
         ReferenceValueWriter<?> effectiveWriter = resolveEffectiveReferenceWriter(ctxt);
-        if (reference.isContainment() && isCrossDocument(gen, target)) {
+        if (reference.isContainment() && isCrossDocument(gen, target, ctxt)) {
             writeReferenceObject(target, gen, true, ctxt);
         } else if (reference.isContainment()) {
             // Set the current reference for inline mapping reverse lookup.
@@ -347,22 +347,43 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         ctxt.writeValue(gen, target);
     }
 
-    private boolean isCrossDocument(JsonGenerator gen, EObject target) {
+    /**
+     * Resolves the source EMF Resource for the object currently being serialized.
+     * <p>
+     * Primary source is the {@link CodecWriteContext} (used by the direct
+     * {@code CodecJsonFactory} path). When the generator carries a plain Jackson
+     * stream context (e.g. {@code FormatDelegateGenerator}), it falls back to the
+     * {@link ContextHelper#RESOURCE} attribute — mirroring the reader side.
+     * </p>
+     *
+     * @param gen the JSON generator
+     * @param ctxt the serialization context (may be null)
+     * @return the source resource, or null if it cannot be determined
+     */
+    private Resource resolveSourceResource(JsonGenerator gen, SerializationContext ctxt) {
         TokenStreamContext ctx = gen.streamWriteContext();
-        if (!(ctx instanceof CodecWriteContext codecCtx)) {
+        if (ctx instanceof CodecWriteContext codecCtx) {
+            return codecCtx.getResource();
+        }
+        return ContextHelper.getResource(ctxt);
+    }
+
+    private boolean isCrossDocument(JsonGenerator gen, EObject target, SerializationContext ctxt) {
+        Resource sourceResource = resolveSourceResource(gen, ctxt);
+        if (sourceResource == null) {
+            // Without a known source resource we cannot tell — treat as same
+            // document (inline containment), preserving the previous default.
             return false;
         }
 
-        Resource sourceResource = codecCtx.getResource();
-
         if (target.eIsProxy() && target instanceof InternalEObject internalEObject) {
             URI proxyUri = internalEObject.eProxyURI();
-            return sourceResource != null && sourceResource.getURI() != null
+            return proxyUri != null && sourceResource.getURI() != null
                     && !sourceResource.getURI().equals(proxyUri.trimFragment());
         }
 
         Resource targetResource = target.eResource();
-        return sourceResource == null || sourceResource != targetResource;
+        return sourceResource != targetResource;
     }
 
     /**
@@ -414,7 +435,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             return;
         }
 
-        String uri = getReferenceUri(gen, target, crossDocument);
+        String uri = getReferenceUri(gen, target, crossDocument, ctxt);
         gen.writeString(uri);
     }
 
@@ -428,25 +449,48 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         return typeUri;
     }
 
-    private String getReferenceUri(JsonGenerator gen, EObject target, boolean crossDocument) {
-        if (crossDocument) {
-            TokenStreamContext ctx = gen.streamWriteContext();
-            if (ctx instanceof CodecWriteContext codecCtx) {
-                Resource sourceResource = codecCtx.getResource();
-                if (sourceResource != null && sourceResource.getURI() != null) {
-                    URI targetUri = EcoreUtil.getURI(target);
-                    URI sourceUri = sourceResource.getURI();
-                    URI relativeUri = targetUri.deresolve(sourceUri);
-                    return relativeUri.toString();
-                }
-            }
-            return EcoreUtil.getURI(target).toString();
+    private String getReferenceUri(JsonGenerator gen, EObject target, boolean crossDocument,
+            SerializationContext ctxt) {
+        Resource sourceResource = resolveSourceResource(gen, ctxt);
+
+        // Unresolved proxy: preserve the proxy URI (which carries the id),
+        // never fall back to the type URI. eResource() is null for proxies,
+        // so this must be handled before the same-resource fragment branch.
+        if (target.eIsProxy() && target instanceof InternalEObject internalEObject
+                && internalEObject.eProxyURI() != null) {
+            return deresolve(internalEObject.eProxyURI(), sourceResource).toString();
         }
 
-        if (target.eResource() != null) {
-            return target.eResource().getURIFragment(target);
+        Resource targetResource = target.eResource();
+
+        // Cross-document: explicit cross-document containment, or a non-containment
+        // target that lives in a different resource. Write the full EMF URI so the
+        // resource can be resolved on load; relative-ize it against the source URI.
+        boolean crossResource = targetResource != null && sourceResource != null
+                && targetResource != sourceResource;
+        if (crossDocument || crossResource) {
+            return deresolve(EcoreUtil.getURI(target), sourceResource).toString();
+        }
+
+        // Same-resource: write just the fragment.
+        if (targetResource != null) {
+            return targetResource.getURIFragment(target);
         }
         return target.eClass().getEPackage().getNsURI() + "#//" + target.eClass().getName();
+    }
+
+    /**
+     * Relative-izes the given URI against the source resource URI when available.
+     *
+     * @param uri the URI to deresolve
+     * @param sourceResource the source resource (may be null)
+     * @return the deresolved URI, or the original URI if no source URI is available
+     */
+    private URI deresolve(URI uri, Resource sourceResource) {
+        if (sourceResource != null && sourceResource.getURI() != null) {
+            return uri.deresolve(sourceResource.getURI());
+        }
+        return uri;
     }
 
     // ========================================================================
