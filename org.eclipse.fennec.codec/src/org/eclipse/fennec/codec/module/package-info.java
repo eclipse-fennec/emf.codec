@@ -22,4 +22,6 @@
  *
  * @see <a href="docs/codec-v2-spec/09-jackson-module.md">Spec 9: Jackson Module Integration</a>
  */
+@org.osgi.annotation.bundle.Export
+@org.osgi.annotation.versioning.Version("1.0.0")
 package org.eclipse.fennec.codec.module;
