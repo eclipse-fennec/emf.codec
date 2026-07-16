@@ -1,0 +1,302 @@
+maven/mavencentral/biz.aQute.bnd/aQute.libg/6.4.0, Apache-2.0 OR EPL-2.0 OR (Apache-2.0 AND EPL-2.0), restricted, clearlydefined
+maven/mavencentral/biz.aQute.bnd/biz.aQute.bnd.annotation/6.4.0, Apache-2.0 OR EPL-2.0, approved, #6710
+maven/mavencentral/biz.aQute.bnd/biz.aQute.tester.junit-platform/7.2.1, EPL-2.0, approved, #25568
+maven/mavencentral/biz.aQute/biz.aQute.gogo.commands.provider/1.9.0, , restricted, clearlydefined
+maven/mavencentral/biz.aQute/biz.aQute.wrapper.hamcrest/1.9.0, , restricted, clearlydefined
+maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.15.2, Apache-2.0, approved, #7947
+maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.21, Apache-2.0, approved, #25587
+maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.15.2, MIT AND Apache-2.0, approved, #7932
+maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.15.2, Apache-2.0, approved, #7934
+maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.15.2, Apache-2.0, approved, #8802
+maven/mavencentral/com.fasterxml.jackson.jaxrs/jackson-jaxrs-base/2.15.2, Apache-2.0, approved, #11061
+maven/mavencentral/com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/2.15.2, Apache-2.0, approved, #9101
+maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jaxb-annotations/2.15.2, Apache-2.0, approved, #9100
+maven/mavencentral/com.github.miachm.sods/SODS/1.10.0, , restricted, clearlydefined
+maven/mavencentral/com.sun.activation/jakarta.activation/2.0.1, EPL-2.0 OR BSD-3-Clause OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jaf
+maven/mavencentral/com.sun.xml.bind/jaxb-osgi/4.0.2, BSD-3-Clause, approved, ee4j.jaxb-impl
+maven/mavencentral/commons-beanutils/commons-beanutils/1.9.4, Apache-2.0, approved, CQ12654
+maven/mavencentral/commons-codec/commons-codec/1.19.0, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #22613
+maven/mavencentral/commons-collections/commons-collections/3.2.2, Apache-2.0, approved, #15185
+maven/mavencentral/commons-io/commons-io/2.20.0, Apache-2.0, approved, #22562
+maven/mavencentral/commons-logging/commons-logging/1.2, Apache-2.0, approved, CQ10162
+maven/mavencentral/de.siegmar/fastcsv/4.2.0, , restricted, clearlydefined
+maven/mavencentral/jakarta.activation/jakarta.activation-api/2.1.2, EPL-2.0 OR BSD-3-Clause OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jaf
+maven/mavencentral/jakarta.annotation/jakarta.annotation-api/2.1.1, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.ca
+maven/mavencentral/jakarta.el/jakarta.el-api/5.0.1, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.el
+maven/mavencentral/jakarta.inject/jakarta.inject-api/2.0.1, Apache-2.0, approved, ee4j.cdi
+maven/mavencentral/jakarta.interceptor/jakarta.interceptor-api/2.1.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.interceptors
+maven/mavencentral/jakarta.json.bind/jakarta.json.bind-api/3.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jsonp
+maven/mavencentral/jakarta.json/jakarta.json-api/2.1.2, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jsonp
+maven/mavencentral/jakarta.jws/jakarta.jws-api/3.0.0, BSD-3-Clause, approved, ee4j.jaxws
+maven/mavencentral/jakarta.servlet/jakarta.servlet-api/6.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.servlet
+maven/mavencentral/jakarta.transaction/jakarta.transaction-api/2.0.1, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jta
+maven/mavencentral/jakarta.validation/jakarta.validation-api/3.0.2, Apache-2.0, approved, ee4j.validation
+maven/mavencentral/jakarta.ws.rs/jakarta.ws.rs-api/3.1.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.rest
+maven/mavencentral/jakarta.xml.bind/jakarta.xml.bind-api/4.0.0, BSD-3-Clause, approved, ee4j.jaxb
+maven/mavencentral/jakarta.xml.ws/jakarta.xml.ws-api/4.0.0, BSD-3-Clause, approved, ee4j.jaxws
+maven/mavencentral/javax.json/javax.json-api/1.1.4, CDDL-1.0 OR GPL-2.0-only WITH Classpath-exception-2.0, approved, #1827
+maven/mavencentral/net.bytebuddy/byte-buddy-agent/1.18.4, Apache-2.0, approved, #24657
+maven/mavencentral/net.bytebuddy/byte-buddy/1.18.4, Apache-2.0 AND BSD-3-Clause, approved, #24658
+maven/mavencentral/org.antlr/antlr4-runtime/4.13.2, BSD-3-Clause, approved, #10767
+maven/mavencentral/org.apache.aries.spifly/org.apache.aries.spifly.dynamic.framework.extension/1.3.6, Apache-2.0 AND BSD-3-Clause, approved, #9183
+maven/mavencentral/org.apache.commons/commons-collections4/4.5.0, Apache-2.0 AND LicenseRef-Public-Domain, approved, #20791
+maven/mavencentral/org.apache.commons/commons-compress/1.28.0, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #22677
+maven/mavencentral/org.apache.commons/commons-csv/1.14.1, Apache-2.0, approved, #20279
+maven/mavencentral/org.apache.commons/commons-lang3/3.12.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.cm.json/2.0.0, Apache-2.0, approved, #9181
+maven/mavencentral/org.apache.felix/org.apache.felix.configadmin/1.9.26, Apache-2.0, approved, #5310
+maven/mavencentral/org.apache.felix/org.apache.felix.configurator/1.0.18, Apache-2.0, approved, #9182
+maven/mavencentral/org.apache.felix/org.apache.felix.converter/1.0.18, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.coordinator/1.0.2, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.eventadmin/1.6.4, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.fileinstall/3.7.4, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.framework.security/2.8.3, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.framework/7.0.5, Apache-2.0, approved, CQ23046
+maven/mavencentral/org.apache.felix/org.apache.felix.gogo.command/1.1.2, Apache-2.0, approved, #17675
+maven/mavencentral/org.apache.felix/org.apache.felix.gogo.runtime/1.1.6, Apache-2.0 AND MIT, approved, CQ22929
+maven/mavencentral/org.apache.felix/org.apache.felix.gogo.shell/1.1.4, Apache-2.0, approved, #17670
+maven/mavencentral/org.apache.felix/org.apache.felix.http.jetty/4.2.8, Apache-2.0, restricted, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.http.jetty/5.0.4, Apache-2.0, approved, #5260
+maven/mavencentral/org.apache.felix/org.apache.felix.http.servlet-api/2.1.0, Apache-2.0, approved, #5258
+maven/mavencentral/org.apache.felix/org.apache.felix.inventory/1.1.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.log.extension/1.0.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.log/1.2.6, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.metatype/1.2.4, Apache-2.0 AND MIT AND Apache-2.0, approved, #29537
+maven/mavencentral/org.apache.felix/org.apache.felix.scr/2.2.12, Apache-2.0, approved, #15367
+maven/mavencentral/org.apache.felix/org.apache.felix.scr/2.2.6, Apache-2.0, approved, #15367
+maven/mavencentral/org.apache.felix/org.apache.felix.shell.remote/1.2.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.threaddump/1.0.0, , restricted, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.useradmin/1.0.4, Apache-2.0, approved, CQ22863
+maven/mavencentral/org.apache.felix/org.apache.felix.webconsole.plugins.ds/2.2.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.webconsole.plugins.memoryusage/1.0.10, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.webconsole.plugins.scriptconsole/1.0.2, Apache-2.0 AND MIT, approved, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.webconsole.plugins.useradmin/1.0.2, , restricted, clearlydefined
+maven/mavencentral/org.apache.felix/org.apache.felix.webconsole/4.8.8, Apache-2.0 AND BSD-3-Clause AND (GPL-1.0-or-later AND MIT), approved, #5289
+maven/mavencentral/org.apache.logging.log4j/log4j-api/2.26.0, Apache-2.0, approved, #27998
+maven/mavencentral/org.apache.logging.log4j/log4j-to-slf4j/2.26.0, Apache-2.0, approved, #27999
+maven/mavencentral/org.apache.servicemix.bundles/org.apache.servicemix.bundles.junit/4.13.2_1, EPL-1.0 AND Apache-2.0, approved, #17673
+maven/mavencentral/org.apache.servicemix.bundles/org.apache.servicemix.bundles.poi/5.3.0_1, , restricted, clearlydefined
+maven/mavencentral/org.apache.servicemix.bundles/org.apache.servicemix.bundles.xmlbeans/5.2.0_1, Apache-2.0, restricted, clearlydefined
+maven/mavencentral/org.apache.servicemix.specs/org.apache.servicemix.specs.jaxws-api-2.2/2.9.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.servicemix.specs/org.apache.servicemix.specs.jsr311-api-1.1.1/2.9.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.sling/org.apache.sling.commons.johnzon/1.2.14, Apache-2.0, approved, #5968
+maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, #17641
+maven/mavencentral/org.assertj/assertj-core/3.27.7, Apache-2.0, approved, #17980
+maven/mavencentral/org.eclipse.emf/org.eclipse.emf.codegen.ecore/2.33.0, EPL-2.0, approved, modeling.emf
+maven/mavencentral/org.eclipse.emf/org.eclipse.emf.codegen/2.23.0, EPL-2.0, approved, modeling.emf
+maven/mavencentral/org.eclipse.emf/org.eclipse.emf.common/2.29.0, EPL-2.0, approved, modeling.emf
+maven/mavencentral/org.eclipse.emf/org.eclipse.emf.common/2.44.0, EPL-2.0, approved, modeling.emf
+maven/mavencentral/org.eclipse.emf/org.eclipse.emf.ecore.xcore.lib/1.7.0, EPL-2.0, approved, modeling.emf
+maven/mavencentral/org.eclipse.emf/org.eclipse.emf.ecore.xmi/2.36.0, EPL-2.0, approved, modeling.emf
+maven/mavencentral/org.eclipse.emf/org.eclipse.emf.ecore.xmi/2.39.0, EPL-2.0, approved, modeling.emf
+maven/mavencentral/org.eclipse.emf/org.eclipse.emf.ecore/2.35.0, EPL-2.0, approved, modeling.emf
+maven/mavencentral/org.eclipse.emf/org.eclipse.emf.ecore/2.41.0, EPL-2.0, approved, modeling.emf
+maven/mavencentral/org.eclipse.emf/org.eclipse.emf.mapping.ecore2xml/2.11.0, EPL-2.0, approved, modeling.emf
+maven/mavencentral/org.eclipse.fennec.bnd/org.eclipse.fennec.bnd.library/0.0.9, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.bnd/org.eclipse.fennec.jacoco.bnd.library/0.0.9, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.bnd/org.eclipse.fennec.osgitest.bnd.library/0.0.9, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.bnd/org.eclipse.fennec.osgitest.project.bnd.library/0.0.9, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.emf/org.eclipse.fennec.emf.gecko.compatibility.api/0.1.2, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.emf/org.eclipse.fennec.emf.osgi.api/0.1.2, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.emf/org.eclipse.fennec.emf.osgi.bnd.library.project/0.1.2, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.emf/org.eclipse.fennec.emf.osgi.bnd.library.workspace/0.1.2, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.emf/org.eclipse.fennec.emf.osgi.bnd.templates.project/0.1.2, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.emf/org.eclipse.fennec.emf.osgi.codegen/0.1.2, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.emf/org.eclipse.fennec.emf.osgi.component.minimal/0.1.2, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.emf/org.eclipse.fennec.emf.osgi.component/0.1.2, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.emf/org.eclipse.fennec.emf.osgi.extender/0.1.2, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.emf/org.eclipse.fennec.emf.osgi.model.info/0.1.2, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.library.project/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.library.workspace/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.m2t.api/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.m2t.engine/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.m2t.model/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.m2t.parser/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.ocl.api/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.ocl.engine/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.ocl.model/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.ocl.parser/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.qvt.model/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.qvtd.api/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.qvtd.engine/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.qvtd.model/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.qvtd.parser/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.qvto.api/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.qvto.engine/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.qvto.model/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.m2x/org.eclipse.fennec.m2x.qvto.parser/0.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/de.adv-online.aaa.model/6.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/de.dwd.cdc.common.model/1.0.1-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/de.dwd.cdc.forecast.model/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/de.dwd.cdc.model/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/de.xoev.basisnachricht/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/de.xoev.code/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/de.xoev.din91379/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/de.xoev.familie/1.3.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/io.cloudevents.model/1.0.2-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/net.opengis.gml3.model/3.2.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/net.opengis.kml.model/2.2.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/net.opengis.ogc/1.3.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/net.opengis.wfs.model/1.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/net.opengis.wfs2.model/2.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/net.opengis.wms/1.3.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.apache.maven.model/4.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.camunda.bpmn.model/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.cyclonedx.schema/1.6.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.docbook.model/5.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.eclipse.fennec.common.models.library/0.0.1-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.eclipse.fennec.model/0.0.1-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.eclipse.fennec.query.model/0.0.1-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.geojson.model/0.0.1-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.hl7.fhir.model/5.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.odata.csdl.model/4.0.1-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.omg.bpmn.model/2.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.omg.cmmn.model/1.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.omg.dmn.model/1.6.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.w3.atom.model/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.w3.rdf.model/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.w3.smil.model/2.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.w3.xhtml.model/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.w3.xinclude.model/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.w3.xlink.model/1.0.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.models/org.xmlsoap.model/1.1.0-SNAPSHOT, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.jdt/org.eclipse.jdt.core/3.32.0, EPL-2.0, approved, eclipse.jdt
+maven/mavencentral/org.eclipse.osgi-technology.rest/org.eclipse.osgitech.rest.bnd.library/1.2.3, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.eclipse.osgi-technology.rest/org.eclipse.osgitech.rest.bnd.project.library/1.2.3, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.eclipse.osgi-technology.rest/org.eclipse.osgitech.rest.config/1.2.3, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.eclipse.osgi-technology.rest/org.eclipse.osgitech.rest.jetty/1.2.3, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.eclipse.osgi-technology.rest/org.eclipse.osgitech.rest.multipart/1.2.3, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.eclipse.osgi-technology.rest/org.eclipse.osgitech.rest.servlet.whiteboard/1.2.3, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.eclipse.osgi-technology.rest/org.eclipse.osgitech.rest.sse/1.2.3, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.eclipse.osgi-technology.rest/org.eclipse.osgitech.rest/1.2.3, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.eclipse.parsson/jakarta.json/1.1.5, EPL-2.0, approved, ee4j.parsson
+maven/mavencentral/org.eclipse.parsson/parsson-media/1.1.5, EPL-2.0, approved, ee4j.parsson
+maven/mavencentral/org.eclipse.platform/org.eclipse.core.contenttype/3.8.200, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.platform/org.eclipse.core.expressions/3.8.200, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.platform/org.eclipse.core.filesystem/1.9.500, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.platform/org.eclipse.core.jobs/3.13.200, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.platform/org.eclipse.core.resources/3.18.100, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.platform/org.eclipse.core.runtime/3.26.100, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.platform/org.eclipse.equinox.common/3.17.0, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.platform/org.eclipse.equinox.preferences/3.10.100, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.platform/org.eclipse.equinox.registry/3.11.200, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.platform/org.eclipse.osgi/3.18.200, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.platform/org.eclipse.text/3.12.300, EPL-2.0, approved, eclipse.platform
+maven/mavencentral/org.eclipse.uml2/org.eclipse.uml2.common/2.5.0, EPL-2.0, approved, modeling.uml2
+maven/mavencentral/org.eclipse.uml2/org.eclipse.uml2.types/2.5.0, EPL-2.0, approved, modeling.uml2
+maven/mavencentral/org.eclipse.uml2/org.eclipse.uml2.uml/5.5.0, EPL-2.0, approved, modeling.uml2
+maven/mavencentral/org.geckoprojects.emf/org.gecko.emf.osgi.example.model.basic/6.3.1, , restricted, clearlydefined
+maven/mavencentral/org.glassfish.hk2.external/aopalliance-repackaged/3.0.5, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.glassfish
+maven/mavencentral/org.glassfish.hk2/hk2-api/3.0.5, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.glassfish
+maven/mavencentral/org.glassfish.hk2/hk2-locator/3.0.5, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.glassfish
+maven/mavencentral/org.glassfish.hk2/hk2-utils/3.0.5, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.glassfish
+maven/mavencentral/org.glassfish.hk2/osgi-resource-locator/1.0.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.glassfish
+maven/mavencentral/org.glassfish.jersey.containers/jersey-container-jetty-http/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.containers/jersey-container-jetty-servlet/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.containers/jersey-container-servlet-core/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.containers/jersey-container-servlet/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.core/jersey-client/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.core/jersey-common/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.core/jersey-server/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.ext/jersey-bean-validation/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.ext/jersey-entity-filtering/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.inject/jersey-hk2/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.media/jersey-media-jaxb/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.media/jersey-media-json-binding/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.media/jersey-media-json-jackson/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.media/jersey-media-json-processing/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.media/jersey-media-moxy/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.media/jersey-media-multipart/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.media/jersey-media-sse/3.1.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.hamcrest/hamcrest/2.2, BSD-3-Clause, approved, #17677
+maven/mavencentral/org.jacoco/org.jacoco.agent/0.8.14, EPL-2.0, approved, CQ23285
+maven/mavencentral/org.jacoco/org.jacoco.core/0.8.14, EPL-2.0, approved, CQ23283
+maven/mavencentral/org.javassist/javassist/3.29.2-GA, Apache-2.0 AND LGPL-2.1-or-later AND MPL-1.1, approved, #6023
+maven/mavencentral/org.junit.jupiter/junit-jupiter-api/5.14.2, EPL-2.0, approved, #23721
+maven/mavencentral/org.junit.jupiter/junit-jupiter-engine/5.14.2, EPL-2.0, approved, #23719
+maven/mavencentral/org.junit.jupiter/junit-jupiter-params/5.14.2, EPL-2.0, approved, #23727
+maven/mavencentral/org.junit.platform/junit-platform-commons/1.14.2, EPL-2.0, approved, #23723
+maven/mavencentral/org.junit.platform/junit-platform-engine/1.14.2, EPL-2.0, approved, #23726
+maven/mavencentral/org.junit.platform/junit-platform-launcher/1.14.2, EPL-2.0, approved, #23718
+maven/mavencentral/org.junit.platform/junit-platform-runner/1.14.2, EPL-2.0, approved, #23724
+maven/mavencentral/org.junit.platform/junit-platform-suite-api/1.14.2, EPL-2.0, approved, #23725
+maven/mavencentral/org.junit.platform/junit-platform-suite-commons/1.14.2, EPL-2.0, approved, #23722
+maven/mavencentral/org.junit.platform/junit-platform-suite-engine/1.14.2, EPL-2.0, approved, #23717
+maven/mavencentral/org.junit.platform/junit-platform-suite/1.14.2, EPL-2.0, approved, #29538
+maven/mavencentral/org.junit.platform/junit-platform-testkit/1.14.2, EPL-2.0, approved, #29539
+maven/mavencentral/org.jvnet.mimepull/mimepull/1.10.0, BSD-3-Clause, approved, #2699
+maven/mavencentral/org.mockito/mockito-core/5.21.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #25203
+maven/mavencentral/org.mockito/mockito-junit-jupiter/5.21.0, MIT, approved, #25202
+maven/mavencentral/org.mongodb/bson/5.6.3, Apache-2.0, approved, #23888
+maven/mavencentral/org.objenesis/objenesis/3.5, Apache-2.0, approved, #25722
+maven/mavencentral/org.opentest4j/opentest4j/1.3.0, Apache-2.0, approved, #9713
+maven/mavencentral/org.osgi/org.osgi.annotation.bundle/2.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.annotation.versioning/1.1.2, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.dto/1.1.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.framework/1.10.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.framework/1.9.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.jmx/1.1.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.namespace.contract/1.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.namespace.extender/1.0.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.namespace.implementation/1.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.namespace.service/1.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.namespace.unresolvable/1.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.resource/1.0.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.application/1.1.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.async/1.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.blueprint/1.0.2, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.cdi/1.0.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.clusterinfo/1.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.cm/1.6.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.component.annotations/1.5.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.component/1.5.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.condition/1.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.condpermadmin/1.1.2, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.configurator/1.0.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.coordinator/1.0.2, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.event/1.4.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.http.whiteboard/1.1.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.http/1.2.2, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.jakartars/2.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.jaxrs/1.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.jdbc/1.1.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.log/1.5.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.metatype.annotations/1.4.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.metatype/1.4.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.packageadmin/1.2.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.remoteserviceadmin/1.1.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.repository/1.1.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.resolver/1.1.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.serviceloader/1.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.servlet/2.0.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.url/1.0.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.service.useradmin/1.1.1, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.test.assertj.framework/1.3.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.test.assertj.promise/1.3.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.test.common/1.3.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.test.junit5.cm/1.3.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.test.junit5/1.3.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.util.converter/1.0.9, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.util.function/1.2.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.util.promise/1.3.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.util.pushstream/1.1.0, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.util.tracker/1.5.4, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/org.osgi.util.xml/1.0.2, Apache-2.0, approved, technology.osgi-technology
+maven/mavencentral/org.osgi/osgi.annotation/7.0.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.osgi/osgi.annotation/8.1.0, Apache-2.0, approved, #29271
+maven/mavencentral/org.osgi/osgi.cmpn/7.0.0, Apache-2.0, approved, #7911
+maven/mavencentral/org.osgi/osgi.core/7.0.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/org.osgi/osgi.core/8.0.0, Apache-2.0, approved, #17668
+maven/mavencentral/org.ow2.asm/asm-analysis/9.6, BSD-3-Clause, approved, #10774
+maven/mavencentral/org.ow2.asm/asm-commons/9.6, BSD-3-Clause, approved, #10775
+maven/mavencentral/org.ow2.asm/asm-tree/9.6, BSD-3-Clause, approved, #10773
+maven/mavencentral/org.ow2.asm/asm-util/9.6, BSD-3-Clause, approved, #10777
+maven/mavencentral/org.ow2.asm/asm/9.6, BSD-3-Clause, approved, #10776
+maven/mavencentral/org.slf4j/slf4j-api/1.7.36, MIT, approved, CQ13368
+maven/mavencentral/org.slf4j/slf4j-simple/1.7.36, MIT, approved, CQ7952
+maven/mavencentral/org.snakeyaml/snakeyaml-engine/3.0.1, Apache-2.0, approved, clearlydefined
+maven/mavencentral/tools.jackson.core/jackson-core/3.1.0, Apache-2.0 AND MIT, approved, #26415
+maven/mavencentral/tools.jackson.core/jackson-databind/3.1.0, Apache-2.0, approved, #26439
+maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-cbor/3.1.0, Apache-2.0, approved, #27649
+maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-properties/3.1.0, , restricted, clearlydefined
+maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.1.0, Apache-2.0, approved, #26517
