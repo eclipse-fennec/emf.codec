@@ -13,3 +13,5 @@ bin_test/
 venv/
 __pycache__/
 *.pyc
+.claude
+.mcp.json

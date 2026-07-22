@@ -61,6 +61,7 @@ import org.eclipse.fennec.model.metadata.TypeStrategy;
  * @see ConfigLevel
  * @see Mergeable
  */
+// @lat: [[configuration#Source Hierarchy]]
 public final class ConfigurationResolver {
 
     // Configuration sources (lower index = higher priority)

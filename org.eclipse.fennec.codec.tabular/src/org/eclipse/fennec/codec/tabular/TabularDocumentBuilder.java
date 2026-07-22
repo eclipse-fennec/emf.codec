@@ -99,6 +99,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.TabularFactory;
  *
  * @since 2026-05
  */
+// @lat: [[formats#Tabular Family]]
 public final class TabularDocumentBuilder {
 
     private static final Logger LOGGER = Logger.getLogger(TabularDocumentBuilder.class.getName());

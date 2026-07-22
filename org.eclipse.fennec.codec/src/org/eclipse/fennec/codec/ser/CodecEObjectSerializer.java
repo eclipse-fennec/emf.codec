@@ -70,6 +70,7 @@ import tools.jackson.databind.ValueSerializer;
  * @author Mark Hoffmann
  * @since 2026-02-01
  */
+// @lat: [[architecture#Serialization Flow]]
 public class CodecEObjectSerializer extends ValueSerializer<EObject> {
 
     private final EffectiveCodecConfig config;

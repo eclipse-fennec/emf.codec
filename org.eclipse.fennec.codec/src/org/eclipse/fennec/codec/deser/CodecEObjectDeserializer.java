@@ -70,6 +70,7 @@ import tools.jackson.databind.ValueDeserializer;
  * @author Mark Hoffmann
  * @since 2026-02-01
  */
+// @lat: [[architecture#Deserialization Flow]]
 public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 
     private static final Logger LOGGER = Logger.getLogger(CodecEObjectDeserializer.class.getName());

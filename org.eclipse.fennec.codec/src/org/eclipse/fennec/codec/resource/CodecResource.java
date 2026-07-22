@@ -97,6 +97,7 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Mark Hoffmann
  * @since 2026-02-01
  */
+// @lat: [[architecture#Codec Runtime]]
 public class CodecResource extends ResourceImpl {
 
     private static final Logger LOGGER = Logger.getLogger(CodecResource.class.getName());

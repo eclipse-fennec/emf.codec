@@ -79,6 +79,7 @@ import org.eclipse.fennec.model.metadata.api.MetadataService;
  * @author Mark Hoffmann
  * @since 2025-12-17
  */
+// @lat: [[concepts#Discriminator Mapping]]
 public class TypeDiscriminatorService implements MetadataHandler, TypeDiscriminatorReader {
 
     private static final Logger LOGGER = Logger.getLogger(TypeDiscriminatorService.class.getName());

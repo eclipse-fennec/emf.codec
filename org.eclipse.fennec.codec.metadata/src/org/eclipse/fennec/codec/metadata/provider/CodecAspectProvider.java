@@ -125,6 +125,7 @@ import org.eclipse.fennec.model.metadata.api.AspectProvider;
  * @author Mark Hoffmann
  * @since 2025-12-09
  */
+// @lat: [[concepts#Aspects and the Shadow Model]]
 public class CodecAspectProvider implements AspectProvider {
 
     /** Aspect type identifier for codec aspects. */

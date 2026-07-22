@@ -46,6 +46,7 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 @Component
 @JakartarsExtension
 @JakartarsName("ClientCodecOptionsFilter")
+// @lat: [[configuration#REST Client Overrides]]
 public class ClientCodecOptionsFilter implements ContainerRequestFilter {
 
 	/** All modules' contributions; the union of their keys forms the allow-list. */
