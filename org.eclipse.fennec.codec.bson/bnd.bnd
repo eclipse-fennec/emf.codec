@@ -8,7 +8,8 @@ Bundle-Description: BSON format provider for the Fennec EMF Codec
 	org.mongodb.bson;version=latest,\
 	org.eclipse.fennec.codec.api;version=snapshot,\
 	org.eclipse.fennec.codec;version=snapshot,\
-	org.eclipse.fennec.model.metadata;version=snapshot,\
+	org.eclipse.fennec.model.metadata.api;version=latest,\
+	org.eclipse.fennec.model.metadata;version=latest,\
 	org.eclipse.fennec.codec.metadata;version=snapshot,\
 	tools.jackson.core.jackson-core;version=latest,\
 	tools.jackson.core.jackson-databind;version=latest,\
