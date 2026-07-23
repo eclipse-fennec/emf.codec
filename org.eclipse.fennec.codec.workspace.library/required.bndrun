@@ -13,6 +13,7 @@
 	bnd.identity;id='org.eclipse.fennec.codec.openapi',\
 	bnd.identity;id='org.eclipse.fennec.codec.tests',\
 	bnd.identity;id='org.eclipse.fennec.codec.yaml',\
+	bnd.identity;id='org.eclipse.fennec.model.metadata.api',\
 	bnd.identity;id='org.eclipse.fennec.model.metadata',\
 	bnd.identity;id='org.eclipse.fennec.openapi.model',\
 	bnd.identity;id='org.eclipse.fennec.codec.geojson',\
@@ -40,7 +41,8 @@
 	org.eclipse.fennec.codec.openapi;version=snapshot,\
 	org.eclipse.fennec.codec.tests;version=snapshot,\
 	org.eclipse.fennec.codec.yaml;version=snapshot,\
-	org.eclipse.fennec.model.metadata;version=snapshot,\
+	org.eclipse.fennec.model.metadata.api;version=latest,\
+	org.eclipse.fennec.model.metadata;version=latest,\
 	org.eclipse.fennec.openapi.model;version=snapshot,\
 	org.geojson.model;version='[0.0.1,0.0.2)',\
 	org.mongodb.bson;version='[5.6.3,5.6.4)',\

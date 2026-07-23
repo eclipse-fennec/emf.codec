@@ -101,6 +101,8 @@ import org.eclipse.fennec.model.metadata.IdKeyMode;
 import org.eclipse.fennec.model.metadata.IdStrategy;
 import org.eclipse.fennec.model.metadata.MetadataDiagnostic;
 import org.eclipse.fennec.model.metadata.MetadataFactory;
+import org.eclipse.fennec.model.metadata.OperationAspect;
+import org.eclipse.fennec.model.metadata.OperationMetadata;
 import org.eclipse.fennec.model.metadata.PackageAspect;
 import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.PackageProfile;
@@ -141,6 +143,14 @@ public class CodecAspectProvider implements AspectProvider {
     public PackageAspect buildPackageAspect(PackageMetadata packageMetadata) {
         // Codec does not currently define package-level configuration
         // Return null to indicate no package aspect is needed
+        return null;
+    }
+
+    @Override
+    public OperationAspect buildOperationAspect(OperationMetadata operationMetadata) {
+        // The codec does not serialize EOperations, so there is no
+        // operation-level configuration to contribute (issue #53).
+        // Return null to indicate no operation aspect is needed.
         return null;
     }
 

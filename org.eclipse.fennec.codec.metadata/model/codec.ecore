@@ -91,7 +91,7 @@
       </eAnnotations>
     </eLiterals>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TypeSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//BaseTypeConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="TypeSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//BaseTypeConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for type information serialization. Extends BaseTypeConfig with codec-specific settings."/>
     </eAnnotations>
@@ -123,7 +123,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="IdSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//BaseIdConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="IdSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//BaseIdConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for ID serialization. Extends BaseIdConfig with codec-specific settings."/>
     </eAnnotations>
@@ -156,7 +156,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ReferenceSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//BaseReferenceConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="ReferenceSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//BaseReferenceConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for reference (non-containment) serialization. Extends BaseReferenceConfig with codec-specific settings."/>
     </eAnnotations>
@@ -173,7 +173,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="SuperTypeSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//BaseSuperTypeConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="SuperTypeSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//BaseSuperTypeConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for supertype serialization. Extends BaseSuperTypeConfig with codec-specific settings."/>
     </eAnnotations>
@@ -184,7 +184,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="FeatureSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//BaseFeatureConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="FeatureSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//BaseFeatureConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete per-feature serialization configuration. Extends BaseFeatureConfig with codec-specific settings."/>
     </eAnnotations>
@@ -221,7 +221,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ClassCodecAspect" eSuperTypes="../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//ClassAspect">
+  <eClassifiers xsi:type="ecore:EClass" name="ClassCodecAspect" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//ClassAspect">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec aspect for EClass serialization configuration. Attached to ClassMetadata.aspects."/>
     </eAnnotations>
@@ -279,7 +279,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="FeatureCodecAspect" eSuperTypes="../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//FeatureAspect">
+  <eClassifiers xsi:type="ecore:EClass" name="FeatureCodecAspect" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//FeatureAspect">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec aspect for EStructuralFeature serialization configuration. Attached to FeatureMetadata.aspects."/>
     </eAnnotations>
@@ -346,7 +346,7 @@
         <details key="documentation" value="Custom value reader name for deserialization."/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enumSerialization" eType="ecore:EEnum ../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//EnumSerializationStrategy">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enumSerialization" eType="ecore:EEnum ../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//EnumSerializationStrategy">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Strategy for serializing enum values (null = use LITERAL default)."/>
       </eAnnotations>
@@ -387,12 +387,12 @@
     </eStructuralFeatures>
   </eClassifiers>
   <!-- ==================== Profiles ==================== -->
-  <eClassifiers xsi:type="ecore:EClass" name="CodecPackageProfile" eSuperTypes="../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//PackageProfile">
+  <eClassifiers xsi:type="ecore:EClass" name="CodecPackageProfile" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//PackageProfile">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec-specific package profile containing pre-computed, fully resolved annotation-layer configurations for all classes in a package. Built by CodecAspectProvider.buildProfiles() after all metadata and aspects are constructed. Contains one CodecClassProfile per EClass with annotation-internal inheritance already applied (feature inherits from class, class inherits from package defaults). At runtime, serves as the static base that dynamic configuration (options, resource, factory, module) merges on top of."/>
     </eAnnotations>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="CodecClassProfile" eSuperTypes="../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//ClassProfile">
+  <eClassifiers xsi:type="ecore:EClass" name="CodecClassProfile" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//ClassProfile">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec-specific class profile containing the fully resolved annotation-layer configuration for one EClass and all its features. All annotation-internal inheritance is pre-merged: feature inherits from class, class inherits from package defaults. Contains the effective type/ID/supertype configs, forward/reverse key mappings, feature serialization order, and per-feature configs. At runtime, the ConfigurationResolver merges dynamic overrides (levels 1-4) on top of this profile (levels 5+6)."/>
     </eAnnotations>
@@ -426,7 +426,7 @@
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Root configuration for codec serialization behavior."/>
     </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="ecore:EEnum ../../org.eclipse.fennec.model.metadata/model/metadata.ecore#//SerializationFormat"
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="ecore:EEnum ../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//SerializationFormat"
         defaultValueLiteral="PLAIN">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Codec-wide default serialization format."/>

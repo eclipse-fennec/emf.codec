@@ -6,7 +6,8 @@ Bundle-Description: Next generation EMF codec framework using Jackson3
 -buildpath: \
 	org.osgi.service.condition;version=latest,\
 	org.eclipse.fennec.codec.api;version=snapshot,\
-	org.eclipse.fennec.model.metadata;version=snapshot,\
+	org.eclipse.fennec.model.metadata.api;version=latest,\
+	org.eclipse.fennec.model.metadata;version=latest,\
 	org.eclipse.fennec.codec.metadata;version=snapshot,\
 	tools.jackson.core.jackson-core;version=latest,\
 	tools.jackson.core.jackson-databind;version=latest,\
