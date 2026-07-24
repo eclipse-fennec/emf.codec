@@ -69,6 +69,15 @@ public final class CodecOptions {
     public static final String CODEC_ROOT_SCHEMA = "codec.rootSchema";
 
     /**
+     * Load option: package model fingerprint selecting the version a String root
+     * type / schema resolves against under same-nsURI multi-version (issue #54,
+     * A.2/A.4). Optional; omitting it preserves single-version behavior. Unknown or
+     * conflicting fingerprint is an error in every strictness mode.
+     * <p>Value: {@code String} (fingerprint)</p>
+     */
+    public static final String CODEC_ROOT_FINGERPRINT = "codec.rootFingerprint";
+
+    /**
      * Load option: Per-feature type hints.
      * <p>Value: {@code Map<EStructuralFeature, EClass>}</p>
      */

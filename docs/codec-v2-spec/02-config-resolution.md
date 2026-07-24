@@ -579,6 +579,7 @@ These options are only available at runtime via load/save option maps, not via E
 |----------|--------|-----------|---------|--------------|
 | `rootType` | G | R | `null` | 13-load-save-options.md |
 | `rootSchema` | G | R | `null` | 13-load-save-options.md |
+| `rootFingerprint` | G | R | `null` | 13-load-save-options.md |
 | `featureTypeHints` | G | R | `null` | 13-load-save-options.md |
 | `typeHintMode` | G | R | `HINT` | 13-load-save-options.md |
 | `valueReaders` | G | R | `null` | 13-load-save-options.md |

@@ -140,7 +140,8 @@ EAnnotations or `CodecModule` config.
 | Option key | Constant | Type | Description |
 |---|---|---|---|
 | `codec.rootType` | `CODEC_ROOT_TYPE` | EClass or URI String | Type hint for the root object during load. Required when the JSON has no `_type` field and the type cannot be inferred. |
-| `codec.rootSchema` | `CODEC_ROOT_SCHEMA` | String (nsURI) | EPackage namespace URI used as context for `NAME` strategy type resolution. |
+| `codec.rootSchema` | `CODEC_ROOT_SCHEMA` | String (nsURI) or EPackage | EPackage namespace URI (or EPackage instance) used as context for `NAME` strategy type resolution. The instance form is multi-version-safe. |
+| `codec.rootFingerprint` | `CODEC_ROOT_FINGERPRINT` | String (fingerprint) | Optional. Package model fingerprint selecting the version a String root type/schema resolves against under same-nsURI multi-version. Unknown or conflicting fingerprint → error (both modes). |
 | `codec.featureTypeHints` | `CODEC_FEATURE_TYPE_HINTS` | Map\<String, EClass\> | Per-feature type hints keyed by feature name. |
 | `codec.featureValueReaderInstances` | `CODEC_FEATURE_VALUE_READER_INSTANCES` | Map\<EStructuralFeature, CodecValueReader\> | Bind reader instances directly to features (bypasses the registry). Works for EAttributes and EReferences. |
 | `codec.featureValueWriterInstances` | `CODEC_FEATURE_VALUE_WRITER_INSTANCES` | Map\<EStructuralFeature, CodecValueWriter\> | Bind writer instances directly to features (bypasses the registry). Works for EAttributes and EReferences. |
