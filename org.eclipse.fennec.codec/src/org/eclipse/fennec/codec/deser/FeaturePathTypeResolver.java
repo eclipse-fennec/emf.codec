@@ -268,6 +268,9 @@ public class FeaturePathTypeResolver {
      * @param uriStr the EClass URI (e.g., "http://example.org/1.0#//ClassName")
      * @return the resolved EClass, or null if not found
      */
+    // TODO(#54 B.5): discriminator-path class-URI resolution still uses the global registry
+    // directly. Route through the per-load PackageResolver (binding order + A.3 count rule)
+    // once this static method-ref site gets a resolver handle. Tracked as remaining B.5 scope.
     static EClass resolveEClassFromUri(String uriStr) {
         if (uriStr == null || uriStr.isEmpty()) {
             return null;

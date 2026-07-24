@@ -1187,6 +1187,37 @@ if (matches.size() == 1) {
 
 The index is built automatically when EPackages are registered via `MetadataService.registerPackage()`. Current implementation (`MapBasedMetadataIndex`) uses in-memory ConcurrentHashMaps; future versions may use Lucene for large-scale deployments.
 
+#### 6.4.6 Package Resolution Order (multi-version) `[B.5 / A.3]`
+
+When the codec resolves an `nsURI` (from a `nsURI#//Class` type URI, a context schema,
+or a discriminator URI) to a concrete `EPackage`/`PackageMetadata` **version**, the source
+order is **binding**:
+
+| Tier | Source | Notes |
+|------|--------|-------|
+| 1 | **Per-load pin** | If this nsURI was already resolved in this load, reuse that version (consistency + no repeated lookup). |
+| 2 | **ResourceSet package registry** | `getResourceSet().getPackageRegistry()` — caller context with concrete instances; instance-precise, no ambiguity. |
+| 3 | **MetadataService candidate query** | `getPackageMetadataVersions(nsURI)` + the count rule (A.3 below); a `codec.rootFingerprint` (or, later, in-band fingerprint) resolves directly via `getPackageMetadataByFingerprint`. |
+| 4 | **`EPackage.Registry.INSTANCE`** | **Only** for an nsURI the MetadataService does **not** know at all (true foreign / plain-EMF packages). **Hard rule:** for an nsURI the service *does* know, the global registry is **never** consulted — it holds only one version per nsURI and would reopen the back door around version selection. |
+
+The selected version is **pinned** for the nsURI for the remainder of the load (tier 1
+on subsequent hits). In the single-version case all tiers agree with prior behavior —
+only the source order becomes binding (R1).
+
+**A.3 — count-based candidate rule (tier 3, no trial).** When resolving an nsURI without
+a disambiguating fingerprint (neither `codec.rootFingerprint` nor a pin):
+
+| # registered versions for the nsURI | Behavior (both strictness modes) |
+|---|---|
+| **0** | not known to the MetadataService → fall through to tier 4 (foreign package) |
+| **exactly 1** | **use it** — the normal single-version case; no cost, no behavior change (R1) |
+| **> 1** | **error**, listing the candidate fingerprints; the caller disambiguates via `codec.rootFingerprint` (or an instance root option). **No trial, no auto-pick, in every mode.** |
+
+The candidate query is **scoped to one nsURI** — it is a bounded lookup, **not** the
+global cross-package scan that S-4 forbids (§15 9.3). The `MetadataService.getClassMetadataByURI`
+last-wins behavior is therefore **not** used for version selection under multi-version;
+the count rule replaces it.
+
 ### 6.5 Type Resolution Rules
 
 | Content has `_type` | `CODEC_ROOT_TYPE` set | Behavior |

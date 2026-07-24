@@ -234,14 +234,44 @@ A.4 explicit-signal consistency rules. **K9 decided (lead): single canonical val
 - **Tests:** `RootFingerprintOptionTest` (6, incl. R4 negatives: unknown fp, EClass mismatch, EPackage
   schema mismatch) green; R1 baseline **3553 tests, 0 failures**.
 
-## 10. Remaining (out of scope, tracked)
+## 10. A.3 + B.5 — done (2026-07-24, lead chose full B.5)
 
+Binding package-resolution order + count-based candidate rule, realized via a per-load
+`PackageResolver` (new, `util`) threaded through the deser context (`ContextHelper.PACKAGE_RESOLVER`).
+
+- **`PackageResolver`** encapsulates the binding order — **pin** → **ResourceSet registry** →
+  **MetadataService candidate query** (`getPackageMetadataVersions`) → **global registry (tier 4, only for
+  nsURIs unknown to the service)** — and the **A.3 count rule** (0 → tier 4; exactly 1 → use; > 1 → error
+  listing candidate fingerprints; fingerprint short-circuits). Not thread-safe; one per load.
+- **`CodecResource.doLoad`** builds it (`newPackageResolver`), seeds the **pin** from the caller's explicit
+  version signal (root `EClass` / `rootFingerprint`), and exposes it via the context; passed into the
+  format path too.
+- **Integrated sites:** `TypeDeserializationEntry` URI (`resolveFromUri` → `resolveUriVia`) and
+  context-package (`resolveFromSimpleName` scope → `resolvePackageVia`); `CodecResourceHelper.resolveRootType`
+  (String root type count check, clean `IOException` in `doLoad`); `EffectiveCodecConfig.resolveEClassByURI`
+  (read-context paths, count rule). Ambiguity is a hard error in **both** modes — `IOException` in the
+  pre-parse root path, unchecked `IllegalStateException` in the mid-parse deser path (Jackson-3 unchecked;
+  collected diagnostics do not abort, so a throw is required).
+- **Null-guard** on `getPackageMetadataVersions` results at the codec call sites: a real service never
+  returns null (empty `EList`), but Mockito mocks do — guarded so the ambiguity check no-ops (R1-safe).
+- **S-4 preserved:** the candidate query is scoped to one nsURI (bounded), not a global scan (15 §9.3).
+- **Spec:** 06 §6.4.6 (binding order + count rule), 15 §9.3 (bounded-query note), 13 §8.1 (ambiguity error).
+- **Tests:** `PackageResolverTest` (8, unit), `MultiVersionCandidateRuleTest` (2, e2e: ambiguity error +
+  fingerprint disambiguation), `StringRootTypeUriResolutionTest` (1, R1 single-version String URI,
+  Resource-backed). R1 baseline **3564 tests, 0 failures**.
+
+**Deferred (documented in code, `TODO(#54 B.5)`):** `FeaturePathTypeResolver.resolveEClassFromUri`
+(discriminator class-URI path, static method-ref site) still uses the global registry directly — route it
+through `PackageResolver` when that site gains a resolver handle.
+
+## 11. Remaining (out of scope, tracked)
+
+- `FeaturePathTypeResolver` discriminator-path routing (above).
 - 16-annotation-reference.md `inherit`-modes scan (D1/CR-4 follow-up).
 - Spec-wide `EffectiveClassConfig`→`ClassConfig` naming cleanup.
 - Optional issue: `inherit`-aware / non-type-config inheritance.
 - Latent duality: `CODEC_ROOT_TYPE`/`CODEC_ROOT_SCHEMA` still read only the literal spelling (rootFingerprint
   avoided this via K9; retrofitting the older two is a separate cleanup).
-- Phase A remainder: **A.3+B.5** (candidate rule + binding package-resolution order, now with the real
-  `getPackageMetadataVersions` getter), **B.6** (discriminator per-step views).
+- Phase A remainder: **B.6** (discriminator per-step views).
 
 *Created for #54 / A.1; source of truth = `docs/codec-v2-spec/`; see `docs/codec-v2-fingerprinting-workdoc.md` §3 A.1, W18, F6/F11/F12.*

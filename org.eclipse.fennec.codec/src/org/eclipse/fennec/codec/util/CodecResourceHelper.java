@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
@@ -144,6 +145,23 @@ public class CodecResourceHelper {
 
         String fingerprint = rootFingerprint(options);
         if (isNull(fingerprint)) {
+            // A.3: a String root type whose nsURI has more than one registered version is
+            // ambiguous without a fingerprint -> error listing candidates (both modes), never
+            // a silent last-wins pick.
+            Object rootObject = options.get(CODEC_ROOT_TYPE);
+            if (rootObject instanceof String uriString && !uriString.isEmpty()) {
+                int hash = uriString.indexOf('#');
+                if (hash > 0) {
+                    String nsURI = uriString.substring(0, hash);
+                    // Null-guard: a real MetadataService never returns null here (empty EList for
+                    // an unknown nsURI), but Mockito mocks / alternate impls may — treat null as
+                    // "no version info" so the ambiguity check is simply skipped (R1-safe).
+                    EList<PackageMetadata> versions = metadataService.getPackageMetadataVersions(nsURI);
+                    if (versions != null && versions.size() > 1) {
+                        throw new IOException(PackageResolver.ambiguityMessage(nsURI, versions));
+                    }
+                }
+            }
             return resolveRootEClass(options);
         }
 

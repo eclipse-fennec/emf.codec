@@ -557,6 +557,7 @@ Map<String, Object> options = CodecOptionsBuilder.create()
 | Invalid `CODEC_ROOT_TYPE` (not a resolvable EClass or String type identifier) | ERROR | Type hint must be an EClass or a resolvable type URI / qualified name |
 | Unknown `CODEC_ROOT_FINGERPRINT` (no package for fingerprint) | ERROR | "Unknown root fingerprint: `<fp>`" |
 | `CODEC_ROOT_FINGERPRINT` conflicts with an instance root option's package fingerprint | ERROR | "Root fingerprint `<fp>` does not match `<option>` package `<nsURI>` (`<fp2>`)" |
+| Ambiguous nsURI: `> 1` registered version and no `codec.rootFingerprint`/pin (A.3) | ERROR | "Ambiguous nsURI `<nsURI>`: `N` versions registered `[<fp1>, <fp2>, …]`; pass `codec.rootFingerprint` to select one" |
 | Abstract EClass as hint | ERROR | Cannot instantiate abstract class |
 | JSON property not in EClass | WARNING | Unknown property (skipped) |
 
