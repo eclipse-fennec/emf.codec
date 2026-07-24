@@ -264,6 +264,32 @@ Binding package-resolution order + count-based candidate rule, realized via a pe
 (discriminator class-URI path, static method-ref site) still uses the global registry directly — route it
 through `PackageResolver` when that site gains a resolver handle.
 
+## 10b. B.6 — done (2026-07-24, lead chose full B.6)
+
+`TypeDiscriminatorService` becomes a **builder/cache**, not a holder of one global mutable
+registry map:
+- **Per-`PackageMetadata` views** built once via `onPackageRegistered` into a fresh service and
+  memoized (`PER_PACKAGE_VIEW`, instance-keyed).
+- **`composedFor(metadataService, pinnedVersionLookup)`** composes a per-load view: per nsURI it
+  selects the **pinned** version (else all registered versions), merges each package's per-package
+  view per mapId, and raises a **hard error on value collisions** (same mapId+value → different
+  class) instead of last-wins. A `Function<String,PackageMetadata>` pin lookup is used (not the
+  codec-side `PackageResolver`) to avoid a backward bundle dependency (`codec.metadata` must not
+  depend on `codec`); `CodecResource` passes `packageResolver::pinnedVersion`.
+- **Wiring:** `CodecResource.createObjectMapper` takes the `PackageResolver`; **load** uses
+  `composedFor` (pin-scoped, collision-error), **save** keeps `fromMetadataService` (instance-driven,
+  no ambiguity). `fromMetadataService` retained (used by existing tests).
+- **R1:** single version → composition of one contribution = prior global view; discriminator
+  baseline (cross-package/mapped/inline/feature-path suites) unchanged.
+- **Spec:** 08 §7.4 + §9 collision row.
+- **Tests:** `TypeDiscriminatorComposedViewTest` (3: collision→error, pin-scoping both versions,
+  single-version R1). Baseline **3567 tests, 0 failures**.
+
+**Residual (documented):** composition is **build-at-start** version-scoped by the pins known then
+(root pin seeded pre-parse); a fully *lazy* per-step composition as packages get pinned mid-parse
+is the fuller form — marginal in Phase A (caller-driven version). `FeaturePathTypeResolver`
+discriminator resolver fn still uses the global registry (see below).
+
 ## 11. Remaining (out of scope, tracked)
 
 - `FeaturePathTypeResolver` discriminator-path routing (above).
@@ -272,6 +298,8 @@ through `PackageResolver` when that site gains a resolver handle.
 - Optional issue: `inherit`-aware / non-type-config inheritance.
 - Latent duality: `CODEC_ROOT_TYPE`/`CODEC_ROOT_SCHEMA` still read only the literal spelling (rootFingerprint
   avoided this via K9; retrofitting the older two is a separate cleanup).
-- Phase A remainder: **B.6** (discriminator per-step views).
+- B.6 fully-lazy per-step composition (build-at-start is shipped; see §10b residual).
+- **Phase A is now feature-complete** (A.1, A.2/A.4, A.3+B.5, B.6). Remaining items above are follow-ups,
+  not Phase A blockers.
 
 *Created for #54 / A.1; source of truth = `docs/codec-v2-spec/`; see `docs/codec-v2-fingerprinting-workdoc.md` §3 A.1, W18, F6/F11/F12.*

@@ -14,8 +14,11 @@ package org.eclipse.fennec.codec.metadata.type;
 
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -89,6 +92,15 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
     private final Map<String, TypeDiscriminatorRegistry> registries = new ConcurrentHashMap<>();
 
     /**
+     * Cache of per-{@link PackageMetadata} discriminator views (B.6). Each view is a service
+     * holding only that one package's registries, built once via {@link #onPackageRegistered}
+     * and reused (immutable after build) to compose per-load effective views. Keyed by
+     * PackageMetadata instance (fingerprint-stable), so distinct versions get distinct entries.
+     */
+    private static final Map<PackageMetadata, TypeDiscriminatorService> PER_PACKAGE_VIEW =
+            new ConcurrentHashMap<>();
+
+    /**
      * Creates an empty TypeDiscriminatorService.
      */
     public TypeDiscriminatorService() {
@@ -128,6 +140,109 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
         }
 
         return service;
+    }
+
+    /**
+     * Builds a per-load, version-scoped discriminator reader by composing per-package views
+     * (B.6). For each nsURI the composition uses the version pinned for this load (if any),
+     * else all registered versions of that nsURI. Contributions are merged per mapId; a value
+     * that maps to two different classes across contributions is a hard error (never last-wins).
+     * <p>
+     * A pin lookup rather than a concrete resolver type is used to avoid a bundle dependency on
+     * the codec-side {@code PackageResolver}; pass {@code packageResolver::pinnedVersion}.
+     * </p>
+     *
+     * @param metadataService the metadata service to scan
+     * @param pinnedVersionLookup nsURI -&gt; pinned {@link PackageMetadata} (may return null); may be null
+     * @return a composed service scoped to the selected versions
+     */
+    public static TypeDiscriminatorService composedFor(MetadataService metadataService,
+            Function<String, PackageMetadata> pinnedVersionLookup) {
+        Objects.requireNonNull(metadataService, "metadataService must not be null");
+        TypeDiscriminatorService composed = new TypeDiscriminatorService();
+        MetadataRegistry registry = metadataService.getRegistry();
+        if (registry == null) {
+            return composed;
+        }
+        for (PackageMetadata pm : selectVersions(registry, pinnedVersionLookup)) {
+            composed.mergePackageView(perPackageView(pm), pm);
+        }
+        return composed;
+    }
+
+    /**
+     * Selects, per nsURI, the pinned version (if any) or all registered versions.
+     */
+    private static List<PackageMetadata> selectVersions(MetadataRegistry registry,
+            Function<String, PackageMetadata> pinnedVersionLookup) {
+        Map<String, List<PackageMetadata>> byNsURI = new LinkedHashMap<>();
+        for (PackageMetadata pm : registry.getPackages()) {
+            EPackage ePackage = pm.getEPackage();
+            String nsURI = ePackage != null ? ePackage.getNsURI() : null;
+            if (nsURI == null) {
+                continue;
+            }
+            byNsURI.computeIfAbsent(nsURI, k -> new ArrayList<>()).add(pm);
+        }
+        List<PackageMetadata> selected = new ArrayList<>();
+        for (Map.Entry<String, List<PackageMetadata>> entry : byNsURI.entrySet()) {
+            PackageMetadata pinned = pinnedVersionLookup != null
+                    ? pinnedVersionLookup.apply(entry.getKey()) : null;
+            if (pinned != null) {
+                selected.add(pinned);
+            } else {
+                selected.addAll(entry.getValue());
+            }
+        }
+        return selected;
+    }
+
+    /**
+     * Returns the cached per-package discriminator view for a PackageMetadata, building it once.
+     */
+    static TypeDiscriminatorService perPackageView(PackageMetadata packageMetadata) {
+        return PER_PACKAGE_VIEW.computeIfAbsent(packageMetadata, pm -> {
+            TypeDiscriminatorService view = new TypeDiscriminatorService();
+            view.onPackageRegistered(pm);
+            return view;
+        });
+    }
+
+    /**
+     * Merges a per-package view's registries into this composed service, detecting value
+     * collisions (same mapId + value -> different class) as hard errors (B.6 §7.4).
+     */
+    private void mergePackageView(TypeDiscriminatorService view, PackageMetadata source) {
+        for (String mapId : view.getMapIds()) {
+            TypeDiscriminatorRegistry src = view.getRegistry(mapId);
+            if (src == null) {
+                continue;
+            }
+            TypeDiscriminatorRegistry dst = getOrCreateRegistry(mapId);
+            if (dst.getDiscriminatorPath() == null && src.getDiscriminatorPath() != null) {
+                dst.setDiscriminatorPath(src.getDiscriminatorPath());
+            }
+            if (dst.getFallbackStrategy() == FallbackStrategy.SKIP
+                    && src.getFallbackStrategy() != FallbackStrategy.SKIP) {
+                dst.setFallbackStrategy(src.getFallbackStrategy());
+            }
+            if (dst.getFallbackEClass() == null && src.getFallbackEClass() != null) {
+                dst.setFallbackEClass(src.getFallbackEClass());
+            }
+            for (Map.Entry<String, EClass> mapping : src.valueMappings().entrySet()) {
+                String value = mapping.getKey();
+                EClass eClass = mapping.getValue();
+                EClass existing = dst.getEClass(value);
+                if (existing != null && existing != eClass) {
+                    String nsURI = source.getEPackage() != null ? source.getEPackage().getNsURI() : "?";
+                    throw new IllegalStateException(String.format(
+                        "Discriminator value collision under multi-version: mapId '%s' value '%s' maps to "
+                        + "both %s and %s (package %s). Pass codec.rootFingerprint to select one version.",
+                        mapId, value, existing.getName(), eClass.getName(), nsURI));
+                }
+                dst.register(value, eClass);
+            }
+        }
     }
 
     // ========================================================================

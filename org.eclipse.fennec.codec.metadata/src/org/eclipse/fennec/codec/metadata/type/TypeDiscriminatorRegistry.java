@@ -264,6 +264,16 @@ public class TypeDiscriminatorRegistry {
     }
 
     /**
+     * Returns an immutable snapshot of this registry's {@code discriminatorValue -> EClass}
+     * mappings. Used to compose a per-load effective view from per-package views (B.6).
+     *
+     * @return an immutable copy of the value-to-class mappings
+     */
+    public Map<String, EClass> valueMappings() {
+        return Map.copyOf(valueToClass);
+    }
+
+    /**
      * Gets the discriminator value for an EClass.
      *
      * @param eClass the EClass

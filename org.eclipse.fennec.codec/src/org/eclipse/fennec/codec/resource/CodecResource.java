@@ -262,7 +262,7 @@ public class CodecResource extends ResourceImpl {
         // Enrich resolver with save options (highest priority in config hierarchy)
         ConfigurationResolver operationResolver = enrichWithOptions(resolver, effectiveOptions);
 
-        mapper = createObjectMapper(effectiveOptions, operationResolver);
+        mapper = createObjectMapper(effectiveOptions, operationResolver, null);
 
         if (formatProvider != null) {
             List<String> warnings = formatProvider.validateSaveOptions(
@@ -348,7 +348,7 @@ public class CodecResource extends ResourceImpl {
         // Enrich resolver with load options (highest priority in config hierarchy)
         ConfigurationResolver operationResolver = enrichWithOptions(resolver, mergedOptions);
 
-        mapper = createObjectMapper(mergedOptions, operationResolver);
+        mapper = createObjectMapper(mergedOptions, operationResolver, packageResolver);
 
         if (formatProvider != null) {
             doLoadWithFormat(inputStream, mergedOptions, rootEClassHint, operationResolver, packageResolver);
@@ -759,11 +759,20 @@ public class CodecResource extends ResourceImpl {
         return builder.build();
     }
 
-    private ObjectMapper createObjectMapper(Map<String, Object> options, ConfigurationResolver operationResolver) {
-        // Use externally managed TypeDiscriminatorReader or create fresh one
-        TypeDiscriminatorReader typeService = typeDiscriminatorReader != null
-                ? typeDiscriminatorReader
-                : TypeDiscriminatorService.fromMetadataService(metadataService);
+    private ObjectMapper createObjectMapper(Map<String, Object> options, ConfigurationResolver operationResolver,
+            PackageResolver packageResolver) {
+        // Use externally managed TypeDiscriminatorReader, else build one for this operation.
+        // On load (packageResolver != null): a per-step, version-scoped composed view (B.6) —
+        // pinned version per nsURI, value collisions -> error. On save (packageResolver == null):
+        // the instance-driven global view (no ambiguity to resolve).
+        TypeDiscriminatorReader typeService;
+        if (typeDiscriminatorReader != null) {
+            typeService = typeDiscriminatorReader;
+        } else if (packageResolver != null) {
+            typeService = TypeDiscriminatorService.composedFor(metadataService, packageResolver::pinnedVersion);
+        } else {
+            typeService = TypeDiscriminatorService.fromMetadataService(metadataService);
+        }
 
         // Extract global properties from the operation resolver (includes load/save options)
         List<String> ignoreFeatures = operationResolver.getGlobalProperty(ConfigProperty.IGNORE_FEATURES);
