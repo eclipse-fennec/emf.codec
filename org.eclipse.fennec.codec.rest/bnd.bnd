@@ -1,3 +1,6 @@
+Bundle-Name: Fennec Codec REST
+Bundle-Description: Jakarta REST (JAX-RS) integration for the Fennec EMF Codec
+
 -library: enableEMF
 
 -buildpath: \

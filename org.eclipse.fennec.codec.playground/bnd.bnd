@@ -1,3 +1,6 @@
+Bundle-Name: Fennec Codec Playground
+Bundle-Description: Playground project for experimenting with the Fennec EMF Codec
+
 -library: enableEMF
 -buildpath: \
 	org.apache.felix.gogo.runtime,\
