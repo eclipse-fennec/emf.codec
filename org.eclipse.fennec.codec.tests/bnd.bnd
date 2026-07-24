@@ -1,7 +1,7 @@
 Bundle-Name: Fennec Codec TCK
 Bundle-Description: Technology Compatibility Kit for Fennec EMF Codec format providers
 
-Export-Package: org.eclipse.fennec.codec.tests.tck
+Export-Package: org.eclipse.fennec.codec.tests.tck;version=1.0.0
 
 -library: enableEMF
 

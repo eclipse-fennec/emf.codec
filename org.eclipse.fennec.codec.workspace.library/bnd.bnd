@@ -11,5 +11,5 @@ fennec-base:\
     bnd.library;\
         bnd.library     = fennecCodec; \
         path            = template
-Bundle-Name: Eclispe Fennec Codec
+Bundle-Name: Eclipse Fennec Codec
 Bundle-Description: Eclipse Fennec Codec Dependencies

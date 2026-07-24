@@ -45,7 +45,7 @@ Overall the codebase is in good shape: license headers are present on **all** ha
 - **Why it matters:** An `impl`-named exported package signals "not API" while actually being a cross-bundle extension point; tooling and reviewers will treat changes to it as free, silently breaking downstream providers.
 - **Suggested fix:** Split the intended extension surface (`JacksonFormatProvider`, delegate base classes) into a properly named exported package (e.g. `org.eclipse.fennec.codec.format.jackson` or `.format.spi`) and make the remaining true internals private.
 
-### F4 · major · api-evolution · systemic (3 packages)
+### F4 · major · api-evolution · systemic (3 packages) — ✅ fixed 2026-07-24
 - **Where:** org.eclipse.fennec.codec/src/org/eclipse/fennec/codec/context/package-info.java:30
 - **What:** Exported packages without an explicit package version: `org.eclipse.fennec.codec.context` (package-info.java:30) and `org.eclipse.fennec.codec.config.effective` (package-info.java:27) carry `@Export` but no `@Version`; `org.eclipse.fennec.codec.tests.tck` is exported via `org.eclipse.fennec.codec.tests/bnd.bnd:4` without a version.
 - **Why it matters:** They silently inherit the bundle version (visible as `0.1.0` in the generated manifest, vs. `1.0.0` for all sibling packages) and will drift on every bundle-version bump, making semantic versioning of the API meaningless and breaking future baselining.
@@ -63,13 +63,13 @@ Overall the codebase is in good shape: license headers are present on **all** ha
 - **Why it matters:** At this size every schema-facet change (types, constraints, annotations, references) touches the same class — hard to review, hard to test facets in isolation, high merge-conflict surface.
 - **Suggested fix:** Extract per-facet mappers (type mapping, constraints, annotations, cross-references) that the converter orchestrates; the exported-package boundary already supports this (`...v2.converter` is API, helpers can be private).
 
-### F7 · minor · naming · org.eclipse.fennec.codec.workspace.library
+### F7 · minor · naming · org.eclipse.fennec.codec.workspace.library — ✅ fixed 2026-07-24
 - **Where:** org.eclipse.fennec.codec.workspace.library/bnd.bnd:14
 - **What:** Typo in the bundle name: `Bundle-Name: Eclispe Fennec Codec`.
 - **Why it matters:** The name is user-visible metadata shipped in the manifest (and shows up on Maven Central).
 - **Suggested fix:** `Eclipse Fennec Codec`.
 
-### F8 · minor · naming · org.eclipse.fennec.codec.rest, org.eclipse.fennec.codec.playground
+### F8 · minor · naming · org.eclipse.fennec.codec.rest, org.eclipse.fennec.codec.playground — ✅ fixed 2026-07-24
 - **Where:** org.eclipse.fennec.codec.rest/bnd.bnd:1
 - **What:** `org.eclipse.fennec.codec.rest` and `org.eclipse.fennec.codec.playground` set no `Bundle-Name`/`Bundle-Description`, unlike every other bundle in the workspace.
 - **Why it matters:** Manifest metadata is what consumers see in repositories and tooling; the rest bundle in particular is shipped API.
@@ -99,7 +99,7 @@ Overall the codebase is in good shape: license headers are present on **all** ha
 - **Why it matters:** Each new config dimension grows the same class and its cache; the parallel-method structure would support extraction of a per-config-type resolver strategy if it keeps growing.
 - **Suggested fix:** None required now; consider splitting per-config-type resolution internals if a new config family is added.
 
-### F13 · major · release-readiness · repository
+### F13 · major · release-readiness · repository — ✅ setup added 2026-07-24 (12 restricted entries pending IP review)
 - **Where:** DEPENDENCIES:1 (missing — repo root)
 - **What:** The Eclipse Dash IP-check setup is entirely missing: no `tools/dash-licenses.sh`/`.bat`, no `.github/workflows/dash-licenses.yml`, and no generated `DEPENDENCIES` file at the repo root.
 - **Why it matters:** IP cleanliness is mandatory for an Eclipse release; without the Dash workflow, restricted third-party licenses (this repo pulls POI, xmlbeans, SODS, fastcsv, snakeyaml, mongodb-bson, …) would go unnoticed until release review.
