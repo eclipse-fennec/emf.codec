@@ -652,6 +652,36 @@ Deserializing a contained object:
 
 ---
 
+### 7.4 Registry composition under multi-version `[B.6]`
+
+Discriminator mappings are **model config**: they originate from annotations and therefore
+belong to the fingerprinted `PackageMetadata`. Accordingly:
+
+1. **Per-package views, built once.** The derived lookup maps (`mapId → value → EClass`, and
+   the reverse `EClass → value`) are built **per `PackageMetadata` instance** and memoized —
+   built once, immutable, freely reusable and thread-safe. `TypeDiscriminatorService` is the
+   **builder/cache** of these per-package views, not the holder of a single global mutable
+   registry.
+2. **Effective view composed per conversion step.** The effective `mapId` view for a load is
+   **composed from the contributions of the *pinned* packages** (the per-step package
+   resolution of B.5 §6.4.6) — lazily, on first discriminator use. Composition is required
+   because a `mapId` can span packages (a base class defines the discriminator path; concrete
+   classes in other packages register their values — the cross-package inheritance case).
+   Only the pinned version of each nsURI contributes, so two live versions of one nsURI never
+   both enter the view — the multi-version collision is avoided at the source (the same
+   principle as instance-based config in 02 §8).
+3. **Collisions in the composed view are errors.** If two pinned packages map the **same
+   discriminator value (within one mapId) to different classes**, that is a hard error in
+   every strictness mode (see §9) — never last-wins. Resolution across contributions is
+   **deterministic**: it does not depend on registry iteration order.
+4. **Mapped classes resolve as instances via the B.5 order.** A resolved class comes from the
+   pinned `PackageMetadata` (instance), following the binding package-resolution order
+   (06 §6.4.6), not a global-registry URI-string lookup.
+5. **R1 (single version):** with one registered version the composition of exactly one
+   contribution is identical to today's global registry — behavior unchanged.
+
+The OSGi component remains; only its role changes (holder → builder/cache).
+
 ## 8. Serialization Flow
 
 This section documents the detailed serialization flow for both Type Mapping Registry and Inline Mapping. It complements the high-level type serialization flow in [06-type.md §5.0](06-type.md#50-type-serialization-flow) with implementation-level details.
@@ -964,6 +994,7 @@ Serializing a contained object:
 | `typeDiscriminatorPath` in main codec on EReference | ERROR | Discriminator path is defined on base class |
 | `inlineMapping` annotation on EClass | WARNING | Inline mappings are per-reference only |
 | `inlineMapping` annotation on EAttribute | ERROR | Inline mappings are per-reference only |
+| Same discriminator value (one mapId) → different classes across pinned packages | ERROR | Composed-view collision under multi-version (B.6, §7.4) — never last-wins |
 
 ---
 
