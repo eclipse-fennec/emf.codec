@@ -588,9 +588,10 @@ land which way.
 
 ### 8.2 Issue mapping
 
-- **Phase A** → existing issue **#54**, adapted to this document.
-- **Phase B** → a **new issue** (spec extension: fingerprint in data).
-- Smaller work steps become **sub-issues** of their phase issue.
+- **Phase A** → issue **#54** (reframed to this document).
+- **Phase B** → issue **#73** (spec extension: fingerprint in data).
+- **model.metadata#16** → all-versions getter + destructive class-URI-index fix.
+- Smaller work steps are checklists in #54/#73; split into sub-issues on demand.
 - The method above (8.1) is copied into each ticket.
 
 ### 8.3 Order
