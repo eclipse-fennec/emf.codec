@@ -57,6 +57,7 @@ import org.eclipse.fennec.codec.jackson.CodecJsonFactory;
 import org.eclipse.fennec.codec.jackson.CodecJsonReadContext;
 import org.eclipse.fennec.codec.module.CodecModule;
 import org.eclipse.fennec.codec.util.CodecResourceHelper;
+import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
@@ -338,6 +339,10 @@ public class CodecResource extends ResourceImpl {
             requirePackageRegistered(ePackage);
         }
 
+        // Per-load package resolver (B.5): binding nsURI -> version order + A.3 count rule.
+        // Seeded with the caller's explicit version signal (root type / rootFingerprint) as a pin.
+        PackageResolver packageResolver = newPackageResolver(effectiveOptions, rootEClassHint);
+
         Map<String, Object> mergedOptions = (Map<String, Object>) mergeOptions(effectiveOptions);
 
         // Enrich resolver with load options (highest priority in config hierarchy)
@@ -346,7 +351,7 @@ public class CodecResource extends ResourceImpl {
         mapper = createObjectMapper(mergedOptions, operationResolver);
 
         if (formatProvider != null) {
-            doLoadWithFormat(inputStream, mergedOptions, rootEClassHint, operationResolver);
+            doLoadWithFormat(inputStream, mergedOptions, rootEClassHint, operationResolver, packageResolver);
             return;
         }
 
@@ -370,6 +375,7 @@ public class CodecResource extends ResourceImpl {
         var reader = mapper.readerFor(EObject.class)
                 .withAttribute(ContextHelper.UNRESOLVED_REFERENCES, unresolvedReferences)
                 .withAttribute(ContextHelper.DIAGNOSTIC_COLLECTOR, diagnosticCollector)
+                .withAttribute(ContextHelper.PACKAGE_RESOLVER, packageResolver)
                 .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
         if (nonNull(rootEClassHint)) {
@@ -513,7 +519,8 @@ public class CodecResource extends ResourceImpl {
 
     @SuppressWarnings("unchecked")
     private <S> void doLoadWithFormat(InputStream inputStream, Map<String, Object> mergedOptions,
-            EClass rootEClassHint, ConfigurationResolver operationResolver) throws IOException {
+            EClass rootEClassHint, ConfigurationResolver operationResolver,
+            PackageResolver packageResolver) throws IOException {
 
         CodecFormatProvider<S, ?> provider = (CodecFormatProvider<S, ?>) formatProvider;
         FormatReaderDelegate<S> delegate = provider.createReader((S) inputStream);
@@ -532,6 +539,7 @@ public class CodecResource extends ResourceImpl {
                 .withAttribute(ContextHelper.UNRESOLVED_REFERENCES, unresolvedReferences)
                 .withAttribute(ContextHelper.DIAGNOSTIC_COLLECTOR, diagnosticCollector)
                 .withAttribute(ContextHelper.RESOURCE, this)
+                .withAttribute(ContextHelper.PACKAGE_RESOLVER, packageResolver)
                 .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
         if (nonNull(rootEClassHint)) {
@@ -668,6 +676,28 @@ public class CodecResource extends ResourceImpl {
             });
         }
         return merged;
+    }
+
+    /**
+     * Builds the per-load {@link PackageResolver} (B.5) and seeds its pin from the caller's
+     * explicit version selection (root type instance / {@code codec.rootFingerprint}), so every
+     * nsURI resolution in this load reuses that version and multi-version ambiguity does not fire.
+     */
+    private PackageResolver newPackageResolver(Map<?, ?> options, EClass rootEClassHint) {
+        EPackage.Registry registry = nonNull(getResourceSet()) ? getResourceSet().getPackageRegistry() : null;
+        PackageResolver packageResolver = new PackageResolver(metadataService, registry);
+        if (nonNull(rootEClassHint)) {
+            packageResolver.pin(rootEClassHint.getEPackage());
+        } else {
+            String rootFingerprint = helper.rootFingerprint(options);
+            if (nonNull(rootFingerprint)) {
+                PackageMetadata pm = metadataService.getPackageMetadataByFingerprint(rootFingerprint);
+                if (nonNull(pm)) {
+                    packageResolver.pin(pm.getEPackage());
+                }
+            }
+        }
+        return packageResolver;
     }
 
     /**

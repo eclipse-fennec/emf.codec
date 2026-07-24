@@ -19,6 +19,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
+import org.eclipse.fennec.codec.util.PackageResolver;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
@@ -65,6 +66,13 @@ public final class ContextHelper {
      * @see <a href="docs/codec-v2-spec/04-global-options.md#1-smart-compression">Spec: Smart Compression</a>
      */
     public static final String CONTEXT_SCHEMA_URI = "CODEC_CONTEXT_SCHEMA_URI";
+
+    /**
+     * Context attribute key holding the per-load {@link PackageResolver} (issue #54, B.5).
+     * Provides the binding nsURI -&gt; package-version resolution order (pin, ResourceSet
+     * registry, MetadataService candidate query, global registry) and the A.3 count rule.
+     */
+    public static final String PACKAGE_RESOLVER = "CODEC_PACKAGE_RESOLVER";
 
     /**
      * Context attribute key indicating if root object serialization is complete.
@@ -373,6 +381,20 @@ public final class ContextHelper {
     public static String getContextSchemaUri(DeserializationContext ctxt) {
         Object value = ctxt.getAttribute(CONTEXT_SCHEMA_URI);
         return value instanceof String ? (String) value : null;
+    }
+
+    /**
+     * Gets the per-load {@link PackageResolver} from the deserialization context (B.5).
+     *
+     * @param ctxt the deserialization context
+     * @return the resolver, or null if not set
+     */
+    public static PackageResolver getPackageResolver(DeserializationContext ctxt) {
+        if (ctxt == null) {
+            return null;
+        }
+        Object value = ctxt.getAttribute(PACKAGE_RESOLVER);
+        return value instanceof PackageResolver ? (PackageResolver) value : null;
     }
 
     /**

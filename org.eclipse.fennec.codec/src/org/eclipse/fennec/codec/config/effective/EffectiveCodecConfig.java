@@ -35,7 +35,10 @@ import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.model.metadata.ClassMetadata;
+import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 
 /**
@@ -315,6 +318,19 @@ public final class EffectiveCodecConfig
     public EClass resolveEClassByURI(String uri) {
         if (uri == null || uri.isEmpty() || metadataService == null) {
             return null;
+        }
+        // A.3: reject a silent last-wins pick when the nsURI has multiple registered versions
+        // (both strictness modes). The caller disambiguates via codec.rootFingerprint.
+        int hash = uri.indexOf('#');
+        if (hash > 0) {
+            String nsURI = uri.substring(0, hash);
+            // Null-guard: a real MetadataService never returns null here (empty EList for an
+            // unknown nsURI), but Mockito mocks / alternate impls may — treat null as "no
+            // version info" so the ambiguity check is simply skipped (R1-safe).
+            EList<PackageMetadata> versions = metadataService.getPackageMetadataVersions(nsURI);
+            if (versions != null && versions.size() > 1) {
+                throw new IllegalStateException(PackageResolver.ambiguityMessage(nsURI, versions));
+            }
         }
         ClassMetadata metadata = metadataService.getClassMetadataByURI(uri);
         return metadata != null ? metadata.getEClass() : null;

@@ -562,7 +562,14 @@ The limit applies to the same paths as the nesting depth limit (deferred propert
 
 Non-URI type strategies resolve type values within a **scoped context package** derived from the schema hint. Without a schema hint, resolution fails instead of scanning all registered EPackages. This prevents type confusion when multiple packages define classes with the same name or overlapping classifier IDs.
 
-The `URI` strategy (default) is not affected — full URIs are always unambiguous.
+The `URI` strategy (default) is not affected — full URIs are always unambiguous **on the nsURI**; version selection under same-nsURI multi-version is a separate step (below).
+
+> **Bounded candidate query ≠ global scan (B.5/A.3).** Selecting the *version* of a
+> known nsURI (via `getPackageMetadataVersions(nsURI)`, see 06 §6.4.6) is a lookup
+> **scoped to that one nsURI** — it is not the forbidden global cross-package scan. When
+> that scoped query returns **more than one** version and no `codec.rootFingerprint`/pin
+> disambiguates, resolution **fails with an error listing the candidate fingerprints**
+> (in every strictness mode), rather than silently picking the last-registered version.
 
 > **Deserialization requirement:** When using `NAME`, `CLASS`, or `NUMERIC` strategy, always provide a schema hint via `CODEC_ROOT_SCHEMA` or `CODEC_ROOT_TYPE` load option.
 

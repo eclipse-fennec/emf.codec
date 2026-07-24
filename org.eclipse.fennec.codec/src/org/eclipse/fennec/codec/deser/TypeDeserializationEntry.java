@@ -12,6 +12,7 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.deser;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +25,7 @@ import org.eclipse.fennec.codec.config.SuperTypeConfig;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
+import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 import org.eclipse.fennec.model.metadata.TypeStrategy;
 
@@ -477,9 +479,12 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             return null;
         }
 
+        // Per-load package resolver (B.5): binding version-resolution order + A.3 count rule.
+        PackageResolver packageResolver = ContextHelper.getPackageResolver(ctxt);
+
         // First: check if it's a full URI (always highest priority)
         if (typeValue.contains("#//")) {
-            EClass resolved = TypeResolutionHelper.resolveFromUri(typeValue);
+            EClass resolved = resolveUriVia(packageResolver, typeValue);
             if (resolved != null) {
                 // Establish context schema for smart compression (root object)
                 initializeContextSchemaIfNeeded(typeValue, ctxt);
@@ -493,7 +498,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             if (contextSchema != null) {
                 // Try to resolve using context schema first
                 String composedUri = contextSchema + "#//" + typeValue;
-                EClass resolved = TypeResolutionHelper.resolveFromUri(composedUri);
+                EClass resolved = resolveUriVia(packageResolver, composedUri);
                 if (resolved != null) {
                     LOGGER.fine("Resolved type via smart compression: " + typeValue + " -> " + resolved.getName());
                     return resolved;
@@ -544,12 +549,14 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             strategy = TypeStrategy.URI;
         }
 
-        // Derive context package from context schema URI for scoped resolution (S-4)
+        // Derive context package from context schema URI for scoped resolution (S-4).
+        // B.5: resolve the version via the binding order (pin -> ResourceSet -> MetadataService
+        // candidate query -> global registry), not directly from the global registry.
         EPackage contextPackage = null;
         if (ctxt != null) {
             String contextSchema = ContextHelper.getContextSchemaUri(ctxt);
             if (contextSchema != null && !contextSchema.isEmpty()) {
-                contextPackage = EPackage.Registry.INSTANCE.getEPackage(contextSchema);
+                contextPackage = resolvePackageVia(packageResolver, contextSchema);
             }
         }
         if (contextPackage == null && hintEClass != null) {
@@ -588,6 +595,37 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         }
 
         return resolved;
+    }
+
+    /**
+     * Resolves a full type URI via the per-load {@link PackageResolver} (B.5 binding order +
+     * A.3 count rule) when available, else the legacy global-registry lookup. An ambiguous
+     * nsURI (&gt; 1 candidate, no pin/fingerprint) surfaces as a hard error in every mode.
+     */
+    private static EClass resolveUriVia(PackageResolver resolver, String typeUri) {
+        if (resolver == null) {
+            return TypeResolutionHelper.resolveFromUri(typeUri);
+        }
+        try {
+            return resolver.resolveEClassFromTypeUri(typeUri, null);
+        } catch (IOException e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Resolves an nsURI to a concrete {@link EPackage} via the per-load {@link PackageResolver}
+     * (B.5) when available, else the legacy global registry. Ambiguity is a hard error.
+     */
+    private static EPackage resolvePackageVia(PackageResolver resolver, String nsURI) {
+        if (resolver == null) {
+            return EPackage.Registry.INSTANCE.getEPackage(nsURI);
+        }
+        try {
+            return resolver.resolveEPackage(nsURI, null);
+        } catch (IOException e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
     }
 
     /**
