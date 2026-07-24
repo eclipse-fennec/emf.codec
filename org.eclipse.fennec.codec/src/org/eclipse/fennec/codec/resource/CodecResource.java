@@ -110,6 +110,14 @@ public class CodecResource extends ResourceImpl {
     public static final String CODEC_ROOT_SCHEMA = "CODEC_ROOT_SCHEMA";
 
     /**
+     * Optional option key selecting the package version a String root type / schema
+     * resolves against under same-nsURI multi-version (issue #54, A.2/A.4). Carries the
+     * single canonical value {@link CodecOptions#CODEC_ROOT_FINGERPRINT} — no
+     * dotted/literal duality (K9): either constant works.
+     */
+    public static final String CODEC_ROOT_FINGERPRINT = CodecOptions.CODEC_ROOT_FINGERPRINT;
+
+    /**
      * Hardened Jackson stream read constraints for all codec parsing.
      * <p>
      * Security: CWE-400 (S-6). Tighter than Jackson 3.1.0 defaults:
@@ -323,7 +331,7 @@ public class CodecResource extends ResourceImpl {
     protected void doLoad(InputStream inputStream, Map<?, ?> options) throws IOException {
         Map<?, ?> effectiveOptions = isNull(options) ? Collections.emptyMap() : options;
 
-        EClass rootEClassHint = helper.resolveRootEClass(effectiveOptions);
+        EClass rootEClassHint = helper.resolveRootType(effectiveOptions);
 
         if (nonNull(rootEClassHint)) {
             EPackage ePackage = rootEClassHint.getEPackage();
@@ -609,11 +617,33 @@ public class CodecResource extends ResourceImpl {
         return metadata;
     }
 
-    private String resolveContextSchema(Map<?, ?> options, EClass rootEClassHint) {
+    private String resolveContextSchema(Map<?, ?> options, EClass rootEClassHint) throws IOException {
         Object schemaOption = options.get(CODEC_ROOT_SCHEMA);
+        String rootFingerprint = helper.rootFingerprint(options);
+
+        // A.4: CODEC_ROOT_SCHEMA as an EPackage instance (multi-version-safe). When a
+        // rootFingerprint is also given, the two explicit signals must agree.
+        if (schemaOption instanceof EPackage schemaPackage) {
+            if (nonNull(rootFingerprint)) {
+                helper.verifyPackageFingerprint(schemaPackage, rootFingerprint, CODEC_ROOT_SCHEMA);
+            }
+            String schemaUri = schemaPackage.getNsURI();
+            LOGGER.fine(() -> "Using context schema from CODEC_ROOT_SCHEMA EPackage: " + schemaUri);
+            return schemaUri;
+        }
+
         if (schemaOption instanceof String schemaUri && !schemaUri.isEmpty()) {
             LOGGER.fine(() -> "Using explicit CODEC_ROOT_SCHEMA: " + schemaUri);
             return schemaUri;
+        }
+
+        // A.2 step 3: fingerprint known and no explicit schema -> use the selected
+        // package's nsURI as context schema.
+        if (nonNull(rootFingerprint)) {
+            PackageMetadata pkg = metadataService.getPackageMetadataByFingerprint(rootFingerprint);
+            if (nonNull(pkg) && nonNull(pkg.getEPackage())) {
+                return pkg.getEPackage().getNsURI();
+            }
         }
 
         if (nonNull(rootEClassHint)) {
@@ -834,6 +864,7 @@ public class CodecResource extends ResourceImpl {
     private static final Set<String> KNOWN_RUNTIME_OPTIONS = Set.of(
             CodecOptions.CODEC_ROOT_TYPE,
             CodecOptions.CODEC_ROOT_SCHEMA,
+            CodecOptions.CODEC_ROOT_FINGERPRINT,
             CodecOptions.CODEC_FEATURE_TYPE_HINTS,
             CodecOptions.CODEC_TYPE_HINT_MODE,
             CodecOptions.CODEC_DESERIALIZATION_MODE,

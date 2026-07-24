@@ -215,12 +215,33 @@ annotation layer.
 imports + javadoc). Behavior change per W18 (unregistered same-named EClass no longer inherits a registered
 class's config) is now in effect and documented in 02 §8.
 
-## 9. Remaining (out of A.1 scope, tracked)
+## 9. A.2/A.4 — done (2026-07-24)
+
+New optional load option `codec.rootFingerprint` + `EPackage` variant of `CODEC_ROOT_SCHEMA`, with the
+A.4 explicit-signal consistency rules. **K9 decided (lead): single canonical value** —
+`CodecOptions.CODEC_ROOT_FINGERPRINT = "codec.rootFingerprint"` and
+`CodecResource.CODEC_ROOT_FINGERPRINT` references it → no dotted/literal duality, no alias logic.
+
+- **Code:** `CodecResourceHelper.resolveRootType` (fp-aware: unknown fp → error; String root type resolved
+  **by name within the fingerprinted package**, bypassing the global URI index; EClass root type verified
+  against the fp), `verifyPackageFingerprint`, `rootFingerprint`, `resolveEClassInPackage`/`simpleTypeName`;
+  `CodecResource.doLoad` uses `resolveRootType`; `resolveContextSchema` gains the `EPackage` branch +
+  fp-consistency + fp-derived schema; `ConfigProperty.ROOT_FINGERPRINT` (matrix parity);
+  `KNOWN_RUNTIME_OPTIONS` includes the new key. `resolveRootEClass` left unchanged (its tests untouched).
+- **Errors (both strictness modes):** unknown option fingerprint → `IOException`; option fp conflicting
+  with an instance root option (`EClass` type or `EPackage` schema) → `IOException`.
+- **Spec:** 13 §2.1/§2.7/§2.8/§2.9/§8.1; 02 §11.13; `codec-options-reference.md`.
+- **Tests:** `RootFingerprintOptionTest` (6, incl. R4 negatives: unknown fp, EClass mismatch, EPackage
+  schema mismatch) green; R1 baseline **3553 tests, 0 failures**.
+
+## 10. Remaining (out of scope, tracked)
 
 - 16-annotation-reference.md `inherit`-modes scan (D1/CR-4 follow-up).
 - Spec-wide `EffectiveClassConfig`→`ClassConfig` naming cleanup.
 - Optional issue: `inherit`-aware / non-type-config inheritance.
-- Phase A remainder: **A.2/A.4** (`codec.rootFingerprint`), **A.3+B.5** (candidate rule + resolution
-  order), **B.6** (discriminator per-step views).
+- Latent duality: `CODEC_ROOT_TYPE`/`CODEC_ROOT_SCHEMA` still read only the literal spelling (rootFingerprint
+  avoided this via K9; retrofitting the older two is a separate cleanup).
+- Phase A remainder: **A.3+B.5** (candidate rule + binding package-resolution order, now with the real
+  `getPackageMetadataVersions` getter), **B.6** (discriminator per-step views).
 
 *Created for #54 / A.1; source of truth = `docs/codec-v2-spec/`; see `docs/codec-v2-fingerprinting-workdoc.md` §3 A.1, W18, F6/F11/F12.*

@@ -43,7 +43,8 @@ Load/Save options have the **highest priority** in the configuration hierarchy:
 | Java Constant | Property Key | Value Type | Direction | Description |
 |---------------|--------------|------------|-----------|-------------|
 | `CODEC_ROOT_TYPE` | `codec.rootType` | `EClass` or `String` | Load | Type hint for root object |
-| `CODEC_ROOT_SCHEMA` | `codec.rootSchema` | `String` (URI) | Load | Schema context for NAME strategy |
+| `CODEC_ROOT_SCHEMA` | `codec.rootSchema` | `String` (URI) or `EPackage` | Load | Schema context for NAME strategy |
+| `CODEC_ROOT_FINGERPRINT` | `codec.rootFingerprint` | `String` (fingerprint) | Load | Optional; selects the package version a String root type resolves against (multi-version) |
 
 ### 2.2 EMF Resource Contents
 
@@ -151,7 +152,7 @@ For SCHEMA_AND_TYPE strategy, provides the schema context:
 ```java
 /**
  * Load option key for schema context.
- * Value: String (EPackage nsURI)
+ * Value: String (EPackage nsURI) or EPackage instance
  */
 public static final String CODEC_ROOT_SCHEMA = "CODEC_ROOT_SCHEMA";
 ```
@@ -163,6 +164,64 @@ options.put(CodecResource.CODEC_ROOT_SCHEMA, "http://example.org/person/1.0");
 
 resource.load(inputStream, options);
 ```
+
+The value may also be an **`EPackage` instance** (additive): the codec uses its
+`nsURI` as the context schema. Passing the instance is the multi-version-safe form —
+it names the exact package version (identity), where a bare nsURI String cannot
+disambiguate between versions sharing that nsURI.
+
+### 2.8 CODEC_ROOT_FINGERPRINT Option
+
+`CODEC_ROOT_FINGERPRINT` is an **optional** load option for callers that cannot supply
+a concrete `EClass` instance (e.g. Jakarta REST `MessageBodyReader`/`Writer`, where the
+root type arrives as a String). It names the **package version** — by its model
+fingerprint (`PackageMetadata.getModelFingerprint()`) — against which a String root type
+is resolved, so that under same-nsURI multi-version the String resolves to the *correct*
+version's `EClass` instance.
+
+```java
+/**
+ * Optional load option: package model fingerprint selecting the version a
+ * String root type / schema resolves against. Value: String (fingerprint).
+ */
+public static final String CODEC_ROOT_FINGERPRINT = "codec.rootFingerprint";
+```
+
+- **Canonical key:** `codec.rootFingerprint`. Both `CodecOptions.CODEC_ROOT_FINGERPRINT`
+  and `CodecResource.CODEC_ROOT_FINGERPRINT` carry this **single value**, so either
+  constant works and the dotted/literal duality that affects `CODEC_ROOT_TYPE` /
+  `CODEC_ROOT_SCHEMA` does **not** apply here (K9).
+- **Optional:** in the common single-version case it is pure noise and may be omitted;
+  omitting it preserves today's behavior exactly.
+
+**Resolution:**
+1. `getPackageMetadataByFingerprint(fp)` → the selected `PackageMetadata` (version).
+   **Unknown fingerprint → ERROR** in every mode (§2.9).
+2. With a **String** `CODEC_ROOT_TYPE`: the class is resolved **by name within the
+   selected package** (`packageMetadata.getEPackage().getEClassifier(name)`), yielding the
+   version-correct `EClass` instance → resolution continues exactly as if that instance
+   had been passed (Scenario A). This bypasses the global, last-wins type-URI index.
+3. With no root type: the selected package's `nsURI` is used as the context schema (as
+   `CODEC_ROOT_SCHEMA` would), when no schema is otherwise set.
+
+### 2.9 Root Fingerprint Consistency (explicit-signal rules)
+
+Explicit caller signals are validated where checkable, trusted where not, and never
+silently degraded. These rules apply in **both** strictness modes (LENIENT and STRICT) —
+strictness governs tolerance toward *data*, not toward the *caller*.
+
+- **Checkable — fingerprint alongside an instance option.** When
+  `CODEC_ROOT_FINGERPRINT` is given together with an instance-based root option —
+  `CODEC_ROOT_TYPE` as an `EClass`, or `CODEC_ROOT_SCHEMA` as an `EPackage` — the codec
+  verifies the option fingerprint against the instance's package fingerprint
+  (`getPackageMetadata(ePackage).getModelFingerprint()`). **Mismatch → ERROR** (two
+  contradictory explicit statements are a caller bug). Redundant-but-consistent is fine
+  (no diagnostic).
+- **Non-checkable — String root options.** When the root options are Strings, the
+  fingerprint is trusted but must **resolve**: an **unknown option fingerprint → ERROR**,
+  never a silent fallback to nsURI resolution.
+- **Scope:** these rules govern the *option* fingerprint only. Behavior for a fingerprint
+  carried *inside the data stream* is a Phase B concern (not specified here).
 
 ---
 
@@ -496,6 +555,8 @@ Map<String, Object> options = CodecOptionsBuilder.create()
 |----------|----------|----------|
 | No `_type` and no `CODEC_ROOT_TYPE` | ERROR | "Cannot deserialize: no type information found and no CODEC_ROOT_TYPE hint" |
 | Invalid `CODEC_ROOT_TYPE` (not a resolvable EClass or String type identifier) | ERROR | Type hint must be an EClass or a resolvable type URI / qualified name |
+| Unknown `CODEC_ROOT_FINGERPRINT` (no package for fingerprint) | ERROR | "Unknown root fingerprint: `<fp>`" |
+| `CODEC_ROOT_FINGERPRINT` conflicts with an instance root option's package fingerprint | ERROR | "Root fingerprint `<fp>` does not match `<option>` package `<nsURI>` (`<fp2>`)" |
 | Abstract EClass as hint | ERROR | Cannot instantiate abstract class |
 | JSON property not in EClass | WARNING | Unknown property (skipped) |
 

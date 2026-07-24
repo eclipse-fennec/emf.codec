@@ -16,11 +16,16 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.model.metadata.ClassMetadata;
+import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.api.MetadataService;
 
 /**
@@ -96,6 +101,132 @@ public class CodecResourceHelper {
 
         LOGGER.warning(() -> "Could not resolve EClass from URI: " + uriString);
         return null;
+    }
+
+    /**
+     * Reads the optional {@code CODEC_ROOT_FINGERPRINT} load option (issue #54, A.2).
+     *
+     * @param options the options map
+     * @return the fingerprint string, or {@code null} if absent/blank
+     */
+    public String rootFingerprint(Map<?, ?> options) {
+        if (isNull(options)) {
+            return null;
+        }
+        Object value = options.get(CodecOptions.CODEC_ROOT_FINGERPRINT);
+        return value instanceof String s && !s.isEmpty() ? s : null;
+    }
+
+    /**
+     * Fingerprint-aware root type resolution (issue #54, A.2/A.4).
+     * <p>
+     * When {@code CODEC_ROOT_FINGERPRINT} is present it selects a concrete package
+     * version; a String {@code CODEC_ROOT_TYPE} is then resolved <b>by name within that
+     * version</b> (bypassing the global, last-wins type-URI index), and an {@code EClass}
+     * {@code CODEC_ROOT_TYPE} is <b>verified</b> against the selected version. Without a
+     * fingerprint this delegates to {@link #resolveRootEClass(Map)} (unchanged behavior).
+     * </p>
+     * <p>Explicit-signal rules apply in every strictness mode:</p>
+     * <ul>
+     *   <li>unknown option fingerprint &rarr; {@link IOException}</li>
+     *   <li>fingerprint vs. {@code EClass} root type from another version &rarr; {@link IOException}</li>
+     *   <li>String root type whose class is absent from the selected version &rarr; {@link IOException}</li>
+     * </ul>
+     *
+     * @param options the options map
+     * @return the resolved root EClass, or {@code null} if none is determinable
+     * @throws IOException on an unknown or conflicting fingerprint, or an unresolvable class
+     */
+    public EClass resolveRootType(Map<?, ?> options) throws IOException {
+        if (isNull(options)) {
+            return null;
+        }
+
+        String fingerprint = rootFingerprint(options);
+        if (isNull(fingerprint)) {
+            return resolveRootEClass(options);
+        }
+
+        PackageMetadata pkg = metadataService.getPackageMetadataByFingerprint(fingerprint);
+        if (isNull(pkg)) {
+            throw new IOException("Unknown root fingerprint: " + fingerprint);
+        }
+
+        Object rootObject = options.get(CODEC_ROOT_TYPE);
+        if (rootObject instanceof EClass eClass) {
+            // Checkable case: the explicit instance must belong to the named version.
+            verifyPackageFingerprint(eClass.getEPackage(), fingerprint, CODEC_ROOT_TYPE);
+            return eClass;
+        }
+        if (rootObject instanceof String uriString && !uriString.isEmpty()) {
+            return resolveEClassInPackage(pkg, uriString);
+        }
+        // Fingerprint alone: the version is used for the context schema (resolveContextSchema).
+        return null;
+    }
+
+    /**
+     * Verifies that {@code ePackage}'s model fingerprint equals the given option
+     * fingerprint (A.4 checkable case). A mismatch is a caller bug and fails in every mode.
+     *
+     * @param ePackage the package instance from an explicit root option
+     * @param fingerprint the option fingerprint to check against
+     * @param optionName the option name (for the error message)
+     * @throws IOException if the fingerprints do not match
+     */
+    public void verifyPackageFingerprint(EPackage ePackage, String fingerprint, String optionName)
+            throws IOException {
+        if (isNull(ePackage)) {
+            return;
+        }
+        PackageMetadata pm = metadataService.getPackageMetadata(ePackage);
+        String actual = nonNull(pm) ? pm.getModelFingerprint() : null;
+        if (!fingerprint.equals(actual)) {
+            throw new IOException(String.format(
+                "Root fingerprint %s does not match %s package %s (%s)",
+                fingerprint, optionName, ePackage.getNsURI(), actual));
+        }
+    }
+
+    /**
+     * Resolves a class by name within a specific package version, bypassing the global
+     * type-URI index. Accepts a bare class name, an EMF type URI
+     * ({@code nsURI#//Name}), or a qualified name.
+     */
+    private EClass resolveEClassInPackage(PackageMetadata pkg, String typeString) throws IOException {
+        String name = simpleTypeName(typeString);
+        EPackage ePackage = pkg.getEPackage();
+        EClassifier classifier = nonNull(ePackage) ? ePackage.getEClassifier(name) : null;
+        if (classifier instanceof EClass eClass) {
+            return eClass;
+        }
+        throw new IOException(String.format(
+            "Root type '%s' (class '%s') not found in package version %s [%s]",
+            typeString, name, nonNull(ePackage) ? ePackage.getNsURI() : "?", pkg.getModelFingerprint()));
+    }
+
+    /**
+     * Extracts the simple classifier name from a bare name, an EMF type URI
+     * ({@code nsURI#//Name} or {@code #//pkg/Name}), or a qualified name.
+     */
+    static String simpleTypeName(String typeString) {
+        String s = typeString;
+        int hash = s.indexOf('#');
+        if (hash >= 0) {
+            s = s.substring(hash + 1);
+        }
+        while (s.startsWith("/")) {
+            s = s.substring(1);
+        }
+        int slash = s.lastIndexOf('/');
+        if (slash >= 0) {
+            s = s.substring(slash + 1);
+        }
+        int dot = s.lastIndexOf('.');
+        if (dot >= 0) {
+            s = s.substring(dot + 1);
+        }
+        return s;
     }
 
     /**

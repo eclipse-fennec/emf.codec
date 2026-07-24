@@ -325,6 +325,9 @@ public enum ConfigProperty {
     ROOT_SCHEMA("rootSchema", String.class, null,
         levels(GLOBAL), directions(READ)),
 
+    ROOT_FINGERPRINT("rootFingerprint", String.class, null,
+        levels(GLOBAL), directions(READ)),
+
     @SuppressWarnings("unchecked")
     FEATURE_TYPE_HINTS("featureTypeHints", (Class<Map<?, ?>>) (Class<?>) Map.class, null,
         levels(GLOBAL), directions(READ)),
