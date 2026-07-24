@@ -52,12 +52,19 @@ EAnnotations (MetadataService)
 Built-in Defaults (lowest priority)
         ↓
     ═══════════════════════════
-    │ EffectiveCodecConfig    │
-    │ (immutable, lazy-cached) │
+    │ EffectiveCodecConfig     │
+    │ (per-step, instance-keyed)│
     ═══════════════════════════
 ```
 
 > **See also:** [Configuration Resolution](02-config-resolution.md) for the complete two-dimensional configuration model (Source Hierarchy × Scope Chain).
+
+> **Per-step, not process-global.** `EffectiveCodecConfig` is a **per-load/per-operation derived view**,
+> immutable per selected package version, with per-class/per-feature config cached by **EClass /
+> EStructuralFeature instance** — not a single process-wide snapshot (see 02 §8). *Naming caveat:* in code
+> the resolved value objects are `ClassConfig` / `FeatureConfig` and access is `resolveClassConfig(EClass)` /
+> `resolveFeatureConfig(EStructuralFeature)`; the `EffectiveClassConfig` / `getClassConfig` names used in the
+> diagrams below are illustrative aliases pending a spec-wide naming cleanup.
 
 ---
 

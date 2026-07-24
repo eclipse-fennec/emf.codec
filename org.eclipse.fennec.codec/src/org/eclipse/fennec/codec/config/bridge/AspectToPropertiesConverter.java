@@ -15,8 +15,11 @@ package org.eclipse.fennec.codec.config.bridge;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
@@ -38,17 +41,18 @@ import org.eclipse.fennec.model.metadata.api.MetadataService;
  * property-map-based configuration system.
  * </p>
  * <p>
- * The resulting property map structure:
+ * The resulting property map is <b>instance-keyed</b> (issue #54 / A.1): class- and
+ * feature-level config is stored under the concrete {@code EClass} /
+ * {@code EStructuralFeature} instance, using the same {@code eClassConfig} /
+ * {@code eReferenceConfig} / {@code eAttributeConfig} shape the
+ * {@link org.eclipse.fennec.codec.config.ConfigurationResolver} already consumes
+ * (Pattern 1). This keeps config correct when several package versions share one
+ * nsURI (same-named classes are distinct instances → own config).
  * <pre>
  * {
- *   "ClassName": {                    // EClass-level properties
- *     "typeStrategy": "SCHEMA_AND_TYPE",
- *     "typeKey": "_type",
- *     "featureName": {                // Feature-level properties
- *       "ignore": true,
- *       "key": "custom_name"
- *     }
- *   }
+ *   "eClassConfig":     { &lt;EClass&gt;             -&gt; { "typeStrategy": "URI", "typeKey": "_type" } },
+ *   "eAttributeConfig": { &lt;EAttribute&gt;         -&gt; { "ignore": true, "key": "custom_name" } },
+ *   "eReferenceConfig": { &lt;EReference&gt;         -&gt; { "refFormat": "STRUCTURED" } }
  * }
  * </pre>
  *
@@ -80,6 +84,17 @@ public final class AspectToPropertiesConverter {
             return properties;
         }
 
+        // Instance-based annotation config (issue #54 / A.1): keyed by the concrete
+        // EClass / EStructuralFeature INSTANCE, never by bare class name. Same-named
+        // classes from two package versions sharing one nsURI are distinct instances
+        // and therefore keep their own config (the F6 name collision is removed at the
+        // source). The MetadataService is read once here; the resolver consumes these
+        // maps via its instance-keyed Pattern 1 (ECLASS_CONFIG / EREFERENCE_CONFIG /
+        // EATTRIBUTE_CONFIG) and memoizes per instance — no per-call service query.
+        Map<EClass, Map<String, Object>> eClassConfig = new HashMap<>();
+        Map<EReference, Map<String, Object>> eReferenceConfig = new HashMap<>();
+        Map<EAttribute, Map<String, Object>> eAttributeConfig = new HashMap<>();
+
         for (PackageMetadata packageMeta : registry.getPackages()) {
             for (ClassMetadata classMeta : packageMeta.getClasses()) {
                 EClass eClass = classMeta.getEClass();
@@ -87,20 +102,21 @@ public final class AspectToPropertiesConverter {
                     continue;
                 }
 
+                // Class-level aspect properties (type/id/supertype/discriminator).
                 Map<String, Object> classProps = new HashMap<>();
-
-                // Extract ClassCodecAspect properties
                 ClassCodecAspect classAspect = classMeta.getAspects().stream()
                         .filter(ClassCodecAspect.class::isInstance)
                         .map(ClassCodecAspect.class::cast)
                         .findFirst()
                         .orElse(null);
-
                 if (classAspect != null) {
                     extractClassAspectProperties(classAspect, classProps);
                 }
+                if (!classProps.isEmpty()) {
+                    eClassConfig.put(eClass, classProps);
+                }
 
-                // Extract FeatureCodecAspect properties for each feature
+                // Feature-level aspect properties, keyed by feature instance.
                 for (FeatureMetadata featureMeta : classMeta.getFeatures()) {
                     EStructuralFeature feature = featureMeta.getEFeature();
                     if (feature == null) {
@@ -114,7 +130,6 @@ public final class AspectToPropertiesConverter {
                             .map(FeatureCodecAspect.class::cast)
                             .findFirst()
                             .orElse(null);
-
                     if (featureAspect != null) {
                         extractFeatureAspectProperties(featureAspect, featureProps);
                     }
@@ -125,20 +140,30 @@ public final class AspectToPropertiesConverter {
                             .map(ReferenceCodecAspect.class::cast)
                             .findFirst()
                             .orElse(null);
-
                     if (refAspect != null) {
                         extractReferenceAspectProperties(refAspect, featureProps);
                     }
 
-                    if (!featureProps.isEmpty()) {
-                        classProps.put(feature.getName(), featureProps);
+                    if (featureProps.isEmpty()) {
+                        continue;
+                    }
+                    if (feature instanceof EReference reference) {
+                        eReferenceConfig.put(reference, featureProps);
+                    } else if (feature instanceof EAttribute attribute) {
+                        eAttributeConfig.put(attribute, featureProps);
                     }
                 }
-
-                if (!classProps.isEmpty()) {
-                    properties.put(eClass.getName(), classProps);
-                }
             }
+        }
+
+        if (!eClassConfig.isEmpty()) {
+            properties.put(ConfigProperty.ECLASS_CONFIG.getKey(), eClassConfig);
+        }
+        if (!eReferenceConfig.isEmpty()) {
+            properties.put(ConfigProperty.EREFERENCE_CONFIG.getKey(), eReferenceConfig);
+        }
+        if (!eAttributeConfig.isEmpty()) {
+            properties.put(ConfigProperty.EATTRIBUTE_CONFIG.getKey(), eAttributeConfig);
         }
 
         return properties;

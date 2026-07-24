@@ -91,7 +91,7 @@ When JSON does not contain type information (no `_type` field), the `CODEC_ROOT_
 ```java
 /**
  * Load option key for root object type hint.
- * Value: EClass
+ * Value: EClass or String (type URI / qualified name)
  */
 public static final String CODEC_ROOT_TYPE = "CODEC_ROOT_TYPE";
 ```
@@ -351,8 +351,8 @@ public static final String CODEC_DESERIALIZATION_MODE = "CODEC_DESERIALIZATION_M
 | Value | Behavior |
 |-------|----------|
 | `STRICT` | Fail on unknown fields, require exact type matches |
-| `LENIENT` | Skip unknown fields, allow compatible type coercion |
-| `AUTO_DETECT` **(default)** | Infer mode from JSON structure |
+| `LENIENT` **(default)** | Skip unknown fields, allow compatible type coercion |
+| `AUTO_DETECT` | Infer mode from JSON structure (opt-in; groups with `LENIENT` for error strictness) |
 
 **Usage:**
 ```java
@@ -495,7 +495,7 @@ Map<String, Object> options = CodecOptionsBuilder.create()
 | Scenario | Severity | Behavior |
 |----------|----------|----------|
 | No `_type` and no `CODEC_ROOT_TYPE` | ERROR | "Cannot deserialize: no type information found and no CODEC_ROOT_TYPE hint" |
-| Invalid `CODEC_ROOT_TYPE` (not an EClass) | ERROR | Type hint must be an EClass |
+| Invalid `CODEC_ROOT_TYPE` (not a resolvable EClass or String type identifier) | ERROR | Type hint must be an EClass or a resolvable type URI / qualified name |
 | Abstract EClass as hint | ERROR | Cannot instantiate abstract class |
 | JSON property not in EClass | WARNING | Unknown property (skipped) |
 

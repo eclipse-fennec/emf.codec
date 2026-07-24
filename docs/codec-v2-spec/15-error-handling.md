@@ -617,7 +617,7 @@ The codec configures Jackson's `StreamReadConstraints` with tighter limits than 
 | `codec.suppressWarnings` | `Boolean` | `false` | Suppress all warnings |
 | `codec.suppressWarningSources` | `Set<String>` | empty | Suppress warnings by source |
 | `codec.diagnosticHandler` | `DiagnosticHandler` | null | Custom handler |
-| `codec.deserializationMode` | `DeserializationMode` | `STRICT` | Strictness level (see section 6.4) |
+| `codec.deserializationMode` | `DeserializationMode` | `LENIENT` | Strictness level (see section 2.1) |
 
 ---
 
