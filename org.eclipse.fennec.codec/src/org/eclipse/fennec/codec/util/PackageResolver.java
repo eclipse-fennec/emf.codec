@@ -72,6 +72,17 @@ public final class PackageResolver {
     }
 
     /**
+     * Returns the version pinned for the given nsURI in this load, or {@code null} if none is
+     * pinned yet. Used by discriminator view composition (B.6) to scope to the selected version.
+     *
+     * @param nsURI the namespace URI
+     * @return the pinned {@link PackageMetadata}, or {@code null}
+     */
+    public PackageMetadata pinnedVersion(String nsURI) {
+        return nsURI != null ? pins.get(nsURI) : null;
+    }
+
+    /**
      * Seeds the pin for a concrete package instance already selected by the caller (e.g. an
      * {@code EClass}/{@code EPackage} root option). Subsequent resolutions of that nsURI in
      * this load reuse this exact version.
