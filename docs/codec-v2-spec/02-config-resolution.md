@@ -113,6 +113,13 @@ For `typeStrategy` on `Person.address` (an EReference):
 
 Result: `typeStrategy = NAME`
 
+> **Resolution identity — instance, not name.** Class- and feature-level configuration — from **every**
+> source, annotations included — is matched against the concrete **`EClass` / `EStructuralFeature`
+> instance** (object identity; EMF does not override `equals`/`hashCode`). It is **never** keyed on the bare
+> class name or a type URI. Two same-named `EClass`es from two package versions sharing one nsURI are
+> **distinct instances** and resolve to **their own** configuration. The instance reaches the resolver from
+> the object being (de)serialized (`eObject.eClass()`) or from a root-type hint held as an `EClass`.
+
 ---
 
 ## 5. StrategyScope (Global Level Modifier)
@@ -204,28 +211,46 @@ resource.save(outputStream, options);
 
 ## 8. EffectiveConfig Pattern
 
-The codec merges all configuration levels into an immutable `EffectiveConfig` snapshot:
+The codec resolves configuration **per conversion step**, lazily and keyed by concrete EMF instance. It does
+**not** build a single process-global name→config map.
 
 ```java
-// ConfigurationMerger combines all levels
-EffectiveCodecConfig effectiveConfig = ConfigurationMerger.merge(
-    loadSaveOptions,      // Level 1
-    factoryDefaults,      // Level 2
-    moduleConfig,         // Level 3
-    systemProperties,     // Level 4
-    metadataService,      // Level 5 (EAnnotations)
-    builtInDefaults       // Level 6
-);
+// Illustrative only — not a literal API. In code, ConfigurationResolver merges
+// lazily per instance and EffectiveCodecConfig is a thin delegator over it.
+EffectiveCodecConfig effectiveConfig = /* built from all levels for this operation */;
 
-// Lazy-cached per-class and per-feature configs
-EffectiveClassConfig classConfig = effectiveConfig.getClassConfig(personClass);
-EffectiveFeatureConfig featureConfig = effectiveConfig.getFeatureConfig(firstNameFeature);
+// Per-class / per-feature configs, cached by INSTANCE:
+ClassConfig   classConfig   = effectiveConfig.resolveClassConfig(personClass);
+FeatureConfig featureConfig = effectiveConfig.resolveFeatureConfig(firstNameFeature);
 ```
 
+**Instance identity, not name.** The per-class and per-feature caches are keyed by the **`EClass` /
+`EStructuralFeature` instance** (`computeIfAbsent`), never by class name or type URI. The annotation layer is
+sourced from `MetadataService.getClassMetadata(EClass)` / `getClassProfile(EClass, "codec")` — the
+fingerprinted `PackageMetadata` is the entry point (see
+[fingerprinting workdoc](../codec-v2-fingerprinting-workdoc.md), F5) — and the **derived** config is
+memoized in that same instance cache, so the MetadataService is not re-queried on every call. No bare-name
+map sits between the metadata and the resolved config; two same-named `EClass`es from two package versions of
+one nsURI are distinct instances and resolve to their own config.
+
 This ensures:
-- Configuration is resolved once, not on every serialization call
-- Immutable snapshot prevents mid-operation changes
-- Lazy caching optimizes memory for large models
+- Configuration for a given instance is resolved **once per operation**, then cached — not recomputed on
+  every serialization call.
+- The resolved view is **immutable per selected package version** and is a **per-load derived view**, not a
+  process-global snapshot.
+- Lazy, instance-keyed caching optimizes memory for large models and is naturally multi-version-correct.
+
+> **Version selection / pinning — forward reference, `[not yet implemented]`.** *Which* package version an
+> nsURI resolves to (when several coexist under one nsURI) is decided by the per-load **pin** — see the
+> [fingerprinting workdoc](../codec-v2-fingerprinting-workdoc.md) §2b `[DECIDED]`. A.1 delivers the
+> instance-**identity** part above (the caller already holds the concrete instance); the pin/selection layer
+> lands in Phase A.3 / Phase B.
+
+> **Behavior change — multi-version correctness `[A.1]`.** Because config matches by instance, an `EClass`
+> that is **not registered** in the MetadataService no longer silently inherits the config of a same-named,
+> **registered** class. Previously the name-keyed bridge applied a registered class's config to any
+> same-named class. This is the one intended deviation from prior observable behavior; everything else is
+> behavior-stable.
 
 ---
 
@@ -402,7 +427,7 @@ For any property lookup:
 
 | Property | Levels | Direction | Default | Spec Section |
 |----------|--------|-----------|---------|--------------|
-| `typeStrategy` | G, C, F | RW | `NAME` | 06-type.md |
+| `typeStrategy` | G, C, F | RW | `URI` | 06-type.md |
 | `typeKey` | G, C, F | RW | `_type` | 06-type.md |
 | `typeFormat` | G, C, F | RW | `PLAIN` | 06-type.md |
 | `typeSchemaKey` | G, C, F | RW | `schema` | 06-type.md |
@@ -487,6 +512,14 @@ These keys are valid only in EAnnotations and control how annotations are proces
 - `NONE`: No inheritance, use only this EClass's annotations
 
 > **Note:** `inherit` affects how `CodecAspectProvider` resolves annotations when building AspectConfig. It is consumed during annotation parsing, not during runtime property resolution.
+
+> **⚠ Not yet implemented (code reality, 2026-07-24).** Annotation inheritance across the EClass hierarchy
+> is currently applied **only to type configuration** (`ConfigurationResolver.resolveTypeConfig` walks
+> `EClass.getEAllSuperTypes()`, parents-first, child-overrides). It is **not** applied to id / feature /
+> reference / class / discriminator config. The `inherit` **modes** `DIRECT` and `NONE` are **not honored**
+> — the only behavior in code is the full transitive walk (equivalent to `ALL`), and the `codec.inherit`
+> option constant has no consumers. Treat the `inherit=DIRECT|NONE` semantics and non-type-config
+> inheritance as a documented future capability, not current behavior (convention as 99 §2.1).
 
 ### 11.8 Discriminator Mapping Properties
 
@@ -656,6 +689,16 @@ codec.Person.id.features=firstName,lastName
 codec.Person.firstName.key=first_name
 codec.Person.firstName.serialize=true
 ```
+
+> **⚠ Per-class / per-feature *string* addressing is not yet implemented (code reality, 2026-07-24).** The
+> dotted `codec.<ClassName>.<property>` and `codec.<ClassName>.<feature>.<property>` forms shown above are
+> **not parsed** into per-class/per-feature config by any current source (no hierarchical key splitting
+> exists). Per-class/per-feature caller config today is supplied only through the **instance-keyed**
+> channels (`CODEC_ECLASS_CONFIG`, `CODEC_EREFERENCE_CONFIG`, `CODEC_EATTRIBUTE_CONFIG` — keyed by `EClass`/
+> `EReference`/`EAttribute` instance) or via model annotations. When the string form is implemented, it is
+> **version-agnostic by design** (applies to all versions of a class name) — see the fingerprinting
+> workdoc A.5. Until then, treat these examples as illustrative of the intended key shape, not as a working
+> feature.
 
 ### 11.5 Java Constants
 
