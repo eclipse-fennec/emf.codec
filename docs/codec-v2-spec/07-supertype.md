@@ -112,13 +112,23 @@ SuperType values follow namespace matching rules based on the root EClass's EPac
 
 | Condition | SuperType Value |
 |-----------|-----------------|
-| Supertype from **same namespace** as root EClass | Simple EClass name (e.g., `"Entity"`) |
-| Supertype from **different namespace** | Full EClass URI (e.g., `"http://audit.org/1.0#//Auditable"`) |
+| Supertype from the **same EPackage instance** as the root EClass | Simple EClass name (e.g., `"Entity"`) |
+| Supertype from a **different EPackage** — including another version of the same `nsURI` | Full EClass URI (e.g., `"http://audit.org/1.0#//Auditable"`) |
 | Smart compression **OFF** | Always full EClass URI |
 
 **Example:** If root type is `http://example.org/1.0#//Person`:
-- `Entity` from `http://example.org/1.0` → `"Entity"` (same namespace)
-- `Auditable` from `http://audit.org/1.0` → `"http://audit.org/1.0#//Auditable"` (different namespace)
+- `Entity` from `http://example.org/1.0` → `"Entity"` (same package)
+- `Auditable` from `http://audit.org/1.0` → `"http://audit.org/1.0#//Auditable"` (different package)
+
+> **"Same namespace" means the same package *instance*, not an equal `nsURI` string.** Two
+> versions of one model share an `nsURI`, so a string comparison would call them the same schema
+> and emit a bare name. The reader resolves a bare name against the version *pinned* for that
+> `nsURI` — under cross-package or cross-version inheritance that is a different package, and the
+> supertype would silently be the wrong one. A bare name is only safe when the supertype really
+> lives in the same package object.
+>
+> This is the same rule as for [type smart compression](05-global-options.md#1-smart-compression),
+> for the same reason.
 
 ---
 

@@ -12,6 +12,11 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.deser;
 
+import tools.jackson.databind.DeserializationContext;
+import org.eclipse.fennec.codec.util.PackageResolver;
+import org.eclipse.fennec.codec.context.ContextHelper;
+import java.util.function.Function;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -151,7 +156,7 @@ public class FeaturePathTypeResolver {
 
                         if (token == JsonToken.VALUE_STRING) {
                             foundDiscriminatorValue = parser.getString();
-                            resolvedEClass = resolveDiscriminator(foundDiscriminatorValue);
+                            resolvedEClass = resolveDiscriminator(foundDiscriminatorValue, readContext);
 
                             if (resolvedEClass != null) {
                                 LOGGER.fine("Resolved type via featurePath '" + discriminatorPath +
@@ -190,17 +195,27 @@ public class FeaturePathTypeResolver {
     /**
      * Resolves a discriminator value to an EClass using either a targeted registry
      * (when mapId is available) or all registries.
+     * <p>
+     * The class-URI resolver handed to the registry goes through the per-load
+     * {@link PackageResolver} when one is available (issue #54, B.5), so a stored class URI
+     * selects the version-correct {@code EClass} instance instead of whatever the global,
+     * last-wins registry happens to hold for that nsURI.
+     * </p>
      *
      * @param discriminatorValue the discriminator value to resolve
+     * @param readContext the read context, used to reach the per-load package resolver
      * @return the resolved EClass, or null if not found
      */
-    private EClass resolveDiscriminator(String discriminatorValue) {
+    private EClass resolveDiscriminator(String discriminatorValue, ObjectReadContext readContext) {
+        PackageResolver packageResolver = readContext instanceof DeserializationContext ctxt
+                ? ContextHelper.getPackageResolver(ctxt)
+                : null;
+        Function<String, EClass> eClassResolver = uri -> resolveEClassFromUri(uri, packageResolver);
+
         if (mapId != null) {
-            return typeDiscriminatorService.resolve(mapId, discriminatorValue,
-                    FeaturePathTypeResolver::resolveEClassFromUri);
+            return typeDiscriminatorService.resolve(mapId, discriminatorValue, eClassResolver);
         }
-        return typeDiscriminatorService.resolveFromAny(discriminatorValue,
-                FeaturePathTypeResolver::resolveEClassFromUri);
+        return typeDiscriminatorService.resolveFromAny(discriminatorValue, eClassResolver);
     }
 
     /**
@@ -268,13 +283,50 @@ public class FeaturePathTypeResolver {
      * @param uriStr the EClass URI (e.g., "http://example.org/1.0#//ClassName")
      * @return the resolved EClass, or null if not found
      */
-    // TODO(#54 B.5): discriminator-path class-URI resolution still uses the global registry
-    // directly. Route through the per-load PackageResolver (binding order + A.3 count rule)
-    // once this static method-ref site gets a resolver handle. Tracked as remaining B.5 scope.
-    static EClass resolveEClassFromUri(String uriStr) {
+    /**
+     * Resolves an EClass from a class URI, selecting the version through the per-load
+     * {@link PackageResolver} when one is available (issue #54, B.5).
+     * <p>
+     * The resolver applies the binding source order (pin, ResourceSet registry, MetadataService
+     * candidate query) and the count-based candidate rule: exactly one candidate is used, more
+     * than one is an error naming them. That error matters here — the global registry holds a
+     * single EPackage per nsURI and would otherwise answer with whichever version was registered
+     * last, turning a genuine ambiguity into a silently wrong class.
+     * </p>
+     * <p>
+     * With no resolver at hand (no deserialization context) the global registry is used, which
+     * is also the resolver's own last tier for nsURIs the MetadataService does not know at all —
+     * foreign or plain-EMF packages.
+     * </p>
+     *
+     * @param uriStr the EClass URI (e.g., "http://example.org/1.0#//ClassName")
+     * @param packageResolver the per-load resolver, or {@code null} if none is available
+     * @return the resolved EClass, or null if not found
+     * @throws IllegalStateException if the nsURI has more than one registered version and no
+     *         pin selects one
+     */
+    static EClass resolveEClassFromUri(String uriStr, PackageResolver packageResolver) {
         if (uriStr == null || uriStr.isEmpty()) {
             return null;
         }
+        if (packageResolver != null) {
+            try {
+                return packageResolver.resolveEClassFromTypeUri(uriStr, null);
+            } catch (IOException e) {
+                throw new IllegalStateException(e.getMessage(), e);
+            }
+        }
+        return resolveEClassViaGlobalRegistry(uriStr);
+    }
+
+    /**
+     * Legacy resolution straight from {@link EPackage.Registry#INSTANCE}, used only when no
+     * per-load resolver is available.
+     *
+     * @param uriStr the EClass URI
+     * @return the resolved EClass, or null if not found
+     */
+    private static EClass resolveEClassViaGlobalRegistry(String uriStr) {
         try {
             URI uri = URI.createURI(uriStr);
             String fragment = uri.fragment();
@@ -289,7 +341,7 @@ public class FeaturePathTypeResolver {
                 }
             }
         } catch (Exception e) {
-            LOGGER.warning("Failed to resolve EClass URI: " + uriStr + " — " + e.getMessage());
+            LOGGER.warning("Failed to resolve EClass URI: " + uriStr + " \u2014 " + e.getMessage());
         }
         return null;
     }

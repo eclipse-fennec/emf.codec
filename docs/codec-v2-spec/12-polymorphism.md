@@ -198,6 +198,24 @@ When the same annotation exists at multiple levels, the most specific (closest t
 3. Grandparent annotations (only if `inherit=ALL`)
 4. Global codec defaults (lowest priority)
 
+### 3.1 `inherit=ALL` Across Package Boundaries
+
+`inherit=ALL` is the only setting that walks *out of* the concrete class's own package, and that
+has a consequence worth stating: the inherited configuration comes from the **base package
+version that the instance chain actually points at** — the concrete `EClass` instances reachable
+through `eSuperTypes` — not from whichever version of that base `nsURI` happens to be resolved
+elsewhere in the load.
+
+This matters when several versions of a base model are registered at once. The same concrete
+class, built against two different versions of its base package, has two different effective
+configurations, and each is correct for its own instance chain. Configuration follows instance
+identity, exactly as [02 §8](02-config-resolution.md) resolves it.
+
+The declared `eReferenceType` of a reference is therefore only an **upper bound** on what may
+arrive there: a subtype from another package version satisfies it. Version-correct resolution at
+read time is what makes that safe — see
+[10 §1.2.1](10-reference.md#121-version-identity-in-a-reference-entry).
+
 ---
 
 ## 4. Default Polymorphism Settings
