@@ -18,7 +18,9 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.EList;
@@ -58,9 +60,52 @@ import org.eclipse.fennec.model.metadata.api.MetadataService;
  */
 public final class PackageResolver {
 
+    /**
+     * How a fingerprint carried by the data stream related to what the load already knew
+     * (issue #73, B.2).
+     * <p>
+     * Returned instead of decided internally, because the reaction depends on the strictness
+     * mode and needs a diagnostic collector — both of which live with the caller, not here.
+     * </p>
+     */
+    public enum StreamFingerprintOutcome {
+        /** Resolved to a version; it is now pinned (or matched an existing inferred pin). */
+        RESOLVED,
+        /** Identical to the version the caller pinned — redundant but consistent, no diagnostic. */
+        REDUNDANT,
+        /**
+         * The caller pinned a different version for this nsURI. The caller's choice wins: the
+         * fingerprint is a directive, and whoever orchestrates the load is the closer authority.
+         */
+        OVERRIDDEN_BY_CALLER,
+        /** Resolves to nothing — foreign data, older data, or a canonicalization-scheme bump. */
+        UNKNOWN
+    }
+
+    /**
+     * Outcome of applying a stream fingerprint, together with everything a caller needs to
+     * phrase a diagnostic without repeating the lookups.
+     *
+     * @param outcome what happened
+     * @param metadata the version to use, or {@code null} when nothing resolved
+     * @param callerFingerprint the caller-pinned fingerprint when it differs, else {@code null}
+     * @param firstReport whether this is the first time this stream fingerprint caused a
+     *        diagnostic in this load — used to cap flooding on repetitive documents
+     */
+    public record StreamFingerprintResult(
+            StreamFingerprintOutcome outcome,
+            PackageMetadata metadata,
+            String callerFingerprint,
+            boolean firstReport) {
+    }
+
     private final MetadataService metadataService;
     private final EPackage.Registry resourceSetRegistry;
     private final Map<String, PackageMetadata> pins = new HashMap<>();
+    /** nsURIs whose version the caller decided explicitly (root option / rootFingerprint). */
+    private final Set<String> callerPinnedNsUris = new HashSet<>();
+    /** Stream fingerprints already reported, so one bad document does not flood diagnostics. */
+    private final Set<String> reportedFingerprints = new HashSet<>();
 
     /**
      * @param metadataService the metadata service (required)
@@ -96,7 +141,66 @@ public final class PackageResolver {
         PackageMetadata pm = metadataService.getPackageMetadata(ePackage);
         if (nonNull(pm)) {
             pins.putIfAbsent(ePackage.getNsURI(), pm);
+            callerPinnedNsUris.add(ePackage.getNsURI());
         }
+    }
+
+    /**
+     * Applies a fingerprint carried by the data stream to an nsURI (issue #73, B.2).
+     * <p>
+     * Never throws and never degrades a signal silently: the outcome is reported so the caller
+     * can react according to the strictness mode. Strictness governs tolerance towards
+     * <b>data</b>, so the same stream fingerprint may be a warning in LENIENT and an error in
+     * STRICT — that decision does not belong here.
+     * </p>
+     * <p>
+     * The precedence encoded here is deliberately the opposite of the type hint's: a
+     * fingerprint is a <b>directive</b> about which model world the data is read in, and a
+     * caller who set one explicitly is the closer authority — a migration reader deliberately
+     * re-reading old data against a chosen version must be able to overrule the document.
+     * </p>
+     *
+     * @param nsURI the namespace URI the fingerprint applies to
+     * @param fingerprint the fingerprint read from the document
+     * @return the outcome, never {@code null}
+     * @see <a href="docs/codec-v2-spec/13-load-save-options.md">Spec 13 §2.11 signal contract</a>
+     */
+    public StreamFingerprintResult applyStreamFingerprint(String nsURI, String fingerprint) {
+        if (isNull(nsURI) || nsURI.isEmpty() || isNull(fingerprint) || fingerprint.isEmpty()) {
+            return new StreamFingerprintResult(StreamFingerprintOutcome.UNKNOWN, null, null, false);
+        }
+
+        PackageMetadata fromStream = metadataService.getPackageMetadataByFingerprint(fingerprint);
+
+        if (callerPinnedNsUris.contains(nsURI)) {
+            PackageMetadata callerPin = pins.get(nsURI);
+            String callerFingerprint = nonNull(callerPin) ? callerPin.getModelFingerprint() : null;
+            if (fingerprint.equals(callerFingerprint)) {
+                return new StreamFingerprintResult(
+                        StreamFingerprintOutcome.REDUNDANT, callerPin, callerFingerprint, false);
+            }
+            return new StreamFingerprintResult(StreamFingerprintOutcome.OVERRIDDEN_BY_CALLER,
+                    callerPin, callerFingerprint, firstReportOf(fingerprint));
+        }
+
+        if (isNull(fromStream)) {
+            return new StreamFingerprintResult(
+                    StreamFingerprintOutcome.UNKNOWN, null, null, firstReportOf(fingerprint));
+        }
+
+        // Pin the first version established for this nsURI; see resolvePackage for why a later
+        // explicitly identified object must not move it.
+        pins.putIfAbsent(nsURI, fromStream);
+        return new StreamFingerprintResult(StreamFingerprintOutcome.RESOLVED, fromStream, null, false);
+    }
+
+    /**
+     * Reports whether this fingerprint has not been reported yet in this load, marking it as
+     * reported. Caps diagnostic flooding when a document repeats the same unresolvable value
+     * on thousands of objects.
+     */
+    private boolean firstReportOf(String fingerprint) {
+        return reportedFingerprints.add(fingerprint);
     }
 
     /**

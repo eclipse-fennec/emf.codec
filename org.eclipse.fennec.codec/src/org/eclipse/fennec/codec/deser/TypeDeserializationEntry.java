@@ -504,9 +504,15 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         // Per-load package resolver (B.5): binding version-resolution order + A.3 count rule.
         PackageResolver packageResolver = ContextHelper.getPackageResolver(ctxt);
 
+        // B.2: apply a fingerprint carried by the document before resolving, so version
+        // selection happens by name instead of by counting candidates. An unresolvable or
+        // overruled fingerprint may reduce this back to null - deliberately, and loudly.
+        String effectiveFingerprint = applyStreamFingerprint(
+                packageResolver, typeValue, streamFingerprint, ctxt);
+
         // First: check if it's a full URI (always highest priority)
         if (typeValue.contains("#//")) {
-            EClass resolved = resolveUriVia(packageResolver, typeValue, streamFingerprint);
+            EClass resolved = resolveUriVia(packageResolver, typeValue, effectiveFingerprint);
             if (resolved != null) {
                 // Establish context schema for smart compression (root object)
                 initializeContextSchemaIfNeeded(typeValue, ctxt);
@@ -520,7 +526,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             if (contextSchema != null) {
                 // Try to resolve using context schema first
                 String composedUri = contextSchema + "#//" + typeValue;
-                EClass resolved = resolveUriVia(packageResolver, composedUri, streamFingerprint);
+                EClass resolved = resolveUriVia(packageResolver, composedUri, effectiveFingerprint);
                 if (resolved != null) {
                     LOGGER.fine("Resolved type via smart compression: " + typeValue + " -> " + resolved.getName());
                     return resolved;
@@ -617,6 +623,99 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         }
 
         return resolved;
+    }
+
+    /**
+     * Applies a fingerprint read from the document and turns the outcome into the reaction the
+     * strictness mode calls for (issue #73, B.2).
+     * <p>
+     * The full case matrix, all of it loud - an explicit signal is never silently degraded:
+     * </p>
+     * <table border="1">
+     *   <caption>Stream fingerprint outcomes</caption>
+     *   <tr><th>Situation</th><th>LENIENT</th><th>STRICT</th></tr>
+     *   <tr><td>Resolves to a version</td><td colspan="2">Used and pinned, no diagnostic</td></tr>
+     *   <tr><td>Equals the caller's fingerprint</td><td colspan="2">No-op, no diagnostic</td></tr>
+     *   <tr><td>Differs from the caller's fingerprint</td>
+     *       <td>Caller wins + WARNING naming both</td><td>ERROR</td></tr>
+     *   <tr><td>Unknown while the caller pinned one</td>
+     *       <td>Caller wins + WARNING</td><td>ERROR</td></tr>
+     *   <tr><td>Unknown, no caller fingerprint</td>
+     *       <td>WARNING + fall back to nsURI resolution</td><td>ERROR</td></tr>
+     * </table>
+     * <p>
+     * Falling back to nsURI resolution in LENIENT is what keeps data readable across a
+     * canonicalization-scheme bump, where an unchanged model's old fingerprint no longer
+     * matches anything. The nsURI path then applies its own candidate rule: one candidate is
+     * taken, several remain an error.
+     * </p>
+     *
+     * @return the fingerprint to resolve with, or {@code null} to fall back to the nsURI path
+     */
+    private static String applyStreamFingerprint(PackageResolver resolver, String typeValue,
+            String streamFingerprint, DeserializationContext ctxt) {
+        if (resolver == null || streamFingerprint == null || streamFingerprint.isEmpty()) {
+            return null;
+        }
+        String nsURI = nsUriOf(typeValue);
+        if (nsURI == null) {
+            // A bare name carries no nsURI to attach a version to; the fingerprint is applied
+            // once the context schema composes a full URI.
+            return streamFingerprint;
+        }
+
+        PackageResolver.StreamFingerprintResult result =
+                resolver.applyStreamFingerprint(nsURI, streamFingerprint);
+
+        switch (result.outcome()) {
+            case RESOLVED, REDUNDANT:
+                return streamFingerprint;
+
+            case OVERRIDDEN_BY_CALLER: {
+                String message = String.format(
+                        "Fingerprint in the data (%s) contradicts the caller's fingerprint (%s) for "
+                        + "nsURI %s; the caller's choice wins", streamFingerprint,
+                        result.callerFingerprint(), nsURI);
+                report(ctxt, message, result.firstReport());
+                // Resolve against the caller's pin, not the document's claim.
+                return null;
+            }
+
+            case UNKNOWN:
+            default: {
+                String message = String.format(
+                        "Unknown fingerprint %s in the data for nsURI %s; falling back to nsURI "
+                        + "resolution", streamFingerprint, nsURI);
+                report(ctxt, message, result.firstReport());
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Emits the diagnostic for a stream-fingerprint problem: an error in STRICT, a warning in
+     * LENIENT. Repeat occurrences of the same fingerprint are suppressed so a single bad value
+     * on thousands of objects does not bury every other diagnostic.
+     */
+    private static void report(DeserializationContext ctxt, String message, boolean firstReport) {
+        if (ContextHelper.isStrictMode(ctxt)) {
+            LOGGER.severe(message);
+            ContextHelper.addError(ctxt, message, "TypeDeserializationEntry");
+            throw new IllegalStateException(message);
+        }
+        if (firstReport) {
+            LOGGER.warning(message);
+            ContextHelper.addWarning(ctxt, message, "TypeDeserializationEntry");
+        }
+    }
+
+    /** Extracts the nsURI part of a full type URI, or {@code null} for a bare name. */
+    private static String nsUriOf(String typeValue) {
+        if (typeValue == null) {
+            return null;
+        }
+        int hash = typeValue.indexOf('#');
+        return hash > 0 ? typeValue.substring(0, hash) : null;
     }
 
     /**
