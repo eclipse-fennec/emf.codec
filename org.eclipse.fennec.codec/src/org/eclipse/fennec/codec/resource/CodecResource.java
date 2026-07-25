@@ -376,6 +376,12 @@ public class CodecResource extends ResourceImpl {
                 .withAttribute(ContextHelper.UNRESOLVED_REFERENCES, unresolvedReferences)
                 .withAttribute(ContextHelper.DIAGNOSTIC_COLLECTOR, diagnosticCollector)
                 .withAttribute(ContextHelper.PACKAGE_RESOLVER, packageResolver)
+                // B.1/K7: the read-side fingerprint key comes from caller-side options only.
+                // Seeding it here, instead of letting the deserializer resolve it from the
+                // merged config, is what keeps the model out of a decision that has to be
+                // made before the model version is even selected.
+                .withAttribute(ContextHelper.FINGERPRINT_READ_KEYS,
+                        ContextHelper.fingerprintReadKeys(fingerprintReadKey(mergedOptions)))
                 .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
         if (nonNull(rootEClassHint)) {
@@ -517,6 +523,25 @@ public class CodecResource extends ResourceImpl {
         }
     }
 
+    /**
+     * Reads the caller-configured in-band fingerprint key from the load options (B.1/K7).
+     * <p>
+     * Deliberately limited to caller-side sources: a reader has to know which key carries
+     * the fingerprint <em>before</em> it can select the model version, so the key can never
+     * be taken from the model itself.
+     * </p>
+     *
+     * @param options the merged caller-side options
+     * @return the configured inner key, or {@code null} for the defaults
+     */
+    private static String fingerprintReadKey(Map<String, Object> options) {
+        if (isNull(options)) {
+            return null;
+        }
+        Object value = options.get(CodecOptions.CODEC_FINGERPRINT_KEY);
+        return value instanceof String key && !key.isBlank() ? key : null;
+    }
+
     @SuppressWarnings("unchecked")
     private <S> void doLoadWithFormat(InputStream inputStream, Map<String, Object> mergedOptions,
             EClass rootEClassHint, ConfigurationResolver operationResolver,
@@ -540,6 +565,12 @@ public class CodecResource extends ResourceImpl {
                 .withAttribute(ContextHelper.DIAGNOSTIC_COLLECTOR, diagnosticCollector)
                 .withAttribute(ContextHelper.RESOURCE, this)
                 .withAttribute(ContextHelper.PACKAGE_RESOLVER, packageResolver)
+                // B.1/K7: the read-side fingerprint key comes from caller-side options only.
+                // Seeding it here, instead of letting the deserializer resolve it from the
+                // merged config, is what keeps the model out of a decision that has to be
+                // made before the model version is even selected.
+                .withAttribute(ContextHelper.FINGERPRINT_READ_KEYS,
+                        ContextHelper.fingerprintReadKeys(fingerprintReadKey(mergedOptions)))
                 .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
         if (nonNull(rootEClassHint)) {

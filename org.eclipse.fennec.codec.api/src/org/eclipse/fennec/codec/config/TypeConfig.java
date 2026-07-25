@@ -203,9 +203,16 @@ public final class TypeConfig implements Mergeable<TypeConfig> {
 
     /**
      * Derives the PLAIN sibling form of an inner metadata key: prefixed with {@code _}
-     * unless the key already carries a metadata prefix.
+     * unless the key already carries a metadata prefix ({@code _} or {@code @}).
+     * <p>
+     * Public so that read-side code, which has to accept both placements of a key without
+     * holding a {@link TypeConfig}, applies exactly the same rule as the write side.
+     * </p>
+     *
+     * @param innerKey the inner (unprefixed) key form, may be {@code null}
+     * @return the PLAIN sibling form
      */
-    private static String toPlainKey(String innerKey) {
+    public static String toPlainKey(String innerKey) {
         if (innerKey == null || innerKey.isEmpty()) {
             return innerKey;
         }
