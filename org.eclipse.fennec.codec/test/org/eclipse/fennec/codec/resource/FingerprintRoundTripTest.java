@@ -121,6 +121,13 @@ class FingerprintRoundTripTest {
         leaf.setContainment(true);
         node.getEStructuralFeatures().add(leaf);
 
+        // Non-containment, so the target's version can only be known from the reference entry
+        EReference peer = EcoreFactory.eINSTANCE.createEReference();
+        peer.setName("peer");
+        peer.setEType(leafType);
+        peer.setContainment(false);
+        node.getEStructuralFeatures().add(peer);
+
         return backWithResource(pkg);
     }
 
@@ -421,6 +428,42 @@ class FingerprintRoundTripTest {
                     Map.of(CodecOptions.CODEC_FINGERPRINT_KEY, "modelVersion"));
 
             assertSame(packageA2.getEClassifier("Node"), roots.get(0).eClass());
+        }
+
+        @Test
+        @DisplayName("4.4 a STRUCTURED non-containment reference carries the fingerprint in its type object")
+        void structuredReferenceCarriesFingerprint() throws IOException {
+            // A cross-reference from A2's Node to a B2 Leaf held as a second root: the reference
+            // is non-containment, so the target's version is only knowable from the reference
+            // entry itself (B.3).
+            EClass nodeClass = (EClass) packageA2.getEClassifier("Node");
+            EClass leafClass = (EClass) packageB2.getEClassifier("Leaf");
+
+            EObject leaf = packageB2.getEFactoryInstance().create(leafClass);
+            leaf.eSet(leafClass.getEStructuralFeature("labelV2"), "target");
+            EObject node = packageA2.getEFactoryInstance().create(nodeClass);
+            node.eSet(nodeClass.getEStructuralFeature("titleV2"), "source");
+            node.eSet(nodeClass.getEStructuralFeature("peer"), leaf);
+
+            String json = save(List.of(node, leaf),
+                    Map.of(CodecOptions.CODEC_FINGERPRINT_MODE, "FIRST_TOUCH"));
+
+            // The fingerprint sits inside the reference's own type object, as the unprefixed
+            // inner key next to $ref - not as a sibling of the enclosing object's _type.
+            assertTrue(json.contains("\"fingerprint\":\"" + fingerprintB2 + "\""),
+                    "the reference entry must carry the target's version: " + json);
+            // Object writer and reference writer share the per-save pins, so the second root -
+            // the very same Leaf, serialized after the reference announced its package - stays
+            // unmarked. Announcing it twice would be redundant.
+            assertEquals(1, countOccurrences(json, fingerprintB2),
+                    "the shared pin must keep the announcement to one site: " + json);
+
+            List<EObject> roots = loadIntoFreshResource(json, Map.of());
+
+            assertEquals(2, roots.size(), json);
+            assertSame(packageA2.getEClassifier("Node"), roots.get(0).eClass());
+            assertSame(packageB2.getEClassifier("Leaf"), roots.get(1).eClass(),
+                    "the referenced object must come back under its own version");
         }
 
         @Test

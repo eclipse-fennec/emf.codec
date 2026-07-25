@@ -22,12 +22,14 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.eclipse.fennec.codec.config.ReferenceConfig;
+import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.CodecWriteContext;
@@ -37,7 +39,9 @@ import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.codec.value.ReferenceValueWriter;
+import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.SerializationFormat;
+import org.eclipse.fennec.model.metadata.api.MetadataService;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.TokenStreamContext;
@@ -415,10 +419,52 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             String effectiveType = applySmartCompressionToRef(typeUri, ctxt);
             gen.writeStringProperty("_type", effectiveType);
 
+            // The reference's type object is type context, so the fingerprint attaches here
+            // too - sparsely, per the same first-touch rule (issue #73, B.3). This is what
+            // makes cross-resource proxy creation version-correct: the reader has to pick the
+            // right EClass instance at ref-read time to build the proxy at all.
+            writeFingerprintIfDue(target, gen, ctxt);
+
             gen.writeName(refKey);
             writeReferenceValue(target, gen, crossDocument, ctxt);
 
             gen.writeEndObject();
+        }
+    }
+
+    /**
+     * Writes the in-band EPackage fingerprint into a STRUCTURED reference's type object when
+     * one is due for the target's package (issue #73, B.3).
+     * <p>
+     * Shares the per-save pins with the object writer, so a reference into an already
+     * announced package stays silent and only a package first entering the document - or one
+     * deviating from its established pin - is marked. The key used is the unprefixed inner
+     * form, because this sits inside the type object.
+     * </p>
+     *
+     * @param target the referenced object
+     * @param gen the JSON generator, positioned inside the reference's type object
+     * @param ctxt the serialization context holding the per-save pins
+     */
+    private void writeFingerprintIfDue(EObject target, JsonGenerator gen, SerializationContext ctxt) {
+        if (codecConfig == null || ctxt == null || target == null) {
+            return;
+        }
+        TypeConfig typeConfig = codecConfig.resolveTypeConfig(target.eClass());
+        if (typeConfig == null || !typeConfig.isFingerprintWriteEnabled()) {
+            return;
+        }
+        EPackage ePackage = target.eClass().getEPackage();
+        if (ePackage == null || !ContextHelper.getFingerprintPins(ctxt).isDue(ePackage)) {
+            return;
+        }
+        MetadataService metadataService = codecConfig.getMetadataService();
+        if (metadataService == null) {
+            return;
+        }
+        PackageMetadata metadata = metadataService.getPackageMetadata(ePackage);
+        if (metadata != null && metadata.getModelFingerprint() != null) {
+            gen.writeStringProperty(typeConfig.getFingerprintKey(), metadata.getModelFingerprint());
         }
     }
 
