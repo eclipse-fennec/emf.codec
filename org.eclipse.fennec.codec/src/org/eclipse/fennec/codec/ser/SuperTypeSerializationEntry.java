@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.SuperTypeConfig;
 import org.eclipse.fennec.model.metadata.SuperTypeSelection;
 
@@ -48,7 +49,7 @@ public class SuperTypeSerializationEntry implements SerializationEntry {
 
     private final SuperTypeConfig config;
     private final EClass eClass;
-    private final String rootNamespaceUri;
+    private final EPackage rootPackage;
     private final boolean smartCompression;
 
     /**
@@ -61,7 +62,7 @@ public class SuperTypeSerializationEntry implements SerializationEntry {
     public SuperTypeSerializationEntry(SuperTypeConfig config, EClass eClass, boolean smartCompression) {
         this.config = config;
         this.eClass = eClass;
-        this.rootNamespaceUri = eClass.getEPackage() != null ? eClass.getEPackage().getNsURI() : null;
+        this.rootPackage = eClass.getEPackage();
         this.smartCompression = smartCompression;
     }
 
@@ -184,14 +185,16 @@ public class SuperTypeSerializationEntry implements SerializationEntry {
      * @return the supertype value (simple name or full URI)
      */
     private String getSuperTypeValue(EClass superType) {
-        String superTypeNsUri = superType.getEPackage() != null ? superType.getEPackage().getNsURI() : null;
-
-        // Smart compression: same namespace → simple name
-        if (smartCompression && rootNamespaceUri != null && rootNamespaceUri.equals(superTypeNsUri)) {
+        // Compare package INSTANCES, not nsURI strings: two versions of one model share an
+        // nsURI, so a string comparison would call them the same schema and emit a bare name.
+        // The reader resolves that name against the version pinned for the nsURI, which under
+        // cross-version inheritance is the other package - a silently wrong supertype. A bare
+        // name is only safe when the supertype really lives in the same package object.
+        if (smartCompression && rootPackage != null && rootPackage == superType.getEPackage()) {
             return superType.getName();
         }
 
-        // Different namespace or no smart compression → full URI
+        // Different package instance or no smart compression → full URI
         return getEClassUri(superType);
     }
 
