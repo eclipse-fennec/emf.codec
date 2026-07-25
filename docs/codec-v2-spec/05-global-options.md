@@ -36,6 +36,36 @@ The "context schema" (root schema) is derived from the root object's type declar
 | NAME | From root object's EPackage nsURI |
 | MAPPED | From root object's EPackage nsURI |
 
+#### 1.2.1 One Context per Resource Root
+
+A resource may hold **several root objects**, serialized as a top-level array
+([13 §2.3](13-load-save-options.md#23-serialization-behavior)). Each of them is a root and
+**establishes its own context schema**:
+
+- every root writes a **full URI**, exactly as a single root does;
+- compression applies to the objects **nested inside** that root;
+- a root is never compressed against a *previous* root's schema.
+
+```json
+[
+  { "_type": "http://example.org/1.0#//Company", "name": "Acme",
+    "employees": [ { "_type": "Person", "name": "Alice" } ] },
+  { "_type": "http://example.org/1.0#//Company", "name": "Globex" }
+]
+```
+
+Both roots carry the full URI; only the contained `Person` is compressed.
+
+> **Why compression cannot span roots.** The reader processes each root **independently** — one
+> deserialization call per array element — so it starts each root with no context schema. A bare
+> name in a later root would be unresolvable. Compression that spanned roots would therefore
+> produce documents this codec cannot read back, so the scope of a context is exactly one root
+> on both sides.
+>
+> This also keeps the rule intact under multi-version: two versions of one `nsURI` compare equal
+> as schemas, so a root compressed against a *different* root's schema could be resolved into the
+> wrong version. With per-root contexts that path does not exist.
+
 ### 1.3 Applicability by Type Strategy
 
 Smart compression requires a **context schema** to be established from the root object. This means smart compression only applies when the root object writes a `_type` field.

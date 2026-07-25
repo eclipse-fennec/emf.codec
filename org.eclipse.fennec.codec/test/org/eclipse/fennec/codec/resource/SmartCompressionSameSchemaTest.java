@@ -316,6 +316,127 @@ class SmartCompressionSameSchemaTest {
         return resource.getContents().get(0);
     }
 
+    /**
+     * Saves several resource roots in one document and loads it back (issue #76).
+     * <p>
+     * This is the coverage that was missing: the existing tests assert the written output for a
+     * single root, so nothing noticed that a second root was written in a shape the reader could
+     * not resolve.
+     * </p>
+     */
+    private CodecResource roundTripRoots(List<EObject> roots) throws IOException {
+        ConfigurationResolver resolver = ConfigurationResolver.builder()
+                .moduleProperties(Map.of("smartCompression", true))
+                .build();
+
+        CodecResource saveResource = new CodecResource(
+                URI.createURI("test://smart-compression-multiroot.json"),
+                metadataService, resolver, null);
+        saveResource.getContents().addAll(roots);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        saveResource.save(out, Collections.emptyMap());
+
+        CodecResource loadResource = new CodecResource(
+                URI.createURI("test://smart-compression-multiroot.json"),
+                metadataService, resolver, null);
+        loadResource.load(new ByteArrayInputStream(out.toByteArray()), Collections.emptyMap());
+        return loadResource;
+    }
+
+    @Nested
+    @DisplayName("Multiple Resource Roots (issue #76)")
+    class MultipleResourceRoots {
+
+        @Test
+        @DisplayName("every root establishes its own context and uses a full URI")
+        void everyRootUsesFullUri() throws IOException {
+            EObject first = testPackage.getEFactoryInstance().create(personClass);
+            first.eSet(personNameAttr, "Alice");
+            EObject second = testPackage.getEFactoryInstance().create(personClass);
+            second.eSet(personNameAttr, "Bob");
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .moduleProperties(Map.of("smartCompression", true))
+                    .build();
+            CodecResource resource = new CodecResource(
+                    URI.createURI("test://smart-compression-multiroot-write.json"),
+                    metadataService, resolver, null);
+            resource.getContents().add(first);
+            resource.getContents().add(second);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            resource.save(out, Collections.emptyMap());
+            String json = out.toString(StandardCharsets.UTF_8);
+
+            // Compression is defined relative to *the root object*: a root establishes the
+            // context, nested objects consume it. A second root is a root, not a nested object.
+            assertEquals(2, countOccurrences(json, "\"_type\":\"" + testPackage.getNsURI() + "#//Person\""),
+                    "each root must carry the full URI: " + json);
+            assertFalse(json.contains("\"_type\":\"Person\""),
+                    "no root may be compressed to a bare name: " + json);
+        }
+
+        @Test
+        @DisplayName("all roots survive the round-trip")
+        void allRootsSurviveRoundTrip() throws IOException {
+            EObject first = testPackage.getEFactoryInstance().create(personClass);
+            first.eSet(personNameAttr, "Alice");
+            EObject second = testPackage.getEFactoryInstance().create(personClass);
+            second.eSet(personNameAttr, "Bob");
+            EObject third = testPackage.getEFactoryInstance().create(personClass);
+            third.eSet(personNameAttr, "Carol");
+
+            CodecResource loaded = roundTripRoots(List.of(first, second, third));
+
+            assertTrue(loaded.getErrors().isEmpty(),
+                    "the load must not report errors: " + loaded.getErrors());
+            assertEquals(3, loaded.getContents().size(),
+                    "no root may be dropped silently");
+            assertEquals("Alice", loaded.getContents().get(0).eGet(personNameAttr));
+            assertEquals("Bob", loaded.getContents().get(1).eGet(personNameAttr));
+            assertEquals("Carol", loaded.getContents().get(2).eGet(personNameAttr));
+        }
+
+        @Test
+        @DisplayName("compression still applies to objects nested inside each root")
+        void compressionStillAppliesWithinRoots() throws IOException {
+            EObject companyOne = testPackage.getEFactoryInstance().create(companyClass);
+            companyOne.eSet(companyNameAttr, "Acme");
+            EObject employee = testPackage.getEFactoryInstance().create(personClass);
+            employee.eSet(personNameAttr, "Alice");
+            @SuppressWarnings("unchecked")
+            List<EObject> employees = (List<EObject>) companyOne.eGet(employeesRef);
+            employees.add(employee);
+
+            EObject companyTwo = testPackage.getEFactoryInstance().create(companyClass);
+            companyTwo.eSet(companyNameAttr, "Globex");
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .moduleProperties(Map.of("smartCompression", true))
+                    .build();
+            CodecResource resource = new CodecResource(
+                    URI.createURI("test://smart-compression-multiroot-nested.json"),
+                    metadataService, resolver, null);
+            resource.getContents().add(companyOne);
+            resource.getContents().add(companyTwo);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            resource.save(out, Collections.emptyMap());
+            String json = out.toString(StandardCharsets.UTF_8);
+
+            // The point of per-root contexts is that they do not disable compression, they scope
+            // it: the contained employee is still written as a bare name.
+            assertTrue(json.contains("\"_type\":\"Person\""),
+                    "a nested object must still be compressed: " + json);
+            assertEquals(2, countOccurrences(json, "\"_type\":\"" + testPackage.getNsURI() + "#//Company\""),
+                    "both roots must carry the full URI: " + json);
+
+            CodecResource loaded = roundTripRoots(List.of(companyOne, companyTwo));
+            assertEquals(2, loaded.getContents().size(), "both roots must load");
+        }
+    }
+
     @Nested
     @DisplayName("Deserialization Round-Trip")
     class DeserializationRoundTrip {

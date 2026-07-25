@@ -40,7 +40,6 @@ import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -403,11 +402,7 @@ class FingerprintRoundTripTest {
          */
 
         @Test
-        @Disabled("Blocked by a pre-existing defect unrelated to fingerprinting, issue #76: "
-                + "the context schema does not carry across array roots, so smart compression's "
-                + "bare name in a second root cannot be resolved even with a single registered "
-                + "version and no fingerprint anywhere. Enable once #76 is fixed.")
-        @DisplayName("5.1 a bare name plus a fingerprint still resolves to the deviating version")
+        @DisplayName("5.1 every root keeps its own version, also under smart compression (#76)")
         void bareNameWithFingerprintResolvesCorrectly() throws IOException {
             CodecResource resource = new CodecResource(
                     URI.createURI("test://fp-smart-compression.json"),
@@ -435,8 +430,9 @@ class FingerprintRoundTripTest {
             assertEquals(2, loaded.getContents().size(), json);
             assertSame(packageA1.getEClassifier("Node"), loaded.getContents().get(0).eClass(), json);
             assertSame(packageA2.getEClassifier("Node"), loaded.getContents().get(1).eClass(),
-                    "a compressed bare name must not be resolved against the pin when the object "
-                    + "carries a fingerprint of its own: " + json);
+                    "since #76 every root establishes its own context and writes a full URI, so "
+                    + "the deviating version resolves from nsURI plus its own fingerprint rather "
+                    + "than from the pin: " + json);
         }
     }
 
