@@ -348,6 +348,35 @@ class FingerprintRoundTripTest {
             assertEquals("leafOne", leafOne.eGet(leafOne.eClass().getEStructuralFeature("labelV1")));
             assertEquals("leafTwo", leafTwo.eGet(leafTwo.eClass().getEStructuralFeature("labelV2")));
         }
+
+        @Test
+        @DisplayName("3.2 returning to the pinned version after a deviation still lands on the pin")
+        void returnToPinnedVersionAfterDeviation() throws IOException {
+            // A1, A2, A1: the writer announces A1 (first touch) and A2 (deviation), but writes
+            // nothing for the third root, because it matches the established pin again. The
+            // reader can only get that one right if its pin still says A1 - so this is the case
+            // that forces reader pinning to keep the FIRST version, exactly as the writer does.
+            EObject first = createNode(packageA1, "titleV1", "first", null, null, null);
+            EObject second = createNode(packageA2, "titleV2", "second", null, null, null);
+            EObject third = createNode(packageA1, "titleV1", "third", null, null, null);
+
+            String json = save(List.of(first, second, third),
+                    Map.of(CodecOptions.CODEC_FINGERPRINT_MODE, "FIRST_TOUCH"));
+
+            assertEquals(2, countOccurrences(json, "_fingerprint"),
+                    "the third root matches the pin again and needs no marker: " + json);
+
+            List<EObject> roots = loadIntoFreshResource(json, Map.of());
+
+            assertEquals(3, roots.size(), json);
+            assertSame(packageA1.getEClassifier("Node"), roots.get(0).eClass());
+            assertSame(packageA2.getEClassifier("Node"), roots.get(1).eClass());
+            assertSame(packageA1.getEClassifier("Node"), roots.get(2).eClass(),
+                    "an explicitly fingerprinted object must not move the pin: the unmarked "
+                    + "third root belongs to the pinned version A1");
+            assertEquals("third", roots.get(2).eGet(
+                    roots.get(2).eClass().getEStructuralFeature("titleV1")));
+        }
     }
 
     // ========================================================================
