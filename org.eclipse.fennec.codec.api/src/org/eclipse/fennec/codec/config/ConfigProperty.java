@@ -15,6 +15,7 @@ package org.eclipse.fennec.codec.config;
 import static org.eclipse.fennec.codec.config.ConfigDirection.READ;
 import static org.eclipse.fennec.codec.config.ConfigDirection.WRITE;
 import static org.eclipse.fennec.codec.config.ConfigLevel.ECLASS;
+import static org.eclipse.fennec.codec.config.ConfigLevel.EPACKAGE;
 import static org.eclipse.fennec.codec.config.ConfigLevel.FEATURE;
 import static org.eclipse.fennec.codec.config.ConfigLevel.GLOBAL;
 
@@ -56,22 +57,22 @@ public enum ConfigProperty {
     // ========================================================================
 
     TYPE_STRATEGY("typeStrategy", String.class, "URI",
-        levels(GLOBAL, ECLASS, FEATURE), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
     TYPE_KEY("typeKey", String.class, "_type",
-        levels(GLOBAL, ECLASS, FEATURE), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
     TYPE_FORMAT("typeFormat", String.class, "PLAIN",
-        levels(GLOBAL, ECLASS, FEATURE), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
     TYPE_INCLUDE("typeInclude", Boolean.class, true,
         levels(GLOBAL, ECLASS, FEATURE), directions(READ, WRITE)),
 
     TYPE_SCHEMA_KEY("typeSchemaKey", String.class, "schema",
-        levels(GLOBAL, ECLASS, FEATURE), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
     TYPE_NAME_KEY("typeNameKey", String.class, "type",
-        levels(GLOBAL, ECLASS, FEATURE), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
     TYPE_SCOPE("typeScope", String.class, "ALL",
         levels(GLOBAL), directions(READ, WRITE)),
@@ -96,7 +97,7 @@ public enum ConfigProperty {
      * @see <a href="docs/codec-v2-spec/06-type.md#8-in-band-epackage-fingerprint">Spec 06 §8</a>
      */
     FINGERPRINT_MODE("fingerprintMode", String.class, "NONE",
-        levels(GLOBAL, ECLASS), directions(WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE)),
 
     /**
      * Key carrying the in-band EPackage fingerprint (issue #73, B.1).
@@ -116,42 +117,42 @@ public enum ConfigProperty {
      * @see <a href="docs/codec-v2-spec/06-type.md#85--the-fingerprintkey-chicken-and-egg-problem">Spec 06 §8.5</a>
      */
     FINGERPRINT_KEY("fingerprintKey", String.class, "fingerprint",
-        levels(GLOBAL, ECLASS), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(READ, WRITE)),
 
     // ========================================================================
     // ID Properties (11.4)
     // ========================================================================
 
     ID_STRATEGY("idStrategy", String.class, "ID_FIELD",
-        levels(GLOBAL, ECLASS), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(READ, WRITE)),
 
     ID_KEY("idKey", String.class, "_id",
-        levels(GLOBAL, ECLASS, FEATURE), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
     ID_VALUE_KEY("idValueKey", String.class, "id",
-        levels(GLOBAL, ECLASS), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(READ, WRITE)),
 
     ID_FORMAT("idFormat", String.class, "PLAIN",
-        levels(GLOBAL, ECLASS, FEATURE), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
     ID_KEY_MODE("idKeyMode", String.class, "ID_ONLY",
-        levels(GLOBAL, ECLASS), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(READ, WRITE)),
 
     @SuppressWarnings("unchecked")
     ID_FEATURES("idFeatures", (Class<List<String>>) (Class<?>) List.class, List.of(),
-        levels(ECLASS), directions(READ, WRITE)),
+        levels(ECLASS, EPACKAGE), directions(READ, WRITE)),
 
     ID_SEPARATOR("idSeparator", String.class, "-",
-        levels(GLOBAL, ECLASS), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(READ, WRITE)),
 
     ID_SEPARATOR_KEY("idSeparatorKey", String.class, "separator",
-        levels(GLOBAL, ECLASS), directions(READ, WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(READ, WRITE)),
 
     ID_SEPARATOR_SERIALIZE("idSeparatorSerialize", Boolean.class, true,
         levels(GLOBAL, ECLASS), directions(WRITE), directions(READ)),  // (R)W
 
     ID_ON_TOP("idOnTop", Boolean.class, false,
-        levels(GLOBAL, ECLASS), directions(WRITE), directions(READ)),  // (R)W
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
     ID_SCOPE("idScope", String.class, "ALL",
         levels(GLOBAL), directions(READ, WRITE)),
@@ -160,10 +161,10 @@ public enum ConfigProperty {
         levels(GLOBAL), directions(READ, WRITE)),
 
     ID_VALUE_READER_NAME("idValueReaderName", String.class, null,
-        levels(GLOBAL, ECLASS), directions(READ)),
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(READ)),
 
     ID_VALUE_WRITER_NAME("idValueWriterName", String.class, null,
-        levels(GLOBAL, ECLASS), directions(WRITE)),
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE)),
 
     // ========================================================================
     // Feature Properties (11.5)
@@ -280,24 +281,24 @@ public enum ConfigProperty {
     // ========================================================================
 
     SUPERTYPE_SERIALIZE("superTypeSerialize", Boolean.class, false,
-        levels(GLOBAL, ECLASS), directions(WRITE), directions(READ)),  // (R)W
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
     // Note: superTypeKey default is format-dependent (PLAIN → "_supertype", STRUCTURED → "supertype")
     // See SuperTypeConfig.getEffectiveSuperTypeKey(SerializationFormat)
     SUPERTYPE_KEY("superTypeKey", String.class, null,  // format-dependent default
-        levels(GLOBAL, ECLASS), directions(WRITE), directions(READ)),  // (R)W
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
     SUPERTYPE_STRATEGY("superTypeStrategy", String.class, "ALL",
-        levels(GLOBAL, ECLASS), directions(WRITE), directions(READ)),  // (R)W
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
     SUPERTYPE_AS_ARRAY("superTypeAsArray", Boolean.class, true,
-        levels(GLOBAL, ECLASS), directions(WRITE), directions(READ)),  // (R)W
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
     SUPERTYPE_SEPARATOR("superTypeSeparator", String.class, ",",
-        levels(GLOBAL, ECLASS), directions(WRITE), directions(READ)),  // (R)W
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
     SUPERTYPE_FORMAT("superTypeFormat", String.class, null,  // inherits from typeFormat
-        levels(GLOBAL, ECLASS), directions(WRITE), directions(READ)),  // (R)W
+        levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
     // Note: superTypeSchemaKey not needed - SuperTypeConfig inherits from TypeConfig
     // Note: superTypeNameKey removed - superTypeKey has format-dependent default:

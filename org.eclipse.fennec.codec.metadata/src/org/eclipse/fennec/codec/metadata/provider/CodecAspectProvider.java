@@ -76,6 +76,8 @@ import java.util.Objects;
 
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EModelElement;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -297,8 +299,14 @@ public class CodecAspectProvider implements AspectProvider {
     public PackageProfile buildProfiles(PackageMetadata filteredMetadataCopy) {
         CodecPackageProfile pkgProfile = factory.createCodecPackageProfile();
 
+        // Package-wide defaults from a codec annotation on the EPackage itself (issue #75).
+        // The package level is annotation-INTERNAL: it is merged into every class profile here
+        // rather than becoming a further runtime configuration level, so the cascading merge of
+        // options, resource, factory and module keeps seeing exactly one annotation layer.
+        ClassCodecAspect packageDefaults = buildPackageDefaults(filteredMetadataCopy.getEPackage());
+
         for (ClassMetadata classMeta : filteredMetadataCopy.getClasses()) {
-            CodecClassProfile classProfile = buildClassProfile(classMeta);
+            CodecClassProfile classProfile = buildClassProfile(classMeta, packageDefaults);
             pkgProfile.getClassProfiles().add(classProfile);
         }
 
@@ -310,6 +318,74 @@ public class CodecAspectProvider implements AspectProvider {
     // ========================================================================
 
     /**
+     * Reads package-wide codec defaults from an annotation on the EPackage itself (issue #75).
+     * <p>
+     * Reuses {@link ClassCodecAspect} as the carrier because it already holds exactly the
+     * type/ID/supertype configs a package default can express — no separate model element is
+     * needed for a layer that is merged away at profile-build time.
+     * </p>
+     *
+     * @param ePackage the package, may be {@code null}
+     * @return the defaults, or {@code null} if the package carries no codec annotation
+     */
+    private ClassCodecAspect buildPackageDefaults(EPackage ePackage) {
+        if (ePackage == null) {
+            return null;
+        }
+        EAnnotation annotation = ePackage.getEAnnotation(CODEC_SOURCE);
+        if (annotation == null) {
+            return null;
+        }
+        Map<String, String> details = annotation.getDetails().map();
+
+        ClassCodecAspect defaults = factory.createClassCodecAspect();
+        if (hasTypeConfig(details)) {
+            defaults.setTypeConfig(buildTypeConfig(details));
+        }
+        if (hasIdConfig(details)) {
+            defaults.setIdConfig(buildIdConfig(details));
+        }
+        if (hasSuperTypeConfig(details)) {
+            defaults.setSuperTypeConfig(buildSuperTypeConfig(details));
+        }
+        return defaults;
+    }
+
+    /**
+     * Returns the codec annotation details of a model element, or an empty map if it carries none.
+     *
+     * @param element the model element, may be {@code null}
+     * @return the details, never {@code null}
+     */
+    private static Map<String, String> codecAnnotationDetails(EModelElement element) {
+        if (element == null) {
+            return Map.of();
+        }
+        EAnnotation annotation = element.getEAnnotation(CODEC_SOURCE);
+        return annotation != null ? annotation.getDetails().map() : Map.of();
+    }
+
+    /**
+     * Carries over the type-config fields that do not come from the main codec annotation.
+     * <p>
+     * {@code mapId}, {@code discriminatorPath} and {@code discriminatorValue} are parsed from the
+     * dedicated {@code typeMapping/&lt;mapId&gt;} annotation sources, so re-applying the main
+     * annotation's details would drop them.
+     * </p>
+     */
+    private static void copyTypeMappingFields(TypeSerializationConfig from, TypeSerializationConfig to) {
+        if (from.getMapId() != null) {
+            to.setMapId(from.getMapId());
+        }
+        if (from.getDiscriminatorPath() != null) {
+            to.setDiscriminatorPath(from.getDiscriminatorPath());
+        }
+        if (from.getDiscriminatorValue() != null) {
+            to.setDiscriminatorValue(from.getDiscriminatorValue());
+        }
+    }
+
+    /**
      * Builds a CodecClassProfile for a single EClass from its metadata.
      * <p>
      * Copies class-level configs (type, id, supertype) from ClassCodecAspect
@@ -317,7 +393,7 @@ public class CodecAspectProvider implements AspectProvider {
      * Builds one FeatureSerializationConfig per feature.
      * </p>
      */
-    private CodecClassProfile buildClassProfile(ClassMetadata classMeta) {
+    private CodecClassProfile buildClassProfile(ClassMetadata classMeta, ClassCodecAspect packageDefaults) {
         CodecClassProfile classProfile = factory.createCodecClassProfile();
         classProfile.setEClass(classMeta.getEClass());
 
@@ -330,25 +406,32 @@ public class CodecAspectProvider implements AspectProvider {
             }
         }
 
-        // TypeConfig: copy from aspect or create default
+        // Each config starts from the package default (if any); the class then states its
+        // exceptions on top, key by key. The class layer is applied from its own annotation
+        // details rather than from the parsed aspect, because only the details say which keys the
+        // class actually wrote - see the note on buildTypeConfig(Map, TypeSerializationConfig).
+        Map<String, String> classDetails = codecAnnotationDetails(classMeta.getEClass());
+
+        TypeSerializationConfig typeConfig = packageDefaults != null && packageDefaults.getTypeConfig() != null
+                ? EcoreUtil.copy(packageDefaults.getTypeConfig())
+                : factory.createTypeSerializationConfig();
+        classProfile.setTypeConfig(buildTypeConfig(classDetails, typeConfig));
+
+        IdSerializationConfig idConfig = packageDefaults != null && packageDefaults.getIdConfig() != null
+                ? EcoreUtil.copy(packageDefaults.getIdConfig())
+                : factory.createIdSerializationConfig();
+        classProfile.setIdConfig(buildIdConfig(classDetails, idConfig));
+
+        SuperTypeSerializationConfig superTypeConfig =
+                packageDefaults != null && packageDefaults.getSuperTypeConfig() != null
+                ? EcoreUtil.copy(packageDefaults.getSuperTypeConfig())
+                : factory.createSuperTypeSerializationConfig();
+        classProfile.setSuperTypeConfig(buildSuperTypeConfig(classDetails, superTypeConfig));
+
+        // Keep whatever the aspect resolved beyond the annotation keys (e.g. mapId and
+        // discriminators parsed from the dedicated typeMapping sources).
         if (classAspect != null && classAspect.getTypeConfig() != null) {
-            classProfile.setTypeConfig(EcoreUtil.copy(classAspect.getTypeConfig()));
-        } else {
-            classProfile.setTypeConfig(factory.createTypeSerializationConfig());
-        }
-
-        // IdConfig: copy from aspect or create default
-        if (classAspect != null && classAspect.getIdConfig() != null) {
-            classProfile.setIdConfig(EcoreUtil.copy(classAspect.getIdConfig()));
-        } else {
-            classProfile.setIdConfig(factory.createIdSerializationConfig());
-        }
-
-        // SuperTypeConfig: copy from aspect or create default
-        if (classAspect != null && classAspect.getSuperTypeConfig() != null) {
-            classProfile.setSuperTypeConfig(EcoreUtil.copy(classAspect.getSuperTypeConfig()));
-        } else {
-            classProfile.setSuperTypeConfig(factory.createSuperTypeSerializationConfig());
+            copyTypeMappingFields(classAspect.getTypeConfig(), classProfile.getTypeConfig());
         }
 
         // Build FeatureSerializationConfig for each feature
@@ -578,7 +661,23 @@ public class CodecAspectProvider implements AspectProvider {
      * Builds IdSerializationConfig from annotation details.
      */
     private IdSerializationConfig buildIdConfig(Map<String, String> details) {
-        IdSerializationConfig config = factory.createIdSerializationConfig();
+        return buildIdConfig(details, factory.createIdSerializationConfig());
+    }
+
+    /**
+     * Applies the annotation details onto an existing config (issue #75).
+     * <p>
+     * Only keys actually <b>present</b> in {@code details} are written, which is what layers a
+     * class over its package correctly. {@code eIsSet} cannot serve here: for a generated EMF
+     * attribute that is not {@code unsettable} it means "differs from the default", so a class
+     * explicitly restating the default value would be indistinguishable from saying nothing.
+     * </p>
+     *
+     * @param details the annotation details of this level
+     * @param config the config to apply them to, typically a copy of the more general level
+     * @return {@code config}, for chaining
+     */
+    private IdSerializationConfig buildIdConfig(Map<String, String> details, IdSerializationConfig config) {
 
         // Strategy
         AnnotationParseHelper.ifEnumPresent(details, KEY_ID_STRATEGY, IdStrategy.class, config::setStrategy);
@@ -629,7 +728,23 @@ public class CodecAspectProvider implements AspectProvider {
      * </p>
      */
     private TypeSerializationConfig buildTypeConfig(Map<String, String> details) {
-        TypeSerializationConfig config = factory.createTypeSerializationConfig();
+        return buildTypeConfig(details, factory.createTypeSerializationConfig());
+    }
+
+    /**
+     * Applies the annotation details onto an existing config (issue #75).
+     * <p>
+     * Only keys actually <b>present</b> in {@code details} are written, which is what layers a
+     * class over its package correctly. {@code eIsSet} cannot serve here: for a generated EMF
+     * attribute that is not {@code unsettable} it means "differs from the default", so a class
+     * explicitly restating the default value would be indistinguishable from saying nothing.
+     * </p>
+     *
+     * @param details the annotation details of this level
+     * @param config the config to apply them to, typically a copy of the more general level
+     * @return {@code config}, for chaining
+     */
+    private TypeSerializationConfig buildTypeConfig(Map<String, String> details, TypeSerializationConfig config) {
 
         // Strategy - explicit strategy only, discriminator is orthogonal
         AnnotationParseHelper.ifEnumPresent(details, KEY_TYPE_STRATEGY, TypeStrategy.class, config::setStrategy);
@@ -700,7 +815,23 @@ public class CodecAspectProvider implements AspectProvider {
      * Builds SuperTypeSerializationConfig from annotation details.
      */
     private SuperTypeSerializationConfig buildSuperTypeConfig(Map<String, String> details) {
-        SuperTypeSerializationConfig config = factory.createSuperTypeSerializationConfig();
+        return buildSuperTypeConfig(details, factory.createSuperTypeSerializationConfig());
+    }
+
+    /**
+     * Applies the annotation details onto an existing config (issue #75).
+     * <p>
+     * Only keys actually <b>present</b> in {@code details} are written, which is what layers a
+     * class over its package correctly. {@code eIsSet} cannot serve here: for a generated EMF
+     * attribute that is not {@code unsettable} it means "differs from the default", so a class
+     * explicitly restating the default value would be indistinguishable from saying nothing.
+     * </p>
+     *
+     * @param details the annotation details of this level
+     * @param config the config to apply them to, typically a copy of the more general level
+     * @return {@code config}, for chaining
+     */
+    private SuperTypeSerializationConfig buildSuperTypeConfig(Map<String, String> details, SuperTypeSerializationConfig config) {
 
         // Enabled
         AnnotationParseHelper.ifBooleanPresent(details, KEY_SUPERTYPE_SERIALIZE, config::setEnabled);

@@ -60,13 +60,16 @@ Within any single source level, configuration can be scoped to different EMF ele
 |:--------:|-------|------------|
 | 1 (highest) | **EReference/EAttribute** | Single feature |
 | 2 | **EClass** | All instances of that class |
-| 3 | **Global** | All objects in codec (with optional StrategyScope) |
-| 4 (lowest) | **Default** | Built-in fallback |
+| 3 | **EPackage** | All classes in that package |
+| 4 | **Global** | All objects in codec (with optional StrategyScope) |
+| 5 (lowest) | **Default** | Built-in fallback |
 
 ```
 EReference annotation    ← most specific
         ↓
 EClass annotation        ← class-level default
+        ↓
+EPackage annotation      ← package-wide default
         ↓
 Global config            ← codec-wide (respects StrategyScope)
         ↓
@@ -76,6 +79,32 @@ Built-in Default         ← hardcoded fallback
     │ Effective Value      │
     ════════════════════════
 ```
+
+### 3.1 The EPackage Scope Is Annotation-Internal
+
+The EPackage scope exists **only within the annotation source**. It is merged into each class's
+annotation configuration when the package profile is built, so the vertical source hierarchy of
+§2 keeps seeing exactly **one** annotation layer — options, resource, factory and module are
+unaffected by its existence.
+
+Two consequences follow from that, and both are deliberate:
+
+- **Merging is per property.** A class that configures one key inherits the package's remaining
+  keys rather than resetting them to built-in defaults. A class states an *exception* to its
+  package.
+- **The layering is driven by which keys an annotation actually contains**, not by comparing
+  values against defaults. A class explicitly restating a default value still overrides its
+  package — the two are different statements, and only the annotation's own key set can tell
+  them apart.
+
+**Resolution uses the directly owning package only.** Subpackage hierarchies are not traversed:
+the codec resolves through `EClass.getEPackage()` everywhere and never walks
+`getESubpackages()` / `getESuperPackage()`.
+
+**Scopes do not participate** (`typeScope`, `typeFormatScope`, `idScope`, `idFormatScope`). A
+scope says *where in a document* a setting applies, which is a property of the operation, not of
+a model — see [16-annotation-reference.md](16-annotation-reference.md) and
+[99-open-questions.md Q1](99-open-questions.md#q1-epackage-scope-level).
 
 ---
 
@@ -415,6 +444,7 @@ For any property lookup:
 | Symbol | Meaning |
 |--------|---------|
 | G | Global level |
+| P | EPackage level (annotation-internal, see [§3.1](#31-the-epackage-scope-is-annotation-internal)) |
 | C | EClass level |
 | F | Feature (EAttribute/EReference) level |
 | R | Read direction (deserialization) |
@@ -427,17 +457,17 @@ For any property lookup:
 
 | Property | Levels | Direction | Default | Spec Section |
 |----------|--------|-----------|---------|--------------|
-| `typeStrategy` | G, C, F | RW | `URI` | 06-type.md |
-| `typeKey` | G, C, F | RW | `_type` | 06-type.md |
-| `typeFormat` | G, C, F | RW | `PLAIN` | 06-type.md |
-| `typeSchemaKey` | G, C, F | RW | `schema` | 06-type.md |
-| `typeNameKey` | G, C, F | RW | `type` | 06-type.md |
+| `typeStrategy` | G, P, C, F | RW | `URI` | 06-type.md |
+| `typeKey` | G, P, C, F | RW | `_type` | 06-type.md |
+| `typeFormat` | G, P, C, F | RW | `PLAIN` | 06-type.md |
+| `typeSchemaKey` | G, P, C, F | RW | `schema` | 06-type.md |
+| `typeNameKey` | G, P, C, F | RW | `type` | 06-type.md |
 | `typeScope` | G | RW | `ALL` | 06-type.md |
 | `typeFormatScope` | G | RW | `ALL` | 06-type.md |
 | `typeValueReaderName` | G, C | R | `null` | 06-type.md |
 | `typeValueWriterName` | G, C | W | `null` | 06-type.md |
-| `fingerprintMode` | G, C | W | `NONE` | 06-type.md §8 |
-| `fingerprintKey` | G, C | W + R (read: caller-side levels only) | `fingerprint` | 06-type.md §8 |
+| `fingerprintMode` | G, P, C | W | `NONE` | 06-type.md §8 |
+| `fingerprintKey` | G, P, C | W + R (read: caller-side levels only) | `fingerprint` | 06-type.md §8 |
 
 > **`fingerprintKey` read restriction:** on the **read** side the key is taken from
 > caller-side levels only (options, resource, factory, module), never from the model
@@ -449,20 +479,20 @@ For any property lookup:
 
 | Property | Levels | Direction | Default | Spec Section |
 |----------|--------|-----------|---------|--------------|
-| `idStrategy` | G, C | RW | `ID_FIELD` | 09-id.md |
-| `idKey` | G, C, F | RW | `_id` | 09-id.md |
-| `idValueKey` | G, C | RW | `id` | 09-id.md |
-| `idFormat` | G, C, F | RW | `PLAIN` | 09-id.md |
-| `idKeyMode` | G, C | RW | `ID_ONLY` | 09-id.md |
-| `idFeatures` | C | RW | `[]` | 09-id.md |
-| `idSeparator` | G, C | RW | `-` | 09-id.md |
-| `idSeparatorKey` | G, C | RW | `separator` | 09-id.md |
+| `idStrategy` | G, P, C | RW | `ID_FIELD` | 09-id.md |
+| `idKey` | G, P, C, F | RW | `_id` | 09-id.md |
+| `idValueKey` | G, P, C | RW | `id` | 09-id.md |
+| `idFormat` | G, P, C, F | RW | `PLAIN` | 09-id.md |
+| `idKeyMode` | G, P, C | RW | `ID_ONLY` | 09-id.md |
+| `idFeatures` | P, C | RW | `[]` | 09-id.md |
+| `idSeparator` | G, P, C | RW | `-` | 09-id.md |
+| `idSeparatorKey` | G, P, C | RW | `separator` | 09-id.md |
 | `idSeparatorSerialize` | G, C | (R)W | `true` | 09-id.md |
-| `idOnTop` | G, C | (R)W | `false` | 09-id.md |
+| `idOnTop` | G, P, C | (R)W | `false` | 09-id.md |
 | `idScope` | G | RW | `ALL` | 09-id.md |
 | `idFormatScope` | G | RW | `ALL` | 09-id.md |
-| `idValueReaderName` | G, C | R | `null` | 09-id.md |
-| `idValueWriterName` | G, C | W | `null` | 09-id.md |
+| `idValueReaderName` | G, P, C | R | `null` | 09-id.md |
+| `idValueWriterName` | G, P, C | W | `null` | 09-id.md |
 
 ### 11.5 Feature Properties
 
@@ -547,12 +577,12 @@ These keys are valid only in EAnnotations and control how annotations are proces
 
 | Property | Levels | Direction | Default | Spec Section |
 |----------|--------|-----------|---------|--------------|
-| `superTypeSerialize` | G, C | (R)W | `false` | 07-supertype.md |
-| `superTypeKey` | G, C | (R)W | (format-dependent)¹ | 07-supertype.md |
-| `superTypeStrategy` | G, C | (R)W | `ALL` | 07-supertype.md |
-| `superTypeAsArray` | G, C | (R)W | `true` | 07-supertype.md |
-| `superTypeSeparator` | G, C | (R)W | `,` | 07-supertype.md |
-| `superTypeFormat` | G, C | (R)W | (inherits typeFormat) | 07-supertype.md |
+| `superTypeSerialize` | G, P, C | (R)W | `false` | 07-supertype.md |
+| `superTypeKey` | G, P, C | (R)W | (format-dependent)¹ | 07-supertype.md |
+| `superTypeStrategy` | G, P, C | (R)W | `ALL` | 07-supertype.md |
+| `superTypeAsArray` | G, P, C | (R)W | `true` | 07-supertype.md |
+| `superTypeSeparator` | G, P, C | (R)W | `,` | 07-supertype.md |
+| `superTypeFormat` | G, P, C | (R)W | (inherits typeFormat) | 07-supertype.md |
 | `superTypeValueReaderName` | G, C | R | `null` | 07-supertype.md |
 | `superTypeValueWriterName` | G, C | W | `null` | 07-supertype.md |
 

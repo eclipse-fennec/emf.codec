@@ -476,14 +476,27 @@ CodecConfiguration.builder()
 | Level | EMF Element | Example |
 |-------|-------------|---------|
 | **Global** | Codec configuration | `CodecConfiguration.builder()...` |
+| **EPackage** | `EPackage` | Annotation on `<ecore:EPackage>` — defaults for every class in the package |
 | **EClass** | `EClassifier` | Annotation on `<eClassifiers>` |
 | **EReference** | `EReference` | Annotation on containment/non-containment reference |
 | **EAttribute** | `EAttribute` | Annotation on attribute |
 | **EStructuralFeature** | Both EReference and EAttribute | Common feature config |
 
-> **Note:** EPackage-level annotations do **not** exist yet; they are under consideration as a future scope level, which would allow package-wide defaults. The three design questions this raises — cross-package references, nested packages, and whether scopes participate — are answered in [99-open-questions.md Q1](99-open-questions.md#q1-epackage-scope-level); only the decision to add the level is open (issue #75).
+> **EPackage-level annotations are package-wide defaults** (issue #75). An annotation on the
+> `EPackage` configures every class in it; a class then states its exceptions on top, **per
+> property**, so overriding one key does not reset the package's others.
 >
-> Until then, configuration that is conceptually per-package is expressed at class level or through a caller-side option. `fingerprintMode` / `fingerprintKey` ([06 §8.7](06-type.md#87-configuration)) are the current example, deliberately built so the level can be added later without a breaking change.
+> This level is **annotation-internal**: it is merged into each class's annotation configuration
+> when the package profile is built, so the vertical source hierarchy still sees exactly one
+> annotation layer — see [02 §3.1](02-config-resolution.md#31-the-epackage-scope-is-annotation-internal).
+>
+> Two boundaries: resolution uses the **directly owning** package only (subpackage hierarchies are
+> not traversed anywhere in the codec), and **scopes do not participate** — see the reasoning under
+> [Type Configuration](#type-configuration) below.
+>
+> Typical use is configuration that is conceptually per-package. `fingerprintMode` /
+> `fingerprintKey` ([06 §8.7](06-type.md#87-configuration)) are the motivating example: the
+> fingerprint's currency *is* the `EPackage`.
 
 ---
 
@@ -493,17 +506,17 @@ Type configuration describes how type information is serialized/deserialized.
 
 > **Detailed documentation:** See [06-type.md](06-type.md) for complete type serialization specification including format/strategy examples, deserialization behavior, and real-world use cases (GeoJSON).
 
-| Annotation Key | Property Key | Global | EClass | ERef | EAttr | Description |
-|----------------|--------------|:------:|:------:|:----:|:-----:|-------------|
-| `typeStrategy` | `codec.typeStrategy` | ✅ | ✅ | ✅ | ❌ | Type identification strategy (see [TypeStrategy](#typestrategy-values) below) |
-| `typeFormat` | `codec.typeFormat` | ✅ | ✅ | ✅ | ❌ | Output format (see [SerializationFormat](#serializationformat)) |
-| `typeKey` | `codec.typeKey` | ✅ | ✅ | ✅ | ❌ | Outer JSON key (**default:** `_type`) |
-| `typeNameKey` | `codec.typeNameKey` | ✅ | ✅ | ✅ | ❌ | Inner type name key in STRUCTURED (**default:** `type`) |
-| `typeSchemaKey` | `codec.typeSchemaKey` | ✅ | ✅ | ✅ | ❌ | Inner schema key in STRUCTURED (**default:** `schema`) |
-| `typeValueReaderName` | `codec.typeValueReaderName` | ✅ | ✅ | ❌ | ❌ | Custom value reader service name |
-| `typeValueWriterName` | `codec.typeValueWriterName` | ✅ | ✅ | ❌ | ❌ | Custom value writer service name |
-| `fingerprintMode` | `codec.fingerprintMode` | ✅ | ✅ | ❌ | ❌ | Opt-in for writing the in-band EPackage fingerprint: `NONE` (**default**) or `FIRST_TOUCH` (see [06-type.md §8](06-type.md#8-in-band-epackage-fingerprint)) |
-| `fingerprintKey` | `codec.fingerprintKey` | ✅ | ✅ | ❌ | ❌ | Key carrying the fingerprint (**default:** `fingerprint`, PLAIN sibling `_fingerprint`). **Write-only as an annotation** — see below |
+| Annotation Key | Property Key | Global | EPkg | EClass | ERef | EAttr | Description |
+|----------------|--------------|:------:|:----:|:------:|:----:|:-----:|-------------|
+| `typeStrategy` | `codec.typeStrategy` | ✅ | ✅ | ✅ | ✅ | ❌ | Type identification strategy (see [TypeStrategy](#typestrategy-values) below) |
+| `typeFormat` | `codec.typeFormat` | ✅ | ✅ | ✅ | ✅ | ❌ | Output format (see [SerializationFormat](#serializationformat)) |
+| `typeKey` | `codec.typeKey` | ✅ | ✅ | ✅ | ✅ | ❌ | Outer JSON key (**default:** `_type`) |
+| `typeNameKey` | `codec.typeNameKey` | ✅ | ✅ | ✅ | ✅ | ❌ | Inner type name key in STRUCTURED (**default:** `type`) |
+| `typeSchemaKey` | `codec.typeSchemaKey` | ✅ | ✅ | ✅ | ✅ | ❌ | Inner schema key in STRUCTURED (**default:** `schema`) |
+| `typeValueReaderName` | `codec.typeValueReaderName` | ✅ | ❌ | ✅ | ❌ | ❌ | Custom value reader service name |
+| `typeValueWriterName` | `codec.typeValueWriterName` | ✅ | ❌ | ✅ | ❌ | ❌ | Custom value writer service name |
+| `fingerprintMode` | `codec.fingerprintMode` | ✅ | ✅ | ✅ | ❌ | ❌ | Opt-in for writing the in-band EPackage fingerprint: `NONE` (**default**) or `FIRST_TOUCH` (see [06-type.md §8](06-type.md#8-in-band-epackage-fingerprint)) |
+| `fingerprintKey` | `codec.fingerprintKey` | ✅ | ✅ | ✅ | ❌ | ❌ | Key carrying the fingerprint (**default:** `fingerprint`, PLAIN sibling `_fingerprint`). **Write-only as an annotation** — see below |
 
 > **⚠ `fingerprintKey` as an annotation configures writing only.** A reader must know the
 > key *before* it can select the model version, but an annotation-configured key lives in
@@ -516,8 +529,8 @@ Type configuration describes how type information is serialized/deserialized.
 > **No `fingerprintInclude` flag.** On/off is expressed through `fingerprintMode=NONE`,
 > deliberately mirroring `typeStrategy=NONE` — a parallel boolean is the pattern that made
 > `typeInclude` deprecated (T-V30/T-V31).
-| — | `codec.typeScope` | 🔧 | ❌ | ❌ | ❌ | Strategy scope (see [StrategyScope](#strategyscope)) |
-| — | `codec.typeFormatScope` | 🔧 | ❌ | ❌ | ❌ | Format scope (see [StrategyScope](#strategyscope)) |
+| — | `codec.typeScope` | 🔧 | ❌ | ❌ | ❌ | ❌ | Strategy scope (see [StrategyScope](#strategyscope)) |
+| — | `codec.typeFormatScope` | 🔧 | ❌ | ❌ | ❌ | ❌ | Format scope (see [StrategyScope](#strategyscope)) |
 
 > **Why `typeScope`/`typeFormatScope` are runtime-only:** these properties control *where* a strategy applies (`ROOT_ONLY`, `ROOT_CONTAINMENT`, …), which is a property of the *operation*, not of the model. A model cannot know whether one of its classes will be somebody's root or somebody else's nested content — the same class is both, in different documents.
 >
@@ -587,16 +600,16 @@ SuperType describes class inheritance hierarchy. This is an **extension of Type*
 
 > **Detailed documentation:** See [07-supertype.md](07-supertype.md) for complete supertype serialization specification.
 
-| Annotation Key | Property Key | Global | EClass | ERef | EAttr | Description |
-|----------------|--------------|:------:|:------:|:----:|:-----:|-------------|
-| `superTypeSerialize` | `codec.superTypeSerialize` | ✅ | ✅ | ❌ | ❌ | Enable supertype serialization (**default:** `false`) |
-| `superTypeKey` | `codec.superTypeKey` | ✅ | ✅ | ❌ | ❌ | JSON key (**default:** format-dependent, see below) |
-| `superTypeStrategy` | `codec.superTypeStrategy` | ✅ | ✅ | ❌ | ❌ | Which supertypes to include (see below) |
-| `superTypeAsArray` | `codec.superTypeAsArray` | ✅ | ✅ | ❌ | ❌ | Array vs string (**default:** `true`) |
-| `superTypeSeparator` | `codec.superTypeSeparator` | ✅ | ✅ | ❌ | ❌ | Separator for string (**default:** `,`) |
-| `superTypeFormat` | `codec.superTypeFormat` | ✅ | ✅ | ❌ | ❌ | Output format (see [SerializationFormat](#serializationformat)) |
-| `superTypeValueReaderName` | `codec.superTypeValueReaderName` | ✅ | ✅ | ❌ | ❌ | Custom value reader service name |
-| `superTypeValueWriterName` | `codec.superTypeValueWriterName` | ✅ | ✅ | ❌ | ❌ | Custom value writer service name |
+| Annotation Key | Property Key | Global | EPkg | EClass | ERef | EAttr | Description |
+|----------------|--------------|:------:|:----:|:------:|:----:|:-----:|-------------|
+| `superTypeSerialize` | `codec.superTypeSerialize` | ✅ | ✅ | ✅ | ❌ | ❌ | Enable supertype serialization (**default:** `false`) |
+| `superTypeKey` | `codec.superTypeKey` | ✅ | ✅ | ✅ | ❌ | ❌ | JSON key (**default:** format-dependent, see below) |
+| `superTypeStrategy` | `codec.superTypeStrategy` | ✅ | ✅ | ✅ | ❌ | ❌ | Which supertypes to include (see below) |
+| `superTypeAsArray` | `codec.superTypeAsArray` | ✅ | ✅ | ✅ | ❌ | ❌ | Array vs string (**default:** `true`) |
+| `superTypeSeparator` | `codec.superTypeSeparator` | ✅ | ✅ | ✅ | ❌ | ❌ | Separator for string (**default:** `,`) |
+| `superTypeFormat` | `codec.superTypeFormat` | ✅ | ✅ | ✅ | ❌ | ❌ | Output format (see [SerializationFormat](#serializationformat)) |
+| `superTypeValueReaderName` | `codec.superTypeValueReaderName` | ✅ | ❌ | ✅ | ❌ | ❌ | Custom value reader service name |
+| `superTypeValueWriterName` | `codec.superTypeValueWriterName` | ✅ | ❌ | ✅ | ❌ | ❌ | Custom value writer service name |
 
 > **Note:** `superTypeSchemaKey` removed - SuperType inherits `schemaKey` from TypeConfig.
 > **Note:** `superTypeNameKey` removed - `superTypeKey` has format-dependent default:
@@ -665,7 +678,7 @@ Discriminator mappings use **dedicated annotation sources** (not the main `http:
 ### Properties
 
 | Annotation Key | Property Key | EClass | ERef | Description |
-|----------------|--------------|:------:|:----:|-------------|
+|----------------|--------------|:------:|:----:|:----:|-------------|
 | — | `codec.typeMapId` | ✅ | ❌ | Registry ID (embedded in annotation source URI) |
 | `typeDiscriminatorPath` | `codec.typeDiscriminatorPath` | ✅ | ❌ | JSON path to discriminator value |
 | `{value}` | — | ✅ | ✅ | Mapping entries as direct key/value details |
@@ -989,22 +1002,22 @@ ID configuration describes how an object identifies itself.
 
 > **Detailed documentation:** See [09-id.md](09-id.md) for complete ID serialization specification.
 
-| Annotation Key | Property Key | Global | EClass | ERef | EAttr | Description |
-|----------------|--------------|:------:|:------:|:----:|:-----:|-------------|
-| `idStrategy` | `codec.idStrategy` | ✅ | ✅ | ❌ | ❌ | ID building strategy (see [IdStrategy](#idstrategy-values) below) |
-| `idFormat` | `codec.idFormat` | ✅ | ✅ | ✅ | ❌ | Output format (see [SerializationFormat](#serializationformat)) |
-| `idKey` | `codec.idKey` | ✅ | ✅ | ✅ | ❌ | Outer JSON key (**default:** `_id`) |
-| `idValueKey` | `codec.idValueKey` | ✅ | ✅ | ❌ | ❌ | Inner key in STRUCTURED (**default:** `id`) |
-| `idFeatures` | `codec.idFeatures` | ❌ | ✅ | ❌ | ❌ | Comma-separated feature names for COMBINED |
-| `idSeparator` | `codec.idSeparator` | ✅ | ✅ | ❌ | ❌ | Separator for COMBINED (**default:** `-`) |
-| `idSeparatorKey` | `codec.idSeparatorKey` | ✅ | ✅ | ❌ | ❌ | Key for separator field (**default:** `separator`) |
-| `idSeparatorSerialize` | `codec.idSeparatorSerialize` | ✅ | ✅ | ❌ | ❌ | Include separator in STRUCTURED (**default:** `true`) |
-| `idKeyMode` | `codec.idKeyMode` | ✅ | ✅ | ❌ | ❌ | ID_ONLY, BOTH, or FEATURE_ONLY (see below) |
-| `idOnTop` | `codec.idOnTop` | ✅ | ✅ | ❌ | ❌ | ID before type in output (**default:** `false`) |
-| `idValueReaderName` | `codec.idValueReaderName` | ✅ | ✅ | ❌ | ❌ | Custom value reader service name |
-| `idValueWriterName` | `codec.idValueWriterName` | ✅ | ✅ | ❌ | ❌ | Custom value writer service name |
-| — | `codec.idScope` | 🔧 | ❌ | ❌ | ❌ | Strategy scope (see [StrategyScope](#strategyscope)) |
-| — | `codec.idFormatScope` | 🔧 | ❌ | ❌ | ❌ | Format scope (see [StrategyScope](#strategyscope)) |
+| Annotation Key | Property Key | Global | EPkg | EClass | ERef | EAttr | Description |
+|----------------|--------------|:------:|:----:|:------:|:----:|:-----:|-------------|
+| `idStrategy` | `codec.idStrategy` | ✅ | ✅ | ✅ | ❌ | ❌ | ID building strategy (see [IdStrategy](#idstrategy-values) below) |
+| `idFormat` | `codec.idFormat` | ✅ | ✅ | ✅ | ✅ | ❌ | Output format (see [SerializationFormat](#serializationformat)) |
+| `idKey` | `codec.idKey` | ✅ | ✅ | ✅ | ✅ | ❌ | Outer JSON key (**default:** `_id`) |
+| `idValueKey` | `codec.idValueKey` | ✅ | ✅ | ✅ | ❌ | ❌ | Inner key in STRUCTURED (**default:** `id`) |
+| `idFeatures` | `codec.idFeatures` | ❌ | ✅ | ✅ | ❌ | ❌ | Comma-separated feature names for COMBINED |
+| `idSeparator` | `codec.idSeparator` | ✅ | ✅ | ✅ | ❌ | ❌ | Separator for COMBINED (**default:** `-`) |
+| `idSeparatorKey` | `codec.idSeparatorKey` | ✅ | ✅ | ✅ | ❌ | ❌ | Key for separator field (**default:** `separator`) |
+| `idSeparatorSerialize` | `codec.idSeparatorSerialize` | ✅ | ❌ | ✅ | ❌ | ❌ | Include separator in STRUCTURED (**default:** `true`) |
+| `idKeyMode` | `codec.idKeyMode` | ✅ | ✅ | ✅ | ❌ | ❌ | ID_ONLY, BOTH, or FEATURE_ONLY (see below) |
+| `idOnTop` | `codec.idOnTop` | ✅ | ✅ | ✅ | ❌ | ❌ | ID before type in output (**default:** `false`) |
+| `idValueReaderName` | `codec.idValueReaderName` | ✅ | ✅ | ✅ | ❌ | ❌ | Custom value reader service name |
+| `idValueWriterName` | `codec.idValueWriterName` | ✅ | ✅ | ✅ | ❌ | ❌ | Custom value writer service name |
+| — | `codec.idScope` | 🔧 | ❌ | ❌ | ❌ | ❌ | Strategy scope (see [StrategyScope](#strategyscope)) |
+| — | `codec.idFormatScope` | 🔧 | ❌ | ❌ | ❌ | ❌ | Format scope (see [StrategyScope](#strategyscope)) |
 
 **Implementation:** `CodecAnnotationConstants.KEY_ID_*`
 
@@ -1160,10 +1173,10 @@ The inner key for the combined/single ID value is configurable via `idValueKey` 
 
 When both `typeFormat` and `idFormat` are `STRUCTURED`, you can optionally merge type, supertype, and ID information into a single metadata object.
 
-| Annotation Key | Property Key | Global | EClass | ERef | EAttr | Description |
-|----------------|--------------|:------:|:------:|:----:|:-----:|-------------|
-| `metadataMerge` | `codec.metadataMerge` | ✅ | ✅ | ❌ | ❌ | Merge type + id into single object (**default:** `false`) |
-| `metadataKey` | `codec.metadataKey` | ✅ | ✅ | ❌ | ❌ | Key for merged metadata object (**default:** `_metadata`) |
+| Annotation Key | Property Key | Global | EPkg | EClass | ERef | EAttr | Description |
+|----------------|--------------|:------:|:----:|:------:|:----:|:-----:|-------------|
+| `metadataMerge` | `codec.metadataMerge` | ✅ | ❌ | ✅ | ❌ | ❌ | Merge type + id into single object (**default:** `false`) |
+| `metadataKey` | `codec.metadataKey` | ✅ | ❌ | ✅ | ❌ | ❌ | Key for merged metadata object (**default:** `_metadata`) |
 
 **Prerequisite:** `metadataMerge` only applies when `typeFormat == STRUCTURED && idFormat == STRUCTURED`. Otherwise ignored.
 
@@ -1282,16 +1295,16 @@ Reference configuration describes how non-containment references (and cross-docu
 
 > **Detailed documentation:** See [10-reference.md](10-reference.md) for complete reference serialization specification.
 
-| Annotation Key | Property Key | Global | EClass | ERef | EAttr | Description |
-|----------------|--------------|:------:|:------:|:----:|:-----:|-------------|
-| `refFormat` | `codec.refFormat` | ✅ | ❌ | ✅ | ❌ | Output format (see [SerializationFormat](#serializationformat)) |
-| `refKey` | `codec.refKey` | ✅ | ❌ | ✅ | ❌ | Reference value key (**default:** `_ref`) |
-| `refTypeKey` | `codec.refTypeKey` | ✅ | ❌ | ✅ | ❌ | Type key in STRUCTURED (**default:** `_type`) |
-| `expand` | `codec.expand` | ✅ | ✅ | ✅ | ❌ | Inline specific refs (list at G/C, boolean at F) (**default:** `false`/empty) |
-| `expandGlobal` | `codec.expandGlobal` | ✅ | ✅ | ❌ | ❌ | Expand ALL non-containment references (**default:** `false`) |
-| `expandDepth` | `codec.expandDepth` | ✅ | ✅ | ✅ | ❌ | Max depth for nested expansion (**default:** `1`) |
-| `expandIgnoreBidirectional` | `codec.expandIgnoreBidirectional` | ✅ | ✅ | ✅ | ❌ | Skip opposite references during expand (**default:** `true`) |
-| `serializeInstanceType` | `codec.serializeInstanceType` | ✅ | ❌ | ✅ | ❌ | Write instance type vs reference type (**default:** `true`) |
+| Annotation Key | Property Key | Global | EPkg | EClass | ERef | EAttr | Description |
+|----------------|--------------|:------:|:----:|:------:|:----:|:-----:|-------------|
+| `refFormat` | `codec.refFormat` | ✅ | ❌ | ❌ | ✅ | ❌ | Output format (see [SerializationFormat](#serializationformat)) |
+| `refKey` | `codec.refKey` | ✅ | ❌ | ❌ | ✅ | ❌ | Reference value key (**default:** `_ref`) |
+| `refTypeKey` | `codec.refTypeKey` | ✅ | ❌ | ❌ | ✅ | ❌ | Type key in STRUCTURED (**default:** `_type`) |
+| `expand` | `codec.expand` | ✅ | ❌ | ✅ | ✅ | ❌ | Inline specific refs (list at G/C, boolean at F) (**default:** `false`/empty) |
+| `expandGlobal` | `codec.expandGlobal` | ✅ | ❌ | ✅ | ❌ | ❌ | Expand ALL non-containment references (**default:** `false`) |
+| `expandDepth` | `codec.expandDepth` | ✅ | ❌ | ✅ | ✅ | ❌ | Max depth for nested expansion (**default:** `1`) |
+| `expandIgnoreBidirectional` | `codec.expandIgnoreBidirectional` | ✅ | ❌ | ✅ | ✅ | ❌ | Skip opposite references during expand (**default:** `true`) |
+| `serializeInstanceType` | `codec.serializeInstanceType` | ✅ | ❌ | ❌ | ✅ | ❌ | Write instance type vs reference type (**default:** `true`) |
 
 **Implementation:** `CodecAnnotationConstants.KEY_REF_*`, `CodecAnnotationConstants.KEY_EXPAND`, `CodecAnnotationConstants.KEY_EXPAND_GLOBAL`, `CodecAnnotationConstants.KEY_SERIALIZE_INSTANCE_TYPE`
 
@@ -1337,13 +1350,13 @@ Feature configuration controls serialization/deserialization behavior for indivi
 
 #### Per-Feature Annotations
 
-| Annotation Key | Property Key | Global | EClass | ERef | EAttr | Description |
-|----------------|--------------|:------:|:------:|:----:|:-----:|-------------|
-| `ignore` | `codec.ignore` | ❌ | ❌ | ✅ | ✅ | Skip both read AND write (**default:** `false`) |
-| `ignoreRead` | `codec.ignoreRead` | ❌ | ❌ | ✅ | ✅ | Skip deserialization only (**default:** `false`) |
-| `ignoreWrite` | `codec.ignoreWrite` | ❌ | ❌ | ✅ | ✅ | Skip serialization only (**default:** `false`) |
-| `forceRead` | `codec.forceRead` | ❌ | ❌ | ✅ | ✅ | Force read EMF transient/volatile (**default:** `false`) |
-| `forceWrite` | `codec.forceWrite` | ❌ | ❌ | ✅ | ✅ | Force write EMF transient/volatile (**default:** `false`) |
+| Annotation Key | Property Key | Global | EPkg | EClass | ERef | EAttr | Description |
+|----------------|--------------|:------:|:----:|:------:|:----:|:-----:|-------------|
+| `ignore` | `codec.ignore` | ❌ | ❌ | ❌ | ✅ | ✅ | Skip both read AND write (**default:** `false`) |
+| `ignoreRead` | `codec.ignoreRead` | ❌ | ❌ | ❌ | ✅ | ✅ | Skip deserialization only (**default:** `false`) |
+| `ignoreWrite` | `codec.ignoreWrite` | ❌ | ❌ | ❌ | ✅ | ✅ | Skip serialization only (**default:** `false`) |
+| `forceRead` | `codec.forceRead` | ❌ | ❌ | ❌ | ✅ | ✅ | Force read EMF transient/volatile (**default:** `false`) |
+| `forceWrite` | `codec.forceWrite` | ❌ | ❌ | ❌ | ✅ | ✅ | Force write EMF transient/volatile (**default:** `false`) |
 
 **Note:** `ignore`, `ignoreRead`, and `ignoreWrite` are codec-level controls. `forceRead` and `forceWrite` override EMF-level `transient`, `volatile`, and `derived` markers.
 
@@ -1387,15 +1400,15 @@ Deserialization:
 
 ### Feature Serialization Options
 
-| Annotation Key | Property Key | Global | EClass | ERef | EAttr | Description |
-|----------------|--------------|:------:|:------:|:----:|:-----:|-------------|
-| `key` | `codec.key` | ❌ | ❌ | ✅ | ✅ | Custom JSON property name |
-| `serializeNull` | `codec.serializeNull` | ✅ | ❌ | ✅ | ✅ | Include null values (**default:** `false`) |
-| `serializeEmpty` | `codec.serializeEmpty` | ✅ | ❌ | ✅ | ✅ | Include empty collections (**default:** `false`) |
-| `serializeDefaults` | `codec.serializeDefaults` | ✅ | ❌ | ✅ | ✅ | Include default values (**default:** `false`) |
-| `enumSerialization` | `codec.enumSerialization` | ✅ | ❌ | ❌ | ✅ | How to serialize enum values |
-| `valueReaderName` | `codec.valueReaderName` | ❌ | ❌ | ✅ | ✅ | Custom value reader service name |
-| `valueWriterName` | `codec.valueWriterName` | ❌ | ❌ | ✅ | ✅ | Custom value writer service name |
+| Annotation Key | Property Key | Global | EPkg | EClass | ERef | EAttr | Description |
+|----------------|--------------|:------:|:----:|:------:|:----:|:-----:|-------------|
+| `key` | `codec.key` | ❌ | ❌ | ❌ | ✅ | ✅ | Custom JSON property name |
+| `serializeNull` | `codec.serializeNull` | ✅ | ❌ | ❌ | ✅ | ✅ | Include null values (**default:** `false`) |
+| `serializeEmpty` | `codec.serializeEmpty` | ✅ | ❌ | ❌ | ✅ | ✅ | Include empty collections (**default:** `false`) |
+| `serializeDefaults` | `codec.serializeDefaults` | ✅ | ❌ | ❌ | ✅ | ✅ | Include default values (**default:** `false`) |
+| `enumSerialization` | `codec.enumSerialization` | ✅ | ❌ | ❌ | ❌ | ✅ | How to serialize enum values |
+| `valueReaderName` | `codec.valueReaderName` | ❌ | ❌ | ❌ | ✅ | ✅ | Custom value reader service name |
+| `valueWriterName` | `codec.valueWriterName` | ❌ | ❌ | ❌ | ✅ | ✅ | Custom value writer service name |
 
 **Implementation:** `CodecAnnotationConstants.KEY_KEY`, `KEY_IGNORE`, `KEY_IGNORE_READ`, `KEY_IGNORE_WRITE`, `KEY_FORCE_READ`, `KEY_FORCE_WRITE`, `KEY_SERIALIZE_NULL`, `KEY_SERIALIZE_EMPTY`, `KEY_SERIALIZE_DEFAULTS`, `KEY_VALUE_READER_NAME`, `KEY_VALUE_WRITER_NAME`, `KEY_ENUM_SERIALIZATION`
 
@@ -1435,10 +1448,10 @@ Previous versions used `transient` and `serialize` properties. These are now **d
 
 Controls how deserializer handles unexpected mismatches.
 
-| Annotation Key | Property Key | Global | EClass | Default | Description |
-|----------------|--------------|:------:|:------:|---------|-------------|
-| `strictOnUnknown` | `codec.strictOnUnknown` | ✅ | ✅ | `false` | ERROR on unknown JSON field |
-| `strictOnMissing` | `codec.strictOnMissing` | ✅ | ✅ | `false` | ERROR on missing required feature |
+| Annotation Key | Property Key | Global | EPkg | EClass | Default | Description |
+|----------------|--------------|:------:|:----:|:------:|---------|-------------|
+| `strictOnUnknown` | `codec.strictOnUnknown` | ✅ | ❌ | ✅ | `false` | ERROR on unknown JSON field |
+| `strictOnMissing` | `codec.strictOnMissing` | ✅ | ❌ | ✅ | `false` | ERROR on missing required feature |
 
 **Note:** Strictness is not supported on EReference or EAttribute level. It applies to all features of a class uniformly.
 
