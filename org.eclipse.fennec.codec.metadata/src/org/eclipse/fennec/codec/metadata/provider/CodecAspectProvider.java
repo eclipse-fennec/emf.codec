@@ -16,6 +16,8 @@ import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstant
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_DATE_FORMAT;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_ENUM_SERIALIZATION;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_EXPAND;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_FINGERPRINT_KEY;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_FINGERPRINT_MODE;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_FORCE_READ;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_FORCE_WRITE;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_ID_FEATURES;
@@ -83,6 +85,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecFactory;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecPackageProfile;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
+import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
@@ -649,6 +652,13 @@ public class CodecAspectProvider implements AspectProvider {
         // Name key
         AnnotationParseHelper.ifStringPresent(details, KEY_TYPE_NAME_KEY, config::setNameKey);
 
+        // In-band EPackage fingerprint (issue #73, B.1). Write-side configuration only:
+        // the read key comes from caller-side sources, never from the model (see
+        // CodecAnnotationConstants.KEY_FINGERPRINT_KEY).
+        AnnotationParseHelper.ifEnumPresent(details, KEY_FINGERPRINT_MODE, FingerprintMode.class,
+                config::setFingerprintMode);
+        AnnotationParseHelper.ifStringPresent(details, KEY_FINGERPRINT_KEY, config::setFingerprintKey);
+
         return config;
     }
 
@@ -767,7 +777,9 @@ public class CodecAspectProvider implements AspectProvider {
                 || details.containsKey(KEY_TYPE_KEY)
                 || details.containsKey(KEY_TYPE_FORMAT)
                 || details.containsKey(KEY_TYPE_SCHEMA_KEY)
-                || details.containsKey(KEY_TYPE_NAME_KEY);
+                || details.containsKey(KEY_TYPE_NAME_KEY)
+                || details.containsKey(KEY_FINGERPRINT_MODE)
+                || details.containsKey(KEY_FINGERPRINT_KEY);
         // Note: typeMapId, typeDiscriminatorPath, fallbackStrategy, fallbackEClass
         // are now on typeMapping/{mapId} dedicated annotation source, not main codec
     }

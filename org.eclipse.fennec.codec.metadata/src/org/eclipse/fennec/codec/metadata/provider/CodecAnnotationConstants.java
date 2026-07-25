@@ -405,6 +405,28 @@ public final class CodecAnnotationConstants {
     public static final String KEY_TYPE_NAME_KEY = "typeNameKey";
 
     /**
+     * Detail key for the in-band EPackage fingerprint write mode (issue #73, B.1).
+     * Values: "NONE" (default), "FIRST_TOUCH".
+     * <p>
+     * Opting in here makes the model itself request self-describing output. Reading is
+     * unaffected — a reader always accepts a fingerprint it finds.
+     * </p>
+     */
+    public static final String KEY_FINGERPRINT_MODE = "fingerprintMode";
+
+    /**
+     * Detail key for the key carrying the in-band EPackage fingerprint (issue #73, B.1).
+     * Default: "fingerprint" (PLAIN sibling: "_fingerprint").
+     * <p>
+     * <b>Configures writing only.</b> A reader must know the key before it can select the
+     * model version, but this annotation lives in the configuration that only exists after
+     * that selection. The read key therefore comes from caller-side sources exclusively,
+     * plus the always-accepted default key.
+     * </p>
+     */
+    public static final String KEY_FINGERPRINT_KEY = "fingerprintKey";
+
+    /**
      * Detail key for type strategy scope (runtime-only, not valid in EAnnotations).
      * Values: "ALL", "ROOT_ONLY", "ROOT_CONTAINMENT", "ROOT_NON_CONTAINMENT". Default: "ALL".
      * <p>
