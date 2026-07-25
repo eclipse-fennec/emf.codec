@@ -83,6 +83,11 @@ public class CodecAnnotationConverter implements AnnotationConverter {
 		options.put(CodecOptions.CODEC_TYPE_INCLUDE, config.typeInclude());
 		putIfNotBlank(options, CodecOptions.CODEC_TYPE_NAME_KEY, config.typeNameKey());
 		putIfNotBlank(options, CodecOptions.CODEC_TYPE_SCHEMA_KEY, config.typeSchemaKey());
+		// The fingerprint mode's default is NONE, which is a real value rather than blank.
+		// Forwarding it unconditionally would make the options level (the highest one) clobber
+		// a model annotation that opted in, so only an actual opt-in is forwarded.
+		putIfNotDefault(options, CodecOptions.CODEC_FINGERPRINT_MODE, config.fingerprintMode(), "NONE");
+		putIfNotBlank(options, CodecOptions.CODEC_FINGERPRINT_KEY, config.fingerprintKey());
 
 		// ID Configuration
 		options.put(CodecOptions.CODEC_ID_STRATEGY, config.idStrategy());
@@ -108,6 +113,16 @@ public class CodecAnnotationConverter implements AnnotationConverter {
 
 	private void putIfNotBlank(Map<Object, Object> options, String key, String value) {
 		if (value != null && !value.isBlank()) {
+			options.put(key, value);
+		}
+	}
+
+	/**
+	 * Forwards a value only when it deviates from the annotation default, so that leaving an
+	 * annotation attribute untouched does not override a lower configuration level.
+	 */
+	private void putIfNotDefault(Map<Object, Object> options, String key, String value, String defaultValue) {
+		if (value != null && !value.isBlank() && !value.equals(defaultValue)) {
 			options.put(key, value);
 		}
 	}

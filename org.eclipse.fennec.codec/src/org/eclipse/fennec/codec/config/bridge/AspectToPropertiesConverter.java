@@ -22,6 +22,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
+import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
@@ -187,6 +188,12 @@ public final class AspectToPropertiesConverter {
             putIfNotNull(props, "typeMapId", typeConfig.getMapId());
             putIfNotNull(props, "typeDiscriminatorPath", typeConfig.getDiscriminatorPath());
             putIfNotNull(props, "typeDiscriminator", typeConfig.getDiscriminatorValue());
+            // In-band EPackage fingerprint (issue #73, B.1). NONE is the default and carries
+            // no information, so only an actual opt-in is forwarded.
+            putIfNotDefault(props, "fingerprintMode",
+                    typeConfig.getFingerprintMode() != null ? typeConfig.getFingerprintMode().name() : null,
+                    FingerprintMode.NONE.name());
+            putIfNotDefault(props, "fingerprintKey", typeConfig.getFingerprintKey(), "fingerprint");
         }
 
         // ID config

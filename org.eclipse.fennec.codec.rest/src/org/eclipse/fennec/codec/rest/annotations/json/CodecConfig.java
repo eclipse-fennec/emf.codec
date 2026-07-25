@@ -139,6 +139,29 @@ public @interface CodecConfig {
 	 */
 	String typeSchemaKey() default "";
 
+	/**
+	 * Whether to write the in-band EPackage fingerprint, making the payload
+	 * self-describing across model versions.
+	 * <p>
+	 * Governs writing only — a reader always accepts a fingerprint it finds.
+	 * </p>
+	 * @return "NONE" (default) or "FIRST_TOUCH"
+	 * @see CodecOptions#CODEC_FINGERPRINT_MODE
+	 */
+	String fingerprintMode() default "NONE";
+
+	/**
+	 * Key carrying the in-band EPackage fingerprint.
+	 * <p>
+	 * Set this on a REST endpoint that must <b>read</b> payloads written under a
+	 * non-default key: the key cannot be taken from the model, because a reader has to
+	 * know it before the model version is selected.
+	 * </p>
+	 * @return the fingerprint key, or empty string for default ("fingerprint")
+	 * @see CodecOptions#CODEC_FINGERPRINT_KEY
+	 */
+	String fingerprintKey() default "";
+
 	// ========================================================================
 	// ID Configuration
 	// ========================================================================

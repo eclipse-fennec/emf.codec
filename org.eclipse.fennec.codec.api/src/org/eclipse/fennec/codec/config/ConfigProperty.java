@@ -85,6 +85,39 @@ public enum ConfigProperty {
     TYPE_VALUE_WRITER_NAME("typeValueWriterName", String.class, null,
         levels(GLOBAL, ECLASS), directions(WRITE)),
 
+    /**
+     * Opt-in for writing the in-band EPackage fingerprint (issue #73, B.1).
+     * <p>
+     * {@code NONE} (default) writes none; {@code FIRST_TOUCH} writes it at the first
+     * occurrence of each distinct package instance in document order. Reading is
+     * <b>always</b> liberal and does not consult this property — hence WRITE only.
+     * </p>
+     *
+     * @see <a href="docs/codec-v2-spec/06-type.md#8-in-band-epackage-fingerprint">Spec 06 §8</a>
+     */
+    FINGERPRINT_MODE("fingerprintMode", String.class, "NONE",
+        levels(GLOBAL, ECLASS), directions(WRITE)),
+
+    /**
+     * Key carrying the in-band EPackage fingerprint (issue #73, B.1).
+     * <p>
+     * The configured value is the <b>inner</b> (unprefixed) key used inside a STRUCTURED
+     * type object; the PLAIN sibling derives from it by prefixing {@code _}. Values already
+     * starting with {@code _} or {@code @} are taken as-is.
+     * </p>
+     * <p>
+     * <b>On the read side this key may only come from caller-side levels</b> (options,
+     * resource, factory, module), never from a model annotation, and the default key is
+     * always accepted in addition. Reading has to know the key before the model version is
+     * selected, but an annotation-configured key only exists after that selection — a
+     * genuine cycle, broken here deliberately.
+     * </p>
+     *
+     * @see <a href="docs/codec-v2-spec/06-type.md#85--the-fingerprintkey-chicken-and-egg-problem">Spec 06 §8.5</a>
+     */
+    FINGERPRINT_KEY("fingerprintKey", String.class, "fingerprint",
+        levels(GLOBAL, ECLASS), directions(READ, WRITE)),
+
     // ========================================================================
     // ID Properties (11.4)
     // ========================================================================

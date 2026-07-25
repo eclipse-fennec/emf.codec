@@ -19,6 +19,7 @@ import static org.eclipse.fennec.codec.config.ConfigMergeHelper.getString;
 import java.util.Map;
 
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
+import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
 import org.eclipse.fennec.model.metadata.SerializationFormat;
 import org.eclipse.fennec.model.metadata.TypeStrategy;
 
@@ -49,6 +50,8 @@ public final class TypeConfig implements Mergeable<TypeConfig> {
     private final String discriminatorValue;
     private final String valueReaderName;
     private final String valueWriterName;
+    private final FingerprintMode fingerprintMode;
+    private final String fingerprintKey;
 
     private TypeConfig(Builder builder) {
         this.include = builder.include;
@@ -61,6 +64,8 @@ public final class TypeConfig implements Mergeable<TypeConfig> {
         this.discriminatorValue = builder.discriminatorValue;
         this.valueReaderName = builder.valueReaderName;
         this.valueWriterName = builder.valueWriterName;
+        this.fingerprintMode = builder.fingerprintMode;
+        this.fingerprintKey = builder.fingerprintKey;
     }
 
     // ========================================================================
@@ -143,6 +148,73 @@ public final class TypeConfig implements Mergeable<TypeConfig> {
         return valueWriterName;
     }
 
+    /**
+     * Returns whether and how the in-band EPackage fingerprint is written (issue #73, B.1).
+     * <p>
+     * Default: {@link FingerprintMode#NONE} — nothing is written unless a use case opts in.
+     * This governs <b>writing only</b>; reading always accepts a fingerprint it finds.
+     * </p>
+     *
+     * @return the fingerprint write mode, never {@code null}
+     * @see <a href="docs/codec-v2-spec/06-type.md#8-in-band-epackage-fingerprint">Spec 06 §8</a>
+     */
+    public FingerprintMode getFingerprintMode() {
+        return fingerprintMode;
+    }
+
+    /**
+     * Returns whether writing the fingerprint is enabled at all.
+     *
+     * @return {@code true} unless the mode is {@link FingerprintMode#NONE}
+     */
+    public boolean isFingerprintWriteEnabled() {
+        return fingerprintMode != null && fingerprintMode != FingerprintMode.NONE;
+    }
+
+    /**
+     * Returns the <b>inner</b> key carrying the fingerprint, as used inside a STRUCTURED
+     * type object.
+     * <p>
+     * Default: {@code "fingerprint"}. For the PLAIN sibling form see
+     * {@link #getPlainFingerprintKey()}.
+     * </p>
+     *
+     * @return the inner fingerprint key
+     */
+    public String getFingerprintKey() {
+        return fingerprintKey;
+    }
+
+    /**
+     * Returns the fingerprint key in its <b>PLAIN sibling</b> form, derived from
+     * {@link #getFingerprintKey()} by prefixing {@code _}.
+     * <p>
+     * A configured key that already starts with {@code _} or {@code @} is returned
+     * unchanged, so {@code @fingerprint} stays {@code @fingerprint}. This is the same
+     * one-value-two-placements rule the schema key uses, so configuring the key does not
+     * require knowing which format will be used.
+     * </p>
+     *
+     * @return the PLAIN form of the fingerprint key
+     */
+    public String getPlainFingerprintKey() {
+        return toPlainKey(fingerprintKey);
+    }
+
+    /**
+     * Derives the PLAIN sibling form of an inner metadata key: prefixed with {@code _}
+     * unless the key already carries a metadata prefix.
+     */
+    private static String toPlainKey(String innerKey) {
+        if (innerKey == null || innerKey.isEmpty()) {
+            return innerKey;
+        }
+        if (innerKey.startsWith("_") || innerKey.startsWith("@")) {
+            return innerKey;
+        }
+        return "_" + innerKey;
+    }
+
     // ========================================================================
     // Merge support
     // ========================================================================
@@ -170,6 +242,9 @@ public final class TypeConfig implements Mergeable<TypeConfig> {
                 .discriminatorValue(getString(source, ConfigProperty.TYPE_DISCRIMINATOR, this.discriminatorValue))
                 .valueReaderName(getString(source, ConfigProperty.TYPE_VALUE_READER_NAME, this.valueReaderName))
                 .valueWriterName(getString(source, ConfigProperty.TYPE_VALUE_WRITER_NAME, this.valueWriterName))
+                .fingerprintMode(getEnum(source, ConfigProperty.FINGERPRINT_MODE, FingerprintMode.class,
+                        this.fingerprintMode))
+                .fingerprintKey(getString(source, ConfigProperty.FINGERPRINT_KEY, this.fingerprintKey))
                 .build();
     }
 
@@ -229,7 +304,9 @@ public final class TypeConfig implements Mergeable<TypeConfig> {
                 .discriminatorPath(this.discriminatorPath)
                 .discriminatorValue(this.discriminatorValue)
                 .valueReaderName(this.valueReaderName)
-                .valueWriterName(this.valueWriterName);
+                .valueWriterName(this.valueWriterName)
+                .fingerprintMode(this.fingerprintMode)
+                .fingerprintKey(this.fingerprintKey);
     }
 
     /**
@@ -250,6 +327,9 @@ public final class TypeConfig implements Mergeable<TypeConfig> {
         private String discriminatorValue = ConfigProperty.TYPE_DISCRIMINATOR.getDefaultValue();
         private String valueReaderName = ConfigProperty.TYPE_VALUE_READER_NAME.getDefaultValue();
         private String valueWriterName = ConfigProperty.TYPE_VALUE_WRITER_NAME.getDefaultValue();
+        private FingerprintMode fingerprintMode =
+                FingerprintMode.get(ConfigProperty.FINGERPRINT_MODE.getDefaultValue());
+        private String fingerprintKey = ConfigProperty.FINGERPRINT_KEY.getDefaultValue();
 
         private Builder() {}
 
@@ -300,6 +380,23 @@ public final class TypeConfig implements Mergeable<TypeConfig> {
 
         public Builder valueWriterName(String valueWriterName) {
             this.valueWriterName = valueWriterName;
+            return this;
+        }
+
+        /**
+         * Sets whether and how the in-band EPackage fingerprint is written.
+         * A {@code null} value falls back to {@link FingerprintMode#NONE}.
+         */
+        public Builder fingerprintMode(FingerprintMode fingerprintMode) {
+            this.fingerprintMode = fingerprintMode != null ? fingerprintMode : FingerprintMode.NONE;
+            return this;
+        }
+
+        /**
+         * Sets the inner key carrying the fingerprint. The PLAIN sibling is derived from it.
+         */
+        public Builder fingerprintKey(String fingerprintKey) {
+            this.fingerprintKey = fingerprintKey;
             return this;
         }
 

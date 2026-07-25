@@ -59,6 +59,8 @@ final class AnnotationHelper {
 		private boolean typeInclude = true;
 		private String typeNameKey = "";
 		private String typeSchemaKey = "";
+		private String fingerprintMode = "NONE";
+		private String fingerprintKey = "";
 		// ID
 		private String idStrategy = "ID_FIELD";
 		private String idFormat = "PLAIN";
@@ -90,6 +92,8 @@ final class AnnotationHelper {
 		CodecConfigBuilder typeInclude(boolean v) { this.typeInclude = v; return this; }
 		CodecConfigBuilder typeNameKey(String v) { this.typeNameKey = v; return this; }
 		CodecConfigBuilder typeSchemaKey(String v) { this.typeSchemaKey = v; return this; }
+		CodecConfigBuilder fingerprintMode(String v) { this.fingerprintMode = v; return this; }
+		CodecConfigBuilder fingerprintKey(String v) { this.fingerprintKey = v; return this; }
 		CodecConfigBuilder idStrategy(String v) { this.idStrategy = v; return this; }
 		CodecConfigBuilder idFormat(String v) { this.idFormat = v; return this; }
 		CodecConfigBuilder idKey(String v) { this.idKey = v; return this; }
@@ -122,6 +126,8 @@ final class AnnotationHelper {
 				@Override public boolean typeInclude() { return typeInclude; }
 				@Override public String typeNameKey() { return typeNameKey; }
 				@Override public String typeSchemaKey() { return typeSchemaKey; }
+				@Override public String fingerprintMode() { return fingerprintMode; }
+				@Override public String fingerprintKey() { return fingerprintKey; }
 				// ID
 				@Override public String idStrategy() { return idStrategy; }
 				@Override public String idFormat() { return idFormat; }

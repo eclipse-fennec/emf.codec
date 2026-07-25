@@ -235,6 +235,31 @@ public final class CodecOptions {
     public static final String CODEC_TYPE_INCLUDE = "codec.typeInclude";
 
     /**
+     * Opt-in for writing the in-band EPackage fingerprint (issue #73, B.1).
+     * <p>Values: "NONE" (default), "FIRST_TOUCH"</p>
+     * <p>
+     * Governs <b>writing only</b> — reading always accepts a fingerprint it finds,
+     * independent of this option.
+     * </p>
+     *
+     * @see <a href="docs/codec-v2-spec/06-type.md#8-in-band-epackage-fingerprint">Spec 06 §8</a>
+     */
+    public static final String CODEC_FINGERPRINT_MODE = "codec.fingerprintMode";
+
+    /**
+     * Key carrying the in-band EPackage fingerprint (issue #73, B.1).
+     * <p>Default: "fingerprint" (PLAIN sibling: "_fingerprint")</p>
+     * <p>
+     * This option is the <b>only</b> way to tell a reader about a non-default key: model
+     * annotations configure the key for writing exclusively, because reading has to know
+     * the key before the model version is selected.
+     * </p>
+     *
+     * @see <a href="docs/codec-v2-spec/06-type.md#85--the-fingerprintkey-chicken-and-egg-problem">Spec 06 §8.5</a>
+     */
+    public static final String CODEC_FINGERPRINT_KEY = "codec.fingerprintKey";
+
+    /**
      * Custom value reader for type deserialization.
      */
     public static final String CODEC_TYPE_VALUE_READER_NAME = "codec.typeValueReaderName";
