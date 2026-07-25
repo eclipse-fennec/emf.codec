@@ -114,13 +114,18 @@ public final class PackageResolver {
             return null;
         }
 
-        // Explicit fingerprint short-circuits to a direct, pinned resolve.
+        // Explicit fingerprint short-circuits to a direct resolve.
         if (nonNull(fingerprint) && !fingerprint.isEmpty()) {
             PackageMetadata pm = metadataService.getPackageMetadataByFingerprint(fingerprint);
             if (isNull(pm)) {
                 throw new IOException("Unknown fingerprint: " + fingerprint);
             }
-            pins.put(nsURI, pm);
+            // The pin keeps the FIRST version established for this nsURI and is never moved by
+            // a later, explicitly identified object. That mirrors the write side: a writer
+            // marks every object deviating from the pin, but leaves objects that match the pin
+            // unmarked. Moving the pin here would silently reinterpret those unmarked objects
+            // as belonging to the deviating version.
+            pins.putIfAbsent(nsURI, pm);
             return pm;
         }
 
