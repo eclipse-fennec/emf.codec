@@ -34,6 +34,7 @@ import org.eclipse.fennec.codec.context.EMFCodecWriteContext;
 import org.eclipse.fennec.model.metadata.SerializationFormat;
 
 import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.TokenStreamContext;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ValueSerializer;
 
@@ -108,6 +109,13 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
         }
 
         EClass eClass = value.eClass();
+
+        // Each resource root establishes its own smart-compression context (issue #76): a root
+        // writes a full URI, nested objects consume the schema it established. With several
+        // roots, every one of them is a root - not nested content of the first.
+        if (isResourceRoot(gen)) {
+            ContextHelper.resetRootContext(ctxt);
+        }
 
         // Set context schema for smart compression (only for root object)
         initializeContextSchemaIfNeeded(eClass, ctxt);
@@ -317,6 +325,36 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
      * @param ctxt the serialization context
      * @see <a href="docs/codec-v2-spec/04-global-options.md#1-smart-compression">Spec: Smart Compression</a>
      */
+    /**
+     * Reports whether the object about to be written is a <b>resource root</b> rather than
+     * nested content (issue #76).
+     * <p>
+     * Determined from the generator's write context, which at this point still describes the
+     * <em>surroundings</em> of the object — {@code writeStartObject} has not happened yet. A
+     * resource root is therefore either written directly at the root, or is an element of the
+     * document's top-level array. A nested array (a multi-valued containment) is an array whose
+     * parent is an object, and is correctly not a root.
+     * </p>
+     *
+     * @param gen the JSON generator
+     * @return true if this object is a root of the resource
+     */
+    private static boolean isResourceRoot(JsonGenerator gen) {
+        TokenStreamContext context = gen.streamWriteContext();
+        if (context == null) {
+            // No structural information: the object can only be the root.
+            return true;
+        }
+        if (context.inRoot()) {
+            return true;
+        }
+        if (context.inArray()) {
+            TokenStreamContext parent = context.getParent();
+            return parent == null || parent.inRoot();
+        }
+        return false;
+    }
+
     private void initializeContextSchemaIfNeeded(EClass eClass, SerializationContext ctxt) {
         // Only initialize if smart compression is enabled
         if (!config.isSmartCompression()) {

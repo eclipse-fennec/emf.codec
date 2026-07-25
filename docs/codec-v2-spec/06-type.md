@@ -1072,7 +1072,9 @@ NAME strategy uses `MetadataIndexReader.findByClassName(nsURI, className)` for c
 
 #### 6.4.4 Smart Compression
 
-When the root object uses a full URI, the schema is automatically extracted and used for nested objects:
+When the root object uses a full URI, the schema is automatically extracted and used for nested
+objects. With several resource roots, **each** root establishes its own context and writes a full
+URI — see [05 §1.2.1](05-global-options.md#121-one-context-per-resource-root):
 
 ```json
 {

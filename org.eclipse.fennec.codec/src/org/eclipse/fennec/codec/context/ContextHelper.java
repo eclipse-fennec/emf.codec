@@ -550,6 +550,28 @@ public final class ContextHelper {
     }
 
     /**
+     * Resets the smart-compression context so the object about to be written establishes a
+     * fresh one (issue #76).
+     * <p>
+     * Smart compression is defined relative to <b>the root object</b>: a root establishes the
+     * context schema and writes a full URI, nested objects consume it and may be compressed to
+     * bare names. A resource with several roots has several roots — each has to establish its
+     * own context rather than being treated as nested content of the first one.
+     * </p>
+     * <p>
+     * Without this reset the writer compressed later roots against the first root's schema,
+     * while the reader — which processes each root in a separate call and therefore starts with
+     * no schema — could not resolve the resulting bare names, and dropped those objects.
+     * </p>
+     *
+     * @param ctxt the serialization context
+     */
+    public static void resetRootContext(SerializationContext ctxt) {
+        ctxt.setAttribute(ROOT_SERIALIZED, null);
+        ctxt.setAttribute(CONTEXT_SCHEMA_URI, null);
+    }
+
+    /**
      * Checks if a type URI belongs to the context schema.
      * <p>
      * Used by smart compression to determine if a type should be written
