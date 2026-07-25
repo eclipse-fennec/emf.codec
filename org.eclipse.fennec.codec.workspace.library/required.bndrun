@@ -14,7 +14,6 @@
 	bnd.identity;id='org.eclipse.fennec.codec.tests',\
 	bnd.identity;id='org.eclipse.fennec.codec.yaml',\
 	bnd.identity;id='org.eclipse.fennec.model.metadata.api',\
-	bnd.identity;id='org.eclipse.fennec.model.metadata',\
 	bnd.identity;id='org.eclipse.fennec.openapi.model',\
 	bnd.identity;id='org.eclipse.fennec.codec.geojson',\
 	bnd.identity;id='org.eclipse.fennec.codec.ods',\
@@ -41,8 +40,6 @@
 	org.eclipse.fennec.codec.openapi;version=snapshot,\
 	org.eclipse.fennec.codec.tests;version=snapshot,\
 	org.eclipse.fennec.codec.yaml;version=snapshot,\
-	org.eclipse.fennec.model.metadata.api;version=latest,\
-	org.eclipse.fennec.model.metadata;version=latest,\
 	org.eclipse.fennec.openapi.model;version=snapshot,\
 	org.geojson.model;version='[0.0.1,0.0.2)',\
 	org.mongodb.bson;version='[5.6.3,5.6.4)',\
@@ -99,4 +96,6 @@
 	org.objectweb.asm;version='[9.6.0,9.6.1)',\
 	org.osgi.service.jakartars;version='[2.0.0,2.0.1)',\
 	slf4j.api;version='[1.7.36,1.7.37)',\
-	slf4j.simple;version='[1.7.36,1.7.37)'
+	slf4j.simple;version='[1.7.36,1.7.37)',\
+	org.eclipse.fennec.model.metadata;version='[1.0.0,1.0.1)',\
+	org.eclipse.fennec.model.metadata.api;version='[1.0.0,1.0.1)'
