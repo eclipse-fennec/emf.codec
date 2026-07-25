@@ -67,6 +67,44 @@ Nested object with type and reference:
 
 > **Why STRUCTURED is the default:** A non-containment reference needs to carry **two** pieces of information — the **type** of the referenced object (so the deserializer can create the correct proxy EClass) and the **reference URI** (so the proxy can be resolved). PLAIN format can only carry a single string value (the URI), losing the type information entirely (see [§1.1 limitation](#11-plain-strategy)). STRUCTURED format provides a JSON object with room for both `_type` and `_ref`, making it the safe default for polymorphic models. PLAIN is available as an opt-in **only** when the declared reference type is concrete and no subtypes are expected.
 
+#### 1.2.1 Version Identity in a Reference Entry
+
+A reference's type object **is** type context, so the in-band
+[EPackage fingerprint](06-type.md#8-in-band-epackage-fingerprint) attaches here as an inner
+key, under the same sparse first-touch rule:
+
+```json
+{
+  "employer": {
+    "_type": "http://example.org/company/1.0#//Company",
+    "fingerprint": "fp1:9f2c4e…",
+    "_ref": "datainmotion"
+  }
+}
+```
+
+Object writer and reference writer **share** the per-save pins, so whichever site first brings
+a package into the document announces it, and the other stays silent. A reference is often
+that first site.
+
+**Why this matters more for references than anywhere else.** Under cross-package inheritance
+the declared `eReferenceType` is only an *upper bound* — the actual target may be a subtype
+from another package version. The reader must therefore pick the version-correct `EClass`
+*instance* at ref-read time, because that instance is what the proxy is built from. Without it,
+the proxy either cannot be created or is created against the wrong version's class.
+
+**The fingerprint key is metadata, not projection data.** A reference entry that carries fields
+beyond `_ref`/`_type`/`_id` is treated as a *proxy with projection* and deserialized as a full
+object. The fingerprint key must be recognised as part of the type context, or a plain proxy
+reference silently changes shape into a projection.
+
+**PLAIN references have no room for it.** A bare URI string cannot carry a fingerprint, so a
+PLAIN reference resolves against the context — the pin established for the target's `nsURI`, or
+the `ResourceSet`. Documents that need self-describing mixed-version cross-references must use
+STRUCTURED: the format choice carries the capability. Enriching the URI itself with query
+parameters or fragments stays rejected, since that would contaminate `nsURI` identity, which is
+load-bearing across EMF.
+
 ---
 
 ## 2. Multi-valued References

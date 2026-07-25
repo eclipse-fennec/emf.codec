@@ -32,6 +32,7 @@ import org.eclipse.fennec.codec.context.EMFCodecReadContext;
 import org.eclipse.fennec.codec.deser.DeserializationState.UnresolvedReference;
 import org.eclipse.fennec.codec.jackson.CodecJsonReadContext;
 import org.eclipse.fennec.codec.util.EMapHelper;
+import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
@@ -458,7 +459,8 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             bufferParser.nextToken(); // START_OBJECT
 
             String refUri = null;
-            EClass typeFromContent = null;
+            String rawTypeValue = null;
+            String entryFingerprint = null;
             boolean hasOtherFields = false;
 
             while (bufferParser.nextToken() != JsonToken.END_OBJECT) {
@@ -468,9 +470,13 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                 if (refKey.equals(fieldName)) {
                     refUri = readReferenceValue(bufferParser, ctxt);
                 } else if ("_type".equals(fieldName)) {
-                    // Try to resolve the type from _type field
-                    String typeValue = bufferParser.getString();
-                    typeFromContent = resolveTypeFromValue(typeValue, ctxt);
+                    // Held back: the fingerprint sibling may still follow and decide the version
+                    rawTypeValue = bufferParser.getString();
+                } else if (ContextHelper.isFingerprintKey(ctxt, fieldName)) {
+                    // B.1/B.3: part of the reference's type context, NOT projection data.
+                    // Counting it as a data field would turn a plain proxy into a
+                    // proxy-with-projection and change how the reference is built.
+                    entryFingerprint = bufferParser.getString();
                 } else if (!"_id".equals(fieldName)) {
                     // Has fields other than _ref, _type, _id -> potential projection
                     hasOtherFields = true;
@@ -481,6 +487,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             }
             bufferParser.close();
             bufferParser = null; // Mark as closed
+
+            // Type context complete: now the version-correct EClass instance can be picked
+            EClass typeFromContent = resolveTypeFromValue(rawTypeValue, ctxt, entryFingerprint);
 
             if (refUri != null && hasOtherFields) {
                 // Has _ref AND other fields: proxy with projection
@@ -579,7 +588,8 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             bufferParser.nextToken(); // START_OBJECT
 
             String refUri = null;
-            EClass typeFromContent = null;
+            String rawTypeValue = null;
+            String entryFingerprint = null;
             boolean hasOtherFields = false;
 
             while (bufferParser.nextToken() != JsonToken.END_OBJECT) {
@@ -589,8 +599,13 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                 if (refKey.equals(fieldName)) {
                     refUri = readReferenceValue(bufferParser, ctxt);
                 } else if ("_type".equals(fieldName)) {
-                    String typeValue = bufferParser.getString();
-                    typeFromContent = resolveTypeFromValue(typeValue, ctxt);
+                    // Held back: the fingerprint sibling may still follow and decide the version
+                    rawTypeValue = bufferParser.getString();
+                } else if (ContextHelper.isFingerprintKey(ctxt, fieldName)) {
+                    // B.1/B.3: part of the reference's type context, NOT projection data.
+                    // Counting it as a data field would turn a plain proxy into a
+                    // proxy-with-projection and change how the reference is built.
+                    entryFingerprint = bufferParser.getString();
                 } else if (!"_id".equals(fieldName)) {
                     // Has fields other than _ref, _type, _id -> potential projection
                     hasOtherFields = true;
@@ -601,6 +616,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             }
             bufferParser.close();
             bufferParser = null; // Mark as closed
+
+            // Type context complete: now the version-correct EClass instance can be picked
+            EClass typeFromContent = resolveTypeFromValue(rawTypeValue, ctxt, entryFingerprint);
 
             if (refUri != null && hasOtherFields) {
                 // Has _ref AND other fields: proxy with projection
@@ -706,11 +724,25 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      * @param ctxt the deserialization context
      * @return the resolved EClass, or null if not found
      */
-    private EClass resolveTypeFromValue(String typeValue, DeserializationContext ctxt) {
-        if (TypeResolutionHelper.isUri(typeValue)) {
+    private EClass resolveTypeFromValue(String typeValue, DeserializationContext ctxt,
+            String entryFingerprint) {
+        if (!TypeResolutionHelper.isUri(typeValue)) {
+            return null;
+        }
+        // B.3/B.5: route through the per-load resolver so the version-correct EClass *instance*
+        // is chosen. This matters most for proxies: the declared eReferenceType is only an
+        // upper bound under cross-package inheritance, so the instance has to be picked at
+        // ref-read time or the proxy cannot be built correctly at all.
+        PackageResolver resolver = ContextHelper.getPackageResolver(ctxt);
+        if (resolver == null) {
             return TypeResolutionHelper.resolveFromUri(typeValue);
         }
-        return null;
+        try {
+            EClass resolved = resolver.resolveEClassFromTypeUri(typeValue, entryFingerprint);
+            return resolved != null ? resolved : TypeResolutionHelper.resolveFromUri(typeValue);
+        } catch (IOException e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
     }
 
     /**
