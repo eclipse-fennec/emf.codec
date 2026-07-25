@@ -268,6 +268,37 @@ Self-contradiction is a different matter from contradicting the data: two *calle
 that disagree are a bug and an ERROR in every mode (§2.9), while the caller overruling the
 *document* is legitimate and merely loud.
 
+### 2.12 Stream Fingerprint Case Matrix
+
+The complete set of outcomes when a document carries a fingerprint. Strictness governs
+tolerance towards **data**, so the same situation is a warning in LENIENT and an error in
+STRICT — but it is never *nothing*: an explicit signal is not silently degraded.
+
+| Situation | LENIENT | STRICT |
+|---|---|---|
+| Resolves to a version | Used and pinned, no diagnostic | Same |
+| Equals the caller's `codec.rootFingerprint` | No-op, no diagnostic | Same |
+| Differs from the caller's fingerprint | Caller wins + WARNING naming both | ERROR |
+| Unknown, and the caller supplied a fingerprint | Caller wins + WARNING | ERROR |
+| Unknown, no caller fingerprint | WARNING + fall back to `nsURI` resolution | ERROR |
+| Unknown at a later site after a version was pinned | WARNING + the pin stands | ERROR |
+
+**Why the LENIENT fallback matters.** An unknown fingerprint is not necessarily broken data.
+The canonicalization scheme that produces fingerprints can be bumped, and then an *unchanged*
+model's previously recorded fingerprint no longer matches anything. Falling back to the
+`nsURI` path keeps that data readable; the `nsURI` rule then applies as always — a single
+candidate is taken, several remain an error naming them (§8.1).
+
+**Diagnostic flooding.** A document repeating one unresolvable fingerprint across thousands of
+objects produces **one** warning for that value, not thousands. Suppression is per distinct
+fingerprint value, so a second bad value is still reported.
+
+**The pin is never moved by a later object.** A fingerprint identifies the version of the
+object carrying it; the pin keeps the *first* version established for an `nsURI`. This is the
+read-side half of the writer's first-touch rule: a writer leaves objects matching the pin
+unmarked, so moving the pin would silently reinterpret exactly those objects — the ones that
+carry no information of their own — as belonging to a deviating version.
+
 ---
 
 ## 3. Feature Type Hints
@@ -605,6 +636,19 @@ Map<String, Object> options = CodecOptionsBuilder.create()
 | Ambiguous nsURI: `> 1` registered version and no `codec.rootFingerprint`/pin (A.3) | ERROR | "Ambiguous nsURI `<nsURI>`: `N` versions registered `[<fp1>, <fp2>, …]`; pass `codec.rootFingerprint` to select one" |
 | Abstract EClass as hint | ERROR | Cannot instantiate abstract class |
 | JSON property not in EClass | WARNING | Unknown property (skipped) |
+
+**In-band fingerprint (§2.12).** These arise from the *data*, so their severity depends on the
+strictness mode — unlike the caller-side rows above, which are caller bugs and errors in every
+mode:
+
+| Scenario | LENIENT | STRICT | Message |
+|----------|---------|--------|---------|
+| Unknown fingerprint in the data | WARNING, falls back to `nsURI` resolution | ERROR | "Unknown fingerprint `<fp>` in the data for nsURI `<nsURI>`; falling back to nsURI resolution" |
+| Data fingerprint contradicts `codec.rootFingerprint` | WARNING, caller wins | ERROR | "Fingerprint in the data (`<fp>`) contradicts the caller's fingerprint (`<fp2>`) for nsURI `<nsURI>`; the caller's choice wins" |
+
+Both are reported **once per distinct fingerprint value** per load, so a document repeating one
+bad value cannot bury the rest of the diagnostics. Candidate lists in ambiguity messages name
+fingerprints, not model contents, keeping the model inventory undisclosed (S-12).
 
 ### 8.2 Feature Type Hint Errors
 
