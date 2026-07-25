@@ -40,6 +40,7 @@ import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -383,6 +384,59 @@ class FingerprintRoundTripTest {
                     + "third root belongs to the pinned version A1");
             assertEquals("third", roots.get(2).eGet(
                     roots.get(2).eClass().getEStructuralFeature("titleV1")));
+        }
+    }
+
+    // ========================================================================
+    // Section 5: Smart compression, which writes bare names instead of full URIs
+    // ========================================================================
+
+    @Nested
+    @DisplayName("5. Smart compression (spec 8.3 interaction)")
+    class SmartCompression {
+
+        /**
+         * Smart compression decides "same schema" by comparing nsURIs, and two versions of one
+         * nsURI compare equal. So a deviating-version object may be written as a bare name whose
+         * namespace resolves through the pin - the wrong version - unless the fingerprint that
+         * accompanies it is applied to the composed URI.
+         */
+
+        @Test
+        @Disabled("Blocked by a pre-existing defect unrelated to fingerprinting, issue #76: "
+                + "the context schema does not carry across array roots, so smart compression's "
+                + "bare name in a second root cannot be resolved even with a single registered "
+                + "version and no fingerprint anywhere. Enable once #76 is fixed.")
+        @DisplayName("5.1 a bare name plus a fingerprint still resolves to the deviating version")
+        void bareNameWithFingerprintResolvesCorrectly() throws IOException {
+            CodecResource resource = new CodecResource(
+                    URI.createURI("test://fp-smart-compression.json"),
+                    metadataService,
+                    ConfigurationResolver.builder()
+                            .moduleProperties(Map.of("smartCompression", true))
+                            .build(),
+                    null);
+            resource.getContents().add(createNode(packageA1, "titleV1", "first", null, null, null));
+            resource.getContents().add(createNode(packageA2, "titleV2", "second", null, null, null));
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            resource.save(out, Map.of(CodecOptions.CODEC_FINGERPRINT_MODE, "FIRST_TOUCH"));
+            String json = out.toString(StandardCharsets.UTF_8);
+
+            CodecResource loaded = new CodecResource(
+                    URI.createURI("test://fp-smart-compression-load.json"),
+                    metadataService,
+                    ConfigurationResolver.builder()
+                            .moduleProperties(Map.of("smartCompression", true))
+                            .build(),
+                    null);
+            loaded.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), Map.of());
+
+            assertEquals(2, loaded.getContents().size(), json);
+            assertSame(packageA1.getEClassifier("Node"), loaded.getContents().get(0).eClass(), json);
+            assertSame(packageA2.getEClassifier("Node"), loaded.getContents().get(1).eClass(),
+                    "a compressed bare name must not be resolved against the pin when the object "
+                    + "carries a fingerprint of its own: " + json);
         }
     }
 
