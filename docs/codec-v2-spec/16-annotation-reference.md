@@ -500,6 +500,20 @@ Type configuration describes how type information is serialized/deserialized.
 | `typeSchemaKey` | `codec.typeSchemaKey` | ✅ | ✅ | ✅ | ❌ | Inner schema key in STRUCTURED (**default:** `schema`) |
 | `typeValueReaderName` | `codec.typeValueReaderName` | ✅ | ✅ | ❌ | ❌ | Custom value reader service name |
 | `typeValueWriterName` | `codec.typeValueWriterName` | ✅ | ✅ | ❌ | ❌ | Custom value writer service name |
+| `fingerprintMode` | `codec.fingerprintMode` | ✅ | ✅ | ❌ | ❌ | Opt-in for writing the in-band EPackage fingerprint: `NONE` (**default**) or `FIRST_TOUCH` (see [06-type.md §8](06-type.md#8-in-band-epackage-fingerprint)) |
+| `fingerprintKey` | `codec.fingerprintKey` | ✅ | ✅ | ❌ | ❌ | Key carrying the fingerprint (**default:** `fingerprint`, PLAIN sibling `_fingerprint`). **Write-only as an annotation** — see below |
+
+> **⚠ `fingerprintKey` as an annotation configures writing only.** A reader must know the
+> key *before* it can select the model version, but an annotation-configured key lives in
+> the configuration that only exists *after* that selection — a genuine cycle. It is broken
+> by taking the read key from caller-side sources only (options, resource, factory, module),
+> while always additionally accepting the default key. A document written with a custom,
+> annotation-configured key is therefore readable only by a caller who supplies that key
+> out-of-band. Full rationale: [06-type.md §8.5](06-type.md#85--the-fingerprintkey-chicken-and-egg-problem).
+
+> **No `fingerprintInclude` flag.** On/off is expressed through `fingerprintMode=NONE`,
+> deliberately mirroring `typeStrategy=NONE` — a parallel boolean is the pattern that made
+> `typeInclude` deprecated (T-V30/T-V31).
 | — | `codec.typeScope` | 🔧 | ❌ | ❌ | ❌ | Strategy scope (see [StrategyScope](#strategyscope)) |
 | — | `codec.typeFormatScope` | 🔧 | ❌ | ❌ | ❌ | Format scope (see [StrategyScope](#strategyscope)) |
 

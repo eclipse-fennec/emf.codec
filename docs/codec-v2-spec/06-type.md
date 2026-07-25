@@ -631,10 +631,12 @@ The type serialization flow above determines **what** type information to write.
 
 | `idOnTop` | Metadata Write Order |
 |-----------|----------------------|
-| `true` | `_id` → `_type` → `_supertype` → features |
-| `false` **(default)** | `_type` → `_supertype` → `_id` → features |
+| `true` | `_id` → `_type` → `_fingerprint` → `_supertype` → features |
+| `false` **(default)** | `_type` → `_fingerprint` → `_supertype` → `_id` → features |
 
 This is a **runtime orchestration constraint** — the `CodecEObjectSerializer` evaluates `idOnTop` from the effective ID config and invokes the type and ID serialization entries in the appropriate order. The type flow itself does not need to know about `idOnTop`; the orchestrator handles the sequencing.
+
+The fingerprint has a **defined slot directly after the type** (`_id → _type → fingerprint → features`) rather than a carrier mechanism of its own, because `idOnTop` is only an *ordering* constraint, not a preamble object — there is no separate metadata container it could live in. In STRUCTURED format it is written *inside* the type object, so the slot is intrinsic. See [§8](#8-in-band-epackage-fingerprint). The slot is only occupied when a fingerprint is actually due; by default nothing is written and the order above is unchanged from single-version output.
 
 > **Deserialization:** Field order is irrelevant — JSON objects are unordered. See [Architecture §5.1](01-architecture.md#51-deferred-properties-order-independent-parsing).
 
@@ -652,6 +654,12 @@ The deserializer automatically recognizes the following property names as type d
 | `_class` | Alternative type key |
 | `@type` | JSON-LD compatible |
 | `eClass` | EMF/emfjson-jackson compatible |
+
+Alongside the type key, the deserializer recognises the **fingerprint** key — `_fingerprint`
+as a PLAIN sibling, `fingerprint` inside a STRUCTURED type object — plus any key configured
+through `codec.fingerprintKey`. It is a known metadata key, never unknown data: it must not
+trip `strictOnUnknown` and must not be misread as a data property. See
+[§8](#8-in-band-epackage-fingerprint).
 
 > **Important:** The property name `type` is **NOT** automatically recognized as a type key, because it is a very common attribute name in data formats like GeoJSON (`"type": "Point"`), OpenAPI-generated models, etc.
 
@@ -1601,6 +1609,161 @@ These properties must be configured **symmetrically** for serialization and dese
 
 - **SuperType Configuration:** See [07-supertype.md section 6.0](07-supertype.md#60-configuration-constraints) for SuperType-specific validation rules
 - **Discriminator Mapping:** See [08-discriminator-mapping.md](08-discriminator-mapping.md) for discriminator-related validation rules
+
+---
+
+## 8. In-Band EPackage Fingerprint
+
+An `nsURI` identifies a model, not a *version* of it. When several versions of the same
+`nsURI` are registered at once, `nsURI` alone no longer says which `EClass` instance a
+document means. The **fingerprint** is the version-precise identity of an `EPackage`, and
+this section defines how a document can carry it so that a reader can pick the right
+version from the data alone — a *self-describing* document.
+
+The communicated currency is always the **`EPackage`** fingerprint, never a class-level or
+feature-level one. A version is selected per package; the configuration for the classes in
+it then follows from that selection.
+
+### 8.1 When the Fingerprint Is Not Needed
+
+Most documents never need it, and for them nothing changes:
+
+- No fingerprint in the data → resolve by `nsURI`. Exactly one version registered → use it.
+  Done. This is the single-version case and it stays trivially simple.
+- The caller can also answer the version question out-of-band with
+  [`codec.rootFingerprint`](13-load-save-options.md), without touching the document.
+
+The in-band carrier is therefore **off by default** (`fingerprintMode=NONE`) and must be
+opted into. Writing it by default would change the output of every existing document for a
+problem most callers do not have.
+
+### 8.2 Carrier: A Citizen of the Type Context
+
+The fingerprint is **not** a fourth serialization mechanism. It attaches to the type context
+that already exists:
+
+- **PLAIN** — a sibling key next to the type key, default `_fingerprint`:
+  ```json
+  {
+    "_type": "http://example.org/model#//Person",
+    "_fingerprint": "fp1:9f2c4e…",
+    "name": "Mark"
+  }
+  ```
+- **STRUCTURED** — an inner key *inside* the type object, default `fingerprint`:
+  ```json
+  {
+    "_type": { "type": "Person", "fingerprint": "fp1:9f2c4e…" },
+    "name": "Mark"
+  }
+  ```
+- **`idOnTop` and other ordering modes** — the fingerprint keeps its slot directly after the
+  type (see [§5.0.2](#502-runtime-ordering-constraint-idontop)).
+
+The key is configured with **one** value, `fingerprintKey`, whose configured form is the
+inner key; the PLAIN sibling derives from it by prefixing `_` (`_`/`@`-prefixed values are
+taken as-is). This is the same one-value-two-placements rule as `typeSchemaKey` — see
+[03-naming-conventions §2](03-naming-conventions.md#2-default-key-names).
+
+A foreign reader that does not know the fingerprint simply sees one more property and can
+ignore it.
+
+### 8.3 Write: Conservative, at First Touch
+
+When `fingerprintMode=FIRST_TOUCH`, the fingerprint is written at the **first occurrence of
+each distinct `EPackage` instance in document order** — and only there:
+
+1. the **root**, for the root's package;
+2. every site where a **new** package instance enters the document — supertype
+   substitution, reference or containment targets from another package;
+3. every site whose package instance **deviates from the pin** already established for its
+   `nsURI` — the mixed-version marker that makes the deviation visible at all.
+
+Repeating it on every object would be pure redundancy: once a version is established for an
+`nsURI`, every later object of that package is interpreted under it. There is deliberately
+**no** "write everywhere" variant.
+
+Writer first-touch and [reader pinning](#84-read-liberal) are the *same rule seen from both
+sides* — which is what makes the round-trip closed: the writer emits exactly the points at
+which the reader would otherwise have to guess.
+
+**Interaction with type omission.** Smart compression and reference type omission may drop
+the type of an object whose type equals the declared reference type. Where a fingerprint is
+**due** under the rules above, the type context must not be omitted — otherwise the carrier
+would have nowhere to live and the document would silently lose the version information it
+was asked to record. A due fingerprint therefore suppresses the omission, not the other way
+round.
+
+### 8.4 Read: Liberal
+
+Reading is deliberately more permissive than writing: a reader accepts a fingerprint
+**wherever it appears** in any of the type-context locations of §8.2, regardless of how the
+document was produced or of the local write configuration. No pre-scan is needed — the
+fingerprint is read at the same point the type is read today, which also covers polymorphic
+sub-trees with per-object types.
+
+A resolved fingerprint **pins** the version for its `nsURI` for the rest of that load: later
+objects of the same `nsURI` without their own fingerprint use the pinned version. A new
+`nsURI` appearing mid-document selects on the fly and is then pinned in turn.
+
+Absence of a fingerprint means exactly what it meant before this feature existed —
+`nsURI`-based resolution — so documents written without it keep working unchanged.
+
+### 8.5 ⚠ The `fingerprintKey` Chicken-and-Egg Problem
+
+**This is a genuine cycle, and it is broken deliberately. Do not "fix" it.**
+
+Reading liberally requires knowing *which key* carries the fingerprint **before** the
+version is selected. But a key configured through a **model annotation** lives in the
+configuration that only exists **after** a version has been selected — and selecting the
+version is precisely what the fingerprint is for. Resolving the read key from the model
+would therefore require the answer in order to find the question.
+
+**The break:**
+
+| Direction | Where `fingerprintKey` comes from |
+|-----------|-----------------------------------|
+| **Read** | Caller-side sources **only** — options, resource, factory, module. The default key (`_fingerprint` / `fingerprint`) is **always** accepted in addition. |
+| **Write** | All configuration levels, **including** the model annotation. |
+
+So the annotation level configures the key for **writing only**, never for reading. A
+document written with a custom, annotation-configured key is readable only by a caller who
+supplies that same key out-of-band — which is a documented consequence, not an oversight.
+Callers who need self-describing documents should keep the default key.
+
+Anyone tempted to make the read side "consistent" by resolving the key from the model
+reintroduces the paradox.
+
+### 8.6 Strictness and Unknown Fields
+
+The fingerprint key is a **known** key, not unknown data: `strictOnUnknown` must accept it
+and must never reject a document because of it. Likewise, the STRUCTURED reference parser
+must recognise the key inside a type object — otherwise it is misclassified as projection or
+orphan data (see [10-reference.md](10-reference.md)).
+
+For what happens when a fingerprint is present but *cannot be resolved*, when it contradicts
+`codec.rootFingerprint`, or when versions collide mid-document, see
+[13-load-save-options.md](13-load-save-options.md) (signal contract) and
+[15-error-handling.md](15-error-handling.md) (error catalog).
+
+### 8.7 Configuration
+
+| Key | Levels | Direction | Default | Meaning |
+|-----|--------|-----------|---------|---------|
+| `fingerprintMode` | G, C | W | `NONE` | `NONE` = write no fingerprint; `FIRST_TOUCH` = write it per §8.3 |
+| `fingerprintKey` | G, C | RW (read: caller-side only, §8.5) | `fingerprint` (PLAIN: `_fingerprint`) | Key carrying the fingerprint |
+
+On/off is expressed through `fingerprintMode` rather than a separate boolean flag, mirroring
+`typeStrategy=NONE` (a parallel `typeInclude` boolean is deprecated for exactly this reason
+— see [16-annotation-reference.md](16-annotation-reference.md)).
+
+> **Not yet available: package-level configuration.** The fingerprint's currency is the
+> `EPackage`, so an `EPackage`-level annotation would be its natural home — but there is no
+> `EPackage` annotation level in the codec today (see
+> [16-annotation-reference.md](16-annotation-reference.md) and issue #75). The opt-in is
+> therefore configured per **class** (annotation on the root class) or, for a whole document,
+> through the caller-side option. When the `EPackage` level arrives, `fingerprintMode` gains
+> that scope without a breaking change.
 
 ---
 

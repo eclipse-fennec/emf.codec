@@ -76,6 +76,8 @@ These options apply to every format. Java constants are in
 | `codec.typeSchemaKey` | `CODEC_TYPE_SCHEMA_KEY` | String | `schema` | Inner key for the schema URI in STRUCTURED format. |
 | `codec.typeScope` | `CODEC_TYPE_SCOPE` | String | `ALL` | Limit where the type strategy is applied. Values: `ALL`, `SUBTYPE_ONLY`. |
 | `codec.smartCompression` | `CODEC_SMART_COMPRESSION` | Boolean | `false` | Omit `_type` when the concrete type is unambiguous from context (containment reference with a single possible EClass). |
+| `codec.fingerprintMode` | `CODEC_FINGERPRINT_MODE` | String | `NONE` | Write the in-band EPackage fingerprint. `NONE` writes none; `FIRST_TOUCH` writes it at the first occurrence of each package instance. Reading is always liberal and independent of this option. |
+| `codec.fingerprintKey` | `CODEC_FINGERPRINT_KEY` | String | `fingerprint` | Key carrying the fingerprint (PLAIN sibling: `_fingerprint`). The only way to tell a *reader* about a non-default key — annotations configure it for writing only. |
 
 ### ID strategy
 

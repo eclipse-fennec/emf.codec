@@ -220,8 +220,53 @@ strictness governs tolerance toward *data*, not toward the *caller*.
 - **Non-checkable — String root options.** When the root options are Strings, the
   fingerprint is trusted but must **resolve**: an **unknown option fingerprint → ERROR**,
   never a silent fallback to nsURI resolution.
-- **Scope:** these rules govern the *option* fingerprint only. Behavior for a fingerprint
-  carried *inside the data stream* is a Phase B concern (not specified here).
+- **Scope:** these rules govern the *option* fingerprint only. A fingerprint carried
+  *inside the data stream* is the in-band carrier of
+  [06-type.md §8](06-type.md#8-in-band-epackage-fingerprint); its precedence against this
+  option follows the signal contract in §2.10.
+
+### 2.10 In-Band Fingerprint Options
+
+The in-band carrier is configured by two options. Both are **write-side** switches, with the
+read-side restriction on `codec.fingerprintKey` described below.
+
+| Java Constant | Property Key | Value Type | Direction | Description |
+|---------------|--------------|------------|-----------|-------------|
+| `CODEC_FINGERPRINT_MODE` | `codec.fingerprintMode` | `String` (`NONE` \| `FIRST_TOUCH`) | Save | Opt-in for writing the in-band EPackage fingerprint. Default `NONE` |
+| `CODEC_FINGERPRINT_KEY` | `codec.fingerprintKey` | `String` | Save + Load | Key carrying the fingerprint. Default `fingerprint` (PLAIN sibling `_fingerprint`) |
+
+- `codec.fingerprintMode` governs **writing only**. Reading is always liberal: a reader
+  accepts a fingerprint it finds regardless of this option
+  ([06-type.md §8.4](06-type.md#84-read-liberal)).
+- `codec.fingerprintKey` is the **only** way to tell a *reader* about a non-default key.
+  Model annotations configure the key for writing exclusively — see the chicken-and-egg
+  break in [06-type.md §8.5](06-type.md#85--the-fingerprintkey-chicken-and-egg-problem).
+  The default key is always accepted in addition to a configured one.
+
+### 2.11 Signal Contract Classes: Hint vs Directive
+
+`CODEC_ROOT_TYPE` and `codec.rootFingerprint` resolve collisions with the data stream in
+**opposite** directions. That asymmetry is deliberate and follows from what each signal
+*means*, so it is stated here rather than left to be discovered:
+
+| | `CODEC_ROOT_TYPE` | `codec.rootFingerprint` |
+|---|---|---|
+| **Class** | **Hint** — weak signal | **Directive** — strong signal |
+| **Question it answers** | "What is this object?" | "In which model world is all of this interpreted?" |
+| **On collision with the stream** | **Stream wins** (default `TypeHintMode.HINT`), WARNING | **Option wins**, WARNING in LENIENT / ERROR in STRICT |
+| **Why** | Polymorphism *requires* it: a subtype in the data must beat a root hint, or subclasses could never deserialize under one | The version is a property of the *load*, chosen by whoever orchestrates it — a migration reader deliberately re-reading old data against a chosen version must be able to overrule the document |
+
+A type hint only helps when the data is silent. A version directive is chosen by the caller
+who knows the context the data is being read in, and the data may not overrule that choice.
+
+**No mode switch is added for the fingerprint.** Callers who want option-wins for the *type*
+already have `TypeHintMode.OVERRIDE`; the reverse for the fingerprint — "let the stream win"
+— is expressed by simply **omitting the option**. Two look-alike mode switches with opposite
+defaults would confuse more than they order.
+
+Self-contradiction is a different matter from contradicting the data: two *caller* options
+that disagree are a bug and an ERROR in every mode (§2.9), while the caller overruling the
+*document* is legitimate and merely loud.
 
 ---
 
@@ -592,6 +637,15 @@ Map<String, Object> options = CodecOptionsBuilder.create()
 | `CODEC_FEATURE_TYPE_HINTS` | `codec.featureTypeHints` | `Map<EStructuralFeature, EClass>` | EClass hints for specific features |
 | `CODEC_DESERIALIZATION_MODE` | `codec.deserializationMode` | `DeserializationMode` | Strictness level |
 | `CODEC_TYPE_HINT_MODE` | `codec.typeHintMode` | `TypeHintMode` | Hint vs Override behavior |
+| `CODEC_ROOT_FINGERPRINT` | `codec.rootFingerprint` | `String` | Selects the package version (directive, §2.11) |
+| `CODEC_FINGERPRINT_KEY` | `codec.fingerprintKey` | `String` | Non-default key for the in-band fingerprint (§2.10) |
+
+### Save Options
+
+| Java Constant | Property Key | Value Type | Purpose |
+|---------------|--------------|------------|---------|
+| `CODEC_FINGERPRINT_MODE` | `codec.fingerprintMode` | `String` (`NONE` \| `FIRST_TOUCH`) | Opt-in for writing the in-band fingerprint (§2.10) |
+| `CODEC_FINGERPRINT_KEY` | `codec.fingerprintKey` | `String` | Key to write the fingerprint under (§2.10) |
 
 ### Value Reader/Writer Options (Load & Save)
 

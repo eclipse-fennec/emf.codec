@@ -436,6 +436,14 @@ For any property lookup:
 | `typeFormatScope` | G | RW | `ALL` | 06-type.md |
 | `typeValueReaderName` | G, C | R | `null` | 06-type.md |
 | `typeValueWriterName` | G, C | W | `null` | 06-type.md |
+| `fingerprintMode` | G, C | W | `NONE` | 06-type.md §8 |
+| `fingerprintKey` | G, C | W + R (read: caller-side levels only) | `fingerprint` | 06-type.md §8 |
+
+> **`fingerprintKey` read restriction:** on the **read** side the key is taken from
+> caller-side levels only (options, resource, factory, module), never from the model
+> annotation, and the default key is always accepted in addition. This is not an
+> inconsistency but the resolution of a genuine cycle — see
+> [06-type.md §8.5](06-type.md#85--the-fingerprintkey-chicken-and-egg-problem).
 
 ### 11.4 ID Properties
 

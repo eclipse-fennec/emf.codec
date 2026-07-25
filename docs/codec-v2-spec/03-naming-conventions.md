@@ -29,6 +29,7 @@ In PLAIN format, metadata appears as direct key-value pairs at root level:
 | SuperType | `_supertype` | `superTypeKey` | `"_supertype": "Entity"` |
 | ID | `_id` | `idKey` | `"_id": "maho"` |
 | Reference | `_ref` | `refKey` | `"_ref": "datainmotion"` |
+| Fingerprint | `_fingerprint` | `fingerprintKey` | `"_fingerprint": "fp1:9f2c4e…"` |
 
 ### 2.2 STRUCTURED Format Keys
 
@@ -43,8 +44,16 @@ In STRUCTURED format, metadata is grouped into container objects with inner keys
 | Separator | — | `separator` (`idSeparatorKey`) | `"_id": { "separator": "-" }` |
 | Reference | (inline) | `ref` (`refKey`) | `{ "ref": "datainmotion" }` |
 | Ref Type | — | `type` (`refTypeKey`) | `{ "type": "Company", "ref": "..." }` |
+| Fingerprint | — | `fingerprint` (`fingerprintKey`) | `"_type": { "type": "Person", "fingerprint": "fp1:9f2c4e…" }` |
 
 **Note:** Inner keys (`typeNameKey`, `idValueKey`, `idSeparatorKey`) only apply to STRUCTURED format.
+
+**One config key, two placements.** `typeSchemaKey` and `fingerprintKey` are each a
+*single* configuration value that appears differently depending on format: the
+configured value is the **inner** (unprefixed) key, and the PLAIN sibling is derived
+from it by prefixing `_`. A configured value that already starts with `_` or `@` is
+taken as-is, so `@vocab` stays `@vocab` in both formats. Configuring the key does not
+require knowing which format will be used.
 
 ---
 
@@ -200,6 +209,7 @@ All keys are configurable via EAnnotations, property maps, or CodecConfiguration
 | `idSeparatorKey` | — | `separator` | Separator key in STRUCTURED ID |
 | `refKey` | `_ref` | `ref` | Reference value key |
 | `refTypeKey` | `_type` | `type` | Reference type key |
+| `fingerprintKey` | `_fingerprint` | `fingerprint` | EPackage fingerprint key (see [Type Serialization](06-type.md#8-in-band-epackage-fingerprint)) |
 
 ### 5.2 CodecConfiguration Builder
 

@@ -159,11 +159,16 @@ CodecConfig config = CodecConfig.builder()
 **Output:**
 ```json
 {
-  "_type": { "s": "http://example.org/person/1.0", "c": 3 },
+  "_type": { "schema": "http://example.org/person/1.0", "classifier": 3 },
   "5": "John",
   "6": "Doe"
 }
 ```
+
+> The inner keys of the NUMERIC strategy are `schema` (configurable via `typeSchemaKey`) and
+> the fixed `classifier`. Earlier revisions of this chapter showed abbreviated `s`/`c` keys,
+> which were never implemented — corrected here against the code
+> (`CodecEObjectDeserializer`, `TypeDeserializationEntry`).
 
 ---
 
