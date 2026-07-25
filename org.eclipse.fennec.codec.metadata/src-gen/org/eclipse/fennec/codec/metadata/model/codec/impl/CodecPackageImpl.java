@@ -30,6 +30,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.DeserializationMode;
 import org.eclipse.fennec.codec.metadata.model.codec.FallbackStrategy;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig;
@@ -153,6 +154,13 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 	private EEnum fallbackStrategyEEnum = null;
 
 	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	private EEnum fingerprintModeEEnum = null;
+
+	/**
 	 * Creates an instance of the model <b>Package</b>, registered with
 	 * {@link org.eclipse.emf.ecore.EPackage.Registry EPackage.Registry} by the package
 	 * package URI value.
@@ -261,7 +269,7 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getTypeSerializationConfig_StrategyScope() {
+	public EAttribute getTypeSerializationConfig_FingerprintMode() {
 		return (EAttribute)typeSerializationConfigEClass.getEStructuralFeatures().get(3);
 	}
 
@@ -271,8 +279,28 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getTypeSerializationConfig_FormatScope() {
+	public EAttribute getTypeSerializationConfig_FingerprintKey() {
 		return (EAttribute)typeSerializationConfigEClass.getEStructuralFeatures().get(4);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EAttribute getTypeSerializationConfig_StrategyScope() {
+		return (EAttribute)typeSerializationConfigEClass.getEStructuralFeatures().get(5);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EAttribute getTypeSerializationConfig_FormatScope() {
+		return (EAttribute)typeSerializationConfigEClass.getEStructuralFeatures().get(6);
 	}
 
 	/**
@@ -1071,6 +1099,16 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 	 * @generated
 	 */
 	@Override
+	public EEnum getFingerprintMode() {
+		return fingerprintModeEEnum;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public CodecFactory getCodecFactory() {
 		return (CodecFactory)getEFactoryInstance();
 	}
@@ -1098,6 +1136,8 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		createEAttribute(typeSerializationConfigEClass, TYPE_SERIALIZATION_CONFIG__MAP_ID);
 		createEAttribute(typeSerializationConfigEClass, TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_PATH);
 		createEAttribute(typeSerializationConfigEClass, TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_VALUE);
+		createEAttribute(typeSerializationConfigEClass, TYPE_SERIALIZATION_CONFIG__FINGERPRINT_MODE);
+		createEAttribute(typeSerializationConfigEClass, TYPE_SERIALIZATION_CONFIG__FINGERPRINT_KEY);
 		createEAttribute(typeSerializationConfigEClass, TYPE_SERIALIZATION_CONFIG__STRATEGY_SCOPE);
 		createEAttribute(typeSerializationConfigEClass, TYPE_SERIALIZATION_CONFIG__FORMAT_SCOPE);
 
@@ -1191,6 +1231,7 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		typeHintModeEEnum = createEEnum(TYPE_HINT_MODE);
 		deserializationModeEEnum = createEEnum(DESERIALIZATION_MODE);
 		fallbackStrategyEEnum = createEEnum(FALLBACK_STRATEGY);
+		fingerprintModeEEnum = createEEnum(FINGERPRINT_MODE);
 	}
 
 	/**
@@ -1240,6 +1281,8 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		initEAttribute(getTypeSerializationConfig_MapId(), ecorePackage.getEString(), "mapId", null, 0, 1, TypeSerializationConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getTypeSerializationConfig_DiscriminatorPath(), ecorePackage.getEString(), "discriminatorPath", null, 0, 1, TypeSerializationConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getTypeSerializationConfig_DiscriminatorValue(), ecorePackage.getEString(), "discriminatorValue", null, 0, 1, TypeSerializationConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getTypeSerializationConfig_FingerprintMode(), this.getFingerprintMode(), "fingerprintMode", "NONE", 0, 1, TypeSerializationConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getTypeSerializationConfig_FingerprintKey(), ecorePackage.getEString(), "fingerprintKey", null, 0, 1, TypeSerializationConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getTypeSerializationConfig_StrategyScope(), this.getStrategyScope(), "strategyScope", "ALL", 0, 1, TypeSerializationConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getTypeSerializationConfig_FormatScope(), this.getStrategyScope(), "formatScope", "ALL", 0, 1, TypeSerializationConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
@@ -1348,6 +1391,10 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		addEEnumLiteral(fallbackStrategyEEnum, FallbackStrategy.SKIP);
 		addEEnumLiteral(fallbackStrategyEEnum, FallbackStrategy.ERROR);
 		addEEnumLiteral(fallbackStrategyEEnum, FallbackStrategy.FALLBACK);
+
+		initEEnum(fingerprintModeEEnum, FingerprintMode.class, "FingerprintMode");
+		addEEnumLiteral(fingerprintModeEEnum, FingerprintMode.NONE);
+		addEEnumLiteral(fingerprintModeEEnum, FingerprintMode.FIRST_TOUCH);
 
 		// Create resource
 		createResource(eNS_URI);

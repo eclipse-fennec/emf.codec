@@ -32,6 +32,8 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getMapId <em>Map Id</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getDiscriminatorPath <em>Discriminator Path</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getDiscriminatorValue <em>Discriminator Value</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getFingerprintMode <em>Fingerprint Mode</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getFingerprintKey <em>Fingerprint Key</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getStrategyScope <em>Strategy Scope</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getFormatScope <em>Format Scope</em>}</li>
  * </ul>
@@ -116,6 +118,60 @@ public interface TypeSerializationConfig extends BaseTypeConfig {
 	 * @generated
 	 */
 	void setDiscriminatorValue(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Fingerprint Mode</b></em>' attribute.
+	 * The default value is <code>"NONE"</code>.
+	 * The literals are from the enumeration {@link org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode}.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * Opt-in for writing the in-band EPackage fingerprint. Default NONE keeps the codec free of any fingerprint machinery unless a use case asks for it. On-off is expressed through this enum rather than a parallel boolean flag, consistent with typeStrategy=NONE replacing the deprecated typeInclude.
+	 * <!-- end-model-doc -->
+	 * @return the value of the '<em>Fingerprint Mode</em>' attribute.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode
+	 * @see #setFingerprintMode(FingerprintMode)
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getTypeSerializationConfig_FingerprintMode()
+	 * @model default="NONE"
+	 * @generated
+	 */
+	FingerprintMode getFingerprintMode();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getFingerprintMode <em>Fingerprint Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Fingerprint Mode</em>' attribute.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode
+	 * @see #getFingerprintMode()
+	 * @generated
+	 */
+	void setFingerprintMode(FingerprintMode value);
+
+	/**
+	 * Returns the value of the '<em><b>Fingerprint Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * Key carrying the EPackage fingerprint when writing. Unset means the codec default applies: the unprefixed inner key inside a STRUCTURED type object, from which the underscore-prefixed PLAIN sibling is derived - the same one-value-two-placements mechanism used for the schema key. WRITE-ONLY BY CONTRACT: the read side must never take the key from here. Reading has to know the key before the model version is selected, but an annotation-configured key only exists after selection - a strict cycle. It is broken by taking the read key from caller-side sources only (options, resource, factory, module) while always additionally accepting the default key. Do not 'fix' this by resolving the read key from the model.
+	 * <!-- end-model-doc -->
+	 * @return the value of the '<em>Fingerprint Key</em>' attribute.
+	 * @see #setFingerprintKey(String)
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getTypeSerializationConfig_FingerprintKey()
+	 * @model
+	 * @generated
+	 */
+	String getFingerprintKey();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getFingerprintKey <em>Fingerprint Key</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Fingerprint Key</em>' attribute.
+	 * @see #getFingerprintKey()
+	 * @generated
+	 */
+	void setFingerprintKey(String value);
 
 	/**
 	 * Returns the value of the '<em><b>Strategy Scope</b></em>' attribute.

@@ -159,13 +159,31 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	int TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_VALUE = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 2;
 
 	/**
+	 * The feature id for the '<em><b>Fingerprint Mode</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int TYPE_SERIALIZATION_CONFIG__FINGERPRINT_MODE = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 3;
+
+	/**
+	 * The feature id for the '<em><b>Fingerprint Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int TYPE_SERIALIZATION_CONFIG__FINGERPRINT_KEY = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 4;
+
+	/**
 	 * The feature id for the '<em><b>Strategy Scope</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__STRATEGY_SCOPE = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 3;
+	int TYPE_SERIALIZATION_CONFIG__STRATEGY_SCOPE = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 5;
 
 	/**
 	 * The feature id for the '<em><b>Format Scope</b></em>' attribute.
@@ -174,7 +192,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__FORMAT_SCOPE = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 4;
+	int TYPE_SERIALIZATION_CONFIG__FORMAT_SCOPE = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 6;
 
 	/**
 	 * The number of structural features of the '<em>Type Serialization Config</em>' class.
@@ -183,7 +201,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG_FEATURE_COUNT = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 5;
+	int TYPE_SERIALIZATION_CONFIG_FEATURE_COUNT = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 7;
 
 	/**
 	 * The number of operations of the '<em>Type Serialization Config</em>' class.
@@ -1576,6 +1594,16 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 */
 	int FALLBACK_STRATEGY = 14;
 
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode <em>Fingerprint Mode</em>}' enum.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getFingerprintMode()
+	 * @generated
+	 */
+	int FINGERPRINT_MODE = 15;
+
 
 	/**
 	 * Returns the meta object for class '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig <em>Type Serialization Config</em>}'.
@@ -1619,6 +1647,28 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 */
 	EAttribute getTypeSerializationConfig_DiscriminatorValue();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getFingerprintMode <em>Fingerprint Mode</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Fingerprint Mode</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getFingerprintMode()
+	 * @see #getTypeSerializationConfig()
+	 * @generated
+	 */
+	EAttribute getTypeSerializationConfig_FingerprintMode();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getFingerprintKey <em>Fingerprint Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Fingerprint Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getFingerprintKey()
+	 * @see #getTypeSerializationConfig()
+	 * @generated
+	 */
+	EAttribute getTypeSerializationConfig_FingerprintKey();
 
 	/**
 	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig#getStrategyScope <em>Strategy Scope</em>}'.
@@ -2498,6 +2548,16 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	EEnum getFallbackStrategy();
 
 	/**
+	 * Returns the meta object for enum '{@link org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode <em>Fingerprint Mode</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for enum '<em>Fingerprint Mode</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode
+	 * @generated
+	 */
+	EEnum getFingerprintMode();
+
+	/**
 	 * Returns the factory that creates the instances of the model.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -2553,6 +2613,22 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EAttribute TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_VALUE = eINSTANCE.getTypeSerializationConfig_DiscriminatorValue();
+
+		/**
+		 * The meta object literal for the '<em><b>Fingerprint Mode</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute TYPE_SERIALIZATION_CONFIG__FINGERPRINT_MODE = eINSTANCE.getTypeSerializationConfig_FingerprintMode();
+
+		/**
+		 * The meta object literal for the '<em><b>Fingerprint Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute TYPE_SERIALIZATION_CONFIG__FINGERPRINT_KEY = eINSTANCE.getTypeSerializationConfig_FingerprintKey();
 
 		/**
 		 * The meta object literal for the '<em><b>Strategy Scope</b></em>' attribute feature.
@@ -3229,6 +3305,16 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EEnum FALLBACK_STRATEGY = eINSTANCE.getFallbackStrategy();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode <em>Fingerprint Mode</em>}' enum.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getFingerprintMode()
+		 * @generated
+		 */
+		EEnum FINGERPRINT_MODE = eINSTANCE.getFingerprintMode();
 
 	}
 

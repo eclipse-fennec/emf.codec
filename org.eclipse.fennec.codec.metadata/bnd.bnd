@@ -7,11 +7,11 @@ src=${^src},src-gen
 
 -includeresource.model: model=model
 
--generate:\
-	model/codec.genmodel;\
-		generate=fennecEMF;\
-		genmodel=model/codec.genmodel;\
-		output=src-gen
+#-generate:\
+#	model/codec.genmodel;\
+#		generate=fennecEMF;\
+#		genmodel=model/codec.genmodel;\
+#		output=src-gen
 # Add this attribute to find some logging information
 #		logfile=test.log;\
 
