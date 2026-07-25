@@ -124,6 +124,19 @@ These cover less common configurations, edge cases, and advanced integration sce
 | 46 | Large payloads (1000+ objects) | `PerformanceTests` | ! | . | !! | !! | Binary formats should show performance benefit |
 | 47 | Extended metadata names | `ExtendedMetaDataTests` | ! | ! | ! | ! | XSD name mapping |
 | 48 | Custom value reader/writer | `CustomValueTests` | ! | ! | ! | !! | BSON: native types (ObjectId, Decimal128) need custom handlers |
+| 49 | In-band EPackage fingerprint | `AbstractFingerprintTCK` | ! | ! | ! | ! | Self-describing multi-version documents (#73 B.1). Property-stream formats only — see below |
+
+> **Row 49 applies to property-stream formats only.** The fingerprint is one more named property
+> next to the type, so JSON, YAML, CBOR and BSON all carry it. **Column formats (CSV, XLSX, ODS,
+> tabular) must not extend `AbstractFingerprintTCK`**: a fingerprint would have to become a
+> column repeated on every row, and the tabular shape has no per-object type context to attach it
+> to. They report `supportsInBandFingerprint() == false`, which makes the codec suppress the
+> carrier (with a warning) even when `codec.fingerprintMode` asks for it; those callers select a
+> version with `codec.rootFingerprint` on load instead.
+>
+> BSON additionally cannot express the *mixed versions of one nsURI* case, which needs two roots
+> side by side — `supportsArrayRoot()` is false for it. The TCK skips that one case rather than
+> reporting a carrier gap.
 
 **Test class:** `AbstractAdvancedFeatureTCK`
 **Test model:** Reuses existing `test-advanced.ecore` + new `test-tck-advanced.ecore`

@@ -257,7 +257,8 @@ public class CodecResource extends ResourceImpl {
 
         requirePackageRegistered(ePackage);
 
-        Map<String, Object> effectiveOptions = (Map<String, Object>) mergeOptions(options);
+        Map<String, Object> effectiveOptions = suppressFingerprintForColumnFormats(
+                (Map<String, Object>) mergeOptions(options));
 
         // Enrich resolver with save options (highest priority in config hierarchy)
         ConfigurationResolver operationResolver = enrichWithOptions(resolver, effectiveOptions);
@@ -521,6 +522,42 @@ public class CodecResource extends ResourceImpl {
                 gen.writeEndArray();
             }
         }
+    }
+
+    /**
+     * Forces {@code codec.fingerprintMode} to NONE for formats that cannot carry the in-band
+     * fingerprint (issue #73, S7).
+     * <p>
+     * Decided here, once, rather than plumbed into the serializers: the format provider is known
+     * at save time, so turning the option off is enough and no write site needs to learn about
+     * formats. A column format would otherwise have to turn the fingerprint into a column
+     * repeated on every row, which no reader of that format can interpret — writing nothing is
+     * the better failure. Such callers select a version through {@code codec.rootFingerprint}.
+     * </p>
+     * <p>
+     * A caller who explicitly asked for the carrier gets a warning, because silently ignoring an
+     * explicit request is exactly what this design avoids everywhere else.
+     * </p>
+     *
+     * @param options the merged save options
+     * @return the options, with the fingerprint mode removed if the format cannot carry it
+     */
+    private Map<String, Object> suppressFingerprintForColumnFormats(Map<String, Object> options) {
+        if (isNull(formatProvider) || formatProvider.supportsInBandFingerprint() || isNull(options)) {
+            return options;
+        }
+        Object requested = options.get(CodecOptions.CODEC_FINGERPRINT_MODE);
+        if (isNull(requested) || "NONE".equals(requested)) {
+            return options;
+        }
+        LOGGER.warning(() -> String.format(
+                "[%s] format cannot carry an in-band fingerprint; %s=%s is ignored for resource %s. "
+                + "Use %s on load to select a model version instead.",
+                formatProvider.getFormatId(), CodecOptions.CODEC_FINGERPRINT_MODE, requested,
+                getURI(), CodecOptions.CODEC_ROOT_FINGERPRINT));
+        Map<String, Object> adjusted = new HashMap<>(options);
+        adjusted.put(CodecOptions.CODEC_FINGERPRINT_MODE, "NONE");
+        return adjusted;
     }
 
     /**

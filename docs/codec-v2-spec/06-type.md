@@ -1768,6 +1768,30 @@ On/off is expressed through `fingerprintMode` rather than a separate boolean fla
 `typeStrategy=NONE` (a parallel `typeInclude` boolean is deprecated for exactly this reason
 — see [16-annotation-reference.md](16-annotation-reference.md)).
 
+### 8.8 Format Applicability
+
+The carrier needs a place to put a named property next to the type, so it applies to
+**property-stream** formats and not to **column** formats:
+
+| Format family | In-band carrier | How the version question is answered |
+|---|---|---|
+| JSON, YAML, CBOR, BSON | ✅ | In-band fingerprint (this section) or `codec.rootFingerprint` |
+| CSV, XLSX, ODS, tabular | ❌ | `codec.rootFingerprint` on load only |
+
+A column format would have to turn the fingerprint into a **column repeated on every row**, and
+the tabular shape has no per-object type context to attach it to. Such formats report
+`supportsInBandFingerprint() == false`; the codec then suppresses the carrier **with a warning**
+even if `fingerprintMode` asks for it — writing a column no reader of that format can interpret
+would be worse than writing nothing, and silently ignoring an explicit request is what this
+design avoids everywhere else.
+
+Conformance is checked by a shared TCK suite that every property-stream format extends, so a new
+format cannot quietly omit the carrier. See
+[format-tck-capability-map.md](../format-tck-capability-map.md) row 49.
+
+> **XMI never carries a fingerprint.** A document round-tripped through XMI loses the in-band
+> version information; the version has to come from the caller on the way back in.
+
 > **Not yet available: package-level configuration.** The fingerprint's currency is the
 > `EPackage`, so an `EPackage`-level annotation would be its natural home — but there is no
 > `EPackage` annotation level in the codec today (see

@@ -212,6 +212,55 @@ class FingerprintFailureMatrixTest {
     }
 
     // ========================================================================
+    // Section 4: The fingerprint key is metadata, not unknown data
+    // Spec: 06-type.md section 8.6
+    // ========================================================================
+
+    @Nested
+    @DisplayName("4. strictOnUnknown must accept the fingerprint key (spec 8.6)")
+    class StrictOnUnknown {
+
+        @Test
+        @DisplayName("4.1 strictOnUnknown does not reject a document because of the fingerprint")
+        void fingerprintIsNotUnknownData() throws IOException {
+            // strictOnUnknown turns any unrecognised field into a hard error. The fingerprint is
+            // a known metadata key, so a document carrying it must still load.
+            CodecResource resource = new CodecResource(
+                    URI.createURI("test://fp-strict-unknown.json"),
+                    metadataService,
+                    ConfigurationResolver.builder()
+                            .moduleProperties(Map.of("strictOnUnknown", true))
+                            .build(),
+                    null);
+            String json = documentWith(fingerprintA, "valueA", "X");
+
+            resource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), Map.of());
+
+            assertEquals(1, resource.getContents().size());
+            assertSame(packageA.getEClassifier("Entity"), resource.getContents().get(0).eClass());
+        }
+
+        @Test
+        @DisplayName("4.2 a genuinely unknown field is still rejected - the guard is really active")
+        void genuinelyUnknownFieldStillRejected() {
+            CodecResource resource = new CodecResource(
+                    URI.createURI("test://fp-strict-unknown-negative.json"),
+                    metadataService,
+                    ConfigurationResolver.builder()
+                            .moduleProperties(Map.of("strictOnUnknown", true))
+                            .build(),
+                    null);
+            String json = "{\"_type\":\"" + TYPE_URI + "\",\"_fingerprint\":\"" + fingerprintA
+                    + "\",\"valueA\":\"X\",\"noSuchFeature\":\"Y\"}";
+
+            assertThrows(Exception.class,
+                    () -> resource.load(
+                            new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), Map.of()),
+                    "without this the previous test would pass even if strictOnUnknown were inert");
+        }
+    }
+
+    // ========================================================================
     // Section 3: The caller disagrees with the document
     // ========================================================================
 
