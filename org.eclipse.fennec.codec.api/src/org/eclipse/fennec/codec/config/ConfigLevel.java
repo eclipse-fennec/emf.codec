@@ -36,6 +36,22 @@ public enum ConfigLevel {
     ECLASS,
 
     /**
+     * Package-level configuration (EPackage), i.e. defaults for every class in the package
+     * (issue #75).
+     * <p>
+     * This is an <b>annotation-internal</b> level: it is merged into each class's annotation
+     * configuration when the package profile is built, rather than forming a further layer in the
+     * cascading merge of options, resource, factory and module. Those callers keep seeing exactly
+     * one annotation layer.
+     * </p>
+     * <p>
+     * Resolution uses the <b>directly owning</b> package only — subpackage hierarchies are not
+     * traversed anywhere in the codec.
+     * </p>
+     */
+    EPACKAGE,
+
+    /**
      * Global configuration.
      * Applies to all classes and features (unless overridden at more specific levels).
      */
@@ -46,6 +62,6 @@ public enum ConfigLevel {
      * Used for resolution: iterate in this order to find the most specific configured value.
      */
     public static ConfigLevel[] specificityOrder() {
-        return new ConfigLevel[] { FEATURE, ECLASS, GLOBAL };
+        return new ConfigLevel[] { FEATURE, ECLASS, EPACKAGE, GLOBAL };
     }
 }

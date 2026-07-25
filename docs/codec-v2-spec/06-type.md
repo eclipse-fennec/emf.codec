@@ -1763,8 +1763,8 @@ For what happens when a fingerprint is present but *cannot be resolved*, when it
 
 | Key | Levels | Direction | Default | Meaning |
 |-----|--------|-----------|---------|---------|
-| `fingerprintMode` | G, C | W | `NONE` | `NONE` = write no fingerprint; `FIRST_TOUCH` = write it per §8.3 |
-| `fingerprintKey` | G, C | RW (read: caller-side only, §8.5) | `fingerprint` (PLAIN: `_fingerprint`) | Key carrying the fingerprint |
+| `fingerprintMode` | G, P, C | W | `NONE` | `NONE` = write no fingerprint; `FIRST_TOUCH` = write it per §8.3 |
+| `fingerprintKey` | G, P, C | RW (read: caller-side only, §8.5) | `fingerprint` (PLAIN: `_fingerprint`) | Key carrying the fingerprint |
 
 On/off is expressed through `fingerprintMode` rather than a separate boolean flag, mirroring
 `typeStrategy=NONE` (a parallel `typeInclude` boolean is deprecated for exactly this reason
@@ -1794,13 +1794,21 @@ format cannot quietly omit the carrier. See
 > **XMI never carries a fingerprint.** A document round-tripped through XMI loses the in-band
 > version information; the version has to come from the caller on the way back in.
 
-> **Not yet available: package-level configuration.** The fingerprint's currency is the
-> `EPackage`, so an `EPackage`-level annotation would be its natural home — but there is no
-> `EPackage` annotation level in the codec today (see
-> [16-annotation-reference.md](16-annotation-reference.md) and issue #75). The opt-in is
-> therefore configured per **class** (annotation on the root class) or, for a whole document,
-> through the caller-side option. When the `EPackage` level arrives, `fingerprintMode` gains
-> that scope without a breaking change.
+> **Package-level opt-in is the natural one.** The fingerprint's currency is the `EPackage`, so an
+> annotation on the package is where this configuration belongs — one opt-in for every class in the
+> model, instead of repeating it per class:
+>
+> ```xml
+> <ecore:EPackage name="orders" nsURI="http://example.org/orders/1.0">
+>   <eAnnotations source="http://eclipse.org/fennec/codec">
+>     <details key="fingerprintMode" value="FIRST_TOUCH"/>
+>   </eAnnotations>
+> ```
+>
+> A single class can still state an exception (`fingerprintMode=NONE` opts back out), and a caller
+> can switch it on for one operation through the option. See
+> [16-annotation-reference.md](16-annotation-reference.md) for the level and
+> [02 §3.1](02-config-resolution.md#31-the-epackage-scope-is-annotation-internal) for how it merges.
 
 ---
 

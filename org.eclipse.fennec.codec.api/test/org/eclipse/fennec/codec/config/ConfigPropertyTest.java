@@ -296,11 +296,12 @@ class ConfigPropertyTest {
     class GetValidLevels {
 
         @Test
-        @DisplayName("ID_KEY has GLOBAL and ECLASS and FEATURE levels")
-        void idKeyHasThreeLevels() {
+        @DisplayName("ID_KEY has GLOBAL, EPACKAGE, ECLASS and FEATURE levels")
+        void idKeyHasAllLevels() {
             Set<ConfigLevel> levels = ConfigProperty.ID_KEY.getValidLevels();
-            assertEquals(3, levels.size());
+            assertEquals(4, levels.size());
             assertTrue(levels.contains(ConfigLevel.GLOBAL));
+            assertTrue(levels.contains(ConfigLevel.EPACKAGE));
             assertTrue(levels.contains(ConfigLevel.ECLASS));
             assertTrue(levels.contains(ConfigLevel.FEATURE));
         }
@@ -326,19 +327,22 @@ class ConfigPropertyTest {
         }
 
         @Test
-        @DisplayName("ID_FEATURES has only ECLASS level")
-        void idFeaturesHasOnlyEClassLevel() {
+        @DisplayName("ID_FEATURES is ECLASS and EPACKAGE, never FEATURE or GLOBAL")
+        void idFeaturesHasClassAndPackageLevel() {
             Set<ConfigLevel> levels = ConfigProperty.ID_FEATURES.getValidLevels();
-            assertEquals(1, levels.size());
+            assertEquals(2, levels.size());
             assertTrue(levels.contains(ConfigLevel.ECLASS));
+            // A package-wide default is meaningful when the classes share the feature name
+            assertTrue(levels.contains(ConfigLevel.EPACKAGE));
         }
 
         @Test
-        @DisplayName("TYPE_STRATEGY has GLOBAL, ECLASS, FEATURE levels")
-        void typeStrategyHasThreeLevels() {
+        @DisplayName("TYPE_STRATEGY has GLOBAL, EPACKAGE, ECLASS, FEATURE levels")
+        void typeStrategyHasAllLevels() {
             Set<ConfigLevel> levels = ConfigProperty.TYPE_STRATEGY.getValidLevels();
-            assertEquals(3, levels.size());
+            assertEquals(4, levels.size());
             assertTrue(levels.contains(ConfigLevel.GLOBAL));
+            assertTrue(levels.contains(ConfigLevel.EPACKAGE));
             assertTrue(levels.contains(ConfigLevel.ECLASS));
             assertTrue(levels.contains(ConfigLevel.FEATURE));
         }
