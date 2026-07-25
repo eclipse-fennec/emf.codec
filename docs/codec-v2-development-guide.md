@@ -906,6 +906,24 @@ MAIN TASK: [description] - [status: ACTIVE/PAUSED/✅]
 
 ```
 
+COMPLETED: Issue #73 Phase B — in-band EPackage fingerprint - ✅ (2026-07-25, PR #77)
+│  - Self-describing multi-version documents: the version comes from the data, not the caller
+│  - Model: FingerprintMode (NONE|FIRST_TOUCH) + fingerprintKey on TypeSerializationConfig
+│  - Write: FingerprintPins, first touch only; a due fingerprint beats smart-compression omission
+│  - Read: whole type context collected before resolving (PLAIN needs type AND fingerprint)
+│  - K7 break is structural: read keys in a context attribute seeded from caller options only
+│  - B.2 full failure matrix (StreamFingerprintOutcome), caller-wins precedence, diagnostic cap
+│  - B.3 fingerprint in STRUCTURED reference type objects; reference resolution via PackageResolver
+│  - S7 AbstractFingerprintTCK for YAML/CBOR/BSON; column formats suppress the carrier with a warning
+│  - Spec: 06 §8, 13 §2.10–§2.12, 10 §1.2.1, 03/02/16 tables; workdoc §8.2a is the decision log
+│  - 3514 tests, 0 failures, 3 documented skips. Default OFF, so R1 holds by construction
+│  - Follow-ups filed: #75 (EPackage annotation level), #76 (smart compression drops second root)
+
+COMPLETED: Issue #54 Phase A — fingerprint-aware config resolution - ✅ (2026-07-24, PR #74 merged)
+│  - A.1 instance-based annotation config, A.2/A.4 codec.rootFingerprint + EPackage root schema
+│  - A.3+B.5 binding package-resolution order via per-load PackageResolver, count-based candidate rule
+│  - B.6 discriminator registries as per-step composed views
+
 COMPLETED: Custom Properties + JSON Schema Enhancements - ✅ (2026-03-02)
 │  - Generic customProperties map on EffectiveCodecConfig (replaces hard-coded format-specific fields)
 │  - CodecResource.extractCustomProperties() — auto-collects codec.* options not matching known keys
