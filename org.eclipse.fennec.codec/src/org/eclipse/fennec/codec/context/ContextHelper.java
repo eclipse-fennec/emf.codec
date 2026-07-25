@@ -19,6 +19,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
+import org.eclipse.fennec.codec.util.FingerprintPins;
 import org.eclipse.fennec.codec.util.PackageResolver;
 
 import tools.jackson.core.JsonParser;
@@ -73,6 +74,15 @@ public final class ContextHelper {
      * registry, MetadataService candidate query, global registry) and the A.3 count rule.
      */
     public static final String PACKAGE_RESOLVER = "CODEC_PACKAGE_RESOLVER";
+
+    /**
+     * Context attribute key holding the per-save {@link FingerprintPins} (issue #73, B.1).
+     * <p>
+     * Tracks which EPackage version has already been announced for each nsURI, so the
+     * in-band fingerprint is written at first touch only.
+     * </p>
+     */
+    public static final String FINGERPRINT_PINS = "CODEC_FINGERPRINT_PINS";
 
     /**
      * Context attribute key indicating if root object serialization is complete.
@@ -389,6 +399,26 @@ public final class ContextHelper {
      * @param ctxt the deserialization context
      * @return the resolver, or null if not set
      */
+    /**
+     * Gets the per-save {@link FingerprintPins} from the serialization context, creating and
+     * installing it on first use (B.1).
+     * <p>
+     * Lazily created so that saves which never write a fingerprint carry no extra state.
+     * </p>
+     *
+     * @param ctxt the serialization context
+     * @return the pins for this save, never {@code null}
+     */
+    public static FingerprintPins getFingerprintPins(SerializationContext ctxt) {
+        Object value = ctxt.getAttribute(FINGERPRINT_PINS);
+        if (value instanceof FingerprintPins pins) {
+            return pins;
+        }
+        FingerprintPins pins = new FingerprintPins();
+        ctxt.setAttribute(FINGERPRINT_PINS, pins);
+        return pins;
+    }
+
     public static PackageResolver getPackageResolver(DeserializationContext ctxt) {
         if (ctxt == null) {
             return null;

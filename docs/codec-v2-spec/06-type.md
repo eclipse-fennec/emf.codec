@@ -1694,6 +1694,17 @@ would have nowhere to live and the document would silently lose the version info
 was asked to record. A due fingerprint therefore suppresses the omission, not the other way
 round.
 
+**Deliberately no carrier.** Two cases go the other way, because there the *caller* removed
+the type context on purpose rather than as an optimization:
+
+- `typeStrategy=NONE` — type information is suppressed entirely, so there is no type context
+  and no fingerprint is written.
+- a nested `typeDiscriminatorPath` — the type is expressed by data at a feature path, and no
+  type object is written to attach a fingerprint to.
+
+A document produced this way is not self-describing; callers needing that must leave the type
+context in place, or answer the version question out-of-band with `codec.rootFingerprint`.
+
 ### 8.4 Read: Liberal
 
 Reading is deliberately more permissive than writing: a reader accepts a fingerprint

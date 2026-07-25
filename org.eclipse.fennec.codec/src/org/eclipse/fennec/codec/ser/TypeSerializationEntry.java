@@ -24,8 +24,10 @@ import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
+import org.eclipse.fennec.model.metadata.PackageMetadata;
 import org.eclipse.fennec.model.metadata.SerializationFormat;
 import org.eclipse.fennec.model.metadata.TypeStrategy;
+import org.eclipse.fennec.model.metadata.api.MetadataService;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;
@@ -115,6 +117,12 @@ public class TypeSerializationEntry implements SerializationEntry {
         if (ContextHelper.isSuppressType(ctxt)) {
             // Clear the flag so it doesn't affect subsequent objects
             ContextHelper.clearSuppressType(ctxt);
+            // A due fingerprint outweighs the omission: the carrier lives in the type
+            // context, so dropping the type here would silently lose the version
+            // information the caller asked to record (spec 06 §8.3).
+            if (isFingerprintPending(ctxt)) {
+                return shouldSerialize(state);
+            }
             return false;
         }
         return shouldSerialize(state);
@@ -191,6 +199,79 @@ public class TypeSerializationEntry implements SerializationEntry {
             }
             gen.writeStringProperty(config.getTypeKey(), effectiveValue);
         }
+        writeFingerprintIfDue(gen, ctxt, config.getPlainFingerprintKey());
+    }
+
+    /**
+     * Writes the in-band EPackage fingerprint when one is due at this site (issue #73, B.1).
+     * <p>
+     * Nothing is written unless {@code fingerprintMode} opted in and the first-touch rule
+     * says this site is the one that has to announce the version. In PLAIN format the value
+     * becomes a sibling of the type key; in STRUCTURED format an inner key of the type
+     * object — both are the same type context, so the caller only decides which key form to
+     * pass.
+     * </p>
+     *
+     * @param gen the JSON generator
+     * @param ctxt the serialization context holding the per-save pins
+     * @param key the key to write under (PLAIN sibling form or STRUCTURED inner form)
+     */
+    private void writeFingerprintIfDue(JsonGenerator gen, SerializationContext ctxt, String key) {
+        if (!config.isFingerprintWriteEnabled() || ctxt == null) {
+            return;
+        }
+        EPackage ePackage = eClass.getEPackage();
+        if (ePackage == null) {
+            return;
+        }
+        if (!ContextHelper.getFingerprintPins(ctxt).isDue(ePackage)) {
+            return;
+        }
+        String fingerprint = resolveFingerprint(ePackage);
+        if (fingerprint != null && !fingerprint.isEmpty()) {
+            gen.writeStringProperty(key, fingerprint);
+        }
+    }
+
+    /**
+     * Looks up the package fingerprint via the MetadataService.
+     *
+     * @param ePackage the package to fingerprint
+     * @return the fingerprint, or {@code null} if no metadata is available for the package
+     */
+    private String resolveFingerprint(EPackage ePackage) {
+        if (codecConfig == null) {
+            return null;
+        }
+        MetadataService metadataService = codecConfig.getMetadataService();
+        if (metadataService == null) {
+            return null;
+        }
+        PackageMetadata metadata = metadataService.getPackageMetadata(ePackage);
+        return metadata != null ? metadata.getModelFingerprint() : null;
+    }
+
+    /**
+     * Reports whether a fingerprint would be due for this object's package, without
+     * advancing the first-touch state.
+     * <p>
+     * Used to keep type omission from swallowing the carrier: where a fingerprint has to be
+     * written, the type context must exist to hold it.
+     * </p>
+     *
+     * @param ctxt the serialization context
+     * @return true if the fingerprint is opted in and this package has not been announced yet
+     */
+    private boolean isFingerprintPending(SerializationContext ctxt) {
+        if (!config.isFingerprintWriteEnabled() || ctxt == null) {
+            return false;
+        }
+        EPackage ePackage = eClass.getEPackage();
+        if (ePackage == null) {
+            return false;
+        }
+        EPackage pinned = ContextHelper.getFingerprintPins(ctxt).pinnedVersion(ePackage.getNsURI());
+        return pinned != ePackage;
     }
 
     /**
@@ -250,6 +331,9 @@ public class TypeSerializationEntry implements SerializationEntry {
                 gen.writeStringProperty(config.getNameKey(), effectiveTypeValue);
                 break;
         }
+
+        // Version identity belongs next to the type identity, before the supertype.
+        writeFingerprintIfDue(gen, ctxt, config.getFingerprintKey());
 
         // Include supertype inside the _type object when STRUCTURED format
         serializeSuperTypeInStructured(gen);
