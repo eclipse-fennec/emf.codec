@@ -635,6 +635,46 @@ land which way.
 - Smaller work steps are checklists in #54/#73; split into sub-issues on demand.
 - The method above (8.1) is copied into each ticket.
 
+### 8.2a Phase B implementation record (2026-07-25)
+
+Phase B (#73) is implemented on `feature/issue-73-fingerprint-phase-b`, one commit per work
+package, each R1-gated (no existing test changed) and CI-green:
+
+| Step | What landed |
+|---|---|
+| **B.1a** | Model surface: `FingerprintMode` (`NONE`\|`FIRST_TOUCH`) + `fingerprintKey` on `TypeSerializationConfig`. Enum rather than a boolean, because `typeInclude` is deprecated for exactly that pattern. |
+| **B.1 spec** | 06 §8 as the single description of the carrier; 13 §2.10/§2.11 options + signal contract (K3); key tables in 03, property table in 02, annotation table in 16. |
+| **B.1 config** | `ConfigProperty`, `TypeConfig` (incl. `getPlainFingerprintKey()`), `CodecOptions`, annotation parsing, bridge, REST surface (R3). |
+| **B.1 write** | `FingerprintPins` + first-touch write in PLAIN and STRUCTURED; a due fingerprint beats smart compression's type omission. |
+| **B.1 read** | Type context collected before resolving (PLAIN needs both type *and* fingerprint); read keys seeded from caller options into the context, making the K7 break **structural**. |
+| **B.2** | Full R4 matrix as `StreamFingerprintOutcome`; caller-vs-stream precedence; LENIENT nsURI fallback; diagnostic cap per fingerprint value. |
+| **B.3** | Fingerprint inside a STRUCTURED reference's type object; reference parser no longer misreads it as projection data (W14); reference type resolution routed through `PackageResolver`. |
+| **S7** | `AbstractFingerprintTCK` extended by YAML/CBOR/BSON; column formats report `supportsInBandFingerprint() == false` and the carrier is suppressed with a warning. |
+
+**Decisions taken during implementation** (all recorded in the spec):
+
+- **B.1a**: model surface settled up front with the lead so the ecore is regenerated once;
+  `fingerprintMode` as an enum; `fingerprintKey` without a default literal.
+- **EPackage annotation level does not exist** → Phase B ships class-level opt-in plus the
+  caller option; the level itself is **issue #75**.
+- **PLAIN ordering** (lead decision): the K8 slot `_type → fingerprint` stands; instead the
+  reader collects the whole type context before resolving. No spec revision needed.
+
+**Defects found and fixed inside Phase B:**
+
+- The reader moved its pin whenever it resolved an explicit fingerprint, so `A1, A2, A1` came
+  back as `A1, A2, A2` — the unmarked third root was reinterpreted. The pin now keeps the first
+  version, matching the writer.
+- The STRUCTURED reference parser counted the fingerprint as projection data, and its type
+  resolution bypassed `PackageResolver` for the global registry.
+
+**Defect found, filed, not fixed here:** **issue #76** — with several roots, smart compression
+writes a bare name for the second root that the reader cannot resolve, dropping the object
+silently. Reproduces with one version and no fingerprint, so it is not ours; both possible
+fixes are R1 decisions of their own. `FingerprintRoundTripTest` §5.1 is disabled pointing at it.
+
+**Baseline:** 3514 tests, 0 failures, 3 documented skips (2 pre-existing + the #76 one).
+
 ### 8.3 Order
 
 1. **This document** — review together, settle `[PROPOSED]` → `[DECIDED]`
