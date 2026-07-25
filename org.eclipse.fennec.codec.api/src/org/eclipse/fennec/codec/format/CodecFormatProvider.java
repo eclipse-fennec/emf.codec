@@ -197,6 +197,27 @@ public interface CodecFormatProvider<S, T> {
     }
 
     /**
+     * Returns whether this format can carry the in-band EPackage fingerprint (issue #73, S7).
+     * <p>
+     * True for <b>property-stream</b> formats — JSON, YAML, CBOR, BSON — where the fingerprint
+     * is simply one more named property next to the type, and a self-describing multi-version
+     * document is therefore possible.
+     * <p>
+     * False for <b>column</b> formats (CSV, XLSX, ODS, tabular). There a fingerprint would have
+     * to become a column repeated on every row, and the tabular shape has no per-object type
+     * context to attach it to in the first place. Such formats answer the version question
+     * through the option path ({@code codec.rootFingerprint}) instead, and suppress the in-band
+     * carrier even when {@code codec.fingerprintMode} asks for it — writing a column that no
+     * reader of that format can interpret would be worse than writing nothing.
+     *
+     * @return {@code true} if the in-band fingerprint carrier applies to this format
+     * @see <a href="docs/codec-v2-spec/06-type.md#8-in-band-epackage-fingerprint">Spec 06 §8</a>
+     */
+    default boolean supportsInBandFingerprint() {
+        return true;
+    }
+
+    /**
      * Validates the save-time options against the resource URI and returns any
      * inconsistency warnings. Default: empty list (no warnings).
      * <p>

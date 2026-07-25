@@ -155,6 +155,19 @@ public class CsvFormatProvider implements CodecFormatProvider<InputStream, Outpu
         return new String[] { "text/csv" };
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A column format has no in-band fingerprint carrier (issue #73, S7): the value would have
+     * to become a column repeated on every row, and there is no per-object type context to
+     * attach it to. Callers needing version selection for CSV use
+     * {@code codec.rootFingerprint} instead.
+     */
+    @Override
+    public boolean supportsInBandFingerprint() {
+        return false;
+    }
+
     @Override
     public boolean supportsArrayRoot() {
         return true;
