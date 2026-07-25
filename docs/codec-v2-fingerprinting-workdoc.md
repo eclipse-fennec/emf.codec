@@ -673,7 +673,31 @@ writes a bare name for the second root that the reader cannot resolve, dropping 
 silently. Reproduces with one version and no fingerprint, so it is not ours; both possible
 fixes are R1 decisions of their own. `FingerprintRoundTripTest` §5.1 is disabled pointing at it.
 
-**Baseline:** 3514 tests, 0 failures, 3 documented skips (2 pre-existing + the #76 one).
+**Also landed on this branch** (same theme — making multi-version resolution consistent
+everywhere — folded in on the lead's call since there are no compatibility constraints yet):
+
+- **#76 fixed:** smart compression is scoped **per resource root**. The writer compressed later
+  roots against the first root's schema, while the reader starts each root with no schema and
+  dropped the resulting bare names *silently*. Reproduced with one version and no fingerprint, so
+  it was never ours. Closes the multi-version hazard at root level as a side effect, and the
+  round-trip coverage gap that let it slip (no test round-tripped smart compression at all).
+- **B.5 remainder:** `FeaturePathTypeResolver` was the last resolution site on the global
+  registry (the Phase A `TODO`). Discriminator-path class URIs now go through `PackageResolver`,
+  so an ambiguous nsURI is an error instead of a silent last-wins pick.
+- **W4 remainder:** supertype compression compared nsURI *strings*, so a cross-version supertype
+  was emitted as a bare name and resolved against the wrong package. Now compares package
+  **instances** — the same rule as the type side.
+- **W16:** 12 §3.1 states that `inherit=ALL` binds the effective config to the base package
+  version the instance chain points at, and that a declared `eReferenceType` is only an upper
+  bound.
+
+**Still open, deliberately:** **#75** (EPackage annotation level + the four dead spec links);
+**B.4** (FingerprintService legacy-scheme compat, a model.metadata concern triggered by the first
+canonicalization-scheme bump); **W5** — checked and *not* actionable: `metadataMerge` has no
+consumer in the serializer at all, so where the fingerprint sits inside a `_metadata` object can
+only be specified once that feature exists.
+
+**Baseline:** 3524 tests, 0 failures, 2 documented skips (both pre-existing).
 
 ### 8.3 Order
 
