@@ -19,6 +19,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 
 import org.eclipse.fennec.codec.metadata.model.codec.CodecPackage;
+import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
 import org.eclipse.fennec.codec.metadata.model.codec.StrategyScope;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
 
@@ -35,6 +36,8 @@ import org.eclipse.fennec.model.metadata.impl.BaseTypeConfigImpl;
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl#getMapId <em>Map Id</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl#getDiscriminatorPath <em>Discriminator Path</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl#getDiscriminatorValue <em>Discriminator Value</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl#getFingerprintMode <em>Fingerprint Mode</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl#getFingerprintKey <em>Fingerprint Key</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl#getStrategyScope <em>Strategy Scope</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl#getFormatScope <em>Format Scope</em>}</li>
  * </ul>
@@ -101,6 +104,46 @@ public class TypeSerializationConfigImpl extends BaseTypeConfigImpl implements T
 	 * @ordered
 	 */
 	protected String discriminatorValue = DISCRIMINATOR_VALUE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getFingerprintMode() <em>Fingerprint Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getFingerprintMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final FingerprintMode FINGERPRINT_MODE_EDEFAULT = FingerprintMode.NONE;
+
+	/**
+	 * The cached value of the '{@link #getFingerprintMode() <em>Fingerprint Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getFingerprintMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected FingerprintMode fingerprintMode = FINGERPRINT_MODE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getFingerprintKey() <em>Fingerprint Key</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getFingerprintKey()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String FINGERPRINT_KEY_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getFingerprintKey() <em>Fingerprint Key</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getFingerprintKey()
+	 * @generated
+	 * @ordered
+	 */
+	protected String fingerprintKey = FINGERPRINT_KEY_EDEFAULT;
 
 	/**
 	 * The default value of the '{@link #getStrategyScope() <em>Strategy Scope</em>}' attribute.
@@ -236,6 +279,52 @@ public class TypeSerializationConfigImpl extends BaseTypeConfigImpl implements T
 	 * @generated
 	 */
 	@Override
+	public FingerprintMode getFingerprintMode() {
+		return fingerprintMode;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setFingerprintMode(FingerprintMode newFingerprintMode) {
+		FingerprintMode oldFingerprintMode = fingerprintMode;
+		fingerprintMode = newFingerprintMode == null ? FINGERPRINT_MODE_EDEFAULT : newFingerprintMode;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.TYPE_SERIALIZATION_CONFIG__FINGERPRINT_MODE, oldFingerprintMode, fingerprintMode));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getFingerprintKey() {
+		return fingerprintKey;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setFingerprintKey(String newFingerprintKey) {
+		String oldFingerprintKey = fingerprintKey;
+		fingerprintKey = newFingerprintKey;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.TYPE_SERIALIZATION_CONFIG__FINGERPRINT_KEY, oldFingerprintKey, fingerprintKey));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public StrategyScope getStrategyScope() {
 		return strategyScope;
 	}
@@ -290,6 +379,10 @@ public class TypeSerializationConfigImpl extends BaseTypeConfigImpl implements T
 				return getDiscriminatorPath();
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_VALUE:
 				return getDiscriminatorValue();
+			case CodecPackage.TYPE_SERIALIZATION_CONFIG__FINGERPRINT_MODE:
+				return getFingerprintMode();
+			case CodecPackage.TYPE_SERIALIZATION_CONFIG__FINGERPRINT_KEY:
+				return getFingerprintKey();
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG__STRATEGY_SCOPE:
 				return getStrategyScope();
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG__FORMAT_SCOPE:
@@ -314,6 +407,12 @@ public class TypeSerializationConfigImpl extends BaseTypeConfigImpl implements T
 				return;
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_VALUE:
 				setDiscriminatorValue((String)newValue);
+				return;
+			case CodecPackage.TYPE_SERIALIZATION_CONFIG__FINGERPRINT_MODE:
+				setFingerprintMode((FingerprintMode)newValue);
+				return;
+			case CodecPackage.TYPE_SERIALIZATION_CONFIG__FINGERPRINT_KEY:
+				setFingerprintKey((String)newValue);
 				return;
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG__STRATEGY_SCOPE:
 				setStrategyScope((StrategyScope)newValue);
@@ -342,6 +441,12 @@ public class TypeSerializationConfigImpl extends BaseTypeConfigImpl implements T
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_VALUE:
 				setDiscriminatorValue(DISCRIMINATOR_VALUE_EDEFAULT);
 				return;
+			case CodecPackage.TYPE_SERIALIZATION_CONFIG__FINGERPRINT_MODE:
+				setFingerprintMode(FINGERPRINT_MODE_EDEFAULT);
+				return;
+			case CodecPackage.TYPE_SERIALIZATION_CONFIG__FINGERPRINT_KEY:
+				setFingerprintKey(FINGERPRINT_KEY_EDEFAULT);
+				return;
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG__STRATEGY_SCOPE:
 				setStrategyScope(STRATEGY_SCOPE_EDEFAULT);
 				return;
@@ -366,6 +471,10 @@ public class TypeSerializationConfigImpl extends BaseTypeConfigImpl implements T
 				return DISCRIMINATOR_PATH_EDEFAULT == null ? discriminatorPath != null : !DISCRIMINATOR_PATH_EDEFAULT.equals(discriminatorPath);
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_VALUE:
 				return DISCRIMINATOR_VALUE_EDEFAULT == null ? discriminatorValue != null : !DISCRIMINATOR_VALUE_EDEFAULT.equals(discriminatorValue);
+			case CodecPackage.TYPE_SERIALIZATION_CONFIG__FINGERPRINT_MODE:
+				return fingerprintMode != FINGERPRINT_MODE_EDEFAULT;
+			case CodecPackage.TYPE_SERIALIZATION_CONFIG__FINGERPRINT_KEY:
+				return FINGERPRINT_KEY_EDEFAULT == null ? fingerprintKey != null : !FINGERPRINT_KEY_EDEFAULT.equals(fingerprintKey);
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG__STRATEGY_SCOPE:
 				return strategyScope != STRATEGY_SCOPE_EDEFAULT;
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG__FORMAT_SCOPE:
@@ -390,6 +499,10 @@ public class TypeSerializationConfigImpl extends BaseTypeConfigImpl implements T
 		result.append(discriminatorPath);
 		result.append(", discriminatorValue: ");
 		result.append(discriminatorValue);
+		result.append(", fingerprintMode: ");
+		result.append(fingerprintMode);
+		result.append(", fingerprintKey: ");
+		result.append(fingerprintKey);
 		result.append(", strategyScope: ");
 		result.append(strategyScope);
 		result.append(", formatScope: ");

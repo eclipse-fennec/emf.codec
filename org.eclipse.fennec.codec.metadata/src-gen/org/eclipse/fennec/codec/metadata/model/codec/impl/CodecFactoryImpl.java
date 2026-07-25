@@ -99,6 +99,8 @@ public class CodecFactoryImpl extends EFactoryImpl implements CodecFactory {
 				return createDeserializationModeFromString(eDataType, initialValue);
 			case CodecPackage.FALLBACK_STRATEGY:
 				return createFallbackStrategyFromString(eDataType, initialValue);
+			case CodecPackage.FINGERPRINT_MODE:
+				return createFingerprintModeFromString(eDataType, initialValue);
 			default:
 				throw new IllegalArgumentException("The datatype '" + eDataType.getName() + "' is not a valid classifier");
 		}
@@ -120,6 +122,8 @@ public class CodecFactoryImpl extends EFactoryImpl implements CodecFactory {
 				return convertDeserializationModeToString(eDataType, instanceValue);
 			case CodecPackage.FALLBACK_STRATEGY:
 				return convertFallbackStrategyToString(eDataType, instanceValue);
+			case CodecPackage.FINGERPRINT_MODE:
+				return convertFingerprintModeToString(eDataType, instanceValue);
 			default:
 				throw new IllegalArgumentException("The datatype '" + eDataType.getName() + "' is not a valid classifier");
 		}
@@ -323,6 +327,26 @@ public class CodecFactoryImpl extends EFactoryImpl implements CodecFactory {
 	 * @generated
 	 */
 	public String convertFallbackStrategyToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public FingerprintMode createFingerprintModeFromString(EDataType eDataType, String initialValue) {
+		FingerprintMode result = FingerprintMode.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertFingerprintModeToString(EDataType eDataType, Object instanceValue) {
 		return instanceValue == null ? null : instanceValue.toString();
 	}
 

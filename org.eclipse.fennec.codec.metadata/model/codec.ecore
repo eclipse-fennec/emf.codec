@@ -91,7 +91,22 @@
       </eAnnotations>
     </eLiterals>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TypeSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//BaseTypeConfig">
+  <eClassifiers xsi:type="ecore:EEnum" name="FingerprintMode">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Controls whether the in-band EPackage fingerprint is written. Write-side only - the read side always accepts a fingerprint when it finds one, independent of this setting."/>
+    </eAnnotations>
+    <eLiterals name="NONE" literal="NONE">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="No fingerprint is written. This is the default: documents stay byte-identical to single-version output unless the fingerprint is explicitly opted in."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="FIRST_TOUCH" value="1" literal="FIRST_TOUCH">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Write the fingerprint at the first occurrence of each distinct EPackage instance in document order - the root for the root's package, plus every site where a new package instance enters the document (supertype substitution, reference or containment targets from other packages) - and additionally at any site whose instance deviates from the pin already established for its nsURI. Writer first-touch and reader pinning are the same rule seen from both sides."/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TypeSerializationConfig" eSuperTypes="metadata.ecore#//BaseTypeConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for type information serialization. Extends BaseTypeConfig with codec-specific settings."/>
     </eAnnotations>
@@ -110,6 +125,17 @@
         <details key="documentation" value="Discriminator value that maps to this type (for discriminator-based resolution)."/>
       </eAnnotations>
     </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="fingerprintMode" eType="#//FingerprintMode"
+        defaultValueLiteral="NONE">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Opt-in for writing the in-band EPackage fingerprint. Default NONE keeps the codec free of any fingerprint machinery unless a use case asks for it. On-off is expressed through this enum rather than a parallel boolean flag, consistent with typeStrategy=NONE replacing the deprecated typeInclude."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="fingerprintKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Key carrying the EPackage fingerprint when writing. Unset means the codec default applies: the unprefixed inner key inside a STRUCTURED type object, from which the underscore-prefixed PLAIN sibling is derived - the same one-value-two-placements mechanism used for the schema key. WRITE-ONLY BY CONTRACT: the read side must never take the key from here. Reading has to know the key before the model version is selected, but an annotation-configured key only exists after selection - a strict cycle. It is broken by taking the read key from caller-side sources only (options, resource, factory, module) while always additionally accepting the default key. Do not 'fix' this by resolving the read key from the model."/>
+      </eAnnotations>
+    </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="strategyScope" eType="#//StrategyScope"
         defaultValueLiteral="ALL">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
@@ -123,7 +149,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="IdSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//BaseIdConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="IdSerializationConfig" eSuperTypes="metadata.ecore#//BaseIdConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for ID serialization. Extends BaseIdConfig with codec-specific settings."/>
     </eAnnotations>
@@ -156,7 +182,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ReferenceSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//BaseReferenceConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="ReferenceSerializationConfig" eSuperTypes="metadata.ecore#//BaseReferenceConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for reference (non-containment) serialization. Extends BaseReferenceConfig with codec-specific settings."/>
     </eAnnotations>
@@ -173,7 +199,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="SuperTypeSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//BaseSuperTypeConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="SuperTypeSerializationConfig" eSuperTypes="metadata.ecore#//BaseSuperTypeConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for supertype serialization. Extends BaseSuperTypeConfig with codec-specific settings."/>
     </eAnnotations>
@@ -184,7 +210,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="FeatureSerializationConfig" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//BaseFeatureConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="FeatureSerializationConfig" eSuperTypes="metadata.ecore#//BaseFeatureConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete per-feature serialization configuration. Extends BaseFeatureConfig with codec-specific settings."/>
     </eAnnotations>
@@ -221,7 +247,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ClassCodecAspect" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//ClassAspect">
+  <eClassifiers xsi:type="ecore:EClass" name="ClassCodecAspect" eSuperTypes="metadata.ecore#//ClassAspect">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec aspect for EClass serialization configuration. Attached to ClassMetadata.aspects."/>
     </eAnnotations>
@@ -279,7 +305,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="FeatureCodecAspect" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//FeatureAspect">
+  <eClassifiers xsi:type="ecore:EClass" name="FeatureCodecAspect" eSuperTypes="metadata.ecore#//FeatureAspect">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec aspect for EStructuralFeature serialization configuration. Attached to FeatureMetadata.aspects."/>
     </eAnnotations>
@@ -346,7 +372,7 @@
         <details key="documentation" value="Custom value reader name for deserialization."/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enumSerialization" eType="ecore:EEnum ../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//EnumSerializationStrategy">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enumSerialization" eType="ecore:EEnum metadata.ecore#//EnumSerializationStrategy">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Strategy for serializing enum values (null = use LITERAL default)."/>
       </eAnnotations>
@@ -373,8 +399,8 @@
         <details key="documentation" value="Type configuration for objects accessed via this reference."/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="inheritTypeFromTarget" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="true">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="inheritTypeFromTarget"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean" defaultValueLiteral="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Whether to inherit type config from target EClass when not explicitly set."/>
       </eAnnotations>
@@ -386,13 +412,12 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <!-- ==================== Profiles ==================== -->
-  <eClassifiers xsi:type="ecore:EClass" name="CodecPackageProfile" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//PackageProfile">
+  <eClassifiers xsi:type="ecore:EClass" name="CodecPackageProfile" eSuperTypes="metadata.ecore#//PackageProfile">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec-specific package profile containing pre-computed, fully resolved annotation-layer configurations for all classes in a package. Built by CodecAspectProvider.buildProfiles() after all metadata and aspects are constructed. Contains one CodecClassProfile per EClass with annotation-internal inheritance already applied (feature inherits from class, class inherits from package defaults). At runtime, serves as the static base that dynamic configuration (options, resource, factory, module) merges on top of."/>
     </eAnnotations>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="CodecClassProfile" eSuperTypes="../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//ClassProfile">
+  <eClassifiers xsi:type="ecore:EClass" name="CodecClassProfile" eSuperTypes="metadata.ecore#//ClassProfile">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec-specific class profile containing the fully resolved annotation-layer configuration for one EClass and all its features. All annotation-internal inheritance is pre-merged: feature inherits from class, class inherits from package defaults. Contains the effective type/ID/supertype configs, forward/reverse key mappings, feature serialization order, and per-feature configs. At runtime, the ConfigurationResolver merges dynamic overrides (levels 1-4) on top of this profile (levels 5+6)."/>
     </eAnnotations>
@@ -421,12 +446,11 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <!-- ==================== Codec Config ==================== -->
   <eClassifiers xsi:type="ecore:EClass" name="CodecConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Root configuration for codec serialization behavior."/>
     </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="ecore:EEnum ../../org.eclipse.fennec.model.metadata.api/model/metadata.ecore#//SerializationFormat"
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="ecore:EEnum metadata.ecore#//SerializationFormat"
         defaultValueLiteral="PLAIN">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Codec-wide default serialization format."/>

@@ -303,14 +303,55 @@ machinery; only worth it under payload pressure (BSON documents, column formats)
 Could be a format-delegate-level concern rather than the JSON default.
 
 Properties of the dedicated field:
-- **Optional on write** (config/option-controlled; default `[OPEN: off initially?]`)
-  and **optional on read** — absence ⇒ today's nsURI single-version behavior
+- **Optional on write** (config/option-controlled; default OFF — resolved below,
+  `fingerprintMode=NONE`) and **optional on read** — absence ⇒ today's nsURI single-version behavior
   (backward compatible, F2-safe: carrier content is `scheme:hash`, scheme tag
   travels with the value).
 - Read **inline where `_type` is read today** — no pre-scan needed; covers
   polymorphic sub-trees with per-object types naturally.
 - `strictOnUnknown` must whitelist the configured fingerprint key.
 - Foreign readers can ignore it (it is just another property).
+
+#### B.1a Annotation-model surface `[DECIDED — 2026-07-25, lead]`
+
+Settled before any code, so the ecore is regenerated exactly once. Both features
+land on `TypeSerializationConfig` in **this** repo
+(`org.eclipse.fennec.codec.metadata/model/codec.ecore`) — `BaseTypeConfig` lives in
+the canonical `model.metadata` bundles and stays untouched. B.2, B.3 and the S7
+format split need **no** model change (runtime/option concerns).
+
+- **`fingerprintMode` : `FingerprintMode` (`NONE` | `FIRST_TOUCH`), default `NONE`.**
+  The write switch is an **enum, not a boolean**: `typeInclude` is deprecated on the
+  annotation layer precisely because an on/off boolean duplicates what the strategy
+  enum already expresses (`CodecAspectProvider.checkForDeprecatedTypeInclude`,
+  T-V30/T-V31 — "use `typeStrategy=NONE` instead"). `NONE` as the default satisfies
+  R1 by construction, and the deferred BSON preamble carrier (S7) can be added as a
+  third literal without an API break.
+- **`fingerprintKey` : EString, no `defaultValueLiteral`.** The default lives in
+  `ConfigProperty`, so `null` keeps "not configured" distinguishable — the shape
+  `AspectToPropertiesConverter.putIfNotDefault` already relies on. **K8 needs no new
+  mechanism:** `TypeSerializationEntry.getPlainSchemaKey()` is exactly the
+  one-value-two-placements rule (inner `schema`, PLAIN derives `_schema`, existing
+  `_`/`@` prefixes respected) — the fingerprint reuses it for inner `fingerprint` /
+  PLAIN `_fingerprint`. The K7 write-only contract is spelled out in the feature's
+  GenModel documentation, at the place a future maintainer would look before
+  "fixing" the cycle.
+
+**Contradiction found and resolved (§8.1 step 3):** B.1 above describes the opt-in as
+"option and/or **package** annotation", but there is **no EPackage annotation level** —
+`16-annotation-reference.md` §484 lists it as a proposal and the linked
+`docs/codec-v2-spec-working/epackage-scope-proposal.md` no longer exists (lost in the
+spec rewrite); `CodecAspectProvider` parses EClass and EReference only. **Decision:**
+Phase B ships **class-level** opt-in (annotation on the root class) plus the
+caller-side option for document-wide activation. The EPackage level becomes its own
+issue — the fingerprint's currency is the EPackage (F3), so B.1 is meant to be lifted
+onto that level later, without a breaking change (`fingerprintMode` simply gains a
+scope).
+
+*Side finding (P-class, not part of B.1):* `AspectToPropertiesConverter:186` suppresses
+`typeNameKey` against default `"name"`, while the real default is `"type"`
+(`ConfigProperty:73`, matching 03 §5.1) — an annotation `typeNameKey="name"` is
+silently dropped. Fix separately.
 
 ### B.2 Load-side resolution `[DECIDED]`
 

@@ -4,8 +4,8 @@
     modelDirectory="/org.eclipse.fennec.codec.metadata.model/src" modelPluginID="org.eclipse.fennec.codec.metadata.model"
     modelName="Codec" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
     importerID="org.eclipse.emf.importer.ecore" complianceLevel="17.0" copyrightFields="false"
-    usedGenPackages="../../org.eclipse.fennec.model.metadata.api/model/metadata.genmodel#//metadata"
-    operationReflection="true" importOrganizing="true" oSGiCompatible="true">
+    usedGenPackages="metadata.genmodel#//metadata" operationReflection="true" importOrganizing="true"
+    oSGiCompatible="true">
   <foreignModel>codec.ecore</foreignModel>
   <genPackages prefix="Codec" basePackage="org.eclipse.fennec.codec.metadata.model"
       resource="XMI" disposableProviderFactory="true" ecorePackage="codec.ecore#/">
@@ -29,10 +29,16 @@
       <genEnumLiterals ecoreEnumLiteral="codec.ecore#//FallbackStrategy/ERROR"/>
       <genEnumLiterals ecoreEnumLiteral="codec.ecore#//FallbackStrategy/FALLBACK"/>
     </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="codec.ecore#//FingerprintMode">
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//FingerprintMode/NONE"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//FingerprintMode/FIRST_TOUCH"/>
+    </genEnums>
     <genClasses ecoreClass="codec.ecore#//TypeSerializationConfig">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//TypeSerializationConfig/mapId"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//TypeSerializationConfig/discriminatorPath"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//TypeSerializationConfig/discriminatorValue"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//TypeSerializationConfig/fingerprintMode"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//TypeSerializationConfig/fingerprintKey"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//TypeSerializationConfig/strategyScope"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//TypeSerializationConfig/formatScope"/>
     </genClasses>
