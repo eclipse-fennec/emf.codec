@@ -532,6 +532,29 @@ Answers the S10 residual gap. Mechanics:
   the **first actual scheme bump triggers a dedicated model.metadata ticket**
   for this capability.
 
+**Update 2026-07-25 — why B.4 stays unbuilt, and what goes first instead
+(`model.metadata#17`).** With a single scheme the compat path is structurally
+*unreachable*: on an exact-match miss the incoming tag is `fp1`, i.e. the current
+scheme, so recomputing the candidates in `fp1` yields exactly the value that just
+missed. Only a test-only fake scheme could exercise it. Two precursors were filed
+instead, both concrete and testable:
+
+1. **The v1 generics limitation is a correctness hole, not a footnote.** `EGenericType`
+   / type parameters are absent from the canonical form, and registration dedupes by
+   fingerprint (`model.metadata#15`). Two packages differing *only* in type parameters
+   therefore collapse onto one entry, and objects of the second instance would be served
+   the first instance's metadata — precisely what `registerPackage`'s own comment
+   declares must never happen. The dedup logic is right; the fingerprint feeding it is not.
+2. **There is no seam for a scheme bump at all** — `SCHEME = "fp1"` is a private constant
+   beside one hard-wired algorithm. Closing (1) *is* a scheme change, so the seam is needed
+   immediately, and it is cheapest to cut while nothing depends on internals.
+
+**And this inverts the trigger.** B.4 protects *persisted* fingerprints across a bump. As
+long as no `fp1` values exist in the wild — the project lead's current statement — the
+cheapest possible bump is **now**, and B.4 is never needed for `fp1`→`fp2` at all. It waits
+for the first bump that happens *after* real data exists. Compatibility machinery is built
+when there is data to protect, not before.
+
 ## 5. Findings register (side effects to track)
 
 Each finding gets concretized step by step; status tracked here.
@@ -692,10 +715,11 @@ everywhere — folded in on the lead's call since there are no compatibility con
   bound.
 
 **Still open, deliberately:** **#75** (EPackage annotation level + the four dead spec links);
-**B.4** (FingerprintService legacy-scheme compat, a model.metadata concern triggered by the first
-canonicalization-scheme bump); **W5** — checked and *not* actionable: `metadataMerge` has no
-consumer in the serializer at all, so where the fingerprint sits inside a `_metadata` object can
-only be specified once that feature exists.
+**B.4** (FingerprintService legacy-scheme compat — see the 2026-07-25 update in §B.4: the
+precursor work is `model.metadata#17`, B.4 itself waits for the first bump after real persisted
+data exists); **W5** — checked and *not* actionable: `metadataMerge` has no consumer in the
+serializer at all, so where the fingerprint sits inside a `_metadata` object can only be
+specified once that feature exists.
 
 **Baseline:** 3524 tests, 0 failures, 2 documented skips (both pre-existing).
 
