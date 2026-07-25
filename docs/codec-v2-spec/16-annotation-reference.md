@@ -460,7 +460,7 @@ CodecConfiguration.builder()
 
 > **Detailed examples:** See [18-scenarios.md](18-scenarios.md) for comprehensive configuration examples.
 
-**Note:** StrategyScope is **runtime-only** (🔧) - no EAnnotation equivalent. See [EPackage Scope Proposal](../codec-v2-spec-working/epackage-scope-proposal.md) for discussion on why.
+**Note:** StrategyScope is **runtime-only** (🔧) - no EAnnotation equivalent: a scope says *where* in an object graph a setting applies, which is a property of the operation rather than of the model. See [Type Configuration](#type-configuration) below for the full reasoning, and [99-open-questions.md Q1](99-open-questions.md#q1-epackage-scope-level) for the related package-level question.
 
 ---
 
@@ -481,7 +481,9 @@ CodecConfiguration.builder()
 | **EAttribute** | `EAttribute` | Annotation on attribute |
 | **EStructuralFeature** | Both EReference and EAttribute | Common feature config |
 
-> **Note:** EPackage-level annotations are under consideration as a future scope level. This would allow package-wide defaults and is especially relevant for cross-package references. See [EPackage Scope Proposal](../codec-v2-spec-working/epackage-scope-proposal.md) for details and edge cases.
+> **Note:** EPackage-level annotations do **not** exist yet; they are under consideration as a future scope level, which would allow package-wide defaults. The three design questions this raises — cross-package references, nested packages, and whether scopes participate — are answered in [99-open-questions.md Q1](99-open-questions.md#q1-epackage-scope-level); only the decision to add the level is open (issue #75).
+>
+> Until then, configuration that is conceptually per-package is expressed at class level or through a caller-side option. `fingerprintMode` / `fingerprintKey` ([06 §8.7](06-type.md#87-configuration)) are the current example, deliberately built so the level can be added later without a breaking change.
 
 ---
 
@@ -517,7 +519,9 @@ Type configuration describes how type information is serialized/deserialized.
 | — | `codec.typeScope` | 🔧 | ❌ | ❌ | ❌ | Strategy scope (see [StrategyScope](#strategyscope)) |
 | — | `codec.typeFormatScope` | 🔧 | ❌ | ❌ | ❌ | Format scope (see [StrategyScope](#strategyscope)) |
 
-> **Why `typeScope`/`typeFormatScope` are runtime-only:** These properties control *where* a strategy applies (ROOT_ONLY, ROOT_CONTAINMENT, etc.), which is a runtime/operational concern rather than a model-intrinsic property. Additionally, their semantics become unclear with cross-package references. See [EPackage Scope Proposal](../codec-v2-spec-working/epackage-scope-proposal.md) for discussion.
+> **Why `typeScope`/`typeFormatScope` are runtime-only:** these properties control *where* a strategy applies (`ROOT_ONLY`, `ROOT_CONTAINMENT`, …), which is a property of the *operation*, not of the model. A model cannot know whether one of its classes will be somebody's root or somebody else's nested content — the same class is both, in different documents.
+>
+> Cross-package references make that decisive rather than merely untidy: "root" and "containment" are positions in a document, and a document assembled from several packages has exactly one root, which at most one of those packages owns. A package-level scope would therefore have to state something about positions outside its own model. That is why scopes are also answered with "no" for a future package level — see [99-open-questions.md Q1](99-open-questions.md#q1-epackage-scope-level).
 
 > **Recommendation:** Use keys that start with `_` or `@` (like `_type`, `@type`) for `typeKey`, `typeSchemaKey`, and `typeNameKey`. This helps distinguish metadata from data fields and prevents collision with ordinary data keys during deserialization.
 
@@ -1943,9 +1947,9 @@ This section tracks the implementation status of features documented in this ref
 - [ ] **Scope Implementation**: Wire scope configuration in runtime config resolution
   - `typeScope`, `typeFormatScope`, `idScope`, `idFormatScope` exist in model but not fully used
 
-- [ ] **EPackage Scope Level**: See [epackage-scope-proposal.md](../codec-v2-spec-working/epackage-scope-proposal.md)
+- [ ] **EPackage Scope Level**: see [99-open-questions.md Q1](99-open-questions.md#q1-epackage-scope-level) (design questions resolved, scope decision open — issue #75)
 
-- [ ] **EMF Configuration Model**: See [emf-configuration-model-proposal.md](../codec-v2-spec-working/emf-configuration-model-proposal.md)
+- [ ] **EMF Configuration Model**: see [99-open-questions.md Q2](99-open-questions.md#q2-emf-configuration-model)
 
 - [ ] Update spec `11-feature.md` to align with new `ignore*` / `force*` naming
 
@@ -1957,6 +1961,8 @@ This section tracks the implementation status of features documented in this ref
 
 | Date | Changes |
 |------|---------|
+| 2026-07-25 | Added `fingerprintMode` / `fingerprintKey` to Type Configuration (in-band EPackage fingerprint, issue #73) |
+| 2026-07-25 | Resolved the dead links to `codec-v2-spec-working/`: those working documents were lost in the spec rewrite. The reasoning they held is now inline here (why scopes are runtime-only) or consolidated in [99-open-questions.md](99-open-questions.md) Q1/Q2, so it cannot go missing with a file again (issue #75) |
 | 2026-01-23 | Added Diagnostic Options subsection with cross-reference to 15-error-handling.md |
 | 2026-01-23 | Added cross-references for diagnostic and custom value options in Load/Save Options table |
 | 2026-01-23 | Refactored Feature Configuration: replaced `transient`/`serialize` with directional `ignore*`/`force*` naming |
@@ -1969,7 +1975,7 @@ This section tracks the implementation status of features documented in this ref
 | 2026-01-23 | Added "Common Configuration Types" section with SerializationFormat and StrategyScope explanations |
 | 2026-01-23 | Updated Type, SuperType, ID, Reference sections to reference common types and spec documents |
 | 2026-01-23 | Added serialization/deserialization behavior notes to TypeStrategy, IdStrategy tables |
-| 2026-01-23 | Added note about EPackage scope level proposal with link to [epackage-scope-proposal.md](../codec-v2-spec-working/epackage-scope-proposal.md) |
+| 2026-01-23 | Added note about EPackage scope level proposal (the linked working document was later lost — see the 2026-07-25 row) |
 | 2026-01-23 | Added explanation why `typeScope`/`typeFormatScope` remain runtime-only |
 | 2026-01-23 | Added Typed Configuration Objects section (future placeholder for builder-based configs) |
 | 2026-01-23 | Added Value Type Flexibility section with coercion rules for enums, EClass, booleans |

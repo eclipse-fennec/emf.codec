@@ -18,14 +18,30 @@ Should we add EPackage as a scope level between EClass and Global?
 
 **Context:** Currently the scope chain is `EReference/EAttribute → EClass → Global → Default`. Adding EPackage would allow package-wide defaults.
 
-**Proposal:** See [epackage-scope-proposal.md](../codec-v2-spec-working/epackage-scope-proposal.md)
+> **The separate proposal document is gone.** It was lost in the spec rewrite; the three decision
+> points below are what survived of it, and they are recorded here rather than in a working file
+> so the question cannot go missing again. See issue #75.
 
-**Decision needed:**
-- Cross-package reference handling (target class's package vs source reference's package)
-- Nested package behavior (direct parent only vs ancestor chain)
-- Whether to include `typeScope`/`typeFormatScope` at package level
+**The three decision points, now answerable** — each from behavior the codec already has, not from
+fresh design:
 
-**Status:** Under review
+| Question | Answer | Grounding |
+|---|---|---|
+| **Cross-package references:** does the config come from the target class's package or from the source reference's package? | The **target's own** package — configuration follows the instance, never the referencing site. | Settled by the multi-version work: config is resolved from the concrete `EClass` instance an object has. A reference's declared type is only an upper bound on what may arrive ([12 §3.1](12-polymorphism.md#31-inheritall-across-package-boundaries)). |
+| **Nested packages:** direct parent only, or the whole ancestor chain? | **Direct owning package only.** | The codec never traverses `getESubpackages()`/`getESuperPackage()` anywhere. Resolution is per `EClass.getEPackage()`. An ancestor chain would be new machinery with no existing consumer. |
+| **Include `typeScope`/`typeFormatScope` at package level?** | **No.** | They stay runtime-only for a reason that holds independently of this question — see [16-annotation-reference.md](16-annotation-reference.md). |
+
+**What remains is therefore only the scope decision:** whether to add the level at all. That means
+a new `ConfigLevel`, its place in the merge chain of [02 §4](02-config-resolution.md), EPackage
+annotation parsing in the aspect provider, and the tables in 02 and 16.
+
+**One concrete consumer exists.** `fingerprintMode` / `fingerprintKey`
+([06 §8.7](06-type.md#87-configuration)) are currently class-level plus a caller option, because
+the fingerprint's currency is the `EPackage` and its natural home is exactly this missing level.
+It was built so that the level can be added later without a breaking change — the property simply
+gains that scope.
+
+**Status:** decision points resolved; scope decision open (issue #75)
 
 ---
 
@@ -38,12 +54,19 @@ Should we model the codec configuration as an EMF model (Ecore) for better tooli
 - EMF-based tooling (editors, validation)
 - Code generation for builders and constants
 
-**Proposal:** See [emf-configuration-model-proposal.md](../codec-v2-spec-working/emf-configuration-model-proposal.md)
+> **The separate proposal document is gone** (lost in the spec rewrite, like Q1's). The decision
+> points below are what survived and are kept here from now on. See issue #75.
 
 **Decision needed:**
 - Merge semantics (`null` = not set vs explicit unset)
 - Validation timing (build-time vs runtime)
 - Discriminator mapping representation
+
+**Partial precedent exists.** The codec-specific *aspect* model is already an Ecore
+(`org.eclipse.fennec.codec.metadata/model/codec.ecore`) and answers the first point in practice: a
+feature without a default literal leaves `null` meaning "not configured", which is what the
+annotation-to-properties bridge relies on. Whether the *runtime* configuration should follow is
+still open.
 
 **Status:** Under review
 
@@ -165,8 +188,8 @@ Control deserialization behavior for missing/unknown features:
 
 | Feature | Description | Reference |
 |---------|-------------|-----------|
-| EPackage Scope Level | Package-wide configuration defaults | [Proposal](../codec-v2-spec-working/epackage-scope-proposal.md) |
-| EMF Configuration Model | Model config as Ecore for tooling | [Proposal](../codec-v2-spec-working/emf-configuration-model-proposal.md) |
+| EPackage Scope Level | Package-wide configuration defaults | [Q1](#q1-epackage-scope-level) (issue #75) |
+| EMF Configuration Model | Model config as Ecore for tooling | [Q2](#q2-emf-configuration-model) |
 | Binary Format Support | CBOR, MessagePack adapters | [17-format-abstraction.md](17-format-abstraction.md) |
 | Streaming API | Large document support | [Format Abstraction](17-format-abstraction.md) (section 11) |
 | Validation Hooks | Custom validators during deser | Future |

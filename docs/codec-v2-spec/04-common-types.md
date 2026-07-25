@@ -229,7 +229,7 @@ public enum IdStrategy {
 
 **Default:** `ID_FIELD`
 
-> **See also:** [ID Serialization](07-id.md) for complete ID configuration including STRUCTURED format examples.
+> **See also:** [ID Serialization](09-id.md) for complete ID configuration including STRUCTURED format examples.
 
 ---
 
@@ -452,11 +452,11 @@ public enum TypeHintMode {
 
 | Enum | Values | Default | Used In |
 |------|--------|---------|---------|
-| **SerializationFormat** | PLAIN, STRUCTURED | PLAIN | [Type](06-type.md), [ID](07-id.md), [Reference](10-reference.md), [SuperType](09-supertype.md) |
+| **SerializationFormat** | PLAIN, STRUCTURED | PLAIN | [Type](06-type.md), [ID](09-id.md), [Reference](10-reference.md), [SuperType](07-supertype.md) |
 | **StrategyScope** | ALL, ROOT_ONLY, ROOT_CONTAINMENT, ROOT_NON_CONTAINMENT | ALL | [Config Resolution](02-config-resolution.md#5-strategyscope-global-level-modifier) |
 | **TypeStrategy** | URI, NAME, SCHEMA_AND_TYPE, NUMERIC, NONE | URI | [Type](06-type.md) |
-| **IdStrategy** | ID_FIELD, COMBINED | ID_FIELD | [ID](07-id.md) |
-| **IdKeyMode** | ID_ONLY, BOTH, FEATURE_ONLY, NONE | ID_ONLY | [ID](07-id.md) |
+| **IdStrategy** | ID_FIELD, COMBINED | ID_FIELD | [ID](09-id.md) |
+| **IdKeyMode** | ID_ONLY, BOTH, FEATURE_ONLY, NONE | ID_ONLY | [ID](09-id.md) |
 | **SuperTypeSelection** | ALL, ALL_EMF, SINGLE, NONE | ALL | [SuperType](07-supertype.md) |
 | **SuperTypePresentation** | ARRAY, STRING | ARRAY | [SuperType](07-supertype.md) |
 | **FallbackStrategy** | SKIP, ERROR, FALLBACK | SKIP | [Discriminator Mapping](08-discriminator-mapping.md) |

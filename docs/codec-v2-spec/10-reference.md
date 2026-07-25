@@ -816,7 +816,7 @@ This flow covers how the codec deserializes a JSON value that represents a non-c
 
 > **Prerequisite:** The feature layer has already evaluated the **visibility gate** (ignore, ignoreRead, forceRead, transient/volatile/changeable checks) during entry building (see [§13.1](11-feature.md#131-feature-entry-building-visibility-gate)). Only references that have a `DeserializationEntry` reach this flow — excluded features have no entry and their JSON fields are skipped as unknown.
 
-> **Implementation Status:** This flow covers **non-containment references** only. Cross-document containment deserialization is not yet fully supported — the codec creates proxy objects but does not automatically resolve them. See [§7.2](07-cross-document-containment) and [§9.3](#93-cross-resource-references) for details and workarounds.
+> **Implementation Status:** This flow covers **non-containment references** only. Cross-document containment deserialization is not yet fully supported — the codec creates proxy objects but does not automatically resolve them. See [§7.2](#72-cross-document-containment-configuration) and [§9.3](#93-cross-resource-references) for details and workarounds.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
