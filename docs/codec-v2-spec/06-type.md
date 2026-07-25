@@ -290,7 +290,7 @@ SuperType values follow namespace matching rules:
 - **Same namespace** as schema: simple EClass name (e.g., `"Entity"`)
 - **Different namespace**: full EClass URI (e.g., `"http://audit.org/1.0#//Auditable"`)
 
-> **See [SuperType Serialization](09-supertype.md)** for complete SuperType configuration including selection modes, presentation styles, and PLAIN format examples.
+> **See [SuperType Serialization](07-supertype.md)** for complete SuperType configuration including selection modes, presentation styles, and PLAIN format examples.
 
 ---
 
