@@ -475,6 +475,28 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      */
     public EClass resolveEClass(String typeValue, EClass hintEClass, DeserializationContext ctxt,
             EReference currentReference) {
+        return resolveEClass(typeValue, hintEClass, ctxt, currentReference, null);
+    }
+
+    /**
+     * Resolves an EClass from a type value, using an in-band EPackage fingerprint read from
+     * the document to select the package version (issue #73, B.1).
+     * <p>
+     * The fingerprint short-circuits version selection: instead of asking how many versions
+     * are registered for the nsURI - which is ambiguous by definition when more than one is -
+     * the resolver goes straight to the named version and pins it for the rest of the load.
+     * A {@code null} fingerprint leaves resolution exactly as it was before this feature.
+     * </p>
+     *
+     * @param typeValue the type value (format depends on strategy)
+     * @param hintEClass optional hint EClass for MAPPED context (may be null)
+     * @param ctxt the deserialization context
+     * @param currentReference optional EReference for inline mapping context (may be null)
+     * @param streamFingerprint the fingerprint carried by the document, or {@code null}
+     * @return the resolved EClass, or null if not found
+     */
+    public EClass resolveEClass(String typeValue, EClass hintEClass, DeserializationContext ctxt,
+            EReference currentReference, String streamFingerprint) {
         if (typeValue == null || typeValue.isEmpty()) {
             return null;
         }
@@ -484,7 +506,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
 
         // First: check if it's a full URI (always highest priority)
         if (typeValue.contains("#//")) {
-            EClass resolved = resolveUriVia(packageResolver, typeValue);
+            EClass resolved = resolveUriVia(packageResolver, typeValue, streamFingerprint);
             if (resolved != null) {
                 // Establish context schema for smart compression (root object)
                 initializeContextSchemaIfNeeded(typeValue, ctxt);
@@ -498,7 +520,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             if (contextSchema != null) {
                 // Try to resolve using context schema first
                 String composedUri = contextSchema + "#//" + typeValue;
-                EClass resolved = resolveUriVia(packageResolver, composedUri);
+                EClass resolved = resolveUriVia(packageResolver, composedUri, streamFingerprint);
                 if (resolved != null) {
                     LOGGER.fine("Resolved type via smart compression: " + typeValue + " -> " + resolved.getName());
                     return resolved;
@@ -602,12 +624,13 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      * A.3 count rule) when available, else the legacy global-registry lookup. An ambiguous
      * nsURI (&gt; 1 candidate, no pin/fingerprint) surfaces as a hard error in every mode.
      */
-    private static EClass resolveUriVia(PackageResolver resolver, String typeUri) {
+    private static EClass resolveUriVia(PackageResolver resolver, String typeUri,
+            String streamFingerprint) {
         if (resolver == null) {
             return TypeResolutionHelper.resolveFromUri(typeUri);
         }
         try {
-            return resolver.resolveEClassFromTypeUri(typeUri, null);
+            return resolver.resolveEClassFromTypeUri(typeUri, streamFingerprint);
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

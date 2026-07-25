@@ -12,12 +12,16 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.context;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.fennec.codec.config.ConfigProperty;
+import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.util.FingerprintPins;
 import org.eclipse.fennec.codec.util.PackageResolver;
@@ -83,6 +87,21 @@ public final class ContextHelper {
      * </p>
      */
     public static final String FINGERPRINT_PINS = "CODEC_FINGERPRINT_PINS";
+
+    /**
+     * Context attribute key holding the set of field names accepted as the in-band
+     * fingerprint while reading (issue #73, B.1).
+     * <p>
+     * Value: {@code Set<String>}, seeded from <b>caller-side</b> configuration only, always
+     * including the default keys. This attribute is what makes the chicken-and-egg break of
+     * spec §8.5 structural rather than merely documented: reading has to know the key before
+     * the model version is selected, so the read key can never come from the model. The
+     * deserializer sees this set and has no path back to an annotation.
+     * </p>
+     *
+     * @see <a href="docs/codec-v2-spec/06-type.md#85--the-fingerprintkey-chicken-and-egg-problem">Spec 06 §8.5</a>
+     */
+    public static final String FINGERPRINT_READ_KEYS = "CODEC_FINGERPRINT_READ_KEYS";
 
     /**
      * Context attribute key indicating if root object serialization is complete.
@@ -417,6 +436,61 @@ public final class ContextHelper {
         FingerprintPins pins = new FingerprintPins();
         ctxt.setAttribute(FINGERPRINT_PINS, pins);
         return pins;
+    }
+
+    /**
+     * The fingerprint keys accepted by every reader regardless of configuration: the inner
+     * form used inside a STRUCTURED type object and its PLAIN sibling.
+     * <p>
+     * Always accepted <b>in addition</b> to any caller-configured key, so a document written
+     * with the defaults stays readable by a caller who configured something else.
+     * </p>
+     */
+    public static final Set<String> DEFAULT_FINGERPRINT_KEYS = Set.of(
+            ConfigProperty.FINGERPRINT_KEY.getDefaultValue(),
+            TypeConfig.toPlainKey(ConfigProperty.FINGERPRINT_KEY.getDefaultValue()));
+
+    /**
+     * Builds the set of field names a reader accepts as the in-band fingerprint: the always
+     * accepted defaults plus, if configured, a caller-supplied key in both placements.
+     *
+     * @param configuredKey the caller-configured inner key, or {@code null} for defaults only
+     * @return the accepted key set, never empty
+     */
+    public static Set<String> fingerprintReadKeys(String configuredKey) {
+        if (configuredKey == null || configuredKey.isBlank()) {
+            return DEFAULT_FINGERPRINT_KEYS;
+        }
+        Set<String> keys = new HashSet<>(DEFAULT_FINGERPRINT_KEYS);
+        keys.add(configuredKey);
+        keys.add(TypeConfig.toPlainKey(configuredKey));
+        return Set.copyOf(keys);
+    }
+
+    /**
+     * Gets the field names accepted as the in-band fingerprint for this load.
+     *
+     * @param ctxt the deserialization context, may be {@code null}
+     * @return the accepted key set, falling back to {@link #DEFAULT_FINGERPRINT_KEYS}
+     */
+    @SuppressWarnings("unchecked")
+    public static Set<String> getFingerprintReadKeys(DeserializationContext ctxt) {
+        if (ctxt == null) {
+            return DEFAULT_FINGERPRINT_KEYS;
+        }
+        Object value = ctxt.getAttribute(FINGERPRINT_READ_KEYS);
+        return value instanceof Set ? (Set<String>) value : DEFAULT_FINGERPRINT_KEYS;
+    }
+
+    /**
+     * Reports whether a field name carries the in-band fingerprint.
+     *
+     * @param ctxt the deserialization context, may be {@code null}
+     * @param fieldName the JSON field name
+     * @return true if the field is the fingerprint carrier
+     */
+    public static boolean isFingerprintKey(DeserializationContext ctxt, String fieldName) {
+        return fieldName != null && getFingerprintReadKeys(ctxt).contains(fieldName);
     }
 
     public static PackageResolver getPackageResolver(DeserializationContext ctxt) {

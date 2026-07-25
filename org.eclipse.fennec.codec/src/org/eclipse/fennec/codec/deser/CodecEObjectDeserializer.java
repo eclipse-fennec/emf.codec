@@ -211,6 +211,15 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         boolean typeFieldProcessed = false;
         String schemaValue = null;  // For PLAIN SCHEMA_AND_TYPE format
 
+        // Type context held back until it is complete (issue #73, B.1): in PLAIN format the
+        // fingerprint is a sibling of the type key, so the type alone is not yet enough to
+        // pick a version. Both are collected first, then the resolver runs. STRUCTURED needs
+        // no holding back - there the fingerprint is inside the type object.
+        boolean typeContextSeen = false;
+        String pendingTypeValue = null;
+        String pendingTypeProperty = null;
+        String streamFingerprint = null;
+
         // Read properties
         while (parser.nextToken() != JsonToken.END_OBJECT) {
             String propertyName = parser.currentName();
@@ -222,25 +231,40 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 continue;
             }
 
+            // In-band EPackage fingerprint (B.1): read liberally, wherever it appears.
+            if (ContextHelper.isFingerprintKey(ctxt, propertyName)) {
+                streamFingerprint = parser.getString();
+                continue;
+            }
+
             // Check if this is the type property - ALWAYS process it when present
             if (isTypeKey(propertyName, hintEClass)) {
-                // Read the raw type value BEFORE consuming it for type resolution
-                String rawTypeValue = readTypeValueAsString(parser, ctxt);
+                // Read the raw type value; resolution waits until the type context is complete
+                TypeContext typeContext = readTypeContext(parser, ctxt);
+                pendingTypeValue = typeContext.typeValue;
+                pendingTypeProperty = propertyName;
+                typeContextSeen = true;
+                if (typeContext.fingerprint != null) {
+                    // STRUCTURED carries the fingerprint as an inner key of the type object
+                    streamFingerprint = typeContext.fingerprint;
+                }
+                continue;
+            }
 
-                // Now resolve the type using the raw value
-                resolvedEClass = resolveTypeFromValue(rawTypeValue, state, hintEClass, schemaValue, ctxt, emfContext);
+            // A data property forces the pending type context to be resolved now: everything
+            // that could still refine the version has been seen.
+            if (typeContextSeen) {
+                resolvedEClass = resolveTypeFromValue(pendingTypeValue, state, hintEClass,
+                        schemaValue, ctxt, emfContext, streamFingerprint);
                 state.setResolvedEClass(resolvedEClass);
                 typeFieldProcessed = true;
-
-                // Now we can create the object and process deferred properties
                 if (resolvedEClass != null) {
                     eObject = state.createEObject();
                     processDeferredProperties(state, deferredProperties, ctxt);
-
-                    // Also set the type value as an attribute if a matching feature exists
-                    setTypeAsAttributeIfExists(eObject, propertyName, rawTypeValue);
+                    setTypeAsAttributeIfExists(eObject, pendingTypeProperty, pendingTypeValue);
                 }
-                continue;
+                typeContextSeen = false;
+                pendingTypeValue = null;
             }
 
             // If we don't have the type yet, defer this property
@@ -257,6 +281,19 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 
             // Deserialize the property
             deserializeProperty(state, propertyName, parser, ctxt);
+        }
+
+        // Object with nothing but a type context: resolve it at the end.
+        if (typeContextSeen) {
+            resolvedEClass = resolveTypeFromValue(pendingTypeValue, state, hintEClass,
+                    schemaValue, ctxt, emfContext, streamFingerprint);
+            state.setResolvedEClass(resolvedEClass);
+            typeFieldProcessed = true;
+            if (resolvedEClass != null) {
+                eObject = state.createEObject();
+                processDeferredProperties(state, deferredProperties, ctxt);
+                setTypeAsAttributeIfExists(eObject, pendingTypeProperty, pendingTypeValue);
+            }
         }
 
         // If no _type field was found, fall back to hint
@@ -328,19 +365,47 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     }
 
     /**
-     * Reads the type value as a string from the current parser position.
+     * The type context read from a document: the type value plus, if the document carries
+     * one, the in-band EPackage fingerprint that pins the version (issue #73, B.1).
+     * <p>
+     * Held together because neither alone identifies an {@code EClass} instance when several
+     * versions share an {@code nsURI} — the resolver needs both.
+     * </p>
+     */
+    private static final class TypeContext {
+        private final String typeValue;
+        private final String fingerprint;
+
+        private TypeContext(String typeValue, String fingerprint) {
+            this.typeValue = typeValue;
+            this.fingerprint = fingerprint;
+        }
+
+        private static TypeContext of(String typeValue) {
+            return new TypeContext(typeValue, null);
+        }
+    }
+
+    /**
+     * Reads the type context from the current parser position.
+     * <p>
+     * In PLAIN format only the type value lives here — its fingerprint sibling is read by the
+     * caller's property loop. In STRUCTURED format the fingerprint is an inner key of the
+     * type object and comes back alongside the type value.
+     * </p>
      *
      * @param parser the JSON parser
      * @param ctxt the deserialization context (for adding diagnostics)
-     * @return the type value as a string, or null if not a string/structured format
+     * @return the type context; its type value is null if the token was not a string,
+     *         number or structured object
      */
-    private String readTypeValueAsString(JsonParser parser, DeserializationContext ctxt) {
+    private TypeContext readTypeContext(JsonParser parser, DeserializationContext ctxt) {
         JsonToken token = parser.currentToken();
         if (token == JsonToken.VALUE_STRING) {
-            return parser.getString();
+            return TypeContext.of(parser.getString());
         }
         if (token == JsonToken.VALUE_NUMBER_INT) {
-            return String.valueOf(parser.getIntValue());
+            return TypeContext.of(String.valueOf(parser.getIntValue()));
         }
         if (token == JsonToken.START_OBJECT) {
             // STRUCTURED format: parse inner object to extract type value.
@@ -348,6 +413,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             //   URI/NAME/CLASS: {"type": "<value>"}
             //   SCHEMA_AND_TYPE: {"schema": "<nsURI>", "type": "<name>"}
             //   NUMERIC: {"schema": "<nsURI>", "classifier": <id>}
+            //   any of the above may additionally carry {"fingerprint": "<fp>"}
             return readStructuredTypeObject(parser, ctxt);
         }
         // Unexpected token (e.g., boolean, null, etc.) - report based on mode
@@ -359,7 +425,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             LOGGER.warning(msg);
             ContextHelper.addWarning(ctxt, msg, parser, "CodecEObjectDeserializer");
         }
-        return null;
+        return TypeContext.of(null);
     }
 
     /**
@@ -374,7 +440,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
      * When both schema and type/classifier are present, composes a full URI.
      * Consumes the entire nested object so the parser is correctly positioned.
      */
-    private String readStructuredTypeObject(JsonParser parser, DeserializationContext ctxt) {
+    private TypeContext readStructuredTypeObject(JsonParser parser, DeserializationContext ctxt) {
         TypeConfig globalTypeConfig = config.resolveGlobalTypeConfig();
         String nameKey = globalTypeConfig != null ? globalTypeConfig.getNameKey() : "type";
         String schemaKey = globalTypeConfig != null ? globalTypeConfig.getSchemaKey() : "schema";
@@ -382,6 +448,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         String typeValue = null;
         String schemaValue = null;
         String classifierValue = null;
+        String fingerprint = null;
 
         while (parser.nextToken() != JsonToken.END_OBJECT) {
             String fieldName = parser.currentName();
@@ -391,6 +458,9 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 typeValue = parser.getString();
             } else if (schemaKey.equals(fieldName)) {
                 schemaValue = parser.getString();
+            } else if (ContextHelper.isFingerprintKey(ctxt, fieldName)) {
+                // In-band EPackage fingerprint (B.1): read liberally, wherever it appears
+                fingerprint = parser.getString();
             } else if ("classifier".equals(fieldName)) {
                 classifierValue = parser.currentToken() == JsonToken.VALUE_NUMBER_INT
                         ? String.valueOf(parser.getIntValue())
@@ -406,17 +476,18 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 // Look up the EClass directly and return its full URI for downstream resolution.
                 EClass resolved = TypeResolutionHelper.resolveFromNumeric(classifierValue, null, schemaValue);
                 if (resolved != null && resolved.getEPackage() != null) {
-                    return resolved.getEPackage().getNsURI() + "#//" + resolved.getName();
+                    return new TypeContext(
+                            resolved.getEPackage().getNsURI() + "#//" + resolved.getName(), fingerprint);
                 }
-                return classifierValue;
+                return new TypeContext(classifierValue, fingerprint);
             }
             if (typeValue != null && !typeValue.contains("#//")) {
                 // SCHEMA_AND_TYPE or NAME with schema: compose full URI
-                return schemaValue + "#//" + typeValue;
+                return new TypeContext(schemaValue + "#//" + typeValue, fingerprint);
             }
         }
 
-        return typeValue;
+        return new TypeContext(typeValue, fingerprint);
     }
 
     /**
@@ -431,7 +502,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
      */
     private EClass resolveTypeFromValue(String typeValue, DeserializationState state,
             EClass hintEClass, String schemaValue, DeserializationContext ctxt,
-            EMFCodecReadContext emfContext) {
+            EMFCodecReadContext emfContext, String streamFingerprint) {
         if (typeValue == null) {
             return hintEClass;
         }
@@ -472,7 +543,8 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         }
 
         // Delegate to TypeDeserializationEntry for consistent resolution logic
-        EClass resolved = typeEntry.resolveEClass(effectiveTypeValue, hintEClass, ctxt, currentReference);
+        EClass resolved = typeEntry.resolveEClass(
+                effectiveTypeValue, hintEClass, ctxt, currentReference, streamFingerprint);
         if (resolved != null) {
             state.setResolvedEClass(resolved);
             return resolved;
