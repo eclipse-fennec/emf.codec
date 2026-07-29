@@ -122,7 +122,7 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 		} catch (WebApplicationException wae) {
 			throw wae;
 		} catch (Exception e) {
-			String errorText = String.format("[%s] Error serializing outgoing object", genericType.getTypeName());
+			String errorText = String.format("[%s] Error serializing outgoing object. Cause is [%s]", genericType.getTypeName(), e.getCause() != null ? e.getCause().getMessage() : "UNKNOWN");
 			Response r = Response.serverError().entity(errorText).type(MediaType.TEXT_PLAIN).build();
 			throw new WebApplicationException(e, r);
 		}
@@ -168,7 +168,7 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 		} catch (WebApplicationException wae) {
 			throw wae;
 		} catch (Exception e) {
-			String errorText = String.format("[%s] Error de-serializing incoming data", genericType.getTypeName());
+			String errorText = String.format("[%s] Error de-serializing incoming data. Cause is [%s]", genericType.getTypeName(), e.getCause() != null ? e.getCause().getMessage() : "UNKNOWN");
 			Response r = Response.serverError().entity(errorText).type(MediaType.TEXT_PLAIN).build();
 			throw new WebApplicationException(e, r);
 		}
