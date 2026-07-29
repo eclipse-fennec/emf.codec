@@ -1384,6 +1384,13 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 
 ### 7.3 Fixed Bugs
 
+**2026-07-29:**
+✅ **`XMLURIHandler.resolve()` crash on short relative `xsi:schemaLocation` URIs** (`XMLURIHandler`, issue #83)
+- POSTing XMI with an `xsi:schemaLocation` whose relative URI ends in `.ecore` but has fewer than 3 segments (e.g. `sensinact-mapping.ecore`) threw `ArrayIndexOutOfBoundsException: Index -2 out of bounds for length 1` during deserialization in `BaseJakartaCodecMessageBodyReaderWriter`
+- Root cause: the `.ecore` branch unconditionally read the last three URI segments to build a `platform:/plugin/<bundle>/<folder>/<file>` URI
+- Fix: guard with `segmentCount() < 3` — short schema-location hints are returned untouched
+- Tests: `XMLURIHandlerTest.Resolve` (5 tests: 1- and 2-segment `.ecore` URIs untouched, 3-segment platform-plugin mapping, absolute-path passthrough, non-ecore resolution against resource URI)
+
 **2026-06-26:**
 ✅ **Enum deserialization crash on unknown values** (`AttributeDeserializationEntry`, issue #11)
 - NPE ("Cannot invoke `EEnumLiteral.getInstance()` because `literal` is null") when JSON contained an enum value not in the model

@@ -48,7 +48,11 @@ public class XMLURIHandler implements XMLResource.URIHandler{
 			return uri;
 		}
 		if(uri.lastSegment() != null && uri.lastSegment().endsWith(".ecore")){
-			//Due to he fact that the Server should
+			if(uri.segmentCount() < 3) {
+				// schema location hints like "mapping.ecore" cannot be mapped to a
+				// platform plugin URI; leave them untouched (see issue #83)
+				return uri;
+			}
 			List<String> segmentsList = uri.segmentsList();
 			URI result = URI.createPlatformPluginURI(segmentsList.get(segmentsList.size() - 3), false);
 			result = result.appendSegment(segmentsList.get(segmentsList.size() - 2));
