@@ -44,7 +44,7 @@ features:
 
 ## About Fennec Codec
 
-Fennec Codec (`org.eclipse.fennec.codec`) is an EMF codec framework built on
+Fennec Codec (`org.eclipse.fennec.codec`) is an EMF de-/serialization framework built on
 **Jackson 3.x** for serializing and deserializing EMF `EObject`s to JSON and
 other formats — **BSON**, **CBOR**, **YAML**, **CSV**, **ODS**, **XLSX**,
 **GeoJSON** and more. Serialization is driven by declarative configuration
