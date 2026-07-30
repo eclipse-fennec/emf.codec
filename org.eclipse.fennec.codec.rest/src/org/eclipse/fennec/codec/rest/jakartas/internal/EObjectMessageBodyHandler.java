@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.rest.annotations.AnnotationConverter;
 import org.eclipse.fennec.codec.rest.jakartas.JakartaRestConstants;
 import org.osgi.service.component.annotations.Component;
@@ -99,20 +100,20 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 			WebApplicationException {
 		ResourceSet resourceSet = getResourceSet();
 		Resource resource = t.eResource();
-		boolean cleanUp = false;
 		if(resource == null){
-			cleanUp = true;
+			// Serialize a copy: adding the live object to the temporary response resource
+			// would re-parent it, and a failing write would leave it captured there (issue #93)
 			ResourceFactoryImpl factory = (ResourceFactoryImpl) resourceSet.getResourceFactoryRegistry().getContentTypeToFactoryMap().get(mediaType.getType() + "/" + mediaType.getSubtype());
 			resource = factory.createResource(URI.createURI("http://test.test"));
 			resourceSet.getResources().add(resource);
-			resource.getContents().add(t);
-		}
-
-		super.writeResourceTo(resource, Resource.class, genericType, annotations, mediaType, httpHeaders, entityStream);
-
-		if(cleanUp){
-			resource.getContents().remove(t);
-			resource.getResourceSet().getResources().remove(resource);
+			resource.getContents().add(EcoreUtil.copy(t));
+			try {
+				super.writeResourceTo(resource, Resource.class, genericType, annotations, mediaType, httpHeaders, entityStream);
+			} finally {
+				resourceSet.getResources().remove(resource);
+			}
+		} else {
+			super.writeResourceTo(resource, Resource.class, genericType, annotations, mediaType, httpHeaders, entityStream);
 		}
 	}
 

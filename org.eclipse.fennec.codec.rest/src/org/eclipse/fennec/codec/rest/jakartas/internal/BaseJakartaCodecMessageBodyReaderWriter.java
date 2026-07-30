@@ -93,13 +93,11 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 			ResourceFactoryImpl factory = (ResourceFactoryImpl) resourceSet.getResourceFactoryRegistry()
 					.getContentTypeToFactoryMap().get(contentType);
 			Resource referenceResource = factory.createResource(URI.createURI("http://test.test"));
-			resourceSet.getResources().add(referenceResource);
 			boolean removeFromResourceSet = true;
 			if (t.getClass().equals(referenceResource.getClass())) {
 				referenceResource = t;
 				removeFromResourceSet = false;
 			} else {
-
 				resourceSet.getResources().add(referenceResource);
 				for (EObject eObject : t.getContents()) {
 					referenceResource.getContents().add(EcoreUtil.copy(eObject));
@@ -114,10 +112,12 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 			// Client-supplied (whitelisted) options win over endpoint annotations.
 			options.putAll(getClientCodecOptions());
 
-			referenceResource.save(entityStream, options);
-
-			if (removeFromResourceSet) {
-				referenceResource.getResourceSet().getResources().remove(referenceResource);
+			try {
+				referenceResource.save(entityStream, options);
+			} finally {
+				if (removeFromResourceSet) {
+					resourceSet.getResources().remove(referenceResource);
+				}
 			}
 		} catch (WebApplicationException wae) {
 			throw wae;

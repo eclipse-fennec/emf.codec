@@ -2,9 +2,13 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-07-10
+**Last Updated:** 2026-07-30
 
-**Session Summary (2026-07-10):**
+**Session Summary (2026-07-30):**
+
+**Fixed GitHub issue #93 — codec.rest: EObject writer re-parents a resource-less object and doesn't restore it on serialization failure:**
+
+Sibling of model.atlas #161. `EObjectMessageBodyHandler.writeTo` added the live resource-less EObject to a temporary response resource (`http://test.test`) and removed it again with plain code after the write — a failing serialization skipped the cleanup, leaving the object's `eResource()` pointing at the temp resource forever (all later hrefs computed as `http://test.test#...`); even the happy path exposed the transient re-parenting to concurrent serializations. Fix (matching the model.atlas approach): the null-resource branch now serializes an `EcoreUtil.copy(t)` so the live instance is never touched, and the temp resource is removed from the per-request `ResourceSet` in a `finally`. In `BaseJakartaCodecMessageBodyReaderWriter.writeResourceTo`, the reference resource is now only added to the `ResourceSet` in the branch that actually uses it (was: unconditional add plus a duplicate add — the discarded instance leaked into the per-request `ResourceSet` on the same-class path) and is removed in a `finally` around `save`. Regression tests: `EObjectMessageBodyHandlerTest` (rest bundle unit tests) — failure-path restore, no transient re-parenting during write, ResourceSet left clean, foreign-resource-type copy path.
 
 **Fixed GitHub issue #43 — OpenAPI import: schema-to-schema `$ref` features in the generated schemas EPackage had `eType == null`:**
 
