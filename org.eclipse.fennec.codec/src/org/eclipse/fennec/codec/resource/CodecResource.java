@@ -292,6 +292,8 @@ public class CodecResource extends ResourceImpl {
 
         // Check if we have custom value writer configurations
         Object valueWriterInstancesOption = effectiveOptions.get(CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES);
+        // Deprecated key, still honoured: this is its implementation, not a use of it.
+        @SuppressWarnings("deprecation")
         Object valueWritersOption = effectiveOptions.get(CodecOptions.CODEC_FEATURE_VALUE_WRITERS);
         boolean hasCustomWriterConfig = (valueWriterInstancesOption instanceof Map<?, ?>)
                 || (valueWritersOption instanceof Map<?, ?>);
@@ -409,6 +411,8 @@ public class CodecResource extends ResourceImpl {
         }
 
         // Set feature value readers by name if provided
+        // Deprecated key, still honoured: this is its implementation, not a use of it.
+        @SuppressWarnings("deprecation")
         Object valueReadersOption = mergedOptions.get(CodecOptions.CODEC_FEATURE_VALUE_READERS);
         if (valueReadersOption instanceof Map<?, ?> valueReadersMap) {
             reader = reader.withAttribute(ContextHelper.FEATURE_VALUE_READERS, valueReadersMap);
@@ -502,6 +506,8 @@ public class CodecResource extends ResourceImpl {
             }
 
             // Set feature value writers by name if provided
+            // Deprecated key, still honoured: this is its implementation, not a use of it.
+            @SuppressWarnings("deprecation")
             Object valueWritersOption = effectiveOptions.get(CodecOptions.CODEC_FEATURE_VALUE_WRITERS);
             if (valueWritersOption instanceof Map<?, ?> valueWritersMap) {
                 writer = writer.withAttribute(ContextHelper.FEATURE_VALUE_WRITERS, valueWritersMap);
@@ -633,6 +639,8 @@ public class CodecResource extends ResourceImpl {
         }
 
         // Set feature value readers by name if provided
+        // Deprecated key, still honoured: this is its implementation, not a use of it.
+        @SuppressWarnings("deprecation")
         Object valueReadersOption = mergedOptions.get(CodecOptions.CODEC_FEATURE_VALUE_READERS);
         if (valueReadersOption instanceof Map<?, ?> valueReadersMap) {
             reader = reader.withAttribute(ContextHelper.FEATURE_VALUE_READERS, valueReadersMap);
@@ -973,6 +981,9 @@ public class CodecResource extends ResourceImpl {
     }
 
     /** Runtime-only codec options that are NOT ConfigProperty keys and should NOT be treated as custom properties. */
+    // Names the deprecated per-feature value keys too: while they are honoured they must not
+    // be mistaken for custom properties.
+    @SuppressWarnings("deprecation")
     private static final Set<String> KNOWN_RUNTIME_OPTIONS = Set.of(
             CodecOptions.CODEC_ROOT_TYPE,
             CodecOptions.CODEC_ROOT_SCHEMA,

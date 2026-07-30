@@ -307,6 +307,7 @@ class FeatureTypeHintWarningTest {
          * Spec 10.1: "Reader name not found in registry"
          * Expected: WARNING, falling back to type hint or skip
          */
+        @SuppressWarnings("deprecation") // covers the deprecated per-feature reader key itself
         @Test
         @DisplayName("unknown value reader name falls back to type hint if available")
         void unknownValueReaderNameFallsBackToTypeHint() throws IOException {
@@ -347,6 +348,7 @@ class FeatureTypeHintWarningTest {
         /**
          * Empty reader name should be treated as no reader specified.
          */
+        @SuppressWarnings("deprecation") // covers the deprecated per-feature reader key itself
         @Test
         @DisplayName("empty reader name is treated as no reader specified")
         void emptyReaderNameIsTreatedAsNoReaderSpecified() throws IOException {

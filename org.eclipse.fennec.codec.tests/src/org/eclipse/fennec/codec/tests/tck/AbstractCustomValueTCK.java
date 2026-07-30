@@ -125,6 +125,7 @@ public abstract class AbstractCustomValueTCK {
         assertEquals(3.14, (Double) loaded.eGet(valueAttr), 0.001);
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     @DisplayName("writer resolved by name from registry via save options")
     void writerResolvedByNameFromRegistry() throws IOException {
@@ -154,6 +155,7 @@ public abstract class AbstractCustomValueTCK {
                 "Serialized output should contain uppercase HELLO, but got: " + serialized);
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     @DisplayName("reader resolved by name from registry via load options")
     void readerResolvedByNameFromRegistry() throws IOException {

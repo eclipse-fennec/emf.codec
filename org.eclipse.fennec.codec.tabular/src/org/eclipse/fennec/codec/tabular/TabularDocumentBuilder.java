@@ -129,7 +129,8 @@ public final class TabularDocumentBuilder {
         DiagnosticCollector diagnostics = new DiagnosticCollector();
 
         CodecValueRegistry registry = opts.get(CodecOptions.INTERNAL_VALUE_REGISTRY) instanceof CodecValueRegistry r ? r : null;
-        @SuppressWarnings("unchecked")
+        // Deprecated key, still honoured: this is its implementation, not a use of it.
+        @SuppressWarnings({ "unchecked", "deprecation" })
         Map<EStructuralFeature, String> featureWriters = opts.get(CodecOptions.CODEC_FEATURE_VALUE_WRITERS) instanceof Map<?, ?> m
                 ? (Map<EStructuralFeature, String>) m : null;
 
