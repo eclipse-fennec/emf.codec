@@ -20,9 +20,13 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -33,7 +37,9 @@ import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.rest.annotations.ResourceOverwriteContentType;
 import org.eclipse.fennec.codec.rest.common.internal.XMLURIHandler;
 import org.eclipse.fennec.codec.rest.jakartas.AbstractJakartaCodecAnnotationHandler;
-import org.eclipse.fennec.emf.osgi.model.info.EMFModelInfo;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 
@@ -64,7 +70,7 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 		implements MessageBodyReader<R>, MessageBodyWriter<W> {
 
 	@Reference(cardinality = ReferenceCardinality.MANDATORY)
-	EMFModelInfo modelInfo;
+	MetadataService metadataService;
 
 	/**
 	 * default constructor
@@ -159,7 +165,8 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 			options.putAll(getClientCodecOptions());
 
 			if (!options.containsKey(CodecResource.CODEC_ROOT_TYPE)) {
-				modelInfo.getEClassifierForClass(type).ifPresent(ec -> options.put(CodecResource.CODEC_ROOT_TYPE, ec));
+				resolveRootEClass(metadataService, type)
+						.ifPresent(eClass -> options.put(CodecResource.CODEC_ROOT_TYPE, eClass));
 			}
 
 			resource.load(entityStream, options);
@@ -172,6 +179,59 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 			Response r = Response.serverError().entity(errorText).type(MediaType.TEXT_PLAIN).build();
 			throw new WebApplicationException(e, r);
 		}
+	}
+
+	/**
+	 * Resolves the root {@link EClass} for a Java entity type through the metadata index.
+	 * <p>
+	 * Replaces the deprecated {@code EMFModelInfo}: the index keeps the same mapping, built
+	 * from {@code EClass.getInstanceClassName()}, and the metadata service installs one by
+	 * default - so no additional service is involved.
+	 * </p>
+	 * <p>
+	 * More than one match means the same Java class is registered for several model versions.
+	 * Picking one would be a coin flip between them, so the request fails instead; the caller
+	 * disambiguates by passing {@code CODEC_ROOT_TYPE} itself, which takes precedence over
+	 * this lookup.
+	 * </p>
+	 *
+	 * Package-visible and static so it can be unit-tested without a JAX-RS runtime.
+	 *
+	 * @param metadataService the service whose index is consulted
+	 * @param type the Java entity type
+	 * @return the root EClass, or empty if no registered model version declares this type
+	 * @throws WebApplicationException if several model versions declare it
+	 */
+	static Optional<EClass> resolveRootEClass(MetadataService metadataService, Class<?> type) {
+		List<ClassMetadata> matches = metadataService.getIndexReader()
+				.map(reader -> reader.findAllByInstanceClassName(type.getName()))
+				.orElseGet(List::of);
+
+		if (matches.size() > 1) {
+			// nsURI plus fingerprint, the same way PackageResolver reports an ambiguous nsURI: the
+			// type URI alone does not tell two registered versions apart.
+			String candidates = matches.stream()
+					.map(BaseJakartaCodecMessageBodyReaderWriter::describe)
+					.collect(Collectors.joining(", "));
+			String errorText = String.format(
+					"Ambiguous root type for %s: %d registered model versions [%s]; pass %s explicitly to select one",
+					type.getName(), matches.size(), candidates, CodecResource.CODEC_ROOT_TYPE);
+			throw new WebApplicationException(
+					Response.serverError().entity(errorText).type(MediaType.TEXT_PLAIN).build());
+		}
+
+		return matches.stream().findFirst().map(ClassMetadata::getEClass);
+	}
+
+	/**
+	 * Identifies the model version a class belongs to, for the ambiguity message.
+	 */
+	private static String describe(ClassMetadata classMetadata) {
+		PackageMetadata packageMetadata = classMetadata.getPackage();
+		if (packageMetadata == null) {
+			return String.valueOf(classMetadata.getTypeURI());
+		}
+		return packageMetadata.getNsURI() + "@" + packageMetadata.getModelFingerprint();
 	}
 
 	/**
