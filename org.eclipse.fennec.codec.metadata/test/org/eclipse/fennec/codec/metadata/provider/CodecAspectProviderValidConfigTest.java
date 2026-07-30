@@ -43,7 +43,6 @@ import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
 import org.eclipse.fennec.emf.osgi.model.metadata.AttributeMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
-import org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.MetadataFactory;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.ReferenceMetadata;
@@ -149,13 +148,6 @@ class CodecAspectProviderValidConfigTest {
         }
         provider.onPackageRegistered(packageMetadata);
         return classMetadata;
-    }
-
-
-    private FeatureMetadata wrapFeature(EStructuralFeature feature) {
-        if (feature instanceof EAttribute attr) return wrapAttribute(attr);
-        if (feature instanceof EReference ref) return wrapReference(ref);
-        throw new IllegalArgumentException("Unknown feature type");
     }
 
     // ========================================================================
