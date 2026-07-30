@@ -770,6 +770,8 @@ class CodecAspectProviderMisconfigTest {
 
             AspectEntry entry = classEntry(entityClass);
             ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
+            assertNull(aspect.getTypeConfig(),
+                "the deprecated key is ignored, so no type configuration must be produced");
 
             // T-V30: typeInclude → WARNING (deprecated)
             assertEquals(1, entry.getDiagnostics().size(),
@@ -898,6 +900,8 @@ class CodecAspectProviderMisconfigTest {
 
             AspectEntry entry = featureEntry(nameAttr);
             FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
+            assertNull(aspect.getEffectiveKey(),
+                "a class-only key must not configure the feature");
 
             // Value should NOT be applied (class-only property)
             // Diagnostic should be added
@@ -918,6 +922,8 @@ class CodecAspectProviderMisconfigTest {
 
             AspectEntry entry = featureEntry(addressRef);
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
+            assertNull(aspect.getReferenceConfig(),
+                "a class-only key must not configure the reference");
 
             assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "strictOnMissing".equals(d.getKey())
@@ -936,6 +942,8 @@ class CodecAspectProviderMisconfigTest {
 
             AspectEntry entry = featureEntry(dataAttr);
             FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
+            assertNull(aspect.getEffectiveKey(),
+                "a class-only key must not configure the feature");
 
             assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "strictOnUnknown".equals(d.getKey())
@@ -973,6 +981,8 @@ class CodecAspectProviderMisconfigTest {
 
             AspectEntry entry = featureEntry(nameAttr);
             FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
+            assertNull(aspect.getEffectiveKey(),
+                "a class-only key must not configure the feature");
 
             assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "metadataMerge".equals(d.getKey())
@@ -991,6 +1001,8 @@ class CodecAspectProviderMisconfigTest {
 
             AspectEntry entry = featureEntry(addressRef);
             ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
+            assertNull(aspect.getReferenceConfig(),
+                "a class-only key must not configure the reference");
 
             assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "metadataKey".equals(d.getKey())
@@ -1009,6 +1021,8 @@ class CodecAspectProviderMisconfigTest {
 
             AspectEntry entry = featureEntry(dataAttr);
             FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
+            assertNull(aspect.getEffectiveKey(),
+                "a class-only key must not configure the feature");
 
             assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "metadataMerge".equals(d.getKey())
