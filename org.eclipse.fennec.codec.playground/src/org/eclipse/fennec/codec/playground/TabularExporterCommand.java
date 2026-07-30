@@ -60,6 +60,7 @@ public class TabularExporterCommand {
 		doExport(type, mode, new HashMap<>());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Descriptor("Export a test object using the appendSuffix value writer on Person#firstName")
 	public void exportWithWriter(
 			@Descriptor("The type of the export. Could be CSV, ODS, XLSX or R")

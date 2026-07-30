@@ -386,6 +386,7 @@ class CodecResourceCustomValueTest {
             EObject person = createPerson("alice", 30);
             ConfigurationResolver resolver = ConfigurationResolver.defaults();
 
+            @SuppressWarnings("deprecation") // covers the deprecated per-feature value key itself
             Map<String, Object> saveOptions = Map.of(
                     CodecOptions.CODEC_FEATURE_VALUE_WRITERS, Map.of(nameAttribute, "uppercase")
             );
@@ -414,6 +415,7 @@ class CodecResourceCustomValueTest {
             String json = "{\"name\": \"UPPERCASE_NAME\", \"age\": 25}";
             ConfigurationResolver resolver = ConfigurationResolver.defaults();
 
+            @SuppressWarnings("deprecation") // covers the deprecated per-feature value key itself
             Map<String, Object> loadOptions = Map.of(
                     CodecResource.CODEC_ROOT_TYPE, personClass,
                     CodecOptions.CODEC_FEATURE_VALUE_READERS, Map.of(nameAttribute, "lowercase")

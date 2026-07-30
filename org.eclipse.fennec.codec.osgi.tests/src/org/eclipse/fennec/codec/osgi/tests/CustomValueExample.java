@@ -257,6 +257,7 @@ public class CustomValueExample {
         assertEquals(millis, loaded.eGet(timestampAttr));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     @DisplayName("Writer resolved by name from OSGi registry — 'Hello' serialized as 'HELLO'")
     void writerResolvedByNameFromOsgiRegistry() throws IOException {
@@ -280,6 +281,7 @@ public class CustomValueExample {
                 "Should contain uppercase HELLO");
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     @DisplayName("Reader resolved by name from OSGi registry — 'HELLO' deserialized as 'hello'")
     void readerResolvedByNameFromOsgiRegistry() throws IOException {
