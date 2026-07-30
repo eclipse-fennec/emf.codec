@@ -12,8 +12,6 @@
  */
 package org.eclipse.fennec.codec.metadata.model.codec;
 
-import org.eclipse.fennec.model.metadata.BaseReferenceConfig;
-
 import org.osgi.annotation.versioning.ProviderType;
 
 /**

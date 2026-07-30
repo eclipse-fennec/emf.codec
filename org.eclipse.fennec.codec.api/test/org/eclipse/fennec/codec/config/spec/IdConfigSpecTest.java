@@ -24,9 +24,9 @@ import java.util.Map;
 
 import org.eclipse.fennec.codec.config.IdConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
-import org.eclipse.fennec.model.metadata.IdKeyMode;
-import org.eclipse.fennec.model.metadata.IdStrategy;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
+import org.eclipse.fennec.codec.metadata.model.codec.IdStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

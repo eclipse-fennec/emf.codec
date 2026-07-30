@@ -101,6 +101,18 @@ public class CodecFactoryImpl extends EFactoryImpl implements CodecFactory {
 				return createFallbackStrategyFromString(eDataType, initialValue);
 			case CodecPackage.FINGERPRINT_MODE:
 				return createFingerprintModeFromString(eDataType, initialValue);
+			case CodecPackage.SERIALIZATION_FORMAT:
+				return createSerializationFormatFromString(eDataType, initialValue);
+			case CodecPackage.TYPE_STRATEGY:
+				return createTypeStrategyFromString(eDataType, initialValue);
+			case CodecPackage.ID_STRATEGY:
+				return createIdStrategyFromString(eDataType, initialValue);
+			case CodecPackage.ID_KEY_MODE:
+				return createIdKeyModeFromString(eDataType, initialValue);
+			case CodecPackage.SUPER_TYPE_SELECTION:
+				return createSuperTypeSelectionFromString(eDataType, initialValue);
+			case CodecPackage.ENUM_SERIALIZATION_STRATEGY:
+				return createEnumSerializationStrategyFromString(eDataType, initialValue);
 			default:
 				throw new IllegalArgumentException("The datatype '" + eDataType.getName() + "' is not a valid classifier");
 		}
@@ -124,6 +136,18 @@ public class CodecFactoryImpl extends EFactoryImpl implements CodecFactory {
 				return convertFallbackStrategyToString(eDataType, instanceValue);
 			case CodecPackage.FINGERPRINT_MODE:
 				return convertFingerprintModeToString(eDataType, instanceValue);
+			case CodecPackage.SERIALIZATION_FORMAT:
+				return convertSerializationFormatToString(eDataType, instanceValue);
+			case CodecPackage.TYPE_STRATEGY:
+				return convertTypeStrategyToString(eDataType, instanceValue);
+			case CodecPackage.ID_STRATEGY:
+				return convertIdStrategyToString(eDataType, instanceValue);
+			case CodecPackage.ID_KEY_MODE:
+				return convertIdKeyModeToString(eDataType, instanceValue);
+			case CodecPackage.SUPER_TYPE_SELECTION:
+				return convertSuperTypeSelectionToString(eDataType, instanceValue);
+			case CodecPackage.ENUM_SERIALIZATION_STRATEGY:
+				return convertEnumSerializationStrategyToString(eDataType, instanceValue);
 			default:
 				throw new IllegalArgumentException("The datatype '" + eDataType.getName() + "' is not a valid classifier");
 		}
@@ -347,6 +371,126 @@ public class CodecFactoryImpl extends EFactoryImpl implements CodecFactory {
 	 * @generated
 	 */
 	public String convertFingerprintModeToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public SerializationFormat createSerializationFormatFromString(EDataType eDataType, String initialValue) {
+		SerializationFormat result = SerializationFormat.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertSerializationFormatToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public TypeStrategy createTypeStrategyFromString(EDataType eDataType, String initialValue) {
+		TypeStrategy result = TypeStrategy.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertTypeStrategyToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public IdStrategy createIdStrategyFromString(EDataType eDataType, String initialValue) {
+		IdStrategy result = IdStrategy.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertIdStrategyToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public IdKeyMode createIdKeyModeFromString(EDataType eDataType, String initialValue) {
+		IdKeyMode result = IdKeyMode.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertIdKeyModeToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public SuperTypeSelection createSuperTypeSelectionFromString(EDataType eDataType, String initialValue) {
+		SuperTypeSelection result = SuperTypeSelection.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertSuperTypeSelectionToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EnumSerializationStrategy createEnumSerializationStrategyFromString(EDataType eDataType, String initialValue) {
+		EnumSerializationStrategy result = EnumSerializationStrategy.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertEnumSerializationStrategyToString(EDataType eDataType, Object instanceValue) {
 		return instanceValue == null ? null : instanceValue.toString();
 	}
 

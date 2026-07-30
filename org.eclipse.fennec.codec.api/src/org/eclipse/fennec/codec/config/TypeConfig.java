@@ -20,8 +20,8 @@ import java.util.Map;
 
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 
 /**
  * Immutable type serialization configuration.

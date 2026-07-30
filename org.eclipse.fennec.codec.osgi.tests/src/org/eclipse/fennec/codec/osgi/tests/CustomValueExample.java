@@ -38,7 +38,7 @@ import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -26,7 +26,7 @@ import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.ser.CodecSerializers;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 import tools.jackson.core.Version;
 import tools.jackson.databind.module.SimpleModule;

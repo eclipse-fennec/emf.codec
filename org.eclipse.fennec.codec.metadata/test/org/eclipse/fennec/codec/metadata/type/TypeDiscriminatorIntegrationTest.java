@@ -20,9 +20,9 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.service.MetadataServiceImpl;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataServices;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,9 +43,8 @@ class TypeDiscriminatorIntegrationTest {
 
 	@BeforeEach
     void setUp() {
-        metadataService = new MetadataServiceImpl();
         codecAspectProvider = new CodecAspectProvider();
-        metadataService.registerAspectProvider(codecAspectProvider);
+        metadataService = MetadataServices.createWhiteboard(codecAspectProvider);
     }
 
     // ========================================================================
@@ -485,7 +484,7 @@ class TypeDiscriminatorIntegrationTest {
                 "type"
             );
 
-            PackageMetadata pkgMetadata = metadataService.registerPackage(pkg);
+            PackageMetadata pkgMetadata = metadataService.registerPackage(pkg).orElseThrow();
             TypeDiscriminatorService service = TypeDiscriminatorService.fromMetadataService(metadataService);
 
             assertEquals(1, service.getTotalMappings());
@@ -509,7 +508,7 @@ class TypeDiscriminatorIntegrationTest {
             createConcreteClass(pkg, "KeepMe", "class-test", "keep");
             createConcreteClass(pkg, "RemoveMe", "class-test", "remove");
 
-            PackageMetadata pkgMetadata = metadataService.registerPackage(pkg);
+            PackageMetadata pkgMetadata = metadataService.registerPackage(pkg).orElseThrow();
             TypeDiscriminatorService service = TypeDiscriminatorService.fromMetadataService(metadataService);
 
             assertEquals(2, service.getTotalMappings());

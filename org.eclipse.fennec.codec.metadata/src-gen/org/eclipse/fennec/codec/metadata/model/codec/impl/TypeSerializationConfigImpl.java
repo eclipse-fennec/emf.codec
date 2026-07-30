@@ -23,8 +23,6 @@ import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
 import org.eclipse.fennec.codec.metadata.model.codec.StrategyScope;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
 
-import org.eclipse.fennec.model.metadata.impl.BaseTypeConfigImpl;
-
 /**
  * <!-- begin-user-doc -->
  * An implementation of the model object '<em><b>Type Serialization Config</b></em>'.

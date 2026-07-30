@@ -59,8 +59,8 @@ import org.eclipse.fennec.codec.module.CodecModule;
 import org.eclipse.fennec.codec.util.CodecResourceHelper;
 import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 import tools.jackson.core.ErrorReportConfiguration;
 import tools.jackson.core.JsonEncoding;
@@ -255,7 +255,7 @@ public class CodecResource extends ResourceImpl {
         EClass eClass = rootObject.eClass();
         EPackage ePackage = eClass.getEPackage();
 
-        requirePackageRegistered(ePackage);
+        ensurePackageMetadata(ePackage);
 
         Map<String, Object> effectiveOptions = suppressFingerprintForColumnFormats(
                 (Map<String, Object>) mergeOptions(options));
@@ -337,7 +337,7 @@ public class CodecResource extends ResourceImpl {
 
         if (nonNull(rootEClassHint)) {
             EPackage ePackage = rootEClassHint.getEPackage();
-            requirePackageRegistered(ePackage);
+            ensurePackageMetadata(ePackage);
         }
 
         // Per-load package resolver (B.5): binding nsURI -> version order + A.3 count rule.
@@ -682,13 +682,18 @@ public class CodecResource extends ResourceImpl {
     // Helper Methods
     // ========================================================================
 
-    private PackageMetadata requirePackageRegistered(EPackage ePackage) throws IOException {
-        PackageMetadata metadata = metadataService.getPackageMetadata(ePackage.getNsURI());
+    /**
+     * Resolves the metadata tree for a package, building it if this version has not been seen
+     * yet (issue #89): keyed by the EPackage instance, {@code getPackageMetadata} resolves or
+     * builds, so prior registration is no longer a precondition. An empty answer means the
+     * service could not key the package at all.
+     */
+    private PackageMetadata ensurePackageMetadata(EPackage ePackage) throws IOException {
+        PackageMetadata metadata = metadataService.getPackageMetadata(ePackage).orElse(null);
         if (isNull(metadata)) {
             throw new IOException(String.format(
-                "Package '%s' is not registered with MetadataService. " +
-                "Register it via MetadataWhiteboard.registerPackage() before using CodecResource.",
-                ePackage.getNsURI()));
+                "No metadata could be resolved for package '%s'.",
+                ePackage == null ? "null" : ePackage.getNsURI()));
         }
         return metadata;
     }
@@ -716,7 +721,7 @@ public class CodecResource extends ResourceImpl {
         // A.2 step 3: fingerprint known and no explicit schema -> use the selected
         // package's nsURI as context schema.
         if (nonNull(rootFingerprint)) {
-            PackageMetadata pkg = metadataService.getPackageMetadataByFingerprint(rootFingerprint);
+            PackageMetadata pkg = metadataService.getPackageMetadataByFingerprint(rootFingerprint).orElse(null);
             if (nonNull(pkg) && nonNull(pkg.getEPackage())) {
                 return pkg.getEPackage().getNsURI();
             }
@@ -759,7 +764,7 @@ public class CodecResource extends ResourceImpl {
         } else {
             String rootFingerprint = helper.rootFingerprint(options);
             if (nonNull(rootFingerprint)) {
-                PackageMetadata pm = metadataService.getPackageMetadataByFingerprint(rootFingerprint);
+                PackageMetadata pm = metadataService.getPackageMetadataByFingerprint(rootFingerprint).orElse(null);
                 if (nonNull(pm)) {
                     packageResolver.pin(pm.getEPackage());
                 }

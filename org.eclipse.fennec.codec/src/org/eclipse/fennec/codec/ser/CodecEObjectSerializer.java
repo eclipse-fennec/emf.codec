@@ -31,7 +31,7 @@ import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecWriteContext;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.TokenStreamContext;

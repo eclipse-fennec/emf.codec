@@ -14,8 +14,6 @@ package org.eclipse.fennec.codec.metadata.model.codec;
 
 import org.eclipse.emf.common.util.EList;
 
-import org.eclipse.fennec.model.metadata.BaseIdConfig;
-
 import org.osgi.annotation.versioning.ProviderType;
 
 /**

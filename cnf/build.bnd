@@ -11,6 +11,14 @@
 	jakartaREST,\
 	fennecM2X
 
+# Runtime-only, for plain-Java tests: MetadataServices.createWhiteboard() reads the default
+# FingerprintService from FingerprintHelper, which ships in the emf.osgi implementation bundle
+# (emf.osgi#67). No project compiles against it — the -buildpath stays on api + metadata — but a
+# flat test classpath has to carry it, the same way the emf.osgi metadata bundle does for its own
+# tests. In OSGi the service arrives via DS and this is not involved.
+-testpath.emfimpl: \
+	org.eclipse.fennec.emf.osgi.component.minimal;version=latest
+
 # Needed because we enabled library 'fennec'
 # Activate baselining
 #fennec-baselining: true

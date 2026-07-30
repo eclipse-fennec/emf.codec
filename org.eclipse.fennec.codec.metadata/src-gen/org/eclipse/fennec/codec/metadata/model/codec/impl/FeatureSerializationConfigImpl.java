@@ -25,8 +25,6 @@ import org.eclipse.fennec.codec.metadata.model.codec.FeatureSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
 
-import org.eclipse.fennec.model.metadata.impl.BaseFeatureConfigImpl;
-
 /**
  * <!-- begin-user-doc -->
  * An implementation of the model object '<em><b>Feature Serialization Config</b></em>'.

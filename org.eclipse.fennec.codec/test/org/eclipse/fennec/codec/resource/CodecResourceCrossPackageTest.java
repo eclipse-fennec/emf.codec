@@ -31,8 +31,8 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -218,7 +218,7 @@ class CodecResourceCrossPackageTest {
             assertNotNull(typeService.getEClassFromAny("pressure-sensor"));
 
             // Get package metadata before unregistering
-            PackageMetadata extMetadata = metadataService.getPackageMetadata(extPackage.getNsURI());
+            PackageMetadata extMetadata = metadataService.getPackageMetadata(extPackage.getNsURI()).orElseThrow();
             assertNotNull(extMetadata, "Extension package metadata should exist");
 
             // Unregister extension package from type service
@@ -241,7 +241,7 @@ class CodecResourceCrossPackageTest {
             registerBothPackages();
 
             // Get base package metadata
-            PackageMetadata baseMetadata = metadataService.getPackageMetadata(basePackage.getNsURI());
+            PackageMetadata baseMetadata = metadataService.getPackageMetadata(basePackage.getNsURI()).orElseThrow();
 
             // Unregister base package from type service
             typeService.unregisterPackage(baseMetadata);
@@ -261,7 +261,7 @@ class CodecResourceCrossPackageTest {
             registerBothPackages();
 
             // Get package metadata
-            PackageMetadata extMetadata = metadataService.getPackageMetadata(extPackage.getNsURI());
+            PackageMetadata extMetadata = metadataService.getPackageMetadata(extPackage.getNsURI()).orElseThrow();
 
             // Unregister
             typeService.unregisterPackage(extMetadata);

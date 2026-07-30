@@ -19,14 +19,13 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
+import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecPackage;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
-
-import org.eclipse.fennec.model.metadata.impl.ClassAspectImpl;
 
 /**
  * <!-- begin-user-doc -->
@@ -49,7 +48,7 @@ import org.eclipse.fennec.model.metadata.impl.ClassAspectImpl;
  *
  * @generated
  */
-public class ClassCodecAspectImpl extends ClassAspectImpl implements ClassCodecAspect {
+public class ClassCodecAspectImpl extends MinimalEObjectImpl.Container implements ClassCodecAspect {
 	/**
 	 * The cached value of the '{@link #getTypeConfig() <em>Type Config</em>}' containment reference.
 	 * <!-- begin-user-doc -->

@@ -4,8 +4,7 @@
     modelDirectory="/org.eclipse.fennec.codec.metadata.model/src" modelPluginID="org.eclipse.fennec.codec.metadata.model"
     modelName="Codec" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
     importerID="org.eclipse.emf.importer.ecore" complianceLevel="17.0" copyrightFields="false"
-    usedGenPackages="metadata.genmodel#//metadata" operationReflection="true" importOrganizing="true"
-    oSGiCompatible="true">
+    operationReflection="true" importOrganizing="true" oSGiCompatible="true">
   <foreignModel>codec.ecore</foreignModel>
   <genPackages prefix="Codec" basePackage="org.eclipse.fennec.codec.metadata.model"
       resource="XMI" disposableProviderFactory="true" ecorePackage="codec.ecore#/">
@@ -33,6 +32,82 @@
       <genEnumLiterals ecoreEnumLiteral="codec.ecore#//FingerprintMode/NONE"/>
       <genEnumLiterals ecoreEnumLiteral="codec.ecore#//FingerprintMode/FIRST_TOUCH"/>
     </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="codec.ecore#//SerializationFormat">
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//SerializationFormat/PLAIN"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//SerializationFormat/STRUCTURED"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="codec.ecore#//TypeStrategy">
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//TypeStrategy/NAME"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//TypeStrategy/CLASS"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//TypeStrategy/URI"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//TypeStrategy/SCHEMA_AND_TYPE"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//TypeStrategy/NUMERIC"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//TypeStrategy/NONE"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="codec.ecore#//IdStrategy">
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//IdStrategy/ID_FIELD"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//IdStrategy/COMBINED"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="codec.ecore#//IdKeyMode">
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//IdKeyMode/ID_ONLY"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//IdKeyMode/BOTH"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//IdKeyMode/FEATURE_ONLY"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//IdKeyMode/NONE"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="codec.ecore#//SuperTypeSelection">
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//SuperTypeSelection/ALL"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//SuperTypeSelection/ALL_EMF"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//SuperTypeSelection/SINGLE"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//SuperTypeSelection/NONE"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="codec.ecore#//EnumSerializationStrategy">
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//EnumSerializationStrategy/LITERAL"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//EnumSerializationStrategy/VALUE"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//EnumSerializationStrategy/NAME"/>
+    </genEnums>
+    <genClasses image="false" ecoreClass="codec.ecore#//BaseTypeConfig">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseTypeConfig/format"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseTypeConfig/strategy"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseTypeConfig/typeKey"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseTypeConfig/schemaKey"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseTypeConfig/nameKey"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="codec.ecore#//BaseIdConfig">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseIdConfig/strategy"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseIdConfig/keyMode"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseIdConfig/format"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseIdConfig/idKey"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseIdConfig/separator"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseIdConfig/onTop"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseIdConfig/serializeSeparator"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseIdConfig/separatorKey"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseIdConfig/valueKey"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="codec.ecore#//BaseReferenceConfig">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseReferenceConfig/format"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseReferenceConfig/typeKey"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseReferenceConfig/refKey"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="codec.ecore#//BaseSuperTypeConfig">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseSuperTypeConfig/enabled"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseSuperTypeConfig/selection"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseSuperTypeConfig/format"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseSuperTypeConfig/asArray"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseSuperTypeConfig/separator"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseSuperTypeConfig/superTypeKey"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="codec.ecore#//BaseFeatureConfig">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseFeatureConfig/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseFeatureConfig/ignore"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseFeatureConfig/ignoreRead"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseFeatureConfig/ignoreWrite"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseFeatureConfig/forceRead"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseFeatureConfig/forceWrite"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseFeatureConfig/serializeNull"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseFeatureConfig/serializeEmpty"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseFeatureConfig/serializeDefaults"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseFeatureConfig/enumSerialization"/>
+    </genClasses>
     <genClasses ecoreClass="codec.ecore#//TypeSerializationConfig">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//TypeSerializationConfig/mapId"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//TypeSerializationConfig/discriminatorPath"/>
@@ -96,8 +171,11 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//ReferenceCodecAspect/inheritTypeFromTarget"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//ReferenceCodecAspect/expand"/>
     </genClasses>
-    <genClasses ecoreClass="codec.ecore#//CodecPackageProfile"/>
+    <genClasses ecoreClass="codec.ecore#//CodecPackageProfile">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec.ecore#//CodecPackageProfile/classProfiles"/>
+    </genClasses>
     <genClasses ecoreClass="codec.ecore#//CodecClassProfile">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference codec.ecore#//CodecClassProfile/eClass"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec.ecore#//CodecClassProfile/typeConfig"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec.ecore#//CodecClassProfile/idConfig"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec.ecore#//CodecClassProfile/superTypeConfig"/>

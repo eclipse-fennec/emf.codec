@@ -34,7 +34,7 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -97,8 +97,8 @@ class MultiVersionCandidateRuleTest {
     @Test
     @DisplayName("more than one version without a fingerprint: ambiguity error listing candidates")
     void ambiguousWithoutFingerprintIsError() {
-        String fpA = metadataService.registerPackage(packageA).getModelFingerprint();
-        String fpB = metadataService.registerPackage(packageB).getModelFingerprint();
+        String fpA = metadataService.registerPackage(packageA).orElseThrow().getModelFingerprint();
+        String fpB = metadataService.registerPackage(packageB).orElseThrow().getModelFingerprint();
 
         IOException ex = assertThrows(IOException.class,
                 () -> load("{\"alpha\":\"X\"}", Map.of(CodecResource.CODEC_ROOT_TYPE, TYPE_URI)),
@@ -110,7 +110,7 @@ class MultiVersionCandidateRuleTest {
     @Test
     @DisplayName("more than one version disambiguated by rootFingerprint: resolves")
     void ambiguousResolvedByFingerprint() throws IOException {
-        String fpA = metadataService.registerPackage(packageA).getModelFingerprint();
+        String fpA = metadataService.registerPackage(packageA).orElseThrow().getModelFingerprint();
         metadataService.registerPackage(packageB);
 
         EObject a = load("{\"alpha\":\"X\"}", Map.of(

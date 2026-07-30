@@ -29,7 +29,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.geojson.BoundingBox;
 import org.geojson.Coordinates;
 import org.geojson.Feature;

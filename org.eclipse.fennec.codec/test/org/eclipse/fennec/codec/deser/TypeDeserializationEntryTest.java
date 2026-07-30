@@ -24,7 +24,7 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.fennec.codec.config.SuperTypeConfig;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.deser.SuperTypeDeserializationEntry.SuperTypeValidationException;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

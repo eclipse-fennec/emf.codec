@@ -40,7 +40,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = TabularPackage.eNS_URI, genModel = "/model/tabular.genmodel", genModelSourceLocations = {"model/tabular.genmodel","org.eclipse.fennec.codec.tabular.model/model/tabular.genmodel"}, ecore = "/model/tabular.ecore", ecoreSourceLocations = "/model/tabular.ecore")
+@EPackage(uri = TabularPackage.eNS_URI, fingerprint = "fp1:43c688e1ba621e79d37e587a6d9f960e7b8f94fb2f8807f6d443f13eb758907d", genModel = "/model/tabular.genmodel", genModelSourceLocations = {"model/tabular.genmodel","org.eclipse.fennec.codec.tabular.model/model/tabular.genmodel"}, ecore = "/model/tabular.ecore", ecoreSourceLocations = "/model/tabular.ecore")
 public interface TabularPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.

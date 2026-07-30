@@ -17,7 +17,7 @@ import static org.mockito.Mockito.mock;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.junit.jupiter.api.BeforeEach;
 
 /**

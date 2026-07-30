@@ -21,8 +21,8 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.config.IdConfig;
-import org.eclipse.fennec.model.metadata.IdKeyMode;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;

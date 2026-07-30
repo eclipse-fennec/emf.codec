@@ -27,7 +27,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.constants.AnnotationSources;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -82,8 +82,8 @@ class PackageResolverTest {
     }
 
     private void registerBoth() {
-        fingerprintA = metadataService.registerPackage(packageA).getModelFingerprint();
-        fingerprintB = metadataService.registerPackage(packageB).getModelFingerprint();
+        fingerprintA = metadataService.registerPackage(packageA).orElseThrow().getModelFingerprint();
+        fingerprintB = metadataService.registerPackage(packageB).orElseThrow().getModelFingerprint();
     }
 
     private PackageResolver resolver() {
@@ -93,7 +93,7 @@ class PackageResolverTest {
     @Test
     @DisplayName("exactly one registered version resolves to it (R1)")
     void singleVersionResolves() throws IOException {
-        fingerprintA = metadataService.registerPackage(packageA).getModelFingerprint();
+        fingerprintA = metadataService.registerPackage(packageA).orElseThrow().getModelFingerprint();
         assertSame(packageA, resolver().resolveEPackage(NS_URI, null));
     }
 

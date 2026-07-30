@@ -12,12 +12,12 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.metadata.provider;
 
-import org.eclipse.fennec.model.metadata.api.AspectProvider;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataHandler;
 import org.osgi.service.component.annotations.Component;
 
 /**
  * OSGi Declarative Services component that registers {@link CodecAspectProvider}
- * as an {@link AspectProvider} service.
+ * as a {@link MetadataHandler} service.
  * <p>
  * When active, the {@code MetadataServiceComponent} whiteboard automatically
  * picks up this service and applies codec aspect parsing to every registered
@@ -26,7 +26,7 @@ import org.osgi.service.component.annotations.Component;
  * EClasses and EStructuralFeatures are translated into
  * {@link org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect} and
  * {@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect} objects
- * and stored in the package metadata — without any manual wiring.
+ * and attached to the package metadata as aspect entries — without any manual wiring.
  * </p>
  *
  * <h3>OSGi activation order</h3>
@@ -43,11 +43,11 @@ import org.osgi.service.component.annotations.Component;
  * @author Data In Motion Consulting
  * @since 2026
  * @see CodecAspectProvider
- * @see AspectProvider
+ * @see MetadataHandler
  */
 @Component(
         name = "CodecAspectProviderComponent",
-        service = AspectProvider.class
+        service = MetadataHandler.class
 )
 public class CodecAspectProviderComponent extends CodecAspectProvider {
     // All codec aspect parsing logic is inherited from CodecAspectProvider.

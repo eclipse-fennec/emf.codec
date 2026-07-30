@@ -35,11 +35,11 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.FallbackStrategy;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.MetadataRegistry;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataHandler;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataHandler;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataRegistry;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 
 /**
  * Service for managing type discriminator registries across multiple mapIds.
@@ -417,8 +417,9 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
             return;
         }
 
-        // Extract discriminator from ClassCodecAspect
+        // Extract discriminator from the ClassCodecAspect carried by an AspectEntry
         classMetadata.getAspects().stream()
+                .map(entry -> entry.getContent())
                 .filter(ClassCodecAspect.class::isInstance)
                 .map(ClassCodecAspect.class::cast)
                 .findFirst()

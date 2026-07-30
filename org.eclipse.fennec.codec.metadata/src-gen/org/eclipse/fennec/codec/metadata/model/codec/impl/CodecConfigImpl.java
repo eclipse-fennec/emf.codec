@@ -34,11 +34,10 @@ import org.eclipse.fennec.codec.metadata.model.codec.DeserializationMode;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeHintMode;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
-
-import org.eclipse.fennec.model.metadata.SerializationFormat;
 
 /**
  * <!-- begin-user-doc -->

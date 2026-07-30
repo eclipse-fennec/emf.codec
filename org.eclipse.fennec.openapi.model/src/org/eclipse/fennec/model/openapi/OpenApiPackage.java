@@ -45,7 +45,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = OpenApiPackage.eNS_URI, genModel = "/model/openapi_v3.genmodel", genModelSourceLocations = {"model/openapi_v3.genmodel","org.eclipse.fennec.openapi.model/model/openapi_v3.genmodel"}, ecore = "/model/openapi_v3.ecore", ecoreSourceLocations = "/model/openapi_v3.ecore")
+@EPackage(uri = OpenApiPackage.eNS_URI, fingerprint = "fp1:ade27a0519683957405a4ea7373b2297f4fa1f269c77f9d02fb8ea6c8563d561", genModel = "/model/openapi_v3.genmodel", genModelSourceLocations = {"model/openapi_v3.genmodel","org.eclipse.fennec.openapi.model/model/openapi_v3.genmodel"}, ecore = "/model/openapi_v3.ecore", ecoreSourceLocations = "/model/openapi_v3.ecore")
 public interface OpenApiPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.

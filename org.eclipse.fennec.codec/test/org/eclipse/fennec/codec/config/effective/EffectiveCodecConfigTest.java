@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.config.effective;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,9 +39,9 @@ import org.eclipse.fennec.codec.config.IdConfig;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -176,7 +178,7 @@ class EffectiveCodecConfigTest {
             ClassMetadata mockMetadata = mock(ClassMetadata.class);
             when(mockMetadata.getEClass()).thenReturn(eClass);
             when(metadataService.getClassMetadataByURI("http://test/1.0#//MyClass"))
-                    .thenReturn(mockMetadata);
+                    .thenReturn(Optional.of(mockMetadata));
 
             EClass resolved = config.resolveEClassByURI("http://test/1.0#//MyClass");
             assertSame(eClass, resolved);
@@ -215,7 +217,7 @@ class EffectiveCodecConfigTest {
         void getClassMetadataDelegates() {
             EClass eClass = EcorePackage.eINSTANCE.getEClass();
             ClassMetadata mockMetadata = mock(ClassMetadata.class);
-            when(metadataService.getClassMetadata(eClass)).thenReturn(mockMetadata);
+            when(metadataService.getClassMetadata(eClass)).thenReturn(Optional.of(mockMetadata));
 
             assertSame(mockMetadata, config.getClassMetadata(eClass));
         }

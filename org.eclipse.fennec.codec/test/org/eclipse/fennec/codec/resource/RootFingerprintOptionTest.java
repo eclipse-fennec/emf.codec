@@ -34,7 +34,7 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -76,8 +76,8 @@ class RootFingerprintOptionTest {
         valueB = (EAttribute) entityB.getEStructuralFeature("value");
 
         metadataService = MetadataServiceFactory.create();
-        fingerprintA = metadataService.registerPackage(packageA).getModelFingerprint();
-        fingerprintB = metadataService.registerPackage(packageB).getModelFingerprint();
+        fingerprintA = metadataService.registerPackage(packageA).orElseThrow().getModelFingerprint();
+        fingerprintB = metadataService.registerPackage(packageB).orElseThrow().getModelFingerprint();
 
         // Sanity: the versions must be distinguishable by fingerprint, otherwise the
         // disambiguation/mismatch cases below would be meaningless.

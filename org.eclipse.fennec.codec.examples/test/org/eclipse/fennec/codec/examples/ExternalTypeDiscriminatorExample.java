@@ -36,7 +36,7 @@ import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +59,7 @@ import org.junit.jupiter.api.Test;
  *
  * @see DiscriminatorMappingExample
  * @see TypeDiscriminatorService
- * @see org.eclipse.fennec.model.metadata.api.MetadataHandler
+ * @see org.eclipse.fennec.emf.osgi.metadata.MetadataHandler
  */
 @DisplayName("External TypeDiscriminator Examples")
 class ExternalTypeDiscriminatorExample {

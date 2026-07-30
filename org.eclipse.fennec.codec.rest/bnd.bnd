@@ -9,8 +9,7 @@ Bundle-Description: Jakarta REST (JAX-RS) integration for the Fennec EMF Codec
 	org.eclipse.fennec.codec,\
 	jakarta.ws.rs-api;version=latest,\
 	jakarta.inject.jakarta.inject-api;version=latest,\
-	org.eclipse.fennec.model.metadata.api;version=latest,\
-	org.eclipse.fennec.model.metadata;version=latest,\
+	org.eclipse.fennec.emf.osgi.metadata;version=latest,\
 	org.eclipse.fennec.emf.osgi.model.info,\
 	org.osgi.service.jakartars,\
 	org.glassfish.hk2.api,\

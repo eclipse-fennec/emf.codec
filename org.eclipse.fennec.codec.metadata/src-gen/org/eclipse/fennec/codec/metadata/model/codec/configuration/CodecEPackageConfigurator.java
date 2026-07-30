@@ -31,6 +31,14 @@ import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
  */
 public class CodecEPackageConfigurator implements EPackageConfigurator {
 	
+	/**
+	 * The fingerprint of this model version, computed from the <code>.ecore</code> at build
+	 * time. It identifies the model content, not the artifact - see the <code>emf.fingerprint</code>
+	 * service property.
+	 * @generated
+	 */
+	public static final String FINGERPRINT = "fp1:0b9de76be976df8df617cf48a03107d37591210ec08f4150340bf1b7dc02daca";
+
 	private CodecPackage ePackage;
 
 	protected CodecEPackageConfigurator(CodecPackage ePackage){
@@ -68,6 +76,7 @@ public class CodecEPackageConfigurator implements EPackageConfigurator {
 		properties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_PROVIDED);
 		properties.put(EMFNamespaces.EMF_MODEL_FILE_EXT, "codec");
 		properties.put(EMFNamespaces.EMF_MODEL_VERSION, "1.0");
+		properties.put(EMFNamespaces.EMF_MODEL_FINGERPRINT, FINGERPRINT);
 		return properties;
 	}
 }

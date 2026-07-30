@@ -38,7 +38,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -94,10 +94,10 @@ class FingerprintRoundTripTest {
         packageA1 = buildA("titleV1", (EClass) packageB1.getEClassifier("Leaf"));
         packageA2 = buildA("titleV2", (EClass) packageB2.getEClassifier("Leaf"));
 
-        fingerprintB1 = metadataService.registerPackage(packageB1).getModelFingerprint();
-        fingerprintB2 = metadataService.registerPackage(packageB2).getModelFingerprint();
-        fingerprintA1 = metadataService.registerPackage(packageA1).getModelFingerprint();
-        fingerprintA2 = metadataService.registerPackage(packageA2).getModelFingerprint();
+        fingerprintB1 = metadataService.registerPackage(packageB1).orElseThrow().getModelFingerprint();
+        fingerprintB2 = metadataService.registerPackage(packageB2).orElseThrow().getModelFingerprint();
+        fingerprintA1 = metadataService.registerPackage(packageA1).orElseThrow().getModelFingerprint();
+        fingerprintA2 = metadataService.registerPackage(packageA2).orElseThrow().getModelFingerprint();
     }
 
     private static EPackage buildA(String titleKey, EClass leafType) {

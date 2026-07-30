@@ -28,8 +28,6 @@ import org.eclipse.fennec.codec.metadata.model.codec.CodecPackage;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.StrategyScope;
 
-import org.eclipse.fennec.model.metadata.impl.BaseIdConfigImpl;
-
 /**
  * <!-- begin-user-doc -->
  * An implementation of the model object '<em><b>Id Serialization Config</b></em>'.

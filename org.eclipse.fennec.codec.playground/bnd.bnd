@@ -7,8 +7,7 @@ Bundle-Description: Playground project for experimenting with the Fennec EMF Cod
 	org.eclipse.fennec.codec;version=snapshot,\
 	org.eclipse.fennec.codec.api;version=snapshot,\
 	tools.jackson.core.jackson-core;version=latest,\
-	org.eclipse.fennec.model.metadata.api;version=latest,\
-	org.eclipse.fennec.model.metadata;version=latest,\
+	org.eclipse.fennec.emf.osgi.metadata;version=latest,\
 	org.gecko.emf.osgi.example.model.basic;version=latest,\
 	org.eclipse.fennec.codec.tabular;version=snapshot,\
 	org.eclipse.fennec.codec.tabular.model;version=snapshot,\

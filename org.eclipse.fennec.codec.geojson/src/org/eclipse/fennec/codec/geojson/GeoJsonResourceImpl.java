@@ -26,8 +26,8 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.geojson.GeoJsonPackage;
 
 import tools.jackson.databind.json.JsonMapper;

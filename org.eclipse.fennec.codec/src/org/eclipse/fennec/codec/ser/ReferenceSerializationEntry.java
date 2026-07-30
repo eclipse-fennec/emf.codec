@@ -39,9 +39,9 @@ import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.codec.value.ReferenceValueWriter;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.TokenStreamContext;
@@ -462,7 +462,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         if (metadataService == null) {
             return;
         }
-        PackageMetadata metadata = metadataService.getPackageMetadata(ePackage);
+        PackageMetadata metadata = metadataService.getPackageMetadata(ePackage).orElse(null);
         if (metadata != null && metadata.getModelFingerprint() != null) {
             gen.writeStringProperty(typeConfig.getFingerprintKey(), metadata.getModelFingerprint());
         }

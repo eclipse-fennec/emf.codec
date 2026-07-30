@@ -27,8 +27,8 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 
 /**
  * Resolves effective configuration by merging all configuration sources.

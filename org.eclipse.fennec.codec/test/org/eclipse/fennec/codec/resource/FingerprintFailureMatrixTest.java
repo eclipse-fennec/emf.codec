@@ -34,7 +34,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -72,8 +72,8 @@ class FingerprintFailureMatrixTest {
         metadataService = MetadataServiceFactory.create();
         packageA = buildVersion("valueA");
         packageB = buildVersion("valueB");
-        fingerprintA = metadataService.registerPackage(packageA).getModelFingerprint();
-        fingerprintB = metadataService.registerPackage(packageB).getModelFingerprint();
+        fingerprintA = metadataService.registerPackage(packageA).orElseThrow().getModelFingerprint();
+        fingerprintB = metadataService.registerPackage(packageB).orElseThrow().getModelFingerprint();
     }
 
     private static EPackage buildVersion(String attributeName) {

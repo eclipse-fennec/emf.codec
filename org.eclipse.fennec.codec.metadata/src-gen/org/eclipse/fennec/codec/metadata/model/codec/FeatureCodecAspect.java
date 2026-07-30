@@ -12,8 +12,7 @@
  */
 package org.eclipse.fennec.codec.metadata.model.codec;
 
-import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
-import org.eclipse.fennec.model.metadata.FeatureAspect;
+import org.eclipse.emf.ecore.EObject;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -50,7 +49,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface FeatureCodecAspect extends FeatureAspect {
+public interface FeatureCodecAspect extends EObject {
 	/**
 	 * Returns the value of the '<em><b>Effective Key</b></em>' attribute.
 	 * <!-- begin-user-doc -->
@@ -336,14 +335,14 @@ public interface FeatureCodecAspect extends FeatureAspect {
 
 	/**
 	 * Returns the value of the '<em><b>Enum Serialization</b></em>' attribute.
-	 * The literals are from the enumeration {@link org.eclipse.fennec.model.metadata.EnumSerializationStrategy}.
+	 * The literals are from the enumeration {@link org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy}.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
 	 * Strategy for serializing enum values (null = use LITERAL default).
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Enum Serialization</em>' attribute.
-	 * @see org.eclipse.fennec.model.metadata.EnumSerializationStrategy
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy
 	 * @see #setEnumSerialization(EnumSerializationStrategy)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect_EnumSerialization()
 	 * @model
@@ -356,7 +355,7 @@ public interface FeatureCodecAspect extends FeatureAspect {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Enum Serialization</em>' attribute.
-	 * @see org.eclipse.fennec.model.metadata.EnumSerializationStrategy
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy
 	 * @see #getEnumSerialization()
 	 * @generated
 	 */

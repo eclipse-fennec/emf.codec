@@ -37,7 +37,7 @@ import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -79,7 +79,6 @@ public abstract class AbstractFingerprintTCK {
 
     private String fingerprintA1;
     private String fingerprintA2;
-    private String fingerprintB2;
 
     /**
      * Subclasses provide the format provider to test.
@@ -101,9 +100,8 @@ public abstract class AbstractFingerprintTCK {
         packageA2 = buildA("titleV2", (EClass) packageB2.getEClassifier("Leaf"));
 
         metadataService.registerPackage(packageB1);
-        fingerprintB2 = metadataService.registerPackage(packageB2).getModelFingerprint();
-        fingerprintA1 = metadataService.registerPackage(packageA1).getModelFingerprint();
-        fingerprintA2 = metadataService.registerPackage(packageA2).getModelFingerprint();
+        fingerprintA1 = metadataService.registerPackage(packageA1).orElseThrow().getModelFingerprint();
+        fingerprintA2 = metadataService.registerPackage(packageA2).orElseThrow().getModelFingerprint();
     }
 
     private static EPackage buildA(String titleKey, EClass leafType) {

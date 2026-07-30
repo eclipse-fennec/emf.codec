@@ -27,11 +27,12 @@ import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.FeatureMetadata;
-import org.eclipse.fennec.model.metadata.MetadataRegistry;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataRegistry;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 /**
  * Converts MetadataService aspects (ClassCodecAspect, FeatureCodecAspect, etc.)
@@ -105,11 +106,8 @@ public final class AspectToPropertiesConverter {
 
                 // Class-level aspect properties (type/id/supertype/discriminator).
                 Map<String, Object> classProps = new HashMap<>();
-                ClassCodecAspect classAspect = classMeta.getAspects().stream()
-                        .filter(ClassCodecAspect.class::isInstance)
-                        .map(ClassCodecAspect.class::cast)
-                        .findFirst()
-                        .orElse(null);
+                ClassCodecAspect classAspect =
+                        CodecAspectProvider.codecAspect(classMeta.getAspects(), ClassCodecAspect.class);
                 if (classAspect != null) {
                     extractClassAspectProperties(classAspect, classProps);
                 }
@@ -126,21 +124,15 @@ public final class AspectToPropertiesConverter {
 
                     Map<String, Object> featureProps = new HashMap<>();
 
-                    FeatureCodecAspect featureAspect = featureMeta.getAspects().stream()
-                            .filter(FeatureCodecAspect.class::isInstance)
-                            .map(FeatureCodecAspect.class::cast)
-                            .findFirst()
-                            .orElse(null);
+                    FeatureCodecAspect featureAspect =
+                            CodecAspectProvider.codecAspect(featureMeta.getAspects(), FeatureCodecAspect.class);
                     if (featureAspect != null) {
                         extractFeatureAspectProperties(featureAspect, featureProps);
                     }
 
                     // Also check for ReferenceCodecAspect
-                    ReferenceCodecAspect refAspect = featureMeta.getAspects().stream()
-                            .filter(ReferenceCodecAspect.class::isInstance)
-                            .map(ReferenceCodecAspect.class::cast)
-                            .findFirst()
-                            .orElse(null);
+                    ReferenceCodecAspect refAspect =
+                            CodecAspectProvider.codecAspect(featureMeta.getAspects(), ReferenceCodecAspect.class);
                     if (refAspect != null) {
                         extractReferenceAspectProperties(refAspect, featureProps);
                     }
