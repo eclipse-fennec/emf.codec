@@ -25,7 +25,6 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.rest.annotations.AnnotationConverter;
 import org.eclipse.fennec.codec.rest.jakartas.JakartaRestConstants;
 import org.osgi.service.component.annotations.Component;
@@ -101,15 +100,19 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 		ResourceSet resourceSet = getResourceSet();
 		Resource resource = t.eResource();
 		if(resource == null){
-			// Serialize a copy: adding the live object to the temporary response resource
-			// would re-parent it, and a failing write would leave it captured there (issue #93)
+			// The live object is re-parented into the temporary response resource, so it
+			// must be detached in a finally: a failed write would otherwise leave it
+			// captured there (issue #93). Serializing an EcoreUtil.copy instead is not an
+			// option — copying fails for models generated with suppressed notifications,
+			// whose many-features are not Setting-implementing lists (issue #94).
 			ResourceFactoryImpl factory = (ResourceFactoryImpl) resourceSet.getResourceFactoryRegistry().getContentTypeToFactoryMap().get(mediaType.getType() + "/" + mediaType.getSubtype());
 			resource = factory.createResource(URI.createURI("http://test.test"));
 			resourceSet.getResources().add(resource);
-			resource.getContents().add(EcoreUtil.copy(t));
+			resource.getContents().add(t);
 			try {
 				super.writeResourceTo(resource, Resource.class, genericType, annotations, mediaType, httpHeaders, entityStream);
 			} finally {
+				resource.getContents().remove(t);
 				resourceSet.getResources().remove(resource);
 			}
 		} else {

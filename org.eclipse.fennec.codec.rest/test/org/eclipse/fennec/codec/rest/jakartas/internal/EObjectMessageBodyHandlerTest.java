@@ -20,19 +20,27 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.ETypedElement;
 import org.eclipse.emf.ecore.EcoreFactory;
+import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.impl.EFactoryImpl;
+import org.eclipse.emf.ecore.impl.EObjectImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.BasicInternalEList;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.util.InternalEList;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -114,32 +122,90 @@ class EObjectMessageBodyHandlerTest {
 	}
 
 	@Test
-	@DisplayName("the live object is never re-parented, not even while the response is being written")
-	void liveObjectNeverReparentedDuringWrite() throws IOException {
+	@DisplayName("a successful write detaches the resource-less object again")
+	void successfulWriteDetachesResourceLessObject() throws IOException {
 		EPackage ePackage = createPackage();
 
-		List<Resource> observedDuringWrite = new ArrayList<>();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OutputStream observing = new OutputStream() {
-			private boolean recorded = false;
-
-			@Override
-			public void write(int b) {
-				if (!recorded) {
-					recorded = true;
-					observedDuringWrite.add(ePackage.eResource());
-				}
-				out.write(b);
-			}
-		};
-
 		handler.writeTo(ePackage, EPackage.class, EPackage.class, NO_ANNOTATIONS, MEDIA_TYPE,
-				new MultivaluedHashMap<>(), observing);
+				new MultivaluedHashMap<>(), out);
 
 		assertTrue(out.size() > 0, "something must have been serialized");
 		assertNull(ePackage.eResource(), "live object must not have a resource after the write");
-		assertNull(observedDuringWrite.get(0),
-				"live object must not be re-parented into the response resource while writing");
+	}
+
+	@Test
+	@DisplayName("writeTo works for models generated with suppressed notifications (issue #94)")
+	void writeToSupportsSuppressedNotificationModels() throws IOException {
+		EPackage ePackage = EcoreFactory.eINSTANCE.createEPackage();
+		ePackage.setName("suppressed");
+		ePackage.setNsPrefix("sup");
+		ePackage.setNsURI("http://example.org/suppressed");
+		EClass nodeClass = EcoreFactory.eINSTANCE.createEClass();
+		nodeClass.setName("Node");
+		EReference refs = EcoreFactory.eINSTANCE.createEReference();
+		refs.setName("refs");
+		refs.setEType(EcorePackage.Literals.ECLASS);
+		refs.setUpperBound(ETypedElement.UNBOUNDED_MULTIPLICITY);
+		nodeClass.getEStructuralFeatures().add(refs);
+		ePackage.getEClassifiers().add(nodeClass);
+		ePackage.setEFactoryInstance(new EFactoryImpl() {
+			@Override
+			protected EObject basicCreate(EClass eClass) {
+				return new SuppressedNotificationObject(eClass);
+			}
+		});
+
+		EObject node = ePackage.getEFactoryInstance().create(nodeClass);
+		@SuppressWarnings("unchecked")
+		List<EObject> refValues = (List<EObject>) node.eGet(refs);
+		refValues.add(EcorePackage.Literals.ECLASS);
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		handler.writeTo(node, EObject.class, EObject.class, NO_ANNOTATIONS, MEDIA_TYPE,
+				new MultivaluedHashMap<>(), out);
+
+		assertTrue(out.size() > 0, "something must have been serialized");
+		assertNull(node.eResource(), "live object must not have a resource after the write");
+		assertTrue(resourceSet.getResources().isEmpty(),
+				"no temporary resource may be left behind in the per-request ResourceSet");
+	}
+
+	/**
+	 * Mimics the code EMF generates when notifications are suppressed: many-features
+	 * are backed by {@link BasicInternalEList}, which implements {@link InternalEList}
+	 * but not {@code EStructuralFeature.Setting} — the pattern that made
+	 * {@code EcoreUtil.copy} fail (issue #94).
+	 */
+	static class SuppressedNotificationObject extends EObjectImpl {
+
+		private final EClass staticClass;
+		private final EList<EObject> refs = new BasicInternalEList<>(EObject.class);
+
+		SuppressedNotificationObject(EClass staticClass) {
+			this.staticClass = staticClass;
+		}
+
+		@Override
+		protected EClass eStaticClass() {
+			return staticClass;
+		}
+
+		@Override
+		public Object eGet(int featureID, boolean resolve, boolean coreType) {
+			if (featureID == 0) {
+				return refs;
+			}
+			return super.eGet(featureID, resolve, coreType);
+		}
+
+		@Override
+		public boolean eIsSet(int featureID) {
+			if (featureID == 0) {
+				return !refs.isEmpty();
+			}
+			return super.eIsSet(featureID);
+		}
 	}
 
 	@Test
