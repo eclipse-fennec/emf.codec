@@ -4,6 +4,28 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-07-30
 
+**Session Summary (2026-07-30) — metadata migration:**
+
+**Migrated the codec onto the emf.osgi metadata & fingerprint API (umbrella #85, sub-issues #86-#92; PR #95 against `snapshot`):**
+
+The dependency on `eclipse-fennec/model.metadata` is gone. `org.eclipse.fennec.model.metadata[.api]` is no longer on any buildpath, in any bndrun, or in `cnf/central.mvn`. Consumers now use `org.eclipse.fennec.emf.osgi.metadata` (API + service) and `org.eclipse.fennec.emf.osgi.model.metadata` (the tree); the six codec enums (`SerializationFormat`, `TypeStrategy`, `IdStrategy`, `IdKeyMode`, `SuperTypeSelection`, `EnumSerializationStrategy`) are codec-owned in `org.eclipse.fennec.codec.metadata.model.codec` after `codec.ecore` became standalone (#87). 137 Java files, 18 `bnd.bnd`, four bndruns.
+
+**This supersedes the OSGi/metadata statements in the 2026-02-25 entries below** — the `AspectProvider` SPI, `MetadataServiceComponent` in a codec-side `model.metadata` bundle, and `PackageMetadata.getProfiles()` no longer exist.
+
+What changed beyond renames — read this before touching aspect code:
+
+- **Aspect access is the one trap.** An aspect now lives in `AspectEntry.content`, typed as a bare `EObject`. Filtering `getAspects()` by aspect type therefore **compiles and is always empty**, because the type check runs against `Object`. Use `CodecAspectProvider.codecAspect(aspects, Type.class)`, which matches the `codec` type id *and* the content type. This bit `AspectToPropertiesConverter` and nine test sites during the migration.
+- **Diagnostics moved to the owning entry** (`AspectEntry.diagnostics`), and `DiagnosticContainer.getAllDiagnostics()` deliberately does **not** aggregate them. Anything that expected codec diagnostics to surface through the tree needs an explicit walk.
+- **Provider SPI:** `CodecAspectProvider implements MetadataHandler` with a single `onPackageRegistered(PackageMetadata)`, invoked once per model version before publication, mutating the real tree. The old per-element builders, `getAspectTypeId()`, and `buildProfiles(filteredCopy)` with its copy-and-filter guarantee are gone. The profile is the content of the package-level entry; per-class profiles sit inside `CodecPackageProfile.getClassProfiles()`.
+- **Lookup:** `CodecResource` keys package metadata by `EPackage`, not nsURI — that overload resolves or builds, so prior registration is no longer a precondition (`requirePackageRegistered` → `ensurePackageMetadata`). The nsURI overload still exists but is explicitly best-effort (most recently registered version).
+- **Optionals:** the new API returns `Optional` where the old one returned nullable, and `List` where it returned `EList`.
+- **Non-OSGi bootstrap:** `MetadataServiceFactory.create()` keeps its signature and delegates to `MetadataServices.createWhiteboard()` (emf.osgi #66/#67). No component artifact is on any `-buildpath`; the codec manifest imports only the metadata and model packages. The implementation bundle is on the `-testpath` once workspace-wide in `cnf/build.bnd`, because `createWhiteboard()` reads the default `FingerprintService` from `FingerprintHelper` and a flat test classpath has to carry it. In OSGi it arrives via DS.
+- **`EMFModelInfo` retired** in `codec.rest`: the JAX-RS root-type lookup uses `MetadataIndexReader.findAllByInstanceClassName`, which the default `MapBasedMetadataIndex` builds from `EClass.getInstanceClassName()` — the same property `EMFModelInfoImpl` indexed. Ambiguity is now an error naming both candidates by nsURI and fingerprint, where the old `Map<Class, EClassifier>` silently kept the last registration.
+
+Verification: `./gradlew build --rerun-tasks` → 130 tasks, 3530 tests, 0 failures; CI green on Java 21 and 25. Warnings went from 117 to 3 (`org.apiguardian.api` added to the `codec.tests` buildpath — javac stops after 100 warnings, so that noise had been hiding two real deprecation sites).
+
+Still open: `org.eclipse.fennec.emf.osgi.model.info` remains a runbundle in `required.bndrun` and `playground/launch.bndrun` although nothing imports it; `fennecEMFModels` and `fennecM2X` still pin the pre-1.1.0 `emf.osgi` artifacts (harmless — 0.1.2 does not export the fingerprint packages, so a resolve fails cleanly).
+
 **Session Summary (2026-07-30):**
 
 **Fixed GitHub issues #93 + #94 — codec.rest: EObject writer re-parents a resource-less object and doesn't restore it on serialization failure:**
@@ -1034,9 +1056,9 @@ PREVIOUS: Integration Tests + PLAIN Reference Format - ✅ (2026-02-06)
 | Component | Location | Purpose |
 |-----------|----------|---------|
 | **MetadataService** | `codec.metadata` | EPackage registration, aspect creation |
-| **MetadataServiceComponent** | `model.metadata.service` | DS OSGi facade: whiteboard for EPackage/AspectProvider/MetadataHandler services |
-| **CodecAspectProvider** | `codec.metadata.provider` | Parses EAnnotations → Config objects |
-| **CodecAspectProviderComponent** | `codec.metadata.provider` | DS OSGi facade: registers `CodecAspectProvider` as `AspectProvider` service |
+| **MetadataServiceComponent** | `emf.osgi.metadata` (emf.osgi project) | DS OSGi facade: whiteboard for EPackage/MetadataHandler/MetadataIndex services |
+| **CodecAspectProvider** | `codec.metadata.provider` | `MetadataHandler`: parses EAnnotations → aspect entries + profile |
+| **CodecAspectProviderComponent** | `codec.metadata.provider` | DS OSGi facade: registers `CodecAspectProvider` as `MetadataHandler` service |
 | **TypeDiscriminatorService** | `codec.metadata.type` | Manages discriminator→EClass mappings |
 | **EffectiveCodecConfig** | `codec.api.config.effective` | Per-feature config resolution |
 | **CodecEObjectSerializer** | `codec.ser` | Orchestrates serialization entries |
@@ -1124,7 +1146,7 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 - `OPTION_SUPPRESS_KEYWORDS` — suppress specific JSON Schema keywords in output (e.g., `maxItems`, `description`)
 - Array `items` property now always emitted for multi-valued attributes (was previously annotation-gated)
 
-✅ **OSGi Integration (2026-02-25)**
+✅ **OSGi Integration (2026-02-25)** — ⚠️ superseded by the 2026-07-30 entry: the `AspectProvider` SPI and the codec-side `model.metadata` bundle no longer exist
 - `MetadataServiceComponent` — DS component in `org.eclipse.fennec.model.metadata`; exposes `MetadataWhiteboard` and `MetadataService` as OSGi services; whiteboard references: `EPackage` (MULTIPLE, DYNAMIC), `AspectProvider` (MULTIPLE, DYNAMIC), `MetadataIndex` (OPTIONAL), `MetadataHandler` (MULTIPLE, DYNAMIC)
 - `CodecAspectProviderComponent` — DS component in `org.eclipse.fennec.codec.metadata`; registered as `AspectProvider` OSGi service; bound automatically by `MetadataServiceComponent`
 - `org.eclipse.fennec.codec.osgi.tests` — 15 OSGi integration tests using `@InjectService`/`@InjectBundleContext`; EPackages registered as OSGi services (`ctx.registerService(EPackage.class, pkg, null)`) rather than via `MetadataServiceFactory`
@@ -1220,8 +1242,8 @@ All tests pass with 0 failures, 0 errors, 0 skipped.
 ### 4.2 Architecture Documents
 
 **Metadata Layer:**
-- `org.eclipse.fennec.model.metadata/model-metadata-architecture.md`
 - `org.eclipse.fennec.codec.metadata/codec-metadata-architecture.md`
+- generic metadata & fingerprint API: the `emf.osgi` project (`org.eclipse.fennec.emf.osgi.metadata`, `docs/model-fingerprint-guide.md`) — consumed, not part of this workspace
 
 **JSON Schema:**
 - `org.eclipse.fennec.codec.jsonschema/jsonschema-architecture.md`

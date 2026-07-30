@@ -39,25 +39,28 @@ The codec-v2 testing is organized into **three layers**, each testing a specific
 ### 1.2 Test Commands
 
 ```bash
-# AspectProvider tests (annotation parsing)
+# Codec aspect tests (annotation parsing, profile build, type discriminator)
 ./gradlew :org.eclipse.fennec.codec.metadata:test
-
-# Model metadata tests
-./gradlew :org.eclipse.fennec.model.metadata:test
 
 # Codec v2 tests (merging + runtime)
 ./gradlew :org.eclipse.fennec.codec:test
 
 # All v2 tests together
-./gradlew :org.eclipse.fennec.codec:test :org.eclipse.fennec.codec.metadata:test :org.eclipse.fennec.model.metadata:test
+./gradlew :org.eclipse.fennec.codec:test :org.eclipse.fennec.codec.metadata:test
+
+# The generic metadata layer lives in the emf.osgi project since #85 and is tested there.
 ```
 
 ---
 
 ## 1.3 Model Metadata Tests
 
+> **Moved (issue #85).** The generic metadata layer, and with it this test class, belongs to the
+> `emf.osgi` project. The section is kept because the diagnostic contract it describes is what the
+> codec relies on — but do not look for the test in this workspace.
+
 **Test Class:** `DiagnosticContainerTest.java`
-**Project:** `org.eclipse.fennec.model.metadata`
+**Project:** `org.eclipse.fennec.emf.osgi.metadata` (emf.osgi)
 **Spec Reference:** [15-error-handling.md](15-error-handling.md) (Section 6.10)
 
 Tests for the `DiagnosticContainer` interface and `MetadataDiagnostic` model.
@@ -773,7 +776,6 @@ This section provides a comprehensive overview of tests across all codec-related
 | **org.eclipse.fennec.codec** | 108 | 1,058 | 276 | Excellent |
 | **org.eclipse.fennec.codec.metadata** | 7 | 255 | 58 | Excellent |
 | **org.eclipse.fennec.codec.jsonschema** | 6 | 101 | 30 | Good |
-| **org.eclipse.fennec.model.metadata** | 3 | 77 | 14 | Excellent |
 | **org.eclipse.fennec.codec.openapi** | 11 | 75 | 30 | Good |
 | **org.eclipse.fennec.codec.geojson** | 2 | 34 | 14 | Good |
 | **TOTAL** | **175** | **2,639** | **590** | |
@@ -826,9 +828,12 @@ Core metadata model and services.
 
 | Category | Test Classes | Focus |
 |----------|--------------|-------|
-| **Diagnostics** | DiagnosticContainerTest | Diagnostic containment hierarchy |
-| **Index** | MapBasedMetadataIndexTest | Metadata indexing, lookup |
-| **Service** | MetadataServiceImplTest | Package registration, aspect providers |
+> The generic metadata layer moved to the `emf.osgi` project with issue #85, and so did its
+> tests — `DiagnosticContainerTest`, `MapBasedMetadataIndexTest` and `MetadataServiceImplTest`
+> are maintained there, not here. What remains in this workspace is the codec-specific part:
+> `CodecAspectProviderValidConfigTest`, `CodecAspectProviderMisconfigTest`,
+> `CodecProfileBuildTest`, `CodecPackageLevelAnnotationTest` and the `TypeDiscriminator*` suites
+> in `codec.metadata`.
 
 #### 10.2.5 codec.jsonschema (JSON Schema ↔ EPackage)
 
@@ -887,7 +892,6 @@ GeoJSON geometry types.
 ./gradlew :org.eclipse.fennec.codec.api:test
 ./gradlew :org.eclipse.fennec.codec:test
 ./gradlew :org.eclipse.fennec.codec.metadata:test
-./gradlew :org.eclipse.fennec.model.metadata:test
 ./gradlew :org.eclipse.fennec.codec.jsonschema:test
 ./gradlew :org.eclipse.fennec.codec.openapi:test
 ./gradlew :org.eclipse.fennec.codec.geojson:test
@@ -896,7 +900,6 @@ GeoJSON geometry types.
 ./gradlew :org.eclipse.fennec.codec.api:test \
           :org.eclipse.fennec.codec:test \
           :org.eclipse.fennec.codec.metadata:test \
-          :org.eclipse.fennec.model.metadata:test \
           :org.eclipse.fennec.codec.jsonschema:test \
           :org.eclipse.fennec.codec.openapi:test \
           :org.eclipse.fennec.codec.geojson:test

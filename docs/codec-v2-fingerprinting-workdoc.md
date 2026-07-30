@@ -3,6 +3,22 @@
 **Status:** WORKING DOCUMENT — precursor to spec changes. Nothing here is implemented
 unless explicitly marked. Decisions are tagged `[DECIDED]`, `[PROPOSED]`, `[OPEN]`.
 
+> **Where the fingerprint contract now lives (updated 2026-07-30, issue #85).** The fingerprint
+> and metadata infrastructure moved to the `emf.osgi` project, and its contract is published
+> there: **`emf.osgi/docs/model-fingerprint-guide.md`** — the `fp1` scheme and its guarantees,
+> what goes into the hash, the three places a fingerprint can be read (service property,
+> generated constant, bundle capability), derivation inputs, cost, and the explicit limits.
+> That guide is the authority; where this document restates the contract it is a historical
+> record of what the codec side assumed at the time, not a second source of truth. The
+> codec-side **decisions** (A.1-A.5, B.1-B.6) do remain the record for this repository.
+>
+> The API also moved home: `FingerprintService` is
+> `org.eclipse.fennec.emf.osgi.fingerprint.FingerprintService` (api bundle), the default
+> implementation is reachable outside OSGi via
+> `FingerprintHelper.getDefaultFingerprintService()`, and the metadata service is
+> `org.eclipse.fennec.emf.osgi.metadata.MetadataService`. `org.eclipse.fennec.model.metadata`
+> no longer exists as a dependency of this workspace.
+
 **Goal:** make the codec consistent in the presence of multiple live `EPackage`
 versions sharing the same nsURI (stage-aware registration), by incorporating the
 model fingerprint (model.metadata#15) into configuration resolution,
@@ -23,8 +39,13 @@ serialization, and deserialization.
 ## 1. Verified facts (ground truth, with code references)
 
 These were verified against the canonical `model.metadata` snapshot (1.0.0-SNAPSHOT,
-2026-07-23) and the current codec `snapshot` branch. They are the foundation for
+2026-07-23) and the codec `snapshot` branch of that date. They are the foundation for
 everything below.
+
+> Superseded as to *where* the API lives: since #85 the same infrastructure is provided by
+> `emf.osgi` 1.1.0. The behavioural facts below still hold — the fingerprint keys the registry,
+> the nsURI alone does not identify a version — but check names and signatures against
+> `emf.osgi/docs/model-fingerprint-guide.md` before relying on a code reference in this table.
 
 | # | Fact | Evidence |
 |---|------|----------|

@@ -104,8 +104,7 @@ Each caller sets a workflow-level ceiling, and the reusables cannot exceed it:
 ## Published artifacts
 
 Releases and snapshots are published to **Sonatype Central**, from which
-releases sync to Maven Central. The group id is `org.eclipse.fennec.codec`
-(plus `org.eclipse.fennec.model.metadata` for the metadata bundle).
+releases sync to Maven Central. The group id is `org.eclipse.fennec.codec`.
 
 | Channel    | Repository URL                                                                                                                   | Pushed by                    |
 |------------|----------------------------------------------------------------------------------------------------------------------------------|------------------------------|

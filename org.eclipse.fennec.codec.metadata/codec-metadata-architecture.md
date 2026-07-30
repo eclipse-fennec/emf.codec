@@ -2,7 +2,9 @@
 
 ## Overview
 
-`org.eclipse.fennec.codec.metadata` provides codec-specific aspects for the Model Metadata Service. It extends `org.eclipse.fennec.model.metadata` with serialization configuration defined entirely in EMF (`codec.ecore`).
+`org.eclipse.fennec.codec.metadata` provides codec-specific aspects for the metadata service of
+`emf.osgi`. It extends `org.eclipse.fennec.emf.osgi.metadata` with serialization configuration
+defined entirely in EMF (`codec.ecore`).
 
 **Purpose:** Define how EMF model elements (EClasses, EStructuralFeatures) are serialized/deserialized to various formats (JSON, XML, CSV, MongoDB, etc.).
 
@@ -13,7 +15,8 @@
 ```
 org.eclipse.fennec.codec.metadata
          │
-         └──→ org.eclipse.fennec.model.metadata (metadata.ecore - base infrastructure)
+         └──→ org.eclipse.fennec.emf.osgi.metadata (metadata.ecore - base infrastructure,
+              API + model + service, from the emf.osgi project)
 ```
 
 **No dependency on codec** - this is purely metadata, not serialization logic.
@@ -31,7 +34,7 @@ org.eclipse.fennec.codec.metadata/
 │   └── org/eclipse/fennec/codec/metadata/
 │       ├── provider/
 │       │   ├── CodecAnnotationConstants.java   (annotation source, keys, defaults)
-│       │   ├── CodecAspectProvider.java         (AspectProvider implementation + profile builder)
+│       │   ├── CodecAspectProvider.java         (MetadataHandler implementation + profile builder)
 │       │   └── package-info.java
 │       ├── type/
 │       │   ├── TypeDiscriminatorReader.java      (read-only query interface)
@@ -412,7 +415,7 @@ public final class CodecAnnotationConstants {
 
 ## CodecAspectProvider Implementation
 
-**CodecAspectProvider** is the full AspectProvider implementation (1,197 lines) responsible for:
+**CodecAspectProvider** is the full `MetadataHandler` implementation responsible for:
 
 1. **Annotation Parsing**: Reads EAnnotations from EPackage/EClass/EStructuralFeature
 2. **Aspect Building**: Creates ClassCodecAspect, FeatureCodecAspect, ReferenceCodecAspect
@@ -421,37 +424,40 @@ public final class CodecAnnotationConstants {
 
 ### Key Methods
 
+The former `AspectProvider` SPI — one builder callback per element plus `buildProfiles` over a
+filtered copy — is gone. `MetadataHandler` has a single entry point, invoked once per model
+version while the tree is being built and **before** publication, and it mutates that tree
+directly. There is no filtered copy any more.
+
+Each aspect is hung into an `AspectEntry` carrying the type id `codec`; the aspect itself sits in
+`AspectEntry.content`, and the parse findings sit in `AspectEntry.diagnostics` — not on the
+aspect.
+
 ```java
-CodecAspectProvider implements AspectProvider {
+CodecAspectProvider implements MetadataHandler {
+
+    /** Aspect type identifier for codec aspect entries. */
+    public static final String ASPECT_TYPE_ID = "codec";
 
     @Override
-    public String getAspectTypeId() {
-        return "codec";
+    public void onPackageRegistered(PackageMetadata packageMetadata) {
+        // For every class: add the class aspect entry, then one entry per feature.
+        // Finally add the package-level entry carrying the pre-computed profile.
     }
 
-    @Override
-    public ClassAspect buildClassAspect(ClassMetadata classMetadata) {
-        // Parses EClass annotations, creates ClassCodecAspect
-        // Contains typeConfig, idConfig, superTypeConfig (if present in annotations)
-    }
+    /**
+     * The single supported way for consumers to read a codec aspect: AspectEntry.content is a
+     * bare EObject, so filtering the entries by aspect type compiles and silently yields
+     * nothing. This matches on the type id and on the content type.
+     */
+    public static <T> T codecAspect(EList<AspectEntry> aspects, Class<T> type);
 
-    @Override
-    public FeatureAspect buildAttributeAspect(AttributeMetadata attributeMetadata) {
-        // Parses EAttribute annotations, creates FeatureCodecAspect
-        // Contains effectiveKey, serialize flags, valueWriter/Reader
-    }
-
-    @Override
-    public FeatureAspect buildReferenceAspect(ReferenceMetadata referenceMetadata) {
-        // Parses EReference annotations, creates ReferenceCodecAspect
-        // Extends FeatureCodecAspect with referenceConfig, typeConfig, expand
-    }
-
-    @Override
-    public PackageProfile buildProfiles(PackageMetadata filteredMetadataCopy) {
-        // Creates CodecPackageProfile containing CodecClassProfile per EClass
-        // Pre-merges annotation configs with built-in defaults
-    }
+    // Private builders, one AspectEntry each
+    private AspectEntry buildClassAspectEntry(ClassMetadata classMetadata);
+    private AspectEntry buildFeatureAspectEntry(FeatureMetadata featureMetadata);
+    private AspectEntry buildAttributeAspectEntry(AttributeMetadata attributeMetadata);
+    private AspectEntry buildReferenceAspectEntry(ReferenceMetadata referenceMetadata);
+    private AspectEntry buildProfileEntry(PackageMetadata packageMetadata);
 
     // Private helpers
     private CodecClassProfile buildClassProfile(ClassMetadata classMetadata);
@@ -469,7 +475,7 @@ CodecAspectProvider implements AspectProvider {
 
 **Profile Building** provides pre-merged annotation-layer configuration.
 
-When `buildProfiles(filteredMetadataCopy)` is called, CodecAspectProvider:
+While building the profile entry, CodecAspectProvider:
 
 1. Creates `CodecPackageProfile` containing one `CodecClassProfile` per EClass
 2. For each EClass:
@@ -502,7 +508,10 @@ This profile represents the **annotation-layer resolved state** (levels 5+6 in t
 
 Diagnostics are attached to the PackageMetadata and can be queried via:
 ```java
-List<MetadataDiagnostic> diagnostics = packageMetadata.getDiagnostics();
+// Diagnostics live on the entry that owns the aspect, not on the aspect and not
+// aggregated into the tree: DiagnosticContainer.getAllDiagnostics() deliberately does
+// not collect AspectEntry diagnostics, so read them from the entry.
+EList<MetadataDiagnostic> diagnostics = entry.getDiagnostics();
 for (MetadataDiagnostic diagnostic : diagnostics) {
     Severity severity = diagnostic.getSeverity();  // ERROR, WARNING, INFO
     String message = diagnostic.getMessage();
@@ -518,8 +527,9 @@ for (MetadataDiagnostic diagnostic : diagnostics) {
 MetadataWhiteboard service = ...;
 
 // Register provider and package
-CodecAspectProvider codecProvider = new CodecAspectProvider();
-service.registerAspectProvider(codecProvider);
+// In OSGi the handler is a DS component (service = MetadataHandler.class) and the container
+// wires it. Outside OSGi it is passed to the factory:
+MetadataWhiteboard service = MetadataServices.createWhiteboard(new CodecAspectProvider());
 PackageMetadata pkgMeta = service.registerPackage(PersonPackage.eINSTANCE);
 
 // Access class aspect (raw annotation values only)
@@ -530,8 +540,12 @@ if (aspect instanceof ClassCodecAspect codecAspect) {
 }
 
 // Access pre-computed profile (recommended for runtime)
-ClassProfile profile = service.getClassProfile(PersonPackage.Literals.PERSON, "codec");
-if (profile instanceof CodecClassProfile codecProfile) {
+// The profile is no longer a metadata concept of its own: it lives in the content of the
+// package-level AspectEntry, and the per-class profiles sit inside it.
+CodecPackageProfile packageProfile = CodecAspectProvider.codecAspect(
+        service.getPackageMetadata(PersonPackage.eINSTANCE).orElseThrow().getAspects(),
+        CodecPackageProfile.class);
+for (CodecClassProfile codecProfile : packageProfile.getClassProfiles()) {
     TypeSerializationConfig typeConfig = codecProfile.getTypeConfig(); // Always present with defaults
     IdSerializationConfig idConfig = codecProfile.getIdConfig();       // Always present with defaults
 
@@ -608,7 +622,7 @@ CodecResource resource = new CodecResource(uri, contentType, metadataService,
 ## Current Status and Next Steps
 
 ### Completed:
-1. ✅ CodecAspectProvider implementation (1,197 lines)
+1. ✅ CodecAspectProvider implementation (MetadataHandler SPI)
 2. ✅ Aspect building (ClassCodecAspect, FeatureCodecAspect, ReferenceCodecAspect)
 3. ✅ Profile building (CodecPackageProfile, CodecClassProfile)
 4. ✅ Annotation validation and diagnostics

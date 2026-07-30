@@ -1068,7 +1068,10 @@ This provides **two benefits**:
 
 > **Security (S-4):** Without a context schema, NAME, CLASS, and NUMERIC strategies **fail with a warning diagnostic** instead of scanning all registered EPackages. This prevents type confusion when multiple packages define classes with the same name. Always provide `CODEC_ROOT_SCHEMA` or `CODEC_ROOT_TYPE` when using these strategies.
 
-NAME strategy uses `MetadataIndexReader.findByClassName(nsURI, className)` for context-aware lookup. See [CLASS Strategy Resolution](#645-class-strategy-resolution) for the full MetadataIndex API.
+NAME strategy resolves inside the context package via `EPackage.getEClassifier(className)`.
+Routing it through `MetadataIndexReader.findByClassName(nsURI, className)` instead is
+**planned, not implemented** — see [CLASS Strategy Resolution](#645-class-strategy-resolution)
+for the index API and its current state.
 
 #### 6.4.4 Smart Compression
 
@@ -1158,36 +1161,45 @@ resource.load(inputStream, Collections.emptyMap());
 
 ##### MetadataIndex API
 
-The `MetadataIndexReader` (accessed via `MetadataService.getIndexReader()`) provides indexed lookup for CLASS strategy resolution:
+> **Status:** the index itself is real and always present — it lives in the `emf.osgi` project
+> (`org.eclipse.fennec.emf.osgi.metadata.MetadataIndexReader`, default implementation
+> `MapBasedMetadataIndex`, installed by `MetadataServiceImpl` itself). What is **planned rather
+> than implemented** is the codec's use of it for CLASS and NAME resolution: those strategies
+> resolve within the context package today. The only index consumer in this workspace is the
+> JAX-RS root-type lookup in `codec.rest`, which uses `findAllByInstanceClassName` and treats
+> more than one match as an error.
+
+The `MetadataIndexReader` (accessed via `MetadataService.getIndexReader()`, which returns an
+`Optional`) provides indexed lookup for CLASS strategy resolution:
 
 ```java
 interface MetadataIndexReader {
-    // Lookup by instanceClassName within a specific package (context-aware)
-    ClassMetadata findByInstanceClassName(String nsURI, String instanceClassName);
+    // Lookup by instanceClassName within a specific package (context-aware); newest version wins
+    Optional<ClassMetadata> findByInstanceClassName(String nsURI, String instanceClassName);
 
-    // Lookup across all registered packages (may return multiple)
-    EList<ClassMetadata> findAllByInstanceClassName(String instanceClassName);
+    // Lookup across all registered packages (may return several versions)
+    List<ClassMetadata> findAllByInstanceClassName(String instanceClassName);
 
-    // Similar methods for NAME strategy
-    ClassMetadata findByClassName(String nsURI, String className);
-    EList<ClassMetadata> findAllByClassName(String className);
+    // Same pair for NAME strategy
+    Optional<ClassMetadata> findByClassName(String nsURI, String className);
+    List<ClassMetadata> findAllByClassName(String className);
 
     // URI strategy uses direct lookup
-    ClassMetadata findClassByURI(String uri);
+    Optional<ClassMetadata> findClassByURI(String uri);
 }
 ```
 
 **Usage Example:**
 ```java
 MetadataService metadataService = ...; // OSGi service or injected
-MetadataIndexReader index = metadataService.getIndexReader();
+MetadataIndexReader index = metadataService.getIndexReader().orElseThrow();
 
 // Context-aware lookup (preferred)
 String contextNsURI = eReference.getEReferenceType().getEPackage().getNsURI();
-ClassMetadata meta = index.findByInstanceClassName(contextNsURI, "org.example.PersonImpl");
+Optional<ClassMetadata> meta = index.findByInstanceClassName(contextNsURI, "org.example.PersonImpl");
 
 // Global search (when no context available)
-EList<ClassMetadata> matches = index.findAllByInstanceClassName("org.example.PersonImpl");
+List<ClassMetadata> matches = index.findAllByInstanceClassName("org.example.PersonImpl");
 if (matches.size() == 1) {
     // Unambiguous
 } else if (matches.size() > 1) {
@@ -1195,7 +1207,10 @@ if (matches.size() == 1) {
 }
 ```
 
-The index is built automatically when EPackages are registered via `MetadataService.registerPackage()`. Current implementation (`MapBasedMetadataIndex`) uses in-memory ConcurrentHashMaps; future versions may use Lucene for large-scale deployments.
+The index is built automatically when EPackages are registered via
+`MetadataWhiteboard.registerPackage()`. The default implementation, `MapBasedMetadataIndex`,
+uses in-memory `ConcurrentHashMap`s and is installed by the service itself, so URI and name
+lookups answer from the start; a bound `MetadataIndex` replaces it.
 
 #### 6.4.6 Package Resolution Order (multi-version) `[B.5 / A.3]`
 
