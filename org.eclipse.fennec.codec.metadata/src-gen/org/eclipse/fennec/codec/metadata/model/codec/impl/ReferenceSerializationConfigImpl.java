@@ -21,8 +21,6 @@ import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecPackage;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig;
 
-import org.eclipse.fennec.model.metadata.impl.BaseReferenceConfigImpl;
-
 /**
  * <!-- begin-user-doc -->
  * An implementation of the model object '<em><b>Reference Serialization Config</b></em>'.

@@ -106,7 +106,355 @@
       </eAnnotations>
     </eLiterals>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="TypeSerializationConfig" eSuperTypes="metadata.ecore#//BaseTypeConfig">
+  <eClassifiers xsi:type="ecore:EEnum" name="SerializationFormat">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Format strategy for serialization output. Controls whether metadata fields (type, ID, reference, supertype) are written as simple values or nested objects. Applies uniformly across all serialization targets."/>
+    </eAnnotations>
+    <eLiterals name="PLAIN" literal="PLAIN">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Simple value output. Writes a single string, number, or array of simple values. Example: {&quot;_type&quot;: &quot;http://example.org/model#//Person&quot;}"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="STRUCTURED" value="1" literal="STRUCTURED">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Nested object output with configurable keys. Example: {&quot;_type&quot;: {&quot;schema&quot;: &quot;http://example.org/model&quot;, &quot;name&quot;: &quot;Person&quot;}}"/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="TypeStrategy">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Strategy for serializing type information. Determines what kind of type identifier is written to the output for each EObject."/>
+    </eAnnotations>
+    <eLiterals name="NAME" literal="NAME">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Use the simple EClass name (e.g., 'Person'). Requires unique class names within the deserialization context."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="CLASS" value="1" literal="CLASS">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Use the fully qualified Java instance class name (e.g., 'org.example.model.Person')."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="URI" value="2" literal="URI">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Use the full EMF EClass URI (e.g., 'http://example.org/model#//Person'). Most precise, always unique."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="SCHEMA_AND_TYPE" value="3" literal="SCHEMA_AND_TYPE">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Use separate top-level fields for schema (nsURI) and type (class name). Useful for formats that benefit from split metadata."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="NUMERIC" value="4" literal="NUMERIC">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Use numeric classifier IDs from the EPackage. Compact but fragile: IDs can change when the model evolves. Use only in controlled environments."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="NONE" value="5" literal="NONE">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="No type information serialized. For deserialization, the EClass must be provided via CODEC_ROOT_TYPE hint or be unambiguous from context."/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="IdStrategy">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Strategy for determining which EStructuralFeatures form the serialized ID of an EObject."/>
+    </eAnnotations>
+    <eLiterals name="ID_FIELD" literal="ID_FIELD">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Use features marked with eID=true in the Ecore model. The standard EMF approach."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="COMBINED" value="1" literal="COMBINED">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Use explicitly specified features combined with a separator. The features and separator are configured via idFeatures and idSeparator annotation keys."/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="IdKeyMode">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Controls how the ID value is represented in the serialized output. Determines whether a dedicated ID key, the original feature keys, or both are written."/>
+    </eAnnotations>
+    <eLiterals name="ID_ONLY" literal="ID_ONLY">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Only the dedicated ID key (e.g., '_id') is written. The original feature value is not duplicated under its feature name."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="BOTH" value="1" literal="BOTH">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Both the dedicated ID key and the original feature name(s) are written. Useful when consumers need both an ID field and the raw feature values."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="FEATURE_ONLY" value="2" literal="FEATURE_ONLY">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Only the original feature name(s) are written, no dedicated ID key. The ID is implicit from the feature values."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="NONE" value="3" literal="NONE">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="No ID output at all. Both the dedicated ID key and the feature-based ID are suppressed entirely."/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="SuperTypeSelection">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Controls which supertypes of an EClass are included when supertype information is serialized."/>
+    </eAnnotations>
+    <eLiterals name="ALL" literal="ALL">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="All domain model supertypes in the inheritance hierarchy. Excludes EMF infrastructure classes (EObject, etc.)."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="ALL_EMF" value="1" literal="ALL_EMF">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="All supertypes including EMF base classes (EObject, etc.). Use when full type hierarchy is needed."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="SINGLE" value="2" literal="SINGLE">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Only the immediate/direct supertype. Reduces output size when only the parent type is relevant."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="NONE" value="3" literal="NONE">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="No supertype information serialized."/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="EnumSerializationStrategy">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Strategy for serializing EEnum values. Controls whether the literal string, ordinal value, or programmatic name is used in the output."/>
+    </eAnnotations>
+    <eLiterals name="LITERAL" literal="LITERAL">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Use the enum literal string (e.g., 'ACTIVE'). This is the default and matches EMF's native representation."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="VALUE" value="1" literal="VALUE">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Use the enum ordinal value (e.g., 1). Compact but fragile: ordinals change when enum literals are reordered."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="NAME" value="2" literal="NAME">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Use the enum instance name (e.g., 'Active'). Differs from LITERAL when the literal string differs from the instance name."/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BaseTypeConfig" abstract="true">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Base configuration for type information serialization. Controls how EClass type identity is written to the output. Shared by class-level and reference-level type configurations."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="#//SerializationFormat"
+        defaultValueLiteral="PLAIN">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Output format for type information: PLAIN writes a single value, STRUCTURED writes a nested object with schema/name keys."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="strategy" eType="#//TypeStrategy"
+        defaultValueLiteral="URI">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Type identification strategy. Determines what kind of type identifier is written (NAME, CLASS, URI, SCHEMA_AND_TYPE, NUMERIC, NONE)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="_type">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSON property name for the type field. Default is '_type'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="schemaKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="schema">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSON property name for the schema (nsURI) when using STRUCTURED format or SCHEMA_AND_TYPE strategy. Default is 'schema'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nameKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="name">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSON property name for the type name inside a STRUCTURED type object. Default is 'name'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BaseIdConfig" abstract="true">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Base configuration for ID serialization. Controls how object identity is written to the output, including the ID strategy, key naming, and format."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="strategy" eType="#//IdStrategy"
+        defaultValueLiteral="ID_FIELD">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Strategy for determining which features form the ID (ID_FIELD uses eID markers, COMBINED uses explicitly listed features). To disable ID serialization, use IdKeyMode.NONE instead."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="keyMode" eType="#//IdKeyMode"
+        defaultValueLiteral="ID_ONLY">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Controls what keys appear in the output: ID_ONLY writes only the dedicated ID key, BOTH writes ID key and feature keys, FEATURE_ONLY writes only feature keys, NONE suppresses all ID output."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="#//SerializationFormat"
+        defaultValueLiteral="PLAIN">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Output format for the ID: PLAIN writes a single value, STRUCTURED writes a nested object with value/separator keys."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="idKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="_id">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSON property name for the dedicated ID field. Default is '_id'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="separator" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="-">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Separator character for combining multiple ID feature values in COMBINED strategy. Default is '-'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="onTop" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether the ID field appears before the type field in the serialized output. Default true (ID first). Useful for MongoDB where _id should be the first field for indexing."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="serializeSeparator" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether to include the separator character in STRUCTURED ID output. When true, the separator is written alongside the ID value, enabling deserialization without knowing the separator in advance."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="separatorKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="separator">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSON property name for the separator field in STRUCTURED ID format. Default is 'separator'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="valueKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="id">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSON property name for the ID value inside a STRUCTURED ID object. Default is 'id'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BaseReferenceConfig" abstract="true">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Base configuration for non-containment reference serialization. Controls how cross-references between EObjects are represented in the output."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="#//SerializationFormat"
+        defaultValueLiteral="PLAIN">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Output format for references: PLAIN writes a single reference value, STRUCTURED writes a nested object with type and reference keys."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="_type">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSON property name for the type field inside a STRUCTURED reference object. Default is '_type'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="refKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="_ref">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSON property name for the reference value inside a STRUCTURED reference object. Default is '_ref'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BaseSuperTypeConfig" abstract="true">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Base configuration for supertype information serialization. Controls whether and how the EClass inheritance hierarchy is included in the output. Supertype serialization is a sub-aspect of type serialization and is implicitly disabled when type serialization is disabled."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enabled" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="false">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether supertype information is serialized. Default is false (supertypes are not written)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="selection" eType="#//SuperTypeSelection"
+        defaultValueLiteral="ALL">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Which supertypes to include when enabled: ALL (domain types only), ALL_EMF (including EObject etc.), SINGLE (direct parent only), NONE."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="#//SerializationFormat"
+        defaultValueLiteral="PLAIN">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Output format for supertype entries. Inherits from the parent type configuration format if not explicitly set."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="asArray" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether to write supertypes as a JSON array (true) or as a separator-joined string (false). Default is true (array)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="separator" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral=",">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Separator character when asArray=false. Default is comma. Only used when supertypes are joined into a single string."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="superTypeKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        defaultValueLiteral="_supertype">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="JSON property name for supertype information. In PLAIN format, this is a top-level field. In STRUCTURED format, this is a key inside the type object. Default is '_supertype'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="BaseFeatureConfig" abstract="true">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Base configuration for EStructuralFeature serialization. Controls visibility, key naming, null/empty/default handling, and enum strategy for individual features. These settings can be configured per-feature via EAnnotations or globally via runtime options."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Custom JSON property name for this feature. When null, the feature name (or extendedMetaDataName if useNamesFromExtendedMetadata is enabled) is used."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ignore" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Skip this feature for both serialization and deserialization. Null means false (not ignored). Set to true to make the feature invisible to the codec in both directions."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ignoreRead" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Skip this feature during deserialization only. Null means false. Set to true to prevent reading this feature from input while still writing it to output."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ignoreWrite" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Skip this feature during serialization only. Null means false. Set to true to prevent writing this feature to output while still reading it from input."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="forceRead" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Force deserialization of EMF transient/volatile features. Null means false. Set to true to override the default skipping of transient/volatile features during deserialization."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="forceWrite" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Force serialization of EMF transient/volatile/derived features. Null means false. Set to true to override the default skipping of transient/volatile/derived features during serialization."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="serializeNull" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether to write this feature when its value is null. Null means use the codec-level default. When true, null values are explicitly written (e.g., {&quot;name&quot;: null})."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="serializeEmpty" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether to write this feature when its collection value is empty. Null means use the codec-level default. When true, empty collections are explicitly written (e.g., {&quot;items&quot;: []})."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="serializeDefaults" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether to write this feature when its value equals the EMF default value. Null means use the codec-level default. When false, features with default values are omitted from output."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enumSerialization" eType="#//EnumSerializationStrategy">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Strategy for serializing enum-typed features (LITERAL, VALUE, or NAME). Null means use LITERAL as default."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TypeSerializationConfig" eSuperTypes="#//BaseTypeConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for type information serialization. Extends BaseTypeConfig with codec-specific settings."/>
     </eAnnotations>
@@ -149,7 +497,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="IdSerializationConfig" eSuperTypes="metadata.ecore#//BaseIdConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="IdSerializationConfig" eSuperTypes="#//BaseIdConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for ID serialization. Extends BaseIdConfig with codec-specific settings."/>
     </eAnnotations>
@@ -182,7 +530,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ReferenceSerializationConfig" eSuperTypes="metadata.ecore#//BaseReferenceConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="ReferenceSerializationConfig" eSuperTypes="#//BaseReferenceConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for reference (non-containment) serialization. Extends BaseReferenceConfig with codec-specific settings."/>
     </eAnnotations>
@@ -199,7 +547,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="SuperTypeSerializationConfig" eSuperTypes="metadata.ecore#//BaseSuperTypeConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="SuperTypeSerializationConfig" eSuperTypes="#//BaseSuperTypeConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete configuration for supertype serialization. Extends BaseSuperTypeConfig with codec-specific settings."/>
     </eAnnotations>
@@ -210,7 +558,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="FeatureSerializationConfig" eSuperTypes="metadata.ecore#//BaseFeatureConfig">
+  <eClassifiers xsi:type="ecore:EClass" name="FeatureSerializationConfig" eSuperTypes="#//BaseFeatureConfig">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Concrete per-feature serialization configuration. Extends BaseFeatureConfig with codec-specific settings."/>
     </eAnnotations>
@@ -247,7 +595,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ClassCodecAspect" eSuperTypes="metadata.ecore#//ClassAspect">
+  <eClassifiers xsi:type="ecore:EClass" name="ClassCodecAspect">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec aspect for EClass serialization configuration. Attached to ClassMetadata.aspects."/>
     </eAnnotations>
@@ -305,7 +653,7 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="FeatureCodecAspect" eSuperTypes="metadata.ecore#//FeatureAspect">
+  <eClassifiers xsi:type="ecore:EClass" name="FeatureCodecAspect">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec aspect for EStructuralFeature serialization configuration. Attached to FeatureMetadata.aspects."/>
     </eAnnotations>
@@ -372,7 +720,7 @@
         <details key="documentation" value="Custom value reader name for deserialization."/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enumSerialization" eType="ecore:EEnum metadata.ecore#//EnumSerializationStrategy">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enumSerialization" eType="#//EnumSerializationStrategy">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Strategy for serializing enum values (null = use LITERAL default)."/>
       </eAnnotations>
@@ -412,15 +760,26 @@
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="CodecPackageProfile" eSuperTypes="metadata.ecore#//PackageProfile">
+  <eClassifiers xsi:type="ecore:EClass" name="CodecPackageProfile">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-      <details key="documentation" value="Codec-specific package profile containing pre-computed, fully resolved annotation-layer configurations for all classes in a package. Built by CodecAspectProvider.buildProfiles() after all metadata and aspects are constructed. Contains one CodecClassProfile per EClass with annotation-internal inheritance already applied (feature inherits from class, class inherits from package defaults). At runtime, serves as the static base that dynamic configuration (options, resource, factory, module) merges on top of."/>
+      <details key="documentation" value="Codec-specific package profile containing pre-computed, fully resolved annotation-layer configurations for all classes in a package. Built by the codec's metadata handler after all metadata and aspects are constructed. Contains one CodecClassProfile per EClass with annotation-internal inheritance already applied (feature inherits from class, class inherits from package defaults). At runtime, serves as the static base that dynamic configuration (options, resource, factory, module) merges on top of."/>
     </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="classProfiles" upperBound="-1"
+        eType="#//CodecClassProfile" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Pre-computed profiles for each EClass in the package. One CodecClassProfile per EClass that the codec is interested in."/>
+      </eAnnotations>
+    </eStructuralFeatures>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="CodecClassProfile" eSuperTypes="metadata.ecore#//ClassProfile">
+  <eClassifiers xsi:type="ecore:EClass" name="CodecClassProfile">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Codec-specific class profile containing the fully resolved annotation-layer configuration for one EClass and all its features. All annotation-internal inheritance is pre-merged: feature inherits from class, class inherits from package defaults. Contains the effective type/ID/supertype configs, forward/reverse key mappings, feature serialization order, and per-feature configs. At runtime, the ConfigurationResolver merges dynamic overrides (levels 1-4) on top of this profile (levels 5+6)."/>
     </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eClass" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EClass">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The EClass this profile describes. Used to look up the profile by EClass identity."/>
+      </eAnnotations>
+    </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="typeConfig" eType="#//TypeSerializationConfig"
         containment="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
@@ -450,7 +809,7 @@
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Root configuration for codec serialization behavior."/>
     </eAnnotations>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="ecore:EEnum metadata.ecore#//SerializationFormat"
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="#//SerializationFormat"
         defaultValueLiteral="PLAIN">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Codec-wide default serialization format."/>

@@ -12,7 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.openapi;
 
-import java.util.Objects;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -20,9 +19,8 @@ import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.jsonschema.v2.value.EPackageValueReader;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.model.openapi.OpenApiPackage;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -62,8 +60,11 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 			@Reference CodecValueRegistry valueRegistry) {
 		this.metadataService = metadataService;
 		this.valueRegistry = valueRegistry;
-		PackageMetadata packageMetadata = this.metadataService.getPackageMetadata(OpenApiPackage.eNS_URI);
-		Objects.requireNonNull(packageMetadata, "The OpenApi Model is required to get this resource factory work");
+		// Keyed by the EPackage instance, not the nsURI: the nsURI overload is best-effort and
+		// answers with the most recently registered version (issue #89).
+		this.metadataService.getPackageMetadata(OpenApiPackage.eINSTANCE)
+				.orElseThrow(() -> new IllegalStateException(
+						"The OpenApi Model is required to get this resource factory work"));
 	}
 
 	/**

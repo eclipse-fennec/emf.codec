@@ -18,7 +18,7 @@ import java.util.List;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.SuperTypeConfig;
-import org.eclipse.fennec.model.metadata.SuperTypeSelection;
+import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;

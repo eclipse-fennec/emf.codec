@@ -26,10 +26,12 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecFactory;
+import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
 import org.eclipse.fennec.codec.metadata.model.codec.FallbackStrategy;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.MetadataFactory;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataFactory;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -891,7 +893,10 @@ class TypeDiscriminatorServiceTest {
 
             ClassCodecAspect aspect = CodecFactory.eINSTANCE.createClassCodecAspect();
             aspect.setDiscriminatorValue(discriminatorValue);
-            classMeta.getAspects().add(aspect);
+            AspectEntry entry = MetadataFactory.eINSTANCE.createAspectEntry();
+            entry.setTypeId(CodecAspectProvider.ASPECT_TYPE_ID);
+            entry.setContent(aspect);
+            classMeta.getAspects().add(entry);
 
             return classMeta;
         }

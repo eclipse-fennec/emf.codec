@@ -32,10 +32,11 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
+import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -137,27 +138,23 @@ class CodecResourceMappedTypeTest {
         @DisplayName("parses discriminator values from annotations")
         void parsesDiscriminatorValuesFromAnnotations() {
             // Check TemperatureSensor
-            ClassMetadata tempMeta = metadataService.getClassMetadata(temperatureSensorClass);
+            ClassMetadata tempMeta = metadataService.getClassMetadata(temperatureSensorClass).orElseThrow();
             ClassCodecAspect tempAspect = getCodecAspect(tempMeta);
             assertEquals("temp-sensor", tempAspect.getDiscriminatorValue());
 
             // Check HumiditySensor
-            ClassMetadata humidMeta = metadataService.getClassMetadata(humiditySensorClass);
+            ClassMetadata humidMeta = metadataService.getClassMetadata(humiditySensorClass).orElseThrow();
             ClassCodecAspect humidAspect = getCodecAspect(humidMeta);
             assertEquals("humidity-sensor", humidAspect.getDiscriminatorValue());
 
             // Check GPSTracker
-            ClassMetadata gpsMeta = metadataService.getClassMetadata(gpsTrackerClass);
+            ClassMetadata gpsMeta = metadataService.getClassMetadata(gpsTrackerClass).orElseThrow();
             ClassCodecAspect gpsAspect = getCodecAspect(gpsMeta);
             assertEquals("gps-tracker", gpsAspect.getDiscriminatorValue());
         }
 
         private ClassCodecAspect getCodecAspect(ClassMetadata metadata) {
-            return metadata.getAspects().stream()
-                    .filter(ClassCodecAspect.class::isInstance)
-                    .map(ClassCodecAspect.class::cast)
-                    .findFirst()
-                    .orElse(null);
+            return CodecAspectProvider.codecAspect(metadata.getAspects(), ClassCodecAspect.class);
         }
     }
 

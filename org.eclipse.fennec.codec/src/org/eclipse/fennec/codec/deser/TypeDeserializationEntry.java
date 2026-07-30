@@ -27,7 +27,7 @@ import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;

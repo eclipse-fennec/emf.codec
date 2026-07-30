@@ -23,13 +23,14 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile;
+import org.eclipse.fennec.codec.metadata.model.codec.CodecPackageProfile;
 import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
-import org.eclipse.fennec.model.metadata.ClassProfile;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.service.MetadataServiceImpl;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataServices;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -59,7 +60,7 @@ class CodecPackageLevelAnnotationTest {
 
     @BeforeEach
     void setUp() {
-        service = new MetadataServiceImpl();
+        service = MetadataServices.createWhiteboard(new CodecAspectProvider());
 
         testPackage = EcoreFactory.eINSTANCE.createEPackage();
         testPackage.setName("pkglevel");
@@ -92,13 +93,23 @@ class CodecPackageLevelAnnotationTest {
         target.getEAnnotations().add(ann);
     }
 
+    /**
+     * The profile is no longer a metadata concept of its own: the provider hangs a
+     * {@link CodecPackageProfile} into the package-level {@code AspectEntry}, and the per-class
+     * profiles live inside it (issue #85, D2).
+     */
     private CodecClassProfile profileOf(EClass eClass) {
-        service.registerAspectProvider(new CodecAspectProvider());
-        service.registerPackage(testPackage);
+        PackageMetadata packageMetadata = service.registerPackage(testPackage).orElseThrow();
 
-        ClassProfile classProfile = service.getClassProfile(eClass, "codec");
-        assertNotNull(classProfile, "a class profile must be built for " + eClass.getName());
-        return (CodecClassProfile) classProfile;
+        CodecPackageProfile packageProfile =
+                CodecAspectProvider.codecAspect(packageMetadata.getAspects(), CodecPackageProfile.class);
+        assertNotNull(packageProfile, "a package profile must be built for " + testPackage.getNsURI());
+
+        return packageProfile.getClassProfiles().stream()
+                .filter(profile -> profile.getEClass() == eClass)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        "a class profile must be built for " + eClass.getName()));
     }
 
     // ========================================================================

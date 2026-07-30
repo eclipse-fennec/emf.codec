@@ -14,10 +14,13 @@ package org.eclipse.fennec.codec.util;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
-import org.eclipse.fennec.model.metadata.api.MetadataHandler;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.service.MetadataServiceImpl;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataHandler;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataServices;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 
 /**
  * Factory for creating {@link MetadataWhiteboard} instances configured for the codec.
@@ -28,8 +31,14 @@ import org.eclipse.fennec.model.metadata.service.MetadataServiceImpl;
  * </p>
  * <p>
  * Returns {@link MetadataWhiteboard} so callers can register packages.
- * Pass as {@link org.eclipse.fennec.model.metadata.api.MetadataService MetadataService}
+ * Pass as {@link org.eclipse.fennec.emf.osgi.metadata.MetadataService MetadataService}
  * to consumers that only need read access (e.g., {@code CodecResource}).
+ * </p>
+ * <p>
+ * This factory is the non-OSGi bootstrap only: it delegates to
+ * {@link MetadataServices#createWhiteboard(MetadataHandler...)}, which installs the default
+ * {@code FingerprintService}. In OSGi the whiteboard arrives as a service and DS wires both
+ * the fingerprint service and every handler, so nothing here is needed.
  * </p>
  *
  * @author Mark Hoffmann
@@ -62,12 +71,16 @@ public final class MetadataServiceFactory {
      * @return a new MetadataWhiteboard configured for codec serialization
      */
     public static MetadataWhiteboard create(MetadataHandler... handlers) {
-        MetadataServiceImpl service = new MetadataServiceImpl();
-        service.registerAspectProvider(new CodecAspectProvider());
-        for (MetadataHandler handler : handlers) {
-            service.addMetadataHandler(handler);
+        List<MetadataHandler> all = new ArrayList<>();
+        all.add(new CodecAspectProvider());
+        if (handlers != null) {
+            for (MetadataHandler handler : handlers) {
+                if (handler != null) {
+                    all.add(handler);
+                }
+            }
         }
-        return service;
+        return MetadataServices.createWhiteboard(all.toArray(MetadataHandler[]::new));
     }
 
     /**
@@ -82,7 +95,7 @@ public final class MetadataServiceFactory {
      */
     public static MetadataWhiteboard configureForCodec(MetadataWhiteboard whiteboard) {
         requireNonNull(whiteboard, "whiteboard must not be null");
-        whiteboard.registerAspectProvider(new CodecAspectProvider());
+        whiteboard.addMetadataHandler(new CodecAspectProvider());
         return whiteboard;
     }
 }

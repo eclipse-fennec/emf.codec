@@ -31,8 +31,9 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.service.MetadataServiceImpl;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataServices;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,7 +55,7 @@ class TypeDiscriminatorComposedViewTest {
     private static final String NS_URI = "http://example.org/entity/1.0";
     private static final String MAP_ID = "m";
 
-    private MetadataServiceImpl metadataService;
+    private MetadataWhiteboard metadataService;
     private PackageMetadata metaA;
     private PackageMetadata metaB;
     private EClass entityA;
@@ -62,15 +63,14 @@ class TypeDiscriminatorComposedViewTest {
 
     @BeforeEach
     void setUp() {
-        metadataService = new MetadataServiceImpl();
-        metadataService.registerAspectProvider(new CodecAspectProvider());
+        metadataService = MetadataServices.createWhiteboard(new CodecAspectProvider());
         EPackage packageA = buildVersion("alphaKey");
         EPackage packageB = buildVersion("betaKey");
         entityA = (EClass) packageA.getEClassifier("Entity");
         entityB = (EClass) packageB.getEClassifier("Entity");
 
-        metaA = metadataService.registerPackage(packageA);
-        metaB = metadataService.registerPackage(packageB);
+        metaA = metadataService.registerPackage(packageA).orElseThrow();
+        metaB = metadataService.registerPackage(packageB).orElseThrow();
         // Distinct versions are the premise of the test.
         assertNotEquals(metaA.getModelFingerprint(), metaB.getModelFingerprint(),
                 "the two versions must have distinct fingerprints");
@@ -134,8 +134,7 @@ class TypeDiscriminatorComposedViewTest {
     @Test
     @DisplayName("single registered version composes without error (R1)")
     void singleVersionComposes() {
-        MetadataServiceImpl single = new MetadataServiceImpl();
-        single.registerAspectProvider(new CodecAspectProvider());
+        MetadataWhiteboard single = MetadataServices.createWhiteboard(new CodecAspectProvider());
         EPackage only = buildVersion("onlyKey");
         EClass entity = (EClass) only.getEClassifier("Entity");
         single.registerPackage(only);

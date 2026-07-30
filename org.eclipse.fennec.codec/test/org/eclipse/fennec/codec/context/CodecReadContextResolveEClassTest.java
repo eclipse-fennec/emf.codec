@@ -12,13 +12,15 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.context;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +51,7 @@ class CodecReadContextResolveEClassTest extends CodecReadContextTestBase {
         EClass personClass = mock(EClass.class);
         ClassMetadata metadata = mock(ClassMetadata.class);
         when(metadata.getEClass()).thenReturn(personClass);
-        when(metadataService.getClassMetadataByURI(uri)).thenReturn(metadata);
+        when(metadataService.getClassMetadataByURI(uri)).thenReturn(Optional.of(metadata));
 
         assertSame(personClass, context.resolveEClass(uri));
     }
@@ -57,7 +59,7 @@ class CodecReadContextResolveEClassTest extends CodecReadContextTestBase {
     @Test
     @DisplayName("returns null when URI not found")
     void returnsNullWhenUriNotFound() {
-        when(metadataService.getClassMetadataByURI("unknown")).thenReturn(null);
+        when(metadataService.getClassMetadataByURI("unknown")).thenReturn(Optional.empty());
         assertNull(context.resolveEClass("unknown"));
     }
 }

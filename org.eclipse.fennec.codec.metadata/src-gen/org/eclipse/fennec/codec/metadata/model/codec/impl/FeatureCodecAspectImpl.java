@@ -17,13 +17,11 @@ import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EClass;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
+import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
 import org.eclipse.fennec.codec.metadata.model.codec.CodecPackage;
+import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
-
-import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
-
-import org.eclipse.fennec.model.metadata.impl.FeatureAspectImpl;
 
 /**
  * <!-- begin-user-doc -->
@@ -50,7 +48,7 @@ import org.eclipse.fennec.model.metadata.impl.FeatureAspectImpl;
  *
  * @generated
  */
-public class FeatureCodecAspectImpl extends FeatureAspectImpl implements FeatureCodecAspect {
+public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container implements FeatureCodecAspect {
 	/**
 	 * The default value of the '{@link #getEffectiveKey() <em>Effective Key</em>}' attribute.
 	 * <!-- begin-user-doc -->

@@ -77,7 +77,7 @@ class CodecResourceHelperResolveRootEClassTest extends CodecResourceHelperTestBa
     @DisplayName("resolves EClass from URI string (Spec 15.4: String URI value type)")
     void resolvesEClassFromUriString() {
         // Get the actual URI from the registered ClassMetadata
-        String uri = metadataService.getClassMetadata(personClass).getTypeURI();
+        String uri = metadataService.getClassMetadata(personClass).orElseThrow().getTypeURI();
         Map<String, Object> options = new HashMap<>();
         options.put(CodecResourceHelper.CODEC_ROOT_TYPE, uri);
 

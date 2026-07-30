@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.context;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
@@ -21,7 +23,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -71,7 +73,7 @@ class CodecReadContextEmfOperationsTest extends CodecReadContextTestBase {
     void getClassMetadataDelegates() {
         EClass eClass = mock(EClass.class);
         ClassMetadata metadata = mock(ClassMetadata.class);
-        when(metadataService.getClassMetadata(eClass)).thenReturn(metadata);
+        when(metadataService.getClassMetadata(eClass)).thenReturn(Optional.of(metadata));
 
         assertSame(metadata, context.getClassMetadata(eClass));
     }

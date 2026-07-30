@@ -14,7 +14,8 @@ package org.eclipse.fennec.codec.metadata.model.codec;
 
 import org.eclipse.emf.common.util.EList;
 
-import org.eclipse.fennec.model.metadata.ClassProfile;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -31,6 +32,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * The following features are supported:
  * </p>
  * <ul>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile#getEClass <em>EClass</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile#getTypeConfig <em>Type Config</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile#getIdConfig <em>Id Config</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile#getSuperTypeConfig <em>Super Type Config</em>}</li>
@@ -42,7 +44,32 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface CodecClassProfile extends ClassProfile {
+public interface CodecClassProfile extends EObject {
+	/**
+	 * Returns the value of the '<em><b>EClass</b></em>' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * The EClass this profile describes. Used to look up the profile by EClass identity.
+	 * <!-- end-model-doc -->
+	 * @return the value of the '<em>EClass</em>' reference.
+	 * @see #setEClass(EClass)
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getCodecClassProfile_EClass()
+	 * @model
+	 * @generated
+	 */
+	EClass getEClass();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile#getEClass <em>EClass</em>}' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>EClass</em>' reference.
+	 * @see #getEClass()
+	 * @generated
+	 */
+	void setEClass(EClass value);
+
 	/**
 	 * Returns the value of the '<em><b>Type Config</b></em>' containment reference.
 	 * <!-- begin-user-doc -->

@@ -27,7 +27,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.buffer.CodecTokenBuffer;
 import org.eclipse.fennec.codec.config.IdConfig;
 import org.eclipse.fennec.codec.context.ContextHelper;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;

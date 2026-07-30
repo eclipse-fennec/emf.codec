@@ -17,17 +17,17 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.constants.CodecOptions;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 /**
  * Helper class for codec resource operations.
@@ -95,7 +95,7 @@ public class CodecResourceHelper {
             return null;
         }
 
-        ClassMetadata metadata = metadataService.getClassMetadataByURI(uriString);
+        ClassMetadata metadata = metadataService.getClassMetadataByURI(uriString).orElse(null);
         if (nonNull(metadata)) {
             return metadata.getEClass();
         }
@@ -153,10 +153,10 @@ public class CodecResourceHelper {
                 int hash = uriString.indexOf('#');
                 if (hash > 0) {
                     String nsURI = uriString.substring(0, hash);
-                    // Null-guard: a real MetadataService never returns null here (empty EList for
+                    // Null-guard: a real MetadataService never returns null here (empty list for
                     // an unknown nsURI), but Mockito mocks / alternate impls may — treat null as
                     // "no version info" so the ambiguity check is simply skipped (R1-safe).
-                    EList<PackageMetadata> versions = metadataService.getPackageMetadataVersions(nsURI);
+                    List<PackageMetadata> versions = metadataService.getPackageMetadataVersions(nsURI);
                     if (versions != null && versions.size() > 1) {
                         throw new IOException(PackageResolver.ambiguityMessage(nsURI, versions));
                     }
@@ -165,7 +165,7 @@ public class CodecResourceHelper {
             return resolveRootEClass(options);
         }
 
-        PackageMetadata pkg = metadataService.getPackageMetadataByFingerprint(fingerprint);
+        PackageMetadata pkg = metadataService.getPackageMetadataByFingerprint(fingerprint).orElse(null);
         if (isNull(pkg)) {
             throw new IOException("Unknown root fingerprint: " + fingerprint);
         }
@@ -197,7 +197,7 @@ public class CodecResourceHelper {
         if (isNull(ePackage)) {
             return;
         }
-        PackageMetadata pm = metadataService.getPackageMetadata(ePackage);
+        PackageMetadata pm = metadataService.getPackageMetadata(ePackage).orElse(null);
         String actual = nonNull(pm) ? pm.getModelFingerprint() : null;
         if (!fingerprint.equals(actual)) {
             throw new IOException(String.format(

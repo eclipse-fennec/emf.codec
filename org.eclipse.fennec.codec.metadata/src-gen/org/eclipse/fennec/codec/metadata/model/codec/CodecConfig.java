@@ -16,8 +16,6 @@ import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EObject;
 
-import org.eclipse.fennec.model.metadata.SerializationFormat;
-
 import org.osgi.annotation.versioning.ProviderType;
 
 /**
@@ -65,14 +63,14 @@ public interface CodecConfig extends EObject {
 	/**
 	 * Returns the value of the '<em><b>Format</b></em>' attribute.
 	 * The default value is <code>"PLAIN"</code>.
-	 * The literals are from the enumeration {@link org.eclipse.fennec.model.metadata.SerializationFormat}.
+	 * The literals are from the enumeration {@link org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat}.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
 	 * Codec-wide default serialization format.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Format</em>' attribute.
-	 * @see org.eclipse.fennec.model.metadata.SerializationFormat
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat
 	 * @see #setFormat(SerializationFormat)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getCodecConfig_Format()
 	 * @model default="PLAIN"
@@ -85,7 +83,7 @@ public interface CodecConfig extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Format</em>' attribute.
-	 * @see org.eclipse.fennec.model.metadata.SerializationFormat
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat
 	 * @see #getFormat()
 	 * @generated
 	 */

@@ -30,11 +30,12 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
+import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -142,14 +143,10 @@ class CodecResourceFeaturePathTypeTest {
         @Test
         @DisplayName("parses typeKeyFeaturePath from UplinkMessage")
         void parsesTypeKeyFeaturePathFromUplinkMessage() {
-            ClassMetadata metadata = metadataService.getClassMetadata(uplinkMessageClass);
+            ClassMetadata metadata = metadataService.getClassMetadata(uplinkMessageClass).orElseThrow();
             assertNotNull(metadata, "ClassMetadata should exist for UplinkMessage");
 
-            ClassCodecAspect aspect = metadata.getAspects().stream()
-                    .filter(ClassCodecAspect.class::isInstance)
-                    .map(ClassCodecAspect.class::cast)
-                    .findFirst()
-                    .orElse(null);
+            ClassCodecAspect aspect = CodecAspectProvider.codecAspect(metadata.getAspects(), ClassCodecAspect.class);
 
             assertNotNull(aspect, "ClassCodecAspect should exist");
             assertNotNull(aspect.getTypeConfig(), "TypeConfig should exist");
@@ -183,14 +180,10 @@ class CodecResourceFeaturePathTypeTest {
         @Test
         @DisplayName("SimpleMessage has correct discriminatorPath")
         void simpleMessageHasCorrectDiscriminatorPath() {
-            ClassMetadata metadata = metadataService.getClassMetadata(simpleMessageClass);
+            ClassMetadata metadata = metadataService.getClassMetadata(simpleMessageClass).orElseThrow();
             assertNotNull(metadata, "ClassMetadata should exist for SimpleMessage");
 
-            ClassCodecAspect aspect = metadata.getAspects().stream()
-                    .filter(ClassCodecAspect.class::isInstance)
-                    .map(ClassCodecAspect.class::cast)
-                    .findFirst()
-                    .orElse(null);
+            ClassCodecAspect aspect = CodecAspectProvider.codecAspect(metadata.getAspects(), ClassCodecAspect.class);
 
             assertNotNull(aspect, "ClassCodecAspect should exist for SimpleMessage");
             assertNotNull(aspect.getTypeConfig(), "TypeConfig should exist for SimpleMessage");

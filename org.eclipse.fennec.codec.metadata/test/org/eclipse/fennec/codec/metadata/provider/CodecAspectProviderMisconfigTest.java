@@ -23,18 +23,21 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
+import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
-import org.eclipse.fennec.model.metadata.AttributeMetadata;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.DiagnosticSeverity;
-import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
-import org.eclipse.fennec.model.metadata.MetadataDiagnostic;
-import org.eclipse.fennec.model.metadata.MetadataFactory;
-import org.eclipse.fennec.model.metadata.ReferenceMetadata;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
+import org.eclipse.fennec.emf.osgi.model.metadata.AttributeMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.DiagnosticSeverity;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataDiagnostic;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataFactory;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.ReferenceMetadata;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -109,6 +112,43 @@ class CodecAspectProviderMisconfigTest {
         return md;
     }
 
+    /**
+     * Runs the provider over a package tree holding just this class (with its features) and
+     * returns the codec aspect entry the provider hung on the class.
+     * <p>
+     * The provider no longer exposes per-element builders:
+     * {@link CodecAspectProvider#onPackageRegistered(PackageMetadata)} is the single entry
+     * point, and an aspect arrives inside an {@link AspectEntry} whose {@code content} is the
+     * codec aspect and whose {@code diagnostics} carry the parse findings (issue #85, D2).
+     * </p>
+     */
+    private AspectEntry classEntry(EClass eClass) {
+        return buildTree(eClass).getAspects().get(0);
+    }
+
+    /** The codec aspect entry the provider hung on one feature of its owning class. */
+    private AspectEntry featureEntry(EStructuralFeature feature) {
+        return buildTree((EClass) feature.eContainer()).getFeatures().stream()
+                .filter(featureMetadata -> featureMetadata.getEFeature() == feature)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no metadata for feature " + feature.getName()))
+                .getAspects().get(0);
+    }
+
+    private ClassMetadata buildTree(EClass eClass) {
+        PackageMetadata packageMetadata = MetadataFactory.eINSTANCE.createPackageMetadata();
+        packageMetadata.setEPackage(eClass.getEPackage());
+        ClassMetadata classMetadata = wrapClass(eClass);
+        packageMetadata.getClasses().add(classMetadata);
+        for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
+            classMetadata.getFeatures().add(feature instanceof EAttribute attribute
+                    ? wrapAttribute(attribute)
+                    : wrapReference((EReference) feature));
+        }
+        provider.onPackageRegistered(packageMetadata);
+        return classMetadata;
+    }
+
     // ========================================================================
     // Keys on Wrong Level: EClass
     // ========================================================================
@@ -127,14 +167,15 @@ class CodecAspectProviderMisconfigTest {
         void misconfig_refConfigKeysOnClass_ignored() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithRefConfigMisplaced");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertNotNull(aspect.getTypeConfig());
             assertEquals(TypeStrategy.URI, aspect.getTypeConfig().getStrategy());
 
             // R-V1: ref* keys on EClass → WARNING
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> d.getKey().startsWith("ref")
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for ref* keys on EClass (R-V1)");
@@ -150,7 +191,8 @@ class CodecAspectProviderMisconfigTest {
         void misconfig_inlineMappingKeysOnClass_ignored() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithInlineMappingMisplaced");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertNotNull(aspect.getTypeConfig());
@@ -180,18 +222,19 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithIdConfigMisplaced");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertNotNull(aspect.getTypeConfig());
             assertEquals(TypeStrategy.NAME, aspect.getTypeConfig().getStrategy());
 
             // ID-V1/ID-V2: idStrategy/idFeatures on EReference → ERROR
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "idStrategy".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have ERROR diagnostic for idStrategy on EReference (ID-V1)");
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "idFeatures".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have ERROR diagnostic for idFeatures on EReference (ID-V2)");
@@ -208,15 +251,16 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithSuperTypeMisplaced");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("addr", aspect.getEffectiveKey());
 
             // ST-V1: superType* keys on EReference → ERROR diagnostics
-            assertTrue(aspect.getDiagnostics().size() >= 1,
+            assertTrue(entry.getDiagnostics().size() >= 1,
                 "Should have at least 1 ERROR diagnostic for superType* keys on EReference");
-            for (MetadataDiagnostic d : aspect.getDiagnostics()) {
+            for (MetadataDiagnostic d : entry.getDiagnostics()) {
                 assertEquals(DiagnosticSeverity.ERROR, d.getSeverity(),
                     "All superType* key diagnostics on EReference should be ERROR severity");
                 assertTrue(d.getKey().startsWith("superType"),
@@ -235,7 +279,8 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithEnumSerializationMisplaced");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("addr", aspect.getEffectiveKey());
@@ -255,14 +300,15 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithDiscriminatorMisplaced");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertNotNull(aspect.getTypeConfig());
             assertEquals(TypeStrategy.NAME, aspect.getTypeConfig().getStrategy());
 
             // typeMapping source on EReference → ERROR diagnostic
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> d.getSeverity() == DiagnosticSeverity.ERROR
                             && d.getMessage().contains("typeMapping")),
                 "Should have ERROR diagnostic for typeMapping source on EReference");
@@ -279,16 +325,17 @@ class CodecAspectProviderMisconfigTest {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithContacts");
             EReference contactsRef = (EReference) EcoreHelper.getFeature(personClass, "contacts");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(contactsRef));
+            AspectEntry entry = featureEntry(contactsRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // 1. Value is NOT applied - typeConfig should be null
             assertNull(aspect.getTypeConfig(),
                 "typeConfig should be null - typeDiscriminatorPath is class-only and should be ignored on EReference");
 
             // 2. Diagnostic IS added
-            assertEquals(1, aspect.getDiagnostics().size(),
+            assertEquals(1, entry.getDiagnostics().size(),
                 "Should have one diagnostic for ignored typeDiscriminatorPath");
-            assertEquals("typeDiscriminatorPath", aspect.getDiagnostics().get(0).getKey());
+            assertEquals("typeDiscriminatorPath", entry.getDiagnostics().get(0).getKey());
 
             // Inline mappings are now handled by TypeDiscriminatorService via dedicated inlineMapping source,
             // not stored on ReferenceCodecAspect
@@ -305,14 +352,15 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithTypeMapIdMisplaced");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertNotNull(aspect.getTypeConfig());
             assertEquals(TypeStrategy.NAME, aspect.getTypeConfig().getStrategy());
 
             // typeMapping source on EReference → ERROR diagnostic
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> d.getSeverity() == DiagnosticSeverity.ERROR
                             && d.getMessage().contains("typeMapping")),
                 "Should have ERROR diagnostic for typeMapping source on EReference");
@@ -330,13 +378,14 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithMoreIdConfigMisplaced");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("addr", aspect.getEffectiveKey());
 
             // Class-only id* keys → ERROR diagnostics
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> d.getKey().startsWith("id")
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have at least 1 ERROR diagnostic for class-only id* keys on EReference");
@@ -352,16 +401,17 @@ class CodecAspectProviderMisconfigTest {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithFallbackReference");
             EReference contactsRef = (EReference) EcoreHelper.getFeature(personClass, "contacts");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(contactsRef));
+            AspectEntry entry = featureEntry(contactsRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // 1. typeDiscriminatorPath is class-only - should be IGNORED
             assertNull(aspect.getTypeConfig(),
                 "typeConfig should be null - typeDiscriminatorPath is class-only and should be ignored");
 
             // 2. Should have diagnostic warning for the ignored key
-            assertEquals(1, aspect.getDiagnostics().size(),
+            assertEquals(1, entry.getDiagnostics().size(),
                 "Should have one diagnostic for ignored typeDiscriminatorPath");
-            assertEquals("typeDiscriminatorPath", aspect.getDiagnostics().get(0).getKey());
+            assertEquals("typeDiscriminatorPath", entry.getDiagnostics().get(0).getKey());
 
             // 3. Inline mappings and fallback are now handled by TypeDiscriminatorService
             //    via dedicated inlineMapping source, not stored on ReferenceCodecAspect
@@ -387,7 +437,8 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithTypeConfigMisplaced");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("attr_name", aspect.getEffectiveKey());
@@ -407,13 +458,14 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithSuperTypeMisplaced");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("attr_name", aspect.getEffectiveKey());
 
             // ST-V2: superType* keys on EAttribute → ERROR diagnostics
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> d.getKey().startsWith("superType")
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have at least 1 ERROR diagnostic for superType* keys on EAttribute");
@@ -430,13 +482,14 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithIdConfigMisplaced");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("attr_name", aspect.getEffectiveKey());
 
             // ID-V13: id* keys on EAttribute → ERROR
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> d.getKey().startsWith("id")
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have at least 1 ERROR diagnostic for id* keys on EAttribute");
@@ -453,13 +506,14 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithRefConfigMisplaced");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("attr_name", aspect.getEffectiveKey());
 
             // R-V2: ref* keys on EAttribute → ERROR
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> d.getKey().startsWith("ref")
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have ERROR diagnostic for ref* keys on EAttribute (R-V2)");
@@ -476,7 +530,8 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithInlineMappingMisplaced");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("attr_name", aspect.getEffectiveKey());
@@ -496,7 +551,8 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithFallbackMisplaced");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("attr_name", aspect.getEffectiveKey());
@@ -516,13 +572,14 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithExpandMisplaced");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("attr_name", aspect.getEffectiveKey());
 
             // R-V4: expand on EAttribute → ERROR
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "expand".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have ERROR diagnostic for expand on EAttribute (R-V4)");
@@ -539,25 +596,26 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithTypeValueHandlersMisplaced");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("addr", aspect.getEffectiveKey());
 
             // T-V1: typeValueReaderName on EReference → ERROR
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "typeValueReaderName".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have ERROR diagnostic for typeValueReaderName on EReference (T-V1)");
 
             // T-V2: typeValueWriterName on EReference → ERROR
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "typeValueWriterName".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have ERROR diagnostic for typeValueWriterName on EReference (T-V2)");
 
             // Should have exactly 2 diagnostics
-            assertEquals(2, aspect.getDiagnostics().size(),
+            assertEquals(2, entry.getDiagnostics().size(),
                 "Should have exactly 2 ERROR diagnostics for typeValueReaderName and typeValueWriterName");
         }
     }
@@ -582,25 +640,26 @@ class CodecAspectProviderMisconfigTest {
         void validation_runtimeOnlyKeysOnClass_warningDiagnostics() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithRuntimeOnlyKeys");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertNotNull(aspect.getTypeConfig());
             assertEquals(TypeStrategy.URI, aspect.getTypeConfig().getStrategy());
 
             // T-V3: typeScope → WARNING
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "typeScope".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for typeScope in EAnnotation (T-V3)");
 
             // T-V4: typeFormatScope → WARNING
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "typeFormatScope".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for typeFormatScope in EAnnotation (T-V4)");
 
-            assertEquals(2, aspect.getDiagnostics().size(),
+            assertEquals(2, entry.getDiagnostics().size(),
                 "Should have exactly 2 WARNING diagnostics for runtime-only keys");
         }
 
@@ -614,25 +673,26 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithRuntimeOnlyKeys");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertNotNull(aspect.getTypeConfig());
             assertEquals(TypeStrategy.NAME, aspect.getTypeConfig().getStrategy());
 
             // T-V3: typeScope → WARNING
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "typeScope".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for typeScope in EAnnotation (T-V3)");
 
             // T-V4: typeFormatScope → WARNING
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "typeFormatScope".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for typeFormatScope in EAnnotation (T-V4)");
 
-            assertEquals(2, aspect.getDiagnostics().size(),
+            assertEquals(2, entry.getDiagnostics().size(),
                 "Should have exactly 2 WARNING diagnostics for runtime-only keys");
         }
 
@@ -649,17 +709,18 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithTypeConfigMisplaced");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("attr_name", aspect.getEffectiveKey());
 
             // T-V5: All type* keys → ERROR
             // The test ecore has typeStrategy, typeFormat, typeKey on the attribute
-            assertTrue(aspect.getDiagnostics().size() >= 3,
+            assertTrue(entry.getDiagnostics().size() >= 3,
                 "Should have at least 3 ERROR diagnostics for type* keys on EAttribute (typeStrategy, typeFormat, typeKey)");
 
-            for (MetadataDiagnostic d : aspect.getDiagnostics()) {
+            for (MetadataDiagnostic d : entry.getDiagnostics()) {
                 assertEquals(DiagnosticSeverity.ERROR, d.getSeverity(),
                     "All type* key diagnostics on EAttribute should be ERROR severity");
                 assertTrue(d.getKey().startsWith("type"),
@@ -680,15 +741,16 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithTypeDiscriminatorOnly");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("addr", aspect.getEffectiveKey());
 
             // typeMapping source on EReference → ERROR
-            assertEquals(1, aspect.getDiagnostics().size(),
+            assertEquals(1, entry.getDiagnostics().size(),
                 "Should have exactly 1 diagnostic for typeMapping source on EReference");
-            MetadataDiagnostic diagnostic = aspect.getDiagnostics().get(0);
+            MetadataDiagnostic diagnostic = entry.getDiagnostics().get(0);
             assertEquals(DiagnosticSeverity.ERROR, diagnostic.getSeverity());
             assertTrue(diagnostic.getMessage().contains("typeMapping"),
                 "Diagnostic message should reference typeMapping");
@@ -706,12 +768,13 @@ class CodecAspectProviderMisconfigTest {
         void validation_deprecatedTypeInclude_warningDiagnostic() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithDeprecatedTypeInclude");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             // T-V30: typeInclude → WARNING (deprecated)
-            assertEquals(1, aspect.getDiagnostics().size(),
+            assertEquals(1, entry.getDiagnostics().size(),
                 "Should have exactly 1 diagnostic for deprecated typeInclude");
-            MetadataDiagnostic diagnostic = aspect.getDiagnostics().get(0);
+            MetadataDiagnostic diagnostic = entry.getDiagnostics().get(0);
             assertEquals("typeInclude", diagnostic.getKey());
             assertEquals(DiagnosticSeverity.WARNING, diagnostic.getSeverity());
             assertTrue(diagnostic.getMessage().contains("DEPRECATED"),
@@ -728,16 +791,17 @@ class CodecAspectProviderMisconfigTest {
         void validation_bothTypeIncludeAndStrategy_warningDiagnostic() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithBothTypeIncludeAndStrategy");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             // Valid typeStrategy should be parsed
             assertNotNull(aspect.getTypeConfig());
             assertEquals(TypeStrategy.NAME, aspect.getTypeConfig().getStrategy());
 
             // T-V31: Both present → WARNING (typeStrategy takes precedence)
-            assertEquals(1, aspect.getDiagnostics().size(),
+            assertEquals(1, entry.getDiagnostics().size(),
                 "Should have exactly 1 diagnostic for deprecated typeInclude when typeStrategy is also set");
-            MetadataDiagnostic diagnostic = aspect.getDiagnostics().get(0);
+            MetadataDiagnostic diagnostic = entry.getDiagnostics().get(0);
             assertEquals("typeInclude", diagnostic.getKey());
             assertEquals(DiagnosticSeverity.WARNING, diagnostic.getSeverity());
             assertTrue(diagnostic.getMessage().contains("DEPRECATED"),
@@ -758,25 +822,26 @@ class CodecAspectProviderMisconfigTest {
         void validation_idRuntimeOnlyKeysOnClass_warningDiagnostics() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "ClassWithIdRuntimeOnlyKeys");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertNotNull(aspect.getIdConfig());
-            assertEquals(org.eclipse.fennec.model.metadata.IdStrategy.ID_FIELD, aspect.getIdConfig().getStrategy());
+            assertEquals(org.eclipse.fennec.codec.metadata.model.codec.IdStrategy.ID_FIELD, aspect.getIdConfig().getStrategy());
 
             // ID-V11: idScope → WARNING
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "idScope".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for idScope in EAnnotation (ID-V11)");
 
             // ID-V12: idFormatScope → WARNING
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "idFormatScope".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for idFormatScope in EAnnotation (ID-V12)");
 
-            assertEquals(2, aspect.getDiagnostics().size(),
+            assertEquals(2, entry.getDiagnostics().size(),
                 "Should have exactly 2 WARNING diagnostics for runtime-only ID keys");
         }
 
@@ -790,24 +855,25 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithIdRuntimeOnlyKeys");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // Valid key was parsed
             assertEquals("addr", aspect.getEffectiveKey());
 
             // ID-V11: idScope → WARNING
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "idScope".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for idScope in EAnnotation (ID-V11)");
 
             // ID-V12: idFormatScope → WARNING
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "idFormatScope".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for idFormatScope in EAnnotation (ID-V12)");
 
-            assertEquals(2, aspect.getDiagnostics().size(),
+            assertEquals(2, entry.getDiagnostics().size(),
                 "Should have exactly 2 WARNING diagnostics for runtime-only ID keys");
         }
     }
@@ -830,11 +896,12 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithStrictOnUnknownMisplaced");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             // Value should NOT be applied (class-only property)
             // Diagnostic should be added
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "strictOnUnknown".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for strictOnUnknown on EAttribute");
@@ -849,9 +916,10 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithStrictOnMissingMisplaced");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "strictOnMissing".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING diagnostic for strictOnMissing on EReference");
@@ -866,19 +934,20 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithBothStrictnessMisplaced");
             EAttribute dataAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "data");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(dataAttr));
+            AspectEntry entry = featureEntry(dataAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "strictOnUnknown".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING for strictOnUnknown");
 
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "strictOnMissing".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.WARNING),
                 "Should have WARNING for strictOnMissing");
 
-            assertEquals(2, aspect.getDiagnostics().stream()
+            assertEquals(2, entry.getDiagnostics().stream()
                     .filter(d -> d.getKey().startsWith("strictOn"))
                     .count(),
                 "Should have exactly 2 strictness-related diagnostics");
@@ -902,9 +971,10 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithMetadataMergeMisplaced");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "name");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "metadataMerge".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have ERROR diagnostic for metadataMerge on EAttribute");
@@ -919,9 +989,10 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "RefWithMetadataKeyMisplaced");
             EReference addressRef = (EReference) EcoreHelper.getFeature(entityClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "metadataKey".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have ERROR diagnostic for metadataKey on EReference");
@@ -936,19 +1007,20 @@ class CodecAspectProviderMisconfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "AttrWithBothMetadataMergeMisplaced");
             EAttribute dataAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "data");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(dataAttr));
+            AspectEntry entry = featureEntry(dataAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "metadataMerge".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have ERROR for metadataMerge");
 
-            assertTrue(aspect.getDiagnostics().stream()
+            assertTrue(entry.getDiagnostics().stream()
                     .anyMatch(d -> "metadataKey".equals(d.getKey())
                             && d.getSeverity() == DiagnosticSeverity.ERROR),
                 "Should have ERROR for metadataKey");
 
-            assertEquals(2, aspect.getDiagnostics().stream()
+            assertEquals(2, entry.getDiagnostics().stream()
                     .filter(d -> d.getKey().startsWith("metadata"))
                     .count(),
                 "Should have exactly 2 metadata-merge-related diagnostics");

@@ -12,36 +12,41 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.metadata.provider;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
-import org.eclipse.fennec.model.metadata.AttributeMetadata;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.FeatureMetadata;
-import org.eclipse.fennec.model.metadata.MetadataFactory;
-import org.eclipse.fennec.model.metadata.ReferenceMetadata;
+import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.IdStrategy;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
-import org.eclipse.fennec.model.metadata.ClassAspect;
-import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
-import org.eclipse.fennec.model.metadata.FeatureAspect;
-import org.eclipse.fennec.model.metadata.IdKeyMode;
-import org.eclipse.fennec.model.metadata.IdStrategy;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
-import org.eclipse.fennec.model.metadata.SuperTypeSelection;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
+import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
+import org.eclipse.fennec.emf.osgi.model.metadata.AttributeMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataFactory;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.ReferenceMetadata;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -109,6 +114,44 @@ class CodecAspectProviderValidConfigTest {
         return md;
     }
 
+    /**
+     * Runs the provider over a package tree holding just this class (with its features) and
+     * returns the codec aspect entry the provider hung on the class.
+     * <p>
+     * The provider no longer exposes per-element builders:
+     * {@link CodecAspectProvider#onPackageRegistered(PackageMetadata)} is the single entry
+     * point, and an aspect arrives inside an {@link AspectEntry} whose {@code content} is the
+     * codec aspect and whose {@code diagnostics} carry the parse findings (issue #85, D2).
+     * </p>
+     */
+    private AspectEntry classEntry(EClass eClass) {
+        return buildTree(eClass).getAspects().get(0);
+    }
+
+    /** The codec aspect entry the provider hung on one feature of its owning class. */
+    private AspectEntry featureEntry(EStructuralFeature feature) {
+        return buildTree((EClass) feature.eContainer()).getFeatures().stream()
+                .filter(featureMetadata -> featureMetadata.getEFeature() == feature)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no metadata for feature " + feature.getName()))
+                .getAspects().get(0);
+    }
+
+    private ClassMetadata buildTree(EClass eClass) {
+        PackageMetadata packageMetadata = MetadataFactory.eINSTANCE.createPackageMetadata();
+        packageMetadata.setEPackage(eClass.getEPackage());
+        ClassMetadata classMetadata = wrapClass(eClass);
+        packageMetadata.getClasses().add(classMetadata);
+        for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
+            classMetadata.getFeatures().add(feature instanceof EAttribute attribute
+                    ? wrapAttribute(attribute)
+                    : wrapReference((EReference) feature));
+        }
+        provider.onPackageRegistered(packageMetadata);
+        return classMetadata;
+    }
+
+
     private FeatureMetadata wrapFeature(EStructuralFeature feature) {
         if (feature instanceof EAttribute attr) return wrapAttribute(attr);
         if (feature instanceof EReference ref) return wrapReference(ref);
@@ -123,11 +166,12 @@ class CodecAspectProviderValidConfigTest {
     @DisplayName("Basic Aspect Creation")
     class BasicTests {
 
-        /** @HELPER Tests provider type ID. */
+        /** @HELPER Tests the aspect type id the provider stamps on its entries. */
         @Test
-        @DisplayName("provider returns 'codec' type ID")
+        @DisplayName("provider stamps the 'codec' type id on its entries")
         void helper_aspectTypeId_returnsCodec() {
-            assertEquals("codec", provider.getAspectTypeId());
+            assertEquals("codec", CodecAspectProvider.ASPECT_TYPE_ID);
+            assertEquals("codec", classEntry(EcoreHelper.getEClass(testPackage, "SimpleClass")).getTypeId());
         }
 
         /** @VALID @SPEC(16-annotation-reference.md) Tests class without annotations uses defaults. */
@@ -136,13 +180,15 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_classNoAnnotations_usesDefaults() {
             EClass simpleClass = EcoreHelper.getEClass(testPackage, "SimpleClass");
 
-            ClassAspect aspect = provider.buildClassAspect(wrapClass(simpleClass));
+            AspectEntry entry = classEntry(simpleClass);
 
-            assertNotNull(aspect);
-            assertTrue(aspect instanceof ClassCodecAspect);
-            assertEquals("codec", aspect.getTypeId());
+            // The type id moved from the aspect to its entry (issue #85, D2); the content is
+            // the codec aspect itself.
+            assertNotNull(entry.getContent());
+            assertTrue(entry.getContent() instanceof ClassCodecAspect);
+            assertEquals("codec", entry.getTypeId());
 
-            ClassCodecAspect codecAspect = (ClassCodecAspect) aspect;
+            ClassCodecAspect codecAspect = (ClassCodecAspect) entry.getContent();
             assertNull(codecAspect.getIdConfig());
             assertNull(codecAspect.getTypeConfig());
             assertNull(codecAspect.getSuperTypeConfig());
@@ -156,13 +202,13 @@ class CodecAspectProviderValidConfigTest {
             EClass simpleClass = EcoreHelper.getEClass(testPackage, "SimpleClass");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(simpleClass, "name");
 
-            FeatureAspect aspect = provider.buildAttributeAspect(wrapAttribute(nameAttr));
+            AspectEntry entry = featureEntry(nameAttr);
 
-            assertNotNull(aspect);
-            assertTrue(aspect instanceof FeatureCodecAspect);
-            assertEquals("codec", aspect.getTypeId());
+            assertNotNull(entry.getContent());
+            assertTrue(entry.getContent() instanceof FeatureCodecAspect);
+            assertEquals("codec", entry.getTypeId());
 
-            FeatureCodecAspect codecAspect = (FeatureCodecAspect) aspect;
+            FeatureCodecAspect codecAspect = (FeatureCodecAspect) entry.getContent();
             assertFalse(codecAspect.isIgnore());
             assertNull(codecAspect.getEffectiveKey());
             assertNull(codecAspect.getValueWriterName());
@@ -179,20 +225,20 @@ class CodecAspectProviderValidConfigTest {
             // Remove annotation for this test
             addressRef.getEAnnotations().clear();
 
-            FeatureAspect aspect = provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
 
-            assertNotNull(aspect);
-            assertTrue(aspect instanceof ReferenceCodecAspect);
-            assertEquals("codec", aspect.getTypeId());
+            assertNotNull(entry.getContent());
+            assertTrue(entry.getContent() instanceof ReferenceCodecAspect);
+            assertEquals("codec", entry.getTypeId());
 
-            ReferenceCodecAspect codecAspect = (ReferenceCodecAspect) aspect;
+            ReferenceCodecAspect codecAspect = (ReferenceCodecAspect) entry.getContent();
             assertFalse(codecAspect.isIgnore());
             assertNull(codecAspect.getEffectiveKey());
         }
 
-        /** @HELPER Tests delegation from buildFeatureAspect. */
+        /** @HELPER Tests that the aspect type follows the kind of the feature. */
         @Test
-        @DisplayName("buildFeatureAspect delegates to correct method")
+        @DisplayName("feature aspect type follows the feature kind")
         void helper_featureAspectDelegation_delegatesCorrectly() {
             EClass simpleClass = EcoreHelper.getEClass(testPackage, "SimpleClass");
             EAttribute nameAttr = (EAttribute) EcoreHelper.getFeature(simpleClass, "name");
@@ -200,11 +246,11 @@ class CodecAspectProviderValidConfigTest {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithTypedReference");
             EReference addressRef = (EReference) EcoreHelper.getFeature(personClass, "address");
 
-            FeatureAspect attrAspect = provider.buildFeatureAspect(wrapFeature(nameAttr));
+            EObject attrAspect = featureEntry(nameAttr).getContent();
             assertTrue(attrAspect instanceof FeatureCodecAspect);
             assertFalse(attrAspect instanceof ReferenceCodecAspect);
 
-            FeatureAspect refAspect = provider.buildFeatureAspect(wrapFeature(addressRef));
+            EObject refAspect = featureEntry(addressRef).getContent();
             assertTrue(refAspect instanceof ReferenceCodecAspect);
         }
     }
@@ -223,7 +269,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_idFieldStrategy_parsedCorrectly() {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithIdField");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(personClass));
+            AspectEntry entry = classEntry(personClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getIdConfig());
             IdSerializationConfig idConfig = aspect.getIdConfig();
@@ -237,7 +284,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_combinedIdStrategy_parsedWithFeaturesAndSeparator() {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithCombinedId");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(personClass));
+            AspectEntry entry = classEntry(personClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getIdConfig());
             IdSerializationConfig idConfig = aspect.getIdConfig();
@@ -254,7 +302,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_idNoneKeyMode_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithNoId");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getIdConfig());
             assertEquals(IdKeyMode.NONE, aspect.getIdConfig().getKeyMode());
@@ -266,7 +315,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_customIdReaderWriter_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithCustomIdHandlers");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getIdConfig());
             assertEquals("CustomIdReader", aspect.getIdConfig().getIdValueReaderName());
@@ -279,7 +329,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_structuredIdConfig_allFieldsParsed() {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithStructuredId");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(personClass));
+            AspectEntry entry = classEntry(personClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getIdConfig());
             IdSerializationConfig idConfig = aspect.getIdConfig();
@@ -299,7 +350,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_idKeyModeNone_parsedCorrectly() {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithIdKeyModeNone");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(personClass));
+            AspectEntry entry = classEntry(personClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getIdConfig());
             IdSerializationConfig idConfig = aspect.getIdConfig();
@@ -316,7 +368,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_idValueKey_parsedCorrectly() {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithIdValueKey");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(personClass));
+            AspectEntry entry = classEntry(personClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getIdConfig());
             IdSerializationConfig idConfig = aspect.getIdConfig();
@@ -342,7 +395,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_typeStrategyUri_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "TypedEntityUri");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             TypeSerializationConfig typeConfig = aspect.getTypeConfig();
@@ -356,7 +410,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_typeStrategyName_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "TypedEntityName");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             assertEquals(TypeStrategy.NAME, aspect.getTypeConfig().getStrategy());
@@ -368,7 +423,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_discriminatorPath_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "TypedEntityWithDiscriminator");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             TypeSerializationConfig typeConfig = aspect.getTypeConfig();
@@ -382,7 +438,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_typeStrategyNone_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "TypedEntityNoInclude");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             assertEquals(TypeStrategy.NONE, aspect.getTypeConfig().getStrategy());
@@ -394,7 +451,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_structuredTypeConfig_allFieldsParsed() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "TypedEntityStructured");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             TypeSerializationConfig typeConfig = aspect.getTypeConfig();
@@ -412,7 +470,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_typeMapId_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "TypedEntityWithMapId");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             TypeSerializationConfig typeConfig = aspect.getTypeConfig();
@@ -436,7 +495,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_superTypeEnabled_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSuperTypes");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getSuperTypeConfig());
             SuperTypeSerializationConfig superConfig = aspect.getSuperTypeConfig();
@@ -451,7 +511,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_singleSuperTypeStrategy_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSingleSuperType");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getSuperTypeConfig());
             assertEquals(SuperTypeSelection.SINGLE, aspect.getSuperTypeConfig().getSelection());
@@ -463,7 +524,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_superTypeAsArrayFalse_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSuperTypesNotAsArray");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getSuperTypeConfig());
             SuperTypeSerializationConfig superConfig = aspect.getSuperTypeConfig();
@@ -477,7 +539,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_superTypeSeparator_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSuperTypesSeparator");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getSuperTypeConfig());
             SuperTypeSerializationConfig superConfig = aspect.getSuperTypeConfig();
@@ -492,7 +555,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_superTypeDefaultAsArrayTrue_defaultApplied() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSuperTypes");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getSuperTypeConfig());
             SuperTypeSerializationConfig superConfig = aspect.getSuperTypeConfig();
@@ -505,7 +569,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_superTypeDefaultSeparator_defaultApplied() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSuperTypesNotAsArray");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getSuperTypeConfig());
             SuperTypeSerializationConfig superConfig = aspect.getSuperTypeConfig();
@@ -518,7 +583,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_structuredSuperTypeConfig_allFieldsParsed() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithStructuredSuperType");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getSuperTypeConfig());
             SuperTypeSerializationConfig superConfig = aspect.getSuperTypeConfig();
@@ -545,7 +611,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_discriminatorValue_parsedCorrectly() {
             EClass deviceClass = EcoreHelper.getEClass(testPackage, "DraginoDevice");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(deviceClass));
+            AspectEntry entry = classEntry(deviceClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertEquals("Dragino_LSE01", aspect.getDiscriminatorValue());
         }
@@ -556,7 +623,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_fallbackError_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithFallbackError");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             TypeSerializationConfig typeConfig = aspect.getTypeConfig();
@@ -573,7 +641,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_fallbackSkip_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithFallbackSkip");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             TypeSerializationConfig typeConfig = aspect.getTypeConfig();
@@ -590,7 +659,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_explicitFallbackEClass_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithExplicitFallback");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             TypeSerializationConfig typeConfig = aspect.getTypeConfig();
@@ -617,7 +687,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithTransientField");
             EAttribute secretAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "secretData");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(secretAttr));
+            AspectEntry entry = featureEntry(secretAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertTrue(aspect.isIgnore());
         }
@@ -629,7 +700,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithTransientField");
             EAttribute publicAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "publicData");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(publicAttr));
+            AspectEntry entry = featureEntry(publicAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertFalse(aspect.isIgnore());
         }
@@ -641,7 +713,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithTransientReference");
             EReference cachedRef = (EReference) EcoreHelper.getFeature(entityClass, "cachedAddress");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(cachedRef));
+            AspectEntry entry = featureEntry(cachedRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             assertTrue(aspect.isIgnore());
         }
@@ -653,7 +726,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSerializeOptions");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "explicitSerialize");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertFalse(aspect.isIgnore());
         }
@@ -665,7 +739,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSerializeOptions");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "noSerialize");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertTrue(aspect.isIgnore());
         }
@@ -677,7 +752,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSerializeOptions");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "conflictSerializeWins");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertFalse(aspect.isIgnore());
         }
@@ -689,7 +765,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSerializeOptions");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "nullableField");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertTrue(aspect.isSerializeNull());
         }
@@ -701,7 +778,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSerializeOptions");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "emptyListField");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertTrue(aspect.isSerializeEmpty());
         }
@@ -713,7 +791,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSerializeOptions");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "defaultValueField");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertTrue(aspect.isSerializeDefaults());
         }
@@ -726,8 +805,10 @@ class CodecAspectProviderValidConfigTest {
             EAttribute firstNameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "firstName");
             EAttribute lastNameAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "lastName");
 
-            FeatureCodecAspect firstNameAspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(firstNameAttr));
-            FeatureCodecAspect lastNameAspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(lastNameAttr));
+            AspectEntry firstNameAspectEntry = featureEntry(firstNameAttr);
+            FeatureCodecAspect firstNameAspect = (FeatureCodecAspect) firstNameAspectEntry.getContent();
+            AspectEntry lastNameAspectEntry = featureEntry(lastNameAttr);
+            FeatureCodecAspect lastNameAspect = (FeatureCodecAspect) lastNameAspectEntry.getContent();
 
             assertEquals("first_name", firstNameAspect.getEffectiveKey());
             assertEquals("last_name", lastNameAspect.getEffectiveKey());
@@ -740,7 +821,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithCustomKeys");
             EReference homeAddressRef = (EReference) EcoreHelper.getFeature(entityClass, "homeAddress");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(homeAddressRef));
+            AspectEntry entry = featureEntry(homeAddressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             assertEquals("home_address", aspect.getEffectiveKey());
         }
@@ -761,7 +843,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithCustomValueHandlers");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "onlyWriter");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertEquals("CustomWriter", aspect.getValueWriterName());
             assertNull(aspect.getValueReaderName());
@@ -774,7 +857,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithCustomValueHandlers");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "onlyReader");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertEquals("CustomReader", aspect.getValueReaderName());
             assertNull(aspect.getValueWriterName());
@@ -787,7 +871,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithCustomValueHandlers");
             EAttribute birthDateAttr = (EAttribute) EcoreHelper.getFeature(entityClass, "birthDate");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(birthDateAttr));
+            AspectEntry entry = featureEntry(birthDateAttr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertEquals("ISO8601DateWriter", aspect.getValueWriterName());
             assertEquals("FlexibleDateReader", aspect.getValueReaderName());
@@ -809,7 +894,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithEnumFields");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "statusLiteral");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertEquals(EnumSerializationStrategy.LITERAL, aspect.getEnumSerialization());
         }
@@ -821,7 +907,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithEnumFields");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "statusValue");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertEquals(EnumSerializationStrategy.VALUE, aspect.getEnumSerialization());
         }
@@ -833,7 +920,8 @@ class CodecAspectProviderValidConfigTest {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithEnumFields");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "statusName");
 
-            FeatureCodecAspect aspect = (FeatureCodecAspect) provider.buildAttributeAspect(wrapAttribute(attr));
+            AspectEntry entry = featureEntry(attr);
+            FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertEquals(EnumSerializationStrategy.NAME, aspect.getEnumSerialization());
         }
@@ -854,7 +942,8 @@ class CodecAspectProviderValidConfigTest {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithTypedReference");
             EReference addressRef = (EReference) EcoreHelper.getFeature(personClass, "address");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(addressRef));
+            AspectEntry entry = featureEntry(addressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             assertEquals(TypeStrategy.NAME, aspect.getTypeConfig().getStrategy());
@@ -868,7 +957,8 @@ class CodecAspectProviderValidConfigTest {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithRefConfig");
             EReference employerRef = (EReference) EcoreHelper.getFeature(personClass, "employer");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(employerRef));
+            AspectEntry entry = featureEntry(employerRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getReferenceConfig());
             ReferenceSerializationConfig refConfig = aspect.getReferenceConfig();
@@ -891,12 +981,13 @@ class CodecAspectProviderValidConfigTest {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithContacts");
             EReference contactsRef = (EReference) EcoreHelper.getFeature(personClass, "contacts");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(contactsRef));
+            AspectEntry entry = featureEntry(contactsRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // typeDiscriminatorPath in codec annotation is class-only → should generate diagnostic
             assertNull(aspect.getTypeConfig(),
                 "typeConfig should be null - typeDiscriminatorPath is class-only and should be ignored on EReference");
-            assertEquals(1, aspect.getDiagnostics().size(),
+            assertEquals(1, entry.getDiagnostics().size(),
                 "Should have one diagnostic for ignored typeDiscriminatorPath");
             // Inline mappings are no longer stored on the aspect - they are handled by TypeDiscriminatorService
         }
@@ -911,12 +1002,13 @@ class CodecAspectProviderValidConfigTest {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithFallbackReference");
             EReference contactsRef = (EReference) EcoreHelper.getFeature(personClass, "contacts");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(contactsRef));
+            AspectEntry entry = featureEntry(contactsRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             // typeDiscriminatorPath in codec annotation is class-only → should generate diagnostic
             assertNull(aspect.getTypeConfig(),
                 "typeConfig should be null - typeDiscriminatorPath is class-only and should be ignored");
-            assertEquals(1, aspect.getDiagnostics().size(),
+            assertEquals(1, entry.getDiagnostics().size(),
                 "Should have one diagnostic for ignored typeDiscriminatorPath");
             // Inline mappings and fallback are no longer stored on the aspect - handled by TypeDiscriminatorService
         }
@@ -937,7 +1029,8 @@ class CodecAspectProviderValidConfigTest {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithHierarchyConfig");
             EReference primaryAddressRef = (EReference) EcoreHelper.getFeature(personClass, "primaryAddress");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(primaryAddressRef));
+            AspectEntry entry = featureEntry(primaryAddressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             assertNull(aspect.getTypeConfig());
         }
@@ -949,7 +1042,8 @@ class CodecAspectProviderValidConfigTest {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithHierarchyConfig");
             EReference businessAddressRef = (EReference) EcoreHelper.getFeature(personClass, "businessAddress");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(businessAddressRef));
+            AspectEntry entry = featureEntry(businessAddressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             TypeSerializationConfig typeConfig = aspect.getTypeConfig();
@@ -966,7 +1060,8 @@ class CodecAspectProviderValidConfigTest {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithHierarchyConfig");
             EReference shippingAddressRef = (EReference) EcoreHelper.getFeature(personClass, "shippingAddress");
 
-            ReferenceCodecAspect aspect = (ReferenceCodecAspect) provider.buildReferenceAspect(wrapReference(shippingAddressRef));
+            AspectEntry entry = featureEntry(shippingAddressRef);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             TypeSerializationConfig typeConfig = aspect.getTypeConfig();
@@ -982,7 +1077,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_classTypeConfig_parsedCorrectly() {
             EClass personClass = EcoreHelper.getEClass(testPackage, "PersonWithHierarchyConfig");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(personClass));
+            AspectEntry entry = classEntry(personClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getTypeConfig());
             TypeSerializationConfig typeConfig = aspect.getTypeConfig();
@@ -1007,7 +1103,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_allConfigsCombined_allParsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "FullyConfiguredEntity");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertNotNull(aspect.getIdConfig());
             assertNotNull(aspect.getTypeConfig());
@@ -1025,7 +1122,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_inheritAnnotation_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "InheritingEntity");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertTrue(aspect.isInheritFromParent());
         }
@@ -1045,7 +1143,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_bothStrictnessFlags_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "StrictEntity");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertTrue(aspect.isStrictOnUnknown(),
                 "strictOnUnknown should be true");
@@ -1059,7 +1158,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_strictOnUnknownOnly_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "StrictUnknownOnly");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertTrue(aspect.isStrictOnUnknown(),
                 "strictOnUnknown should be true");
@@ -1073,7 +1173,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_strictOnMissingOnly_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "StrictMissingOnly");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertFalse(aspect.isStrictOnUnknown(),
                 "strictOnUnknown should remain false (not set)");
@@ -1087,7 +1188,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_noStrictnessFlags_defaultsFalse() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "SimpleClass");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertFalse(aspect.isStrictOnUnknown(),
                 "strictOnUnknown defaults to false");
@@ -1110,7 +1212,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_metadataMergeWithCustomKey_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "MergedMetadataEntity");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertTrue(aspect.isMetadataMerge(),
                 "metadataMerge should be true");
@@ -1124,7 +1227,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_metadataMergeDefaultKey_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "MergedMetadataDefaultKey");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertTrue(aspect.isMetadataMerge(),
                 "metadataMerge should be true");
@@ -1138,7 +1242,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_metadataMergeDisabled_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "MergedMetadataDisabled");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertFalse(aspect.isMetadataMerge(),
                 "metadataMerge should be false");
@@ -1150,7 +1255,8 @@ class CodecAspectProviderValidConfigTest {
         void validConfig_noMetadataMergeFlags_defaultsFalse() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "SimpleClass");
 
-            ClassCodecAspect aspect = (ClassCodecAspect) provider.buildClassAspect(wrapClass(entityClass));
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
 
             assertFalse(aspect.isMetadataMerge(),
                 "metadataMerge defaults to false");

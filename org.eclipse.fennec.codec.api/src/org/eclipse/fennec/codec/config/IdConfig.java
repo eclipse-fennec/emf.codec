@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
-import org.eclipse.fennec.model.metadata.IdKeyMode;
-import org.eclipse.fennec.model.metadata.IdStrategy;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
+import org.eclipse.fennec.codec.metadata.model.codec.IdStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 
 /**
  * Immutable ID serialization configuration.

@@ -19,17 +19,6 @@ import org.eclipse.emf.ecore.util.Switch;
 
 import org.eclipse.fennec.codec.metadata.model.codec.*;
 
-import org.eclipse.fennec.model.metadata.Aspect;
-import org.eclipse.fennec.model.metadata.BaseFeatureConfig;
-import org.eclipse.fennec.model.metadata.BaseIdConfig;
-import org.eclipse.fennec.model.metadata.BaseReferenceConfig;
-import org.eclipse.fennec.model.metadata.BaseSuperTypeConfig;
-import org.eclipse.fennec.model.metadata.BaseTypeConfig;
-import org.eclipse.fennec.model.metadata.ClassAspect;
-import org.eclipse.fennec.model.metadata.ClassProfile;
-import org.eclipse.fennec.model.metadata.FeatureAspect;
-import org.eclipse.fennec.model.metadata.PackageProfile;
-
 /**
  * <!-- begin-user-doc -->
  * The <b>Switch</b> for the model's inheritance hierarchy.
@@ -87,6 +76,36 @@ public class CodecSwitch<T> extends Switch<T> {
 	@Override
 	protected T doSwitch(int classifierID, EObject theEObject) {
 		switch (classifierID) {
+			case CodecPackage.BASE_TYPE_CONFIG: {
+				BaseTypeConfig baseTypeConfig = (BaseTypeConfig)theEObject;
+				T result = caseBaseTypeConfig(baseTypeConfig);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case CodecPackage.BASE_ID_CONFIG: {
+				BaseIdConfig baseIdConfig = (BaseIdConfig)theEObject;
+				T result = caseBaseIdConfig(baseIdConfig);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case CodecPackage.BASE_REFERENCE_CONFIG: {
+				BaseReferenceConfig baseReferenceConfig = (BaseReferenceConfig)theEObject;
+				T result = caseBaseReferenceConfig(baseReferenceConfig);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case CodecPackage.BASE_SUPER_TYPE_CONFIG: {
+				BaseSuperTypeConfig baseSuperTypeConfig = (BaseSuperTypeConfig)theEObject;
+				T result = caseBaseSuperTypeConfig(baseSuperTypeConfig);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case CodecPackage.BASE_FEATURE_CONFIG: {
+				BaseFeatureConfig baseFeatureConfig = (BaseFeatureConfig)theEObject;
+				T result = caseBaseFeatureConfig(baseFeatureConfig);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
 			case CodecPackage.TYPE_SERIALIZATION_CONFIG: {
 				TypeSerializationConfig typeSerializationConfig = (TypeSerializationConfig)theEObject;
 				T result = caseTypeSerializationConfig(typeSerializationConfig);
@@ -125,16 +144,12 @@ public class CodecSwitch<T> extends Switch<T> {
 			case CodecPackage.CLASS_CODEC_ASPECT: {
 				ClassCodecAspect classCodecAspect = (ClassCodecAspect)theEObject;
 				T result = caseClassCodecAspect(classCodecAspect);
-				if (result == null) result = caseClassAspect(classCodecAspect);
-				if (result == null) result = caseAspect(classCodecAspect);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
 			case CodecPackage.FEATURE_CODEC_ASPECT: {
 				FeatureCodecAspect featureCodecAspect = (FeatureCodecAspect)theEObject;
 				T result = caseFeatureCodecAspect(featureCodecAspect);
-				if (result == null) result = caseFeatureAspect(featureCodecAspect);
-				if (result == null) result = caseAspect(featureCodecAspect);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
@@ -142,22 +157,18 @@ public class CodecSwitch<T> extends Switch<T> {
 				ReferenceCodecAspect referenceCodecAspect = (ReferenceCodecAspect)theEObject;
 				T result = caseReferenceCodecAspect(referenceCodecAspect);
 				if (result == null) result = caseFeatureCodecAspect(referenceCodecAspect);
-				if (result == null) result = caseFeatureAspect(referenceCodecAspect);
-				if (result == null) result = caseAspect(referenceCodecAspect);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
 			case CodecPackage.CODEC_PACKAGE_PROFILE: {
 				CodecPackageProfile codecPackageProfile = (CodecPackageProfile)theEObject;
 				T result = caseCodecPackageProfile(codecPackageProfile);
-				if (result == null) result = casePackageProfile(codecPackageProfile);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
 			case CodecPackage.CODEC_CLASS_PROFILE: {
 				CodecClassProfile codecClassProfile = (CodecClassProfile)theEObject;
 				T result = caseCodecClassProfile(codecClassProfile);
-				if (result == null) result = caseClassProfile(codecClassProfile);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
@@ -169,6 +180,81 @@ public class CodecSwitch<T> extends Switch<T> {
 			}
 			default: return defaultCase(theEObject);
 		}
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Base Type Config</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Base Type Config</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseBaseTypeConfig(BaseTypeConfig object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Base Id Config</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Base Id Config</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseBaseIdConfig(BaseIdConfig object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Base Reference Config</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Base Reference Config</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseBaseReferenceConfig(BaseReferenceConfig object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Base Super Type Config</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Base Super Type Config</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseBaseSuperTypeConfig(BaseSuperTypeConfig object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Base Feature Config</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Base Feature Config</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseBaseFeatureConfig(BaseFeatureConfig object) {
+		return null;
 	}
 
 	/**
@@ -333,156 +419,6 @@ public class CodecSwitch<T> extends Switch<T> {
 	 * @generated
 	 */
 	public T caseCodecConfig(CodecConfig object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Base Type Config</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Base Type Config</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseBaseTypeConfig(BaseTypeConfig object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Base Id Config</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Base Id Config</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseBaseIdConfig(BaseIdConfig object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Base Reference Config</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Base Reference Config</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseBaseReferenceConfig(BaseReferenceConfig object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Base Super Type Config</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Base Super Type Config</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseBaseSuperTypeConfig(BaseSuperTypeConfig object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Base Feature Config</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Base Feature Config</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseBaseFeatureConfig(BaseFeatureConfig object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Aspect</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Aspect</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseAspect(Aspect object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Class Aspect</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Class Aspect</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseClassAspect(ClassAspect object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Feature Aspect</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Feature Aspect</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseFeatureAspect(FeatureAspect object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Package Profile</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Package Profile</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T casePackageProfile(PackageProfile object) {
-		return null;
-	}
-
-	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Class Profile</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Class Profile</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseClassProfile(ClassProfile object) {
 		return null;
 	}
 

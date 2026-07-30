@@ -74,9 +74,11 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EModelElement;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EReference;
@@ -86,89 +88,127 @@ import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecFactory;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecPackageProfile;
+import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.IdStrategy;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.codec.metadata.util.AnnotationParseHelper;
-import org.eclipse.fennec.model.metadata.AttributeMetadata;
-import org.eclipse.fennec.model.metadata.ClassAspect;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.DiagnosticSeverity;
-import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
-import org.eclipse.fennec.model.metadata.FeatureAspect;
-import org.eclipse.fennec.model.metadata.FeatureMetadata;
-import org.eclipse.fennec.model.metadata.IdKeyMode;
-import org.eclipse.fennec.model.metadata.IdStrategy;
-import org.eclipse.fennec.model.metadata.MetadataDiagnostic;
-import org.eclipse.fennec.model.metadata.MetadataFactory;
-import org.eclipse.fennec.model.metadata.OperationAspect;
-import org.eclipse.fennec.model.metadata.OperationMetadata;
-import org.eclipse.fennec.model.metadata.PackageAspect;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.PackageProfile;
-import org.eclipse.fennec.model.metadata.ReferenceMetadata;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
-import org.eclipse.fennec.model.metadata.SuperTypeSelection;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
-import org.eclipse.fennec.model.metadata.api.AspectProvider;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataHandler;
+import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
+import org.eclipse.fennec.emf.osgi.model.metadata.AttributeMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.DiagnosticSeverity;
+import org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataDiagnostic;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataFactory;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.ReferenceMetadata;
 
 /**
- * AspectProvider implementation for codec serialization metadata.
+ * {@link MetadataHandler} implementation for codec serialization metadata.
  * <p>
  * Parses EAnnotations from EMF model elements and creates codec-specific
  * aspects (ClassCodecAspect, FeatureCodecAspect, ReferenceCodecAspect)
- * with serialization configuration.
+ * with serialization configuration. The aspects are attached to the metadata
+ * tree as {@link AspectEntry} instances with type id {@value #ASPECT_TYPE_ID};
+ * diagnostics collected while parsing go to {@link AspectEntry#getDiagnostics()}.
+ * The package-level entry carries the pre-computed {@link CodecPackageProfile}.
  * </p>
  * <p>
  * All annotations use the unified source {@code http://eclipse.org/fennec/codec}
  * with configuration specified through detail key-value pairs.
  * </p>
+ * <p>
+ * {@link #onPackageRegistered(PackageMetadata)} is invoked once per model version
+ * (fingerprint) while the metadata tree is being built, before publication. The
+ * provider is stateless and never calls back into the {@code MetadataService}.
+ * </p>
  *
  * @author Mark Hoffmann
  * @since 2025-12-09
  */
-public class CodecAspectProvider implements AspectProvider {
+public class CodecAspectProvider implements MetadataHandler {
 
-    /** Aspect type identifier for codec aspects. */
+    /** Aspect type identifier for codec aspect entries. */
     public static final String ASPECT_TYPE_ID = "codec";
 
     private final CodecFactory factory = CodecFactory.eINSTANCE;
 
     @Override
-    public String getAspectTypeId() {
-        return ASPECT_TYPE_ID;
+    public void onPackageRegistered(PackageMetadata packageMetadata) {
+        Objects.requireNonNull(packageMetadata, "packageMetadata must not be null");
+
+        for (ClassMetadata classMetadata : packageMetadata.getClasses()) {
+            classMetadata.getAspects().add(buildClassAspectEntry(classMetadata));
+            for (FeatureMetadata featureMetadata : classMetadata.getFeatures()) {
+                featureMetadata.getAspects().add(buildFeatureAspectEntry(featureMetadata));
+            }
+            // The codec does not serialize EOperations, so there is no
+            // operation-level configuration to contribute (issue #53).
+        }
+
+        // Codec does not define package-level configuration of its own; the package
+        // entry carries the pre-computed profile built over the finished class entries.
+        packageMetadata.getAspects().add(buildProfileEntry(packageMetadata));
     }
 
-    @Override
-    public PackageAspect buildPackageAspect(PackageMetadata packageMetadata) {
-        // Codec does not currently define package-level configuration
-        // Return null to indicate no package aspect is needed
+    /**
+     * Creates a codec {@link AspectEntry} wrapping the given content.
+     */
+    private static AspectEntry newEntry(EObject content) {
+        AspectEntry entry = MetadataFactory.eINSTANCE.createAspectEntry();
+        entry.setTypeId(ASPECT_TYPE_ID);
+        entry.setContent(content);
+        return entry;
+    }
+
+    /**
+     * Finds the codec aspect content of the given type among aspect entries.
+     * <p>
+     * The single supported way for consumers to read a codec aspect out of a metadata
+     * element: {@link AspectEntry#getContent()} is a bare {@link EObject}, so filtering the
+     * entries themselves by aspect type silently yields nothing — it compiles, because the
+     * type check runs against {@code Object}. This method matches on {@link #ASPECT_TYPE_ID}
+     * and on the content type.
+     * </p>
+     *
+     * @param <T> the aspect type
+     * @param aspects the aspect entries of a package, class or feature
+     * @param type the aspect type to look for
+     * @return the matching aspect content, or {@code null} if this element has none
+     */
+    public static <T> T codecAspect(EList<AspectEntry> aspects, Class<T> type) {
+        for (AspectEntry entry : aspects) {
+            if (ASPECT_TYPE_ID.equals(entry.getTypeId()) && type.isInstance(entry.getContent())) {
+                return type.cast(entry.getContent());
+            }
+        }
         return null;
     }
 
-    @Override
-    public OperationAspect buildOperationAspect(OperationMetadata operationMetadata) {
-        // The codec does not serialize EOperations, so there is no
-        // operation-level configuration to contribute (issue #53).
-        // Return null to indicate no operation aspect is needed.
-        return null;
-    }
-
-    @Override
-    public ClassAspect buildClassAspect(ClassMetadata classMetadata) {
+    /**
+     * Builds the codec aspect entry for an EClass.
+     */
+    private AspectEntry buildClassAspectEntry(ClassMetadata classMetadata) {
         Objects.requireNonNull(classMetadata, "classMetadata must not be null");
         EClass eClass = classMetadata.getEClass();
         ClassCodecAspect aspect = factory.createClassCodecAspect();
-        aspect.setTypeId(ASPECT_TYPE_ID);
+        AspectEntry entry = newEntry(aspect);
+        EList<MetadataDiagnostic> diagnostics = entry.getDiagnostics();
 
         EAnnotation codecAnnotation = eClass.getEAnnotation(CODEC_SOURCE);
         if (codecAnnotation != null) {
-            parseClassAnnotation(aspect, codecAnnotation, eClass);
+            parseClassAnnotation(aspect, diagnostics, codecAnnotation, eClass);
         }
 
         // Scan for typeMapping/{mapId} dedicated annotation sources
@@ -177,32 +217,37 @@ public class CodecAspectProvider implements AspectProvider {
         // Misconfig: inlineMapping annotation on EClass → WARNING
         EAnnotation inlineMappingOnClass = eClass.getEAnnotation(CodecAnnotationConstants.INLINE_MAPPING_SOURCE);
         if (inlineMappingOnClass != null) {
-            addClassDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "inlineMapping annotation on EClass '" + eClass.getName()
                             + "' is invalid — inline mappings are per-reference only (use on EReference)",
                     CodecAnnotationConstants.INLINE_MAPPING_SOURCE);
         }
 
-        return aspect;
+        return entry;
     }
 
-    @Override
-    public FeatureAspect buildFeatureAspect(FeatureMetadata featureMetadata) {
+    /**
+     * Builds the codec aspect entry for a feature, dispatching on the concrete
+     * {@link FeatureMetadata} subtype.
+     */
+    private AspectEntry buildFeatureAspectEntry(FeatureMetadata featureMetadata) {
         Objects.requireNonNull(featureMetadata, "featureMetadata must not be null");
         if (featureMetadata instanceof ReferenceMetadata refMd) {
-            return buildReferenceAspect(refMd);
+            return buildReferenceAspectEntry(refMd);
         } else if (featureMetadata instanceof AttributeMetadata attrMd) {
-            return buildAttributeAspect(attrMd);
+            return buildAttributeAspectEntry(attrMd);
         }
         throw new IllegalArgumentException("Unsupported feature metadata type: " + featureMetadata.getClass().getName());
     }
 
-    @Override
-    public FeatureAspect buildAttributeAspect(AttributeMetadata attributeMetadata) {
-        Objects.requireNonNull(attributeMetadata, "attributeMetadata must not be null");
+    /**
+     * Builds the codec aspect entry for an EAttribute.
+     */
+    private AspectEntry buildAttributeAspectEntry(AttributeMetadata attributeMetadata) {
         EAttribute attribute = attributeMetadata.getEAttribute();
         FeatureCodecAspect aspect = factory.createFeatureCodecAspect();
-        aspect.setTypeId(ASPECT_TYPE_ID);
+        AspectEntry entry = newEntry(aspect);
+        EList<MetadataDiagnostic> diagnostics = entry.getDiagnostics();
 
         populateFeatureAspect(aspect, attribute);
 
@@ -214,23 +259,25 @@ public class CodecAspectProvider implements AspectProvider {
         EAnnotation codecAnnotation = attribute.getEAnnotation(CODEC_SOURCE);
         if (codecAnnotation != null) {
             Map<String, String> details = codecAnnotation.getDetails().map();
-            checkForTypeKeysOnAttribute(aspect, details, attribute);
-            checkForSuperTypeKeysOnAttribute(aspect, details, attribute);
-            checkForIdKeysOnAttribute(aspect, details, attribute);
-            checkForReferenceOnlyKeysOnAttribute(aspect, details, attribute);
-            checkForStrictnessKeysOnFeature(aspect, details, attribute);
-            checkForMetadataMergeKeysOnFeature(aspect, details, attribute);
+            checkForTypeKeysOnAttribute(diagnostics, details, attribute);
+            checkForSuperTypeKeysOnAttribute(diagnostics, details, attribute);
+            checkForIdKeysOnAttribute(diagnostics, details, attribute);
+            checkForReferenceOnlyKeysOnAttribute(diagnostics, details, attribute);
+            checkForStrictnessKeysOnFeature(diagnostics, details, attribute);
+            checkForMetadataMergeKeysOnFeature(diagnostics, details, attribute);
         }
 
-        return aspect;
+        return entry;
     }
 
-    @Override
-    public FeatureAspect buildReferenceAspect(ReferenceMetadata referenceMetadata) {
-        Objects.requireNonNull(referenceMetadata, "referenceMetadata must not be null");
+    /**
+     * Builds the codec aspect entry for an EReference.
+     */
+    private AspectEntry buildReferenceAspectEntry(ReferenceMetadata referenceMetadata) {
         EReference reference = referenceMetadata.getEReference();
         ReferenceCodecAspect aspect = factory.createReferenceCodecAspect();
-        aspect.setTypeId(ASPECT_TYPE_ID);
+        AspectEntry entry = newEntry(aspect);
+        EList<MetadataDiagnostic> diagnostics = entry.getDiagnostics();
 
         populateFeatureAspect(aspect, reference);
 
@@ -240,19 +287,19 @@ public class CodecAspectProvider implements AspectProvider {
             Map<String, String> details = codecAnnotation.getDetails().map();
 
             // Check for class-only keys and add diagnostics (keys are ignored but logged)
-            checkForClassOnlyKeys(aspect, details, reference);
+            checkForClassOnlyKeys(diagnostics, details, reference);
 
             // T-V3/T-V4: runtime-only keys in EAnnotation
-            checkForRuntimeOnlyKeys(aspect, details, reference);
+            checkForRuntimeOnlyKeys(diagnostics, details, reference);
 
             // ST-V1: superType* keys on EReference → ERROR (class-intrinsic)
-            checkForSuperTypeKeysOnReference(aspect, details, reference);
+            checkForSuperTypeKeysOnReference(diagnostics, details, reference);
 
             // ID-V1 through ID-V10: class-only ID keys on EReference → ERROR
-            checkForIdClassOnlyKeysOnReference(aspect, details, reference);
+            checkForIdClassOnlyKeysOnReference(diagnostics, details, reference);
 
             // ID-V11/ID-V12: runtime-only ID keys in EAnnotation
-            checkForIdRuntimeOnlyKeys(aspect, details, reference);
+            checkForIdRuntimeOnlyKeys(diagnostics, details, reference);
 
             // Parse type config (for polymorphic references)
             // Note: References use a subset of type config keys - class-only keys are ignored
@@ -273,16 +320,16 @@ public class CodecAspectProvider implements AspectProvider {
             // Fallback strategy and fallbackEClass are also on the inlineMapping source.
 
             // Strictness keys on EReference → WARNING (class-only)
-            checkForStrictnessKeysOnFeature(aspect, details, reference);
+            checkForStrictnessKeysOnFeature(diagnostics, details, reference);
 
             // Metadata merge keys on EReference → ERROR (class-only)
-            checkForMetadataMergeKeysOnFeature(aspect, details, reference);
+            checkForMetadataMergeKeysOnFeature(diagnostics, details, reference);
         }
 
         // Misconfig: typeMapping/{mapId} annotation on EReference → ERROR
         for (EAnnotation ann : reference.getEAnnotations()) {
             if (CodecAnnotationConstants.isTypeMappingSource(ann.getSource())) {
-                addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+                addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                         "typeMapping annotation on EReference '" + reference.getName()
                                 + "' is invalid — type mapping registry is class-level (use on EClass)",
                         ann.getSource());
@@ -292,25 +339,31 @@ public class CodecAspectProvider implements AspectProvider {
         // Note: inlineMapping annotation on EReference is valid and expected.
         // It is parsed externally by TypeDiscriminatorService.registerInlineMappings().
 
-        return aspect;
+        return entry;
     }
 
-    @Override
-    public PackageProfile buildProfiles(PackageMetadata filteredMetadataCopy) {
+    /**
+     * Builds the package-level codec aspect entry carrying the {@link CodecPackageProfile}.
+     * <p>
+     * Reads the class and feature entries attached by {@link #buildClassAspectEntry} and
+     * {@link #buildFeatureAspectEntry}, so it must run after the class traversal.
+     * </p>
+     */
+    private AspectEntry buildProfileEntry(PackageMetadata packageMetadata) {
         CodecPackageProfile pkgProfile = factory.createCodecPackageProfile();
 
         // Package-wide defaults from a codec annotation on the EPackage itself (issue #75).
         // The package level is annotation-INTERNAL: it is merged into every class profile here
         // rather than becoming a further runtime configuration level, so the cascading merge of
         // options, resource, factory and module keeps seeing exactly one annotation layer.
-        ClassCodecAspect packageDefaults = buildPackageDefaults(filteredMetadataCopy.getEPackage());
+        ClassCodecAspect packageDefaults = buildPackageDefaults(packageMetadata.getEPackage());
 
-        for (ClassMetadata classMeta : filteredMetadataCopy.getClasses()) {
+        for (ClassMetadata classMeta : packageMetadata.getClasses()) {
             CodecClassProfile classProfile = buildClassProfile(classMeta, packageDefaults);
             pkgProfile.getClassProfiles().add(classProfile);
         }
 
-        return pkgProfile;
+        return newEntry(pkgProfile);
     }
 
     // ========================================================================
@@ -397,14 +450,8 @@ public class CodecAspectProvider implements AspectProvider {
         CodecClassProfile classProfile = factory.createCodecClassProfile();
         classProfile.setEClass(classMeta.getEClass());
 
-        // Find the ClassCodecAspect (filtered copy should have at most one with our typeId)
-        ClassCodecAspect classAspect = null;
-        for (ClassAspect aspect : classMeta.getAspects()) {
-            if (aspect instanceof ClassCodecAspect cca) {
-                classAspect = cca;
-                break;
-            }
-        }
+        // Find the ClassCodecAspect attached by buildClassAspectEntry
+        ClassCodecAspect classAspect = codecAspect(classMeta.getAspects(), ClassCodecAspect.class);
 
         // Each config starts from the package default (if any); the class then states its
         // exceptions on top, key by key. The class layer is applied from its own annotation
@@ -455,14 +502,8 @@ public class CodecAspectProvider implements AspectProvider {
         FeatureSerializationConfig config = factory.createFeatureSerializationConfig();
         config.setFeatureName(featureMeta.getName());
 
-        // Find the FeatureCodecAspect
-        FeatureCodecAspect featureAspect = null;
-        for (FeatureAspect aspect : featureMeta.getAspects()) {
-            if (aspect instanceof FeatureCodecAspect fca) {
-                featureAspect = fca;
-                break;
-            }
-        }
+        // Find the FeatureCodecAspect (or ReferenceCodecAspect) attached by buildFeatureAspectEntry
+        FeatureCodecAspect featureAspect = codecAspect(featureMeta.getAspects(), FeatureCodecAspect.class);
 
         if (featureAspect != null) {
             // Key: use effectiveKey from aspect if set, otherwise use feature name
@@ -510,22 +551,24 @@ public class CodecAspectProvider implements AspectProvider {
     // ========================================================================
 
     /**
-     * Parses codec annotation and populates the class aspect.
+     * Parses codec annotation and populates the class aspect. Diagnostics go to the
+     * owning entry's list.
      */
-    private void parseClassAnnotation(ClassCodecAspect aspect, EAnnotation annotation, EClass eClass) {
+    private void parseClassAnnotation(ClassCodecAspect aspect, EList<MetadataDiagnostic> diagnostics,
+            EAnnotation annotation, EClass eClass) {
         Map<String, String> details = annotation.getDetails().map();
 
         // Validation: T-V3/T-V4 - runtime-only keys in EAnnotation
-        checkForRuntimeOnlyKeys(aspect, details, eClass);
+        checkForRuntimeOnlyKeys(diagnostics, details, eClass);
 
         // Validation: T-V30/T-V31 - deprecated typeInclude
-        checkForDeprecatedTypeInclude(aspect, details, eClass);
+        checkForDeprecatedTypeInclude(diagnostics, details, eClass);
 
         // Validation: ID-V11/ID-V12 - runtime-only ID keys in EAnnotation
-        checkForIdRuntimeOnlyKeys(aspect, details, eClass);
+        checkForIdRuntimeOnlyKeys(diagnostics, details, eClass);
 
         // Validation: R-V1/R-V3 - reference-only keys on EClass
-        checkForReferenceOnlyKeysOnClass(aspect, details, eClass);
+        checkForReferenceOnlyKeysOnClass(diagnostics, details, eClass);
 
         // Parse ID configuration (id* keys)
         if (hasIdConfig(details)) {
@@ -970,36 +1013,36 @@ public class CodecAspectProvider implements AspectProvider {
      *   <li>typeDiscriminator (T-V7): class-only → ERROR</li>
      * </ul>
      */
-    private void checkForClassOnlyKeys(ReferenceCodecAspect aspect, Map<String, String> details, EReference reference) {
+    private void checkForClassOnlyKeys(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EReference reference) {
         if (details.containsKey(KEY_TYPE_MAP_ID)) {
-            addDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_TYPE_MAP_ID + "' is not valid on EReference '" +
                     reference.getName() + "', ignored (class-only key)",
                     KEY_TYPE_MAP_ID);
         }
         if (details.containsKey(KEY_TYPE_DISCRIMINATOR_PATH)) {
-            addDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_TYPE_DISCRIMINATOR_PATH + "' is not valid on EReference '" +
                     reference.getName() + "', ignored (class-only key)",
                     KEY_TYPE_DISCRIMINATOR_PATH);
         }
         // T-V1: typeValueReaderName on EReference → ERROR (class-intrinsic)
         if (details.containsKey(KEY_TYPE_VALUE_READER_NAME)) {
-            addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+            addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                     "Annotation key '" + KEY_TYPE_VALUE_READER_NAME + "' is not valid on EReference '" +
                     reference.getName() + "', ignored (class-intrinsic: applies to objects of that EClass, not per-reference)",
                     KEY_TYPE_VALUE_READER_NAME);
         }
         // T-V2: typeValueWriterName on EReference → ERROR (class-intrinsic)
         if (details.containsKey(KEY_TYPE_VALUE_WRITER_NAME)) {
-            addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+            addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                     "Annotation key '" + KEY_TYPE_VALUE_WRITER_NAME + "' is not valid on EReference '" +
                     reference.getName() + "', ignored (class-intrinsic: applies to objects of that EClass, not per-reference)",
                     KEY_TYPE_VALUE_WRITER_NAME);
         }
         // T-V7: typeDiscriminator on EReference → ERROR (class-only)
         if (details.containsKey(KEY_TYPE_DISCRIMINATOR)) {
-            addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+            addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                     "Annotation key '" + KEY_TYPE_DISCRIMINATOR + "' is not valid on EReference '" +
                     reference.getName() + "', ignored (class-only key, see 08-discriminator-mapping.md)",
                     KEY_TYPE_DISCRIMINATOR);
@@ -1016,15 +1059,15 @@ public class CodecAspectProvider implements AspectProvider {
      *   <li>typeFormatScope (T-V4): runtime-only → WARNING</li>
      * </ul>
      */
-    private void checkForRuntimeOnlyKeys(FeatureCodecAspect aspect, Map<String, String> details, EStructuralFeature feature) {
+    private void checkForRuntimeOnlyKeys(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EStructuralFeature feature) {
         if (details.containsKey(KEY_TYPE_SCOPE)) {
-            addDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_TYPE_SCOPE + "' on feature '" +
                     feature.getName() + "' is a runtime-only property (set via load/save options), ignored in EAnnotation",
                     KEY_TYPE_SCOPE);
         }
         if (details.containsKey(KEY_TYPE_FORMAT_SCOPE)) {
-            addDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_TYPE_FORMAT_SCOPE + "' on feature '" +
                     feature.getName() + "' is a runtime-only property (set via load/save options), ignored in EAnnotation",
                     KEY_TYPE_FORMAT_SCOPE);
@@ -1041,15 +1084,15 @@ public class CodecAspectProvider implements AspectProvider {
      *   <li>typeFormatScope (T-V4): runtime-only → WARNING</li>
      * </ul>
      */
-    private void checkForRuntimeOnlyKeys(ClassCodecAspect aspect, Map<String, String> details, EClass eClass) {
+    private void checkForRuntimeOnlyKeys(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EClass eClass) {
         if (details.containsKey(KEY_TYPE_SCOPE)) {
-            addClassDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_TYPE_SCOPE + "' on EClass '" +
                     eClass.getName() + "' is a runtime-only property (set via load/save options), ignored in EAnnotation",
                     KEY_TYPE_SCOPE);
         }
         if (details.containsKey(KEY_TYPE_FORMAT_SCOPE)) {
-            addClassDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_TYPE_FORMAT_SCOPE + "' on EClass '" +
                     eClass.getName() + "' is a runtime-only property (set via load/save options), ignored in EAnnotation",
                     KEY_TYPE_FORMAT_SCOPE);
@@ -1063,11 +1106,11 @@ public class CodecAspectProvider implements AspectProvider {
      * Type configuration is not applicable to attributes - only to EClass and EReference.
      * </p>
      */
-    private void checkForTypeKeysOnAttribute(FeatureCodecAspect aspect, Map<String, String> details, EAttribute attribute) {
+    private void checkForTypeKeysOnAttribute(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EAttribute attribute) {
         for (Map.Entry<String, String> entry : details.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith("type") && isTypeConfigKey(key)) {
-                addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+                addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                         "Annotation key '" + key + "' is not valid on EAttribute '" +
                         attribute.getName() + "', ignored (type configuration is not applicable to attributes)",
                         key);
@@ -1082,11 +1125,11 @@ public class CodecAspectProvider implements AspectProvider {
      * SuperType is class-intrinsic, not reference-specific.
      * </p>
      */
-    private void checkForSuperTypeKeysOnReference(ReferenceCodecAspect aspect, Map<String, String> details, EReference reference) {
+    private void checkForSuperTypeKeysOnReference(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EReference reference) {
         for (Map.Entry<String, String> entry : details.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith("superType") && isSuperTypeConfigKey(key)) {
-                addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+                addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                         "Annotation key '" + key + "' is not valid on EReference '" +
                         reference.getName() + "', ignored (superType configuration is class-intrinsic, not reference-specific)",
                         key);
@@ -1101,11 +1144,11 @@ public class CodecAspectProvider implements AspectProvider {
      * SuperType is not applicable to attributes.
      * </p>
      */
-    private void checkForSuperTypeKeysOnAttribute(FeatureCodecAspect aspect, Map<String, String> details, EAttribute attribute) {
+    private void checkForSuperTypeKeysOnAttribute(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EAttribute attribute) {
         for (Map.Entry<String, String> entry : details.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith("superType") && isSuperTypeConfigKey(key)) {
-                addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+                addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                         "Annotation key '" + key + "' is not valid on EAttribute '" +
                         attribute.getName() + "', ignored (superType configuration is not applicable to attributes)",
                         key);
@@ -1120,11 +1163,11 @@ public class CodecAspectProvider implements AspectProvider {
      * Most id* keys are class-intrinsic. Only idFormat and idKey are valid on EReference.
      * </p>
      */
-    private void checkForIdClassOnlyKeysOnReference(ReferenceCodecAspect aspect, Map<String, String> details, EReference reference) {
+    private void checkForIdClassOnlyKeysOnReference(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EReference reference) {
         for (Map.Entry<String, String> entry : details.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith("id") && isIdClassOnlyKey(key)) {
-                addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+                addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                         "Annotation key '" + key + "' is not valid on EReference '" +
                         reference.getName() + "', ignored (ID configuration is class-intrinsic)",
                         key);
@@ -1139,11 +1182,11 @@ public class CodecAspectProvider implements AspectProvider {
      * ID configuration is not applicable to attributes.
      * </p>
      */
-    private void checkForIdKeysOnAttribute(FeatureCodecAspect aspect, Map<String, String> details, EAttribute attribute) {
+    private void checkForIdKeysOnAttribute(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EAttribute attribute) {
         for (Map.Entry<String, String> entry : details.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith("id") && isIdConfigKey(key)) {
-                addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+                addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                         "Annotation key '" + key + "' is not valid on EAttribute '" +
                         attribute.getName() + "', ignored (ID configuration is not applicable to attributes)",
                         key);
@@ -1161,15 +1204,15 @@ public class CodecAspectProvider implements AspectProvider {
      *   <li>idFormatScope (ID-V12): runtime-only → WARNING</li>
      * </ul>
      */
-    private void checkForIdRuntimeOnlyKeys(FeatureCodecAspect aspect, Map<String, String> details, EStructuralFeature feature) {
+    private void checkForIdRuntimeOnlyKeys(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EStructuralFeature feature) {
         if (details.containsKey(KEY_ID_SCOPE)) {
-            addDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_ID_SCOPE + "' on feature '" +
                     feature.getName() + "' is a runtime-only property (set via load/save options), ignored in EAnnotation",
                     KEY_ID_SCOPE);
         }
         if (details.containsKey(KEY_ID_FORMAT_SCOPE)) {
-            addDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_ID_FORMAT_SCOPE + "' on feature '" +
                     feature.getName() + "' is a runtime-only property (set via load/save options), ignored in EAnnotation",
                     KEY_ID_FORMAT_SCOPE);
@@ -1186,15 +1229,15 @@ public class CodecAspectProvider implements AspectProvider {
      *   <li>idFormatScope (ID-V12): runtime-only → WARNING</li>
      * </ul>
      */
-    private void checkForIdRuntimeOnlyKeys(ClassCodecAspect aspect, Map<String, String> details, EClass eClass) {
+    private void checkForIdRuntimeOnlyKeys(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EClass eClass) {
         if (details.containsKey(KEY_ID_SCOPE)) {
-            addClassDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_ID_SCOPE + "' on EClass '" +
                     eClass.getName() + "' is a runtime-only property (set via load/save options), ignored in EAnnotation",
                     KEY_ID_SCOPE);
         }
         if (details.containsKey(KEY_ID_FORMAT_SCOPE)) {
-            addClassDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_ID_FORMAT_SCOPE + "' on EClass '" +
                     eClass.getName() + "' is a runtime-only property (set via load/save options), ignored in EAnnotation",
                     KEY_ID_FORMAT_SCOPE);
@@ -1215,18 +1258,18 @@ public class CodecAspectProvider implements AspectProvider {
      * NOT to Reference Configuration. Their validation is defined there.
      * </p>
      */
-    private void checkForReferenceOnlyKeysOnClass(ClassCodecAspect aspect, Map<String, String> details, EClass eClass) {
+    private void checkForReferenceOnlyKeysOnClass(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EClass eClass) {
         for (Map.Entry<String, String> entry : details.entrySet()) {
             String key = entry.getKey();
             if (isRefConfigKey(key)) {
-                addClassDiagnostic(aspect, DiagnosticSeverity.WARNING,
+                addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                         "Annotation key '" + key + "' is not valid on EClass '" +
                         eClass.getName() + "', ignored (reference configuration is per-reference only)",
                         key);
             }
         }
         if (details.containsKey(KEY_EXPAND)) {
-            addClassDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_EXPAND + "' is not valid on EClass '" +
                     eClass.getName() + "', ignored (expand is per-reference only)",
                     KEY_EXPAND);
@@ -1247,18 +1290,18 @@ public class CodecAspectProvider implements AspectProvider {
      * NOT to Reference Configuration. Their validation is defined there.
      * </p>
      */
-    private void checkForReferenceOnlyKeysOnAttribute(FeatureCodecAspect aspect, Map<String, String> details, EAttribute attribute) {
+    private void checkForReferenceOnlyKeysOnAttribute(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EAttribute attribute) {
         for (Map.Entry<String, String> entry : details.entrySet()) {
             String key = entry.getKey();
             if (isRefConfigKey(key)) {
-                addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+                addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                         "Annotation key '" + key + "' is not valid on EAttribute '" +
                         attribute.getName() + "', ignored (reference configuration is not applicable to attributes)",
                         key);
             }
         }
         if (details.containsKey(KEY_EXPAND)) {
-            addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+            addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                     "Annotation key '" + KEY_EXPAND + "' is not valid on EAttribute '" +
                     attribute.getName() + "', ignored (expand is not applicable to attributes)",
                     KEY_EXPAND);
@@ -1272,16 +1315,16 @@ public class CodecAspectProvider implements AspectProvider {
      * EAttribute or EReference is a misconfiguration — the keys are ignored with a WARNING.
      * </p>
      */
-    private void checkForStrictnessKeysOnFeature(FeatureCodecAspect aspect, Map<String, String> details, EStructuralFeature feature) {
+    private void checkForStrictnessKeysOnFeature(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EStructuralFeature feature) {
         if (details.containsKey(KEY_STRICT_ON_UNKNOWN)) {
-            addDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_STRICT_ON_UNKNOWN + "' is not valid on " +
                     (feature instanceof EReference ? "EReference" : "EAttribute") + " '" +
                     feature.getName() + "', ignored (class-level property only, use on EClass instead)",
                     KEY_STRICT_ON_UNKNOWN);
         }
         if (details.containsKey(KEY_STRICT_ON_MISSING)) {
-            addDiagnostic(aspect, DiagnosticSeverity.WARNING,
+            addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                     "Annotation key '" + KEY_STRICT_ON_MISSING + "' is not valid on " +
                     (feature instanceof EReference ? "EReference" : "EAttribute") + " '" +
                     feature.getName() + "', ignored (class-level property only, use on EClass instead)",
@@ -1296,16 +1339,16 @@ public class CodecAspectProvider implements AspectProvider {
      * EAttribute or EReference is a misconfiguration — the keys are ignored with an ERROR.
      * </p>
      */
-    private void checkForMetadataMergeKeysOnFeature(FeatureCodecAspect aspect, Map<String, String> details, EStructuralFeature feature) {
+    private void checkForMetadataMergeKeysOnFeature(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EStructuralFeature feature) {
         if (details.containsKey(KEY_METADATA_MERGE)) {
-            addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+            addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                     "Annotation key '" + KEY_METADATA_MERGE + "' is not valid on " +
                     (feature instanceof EReference ? "EReference" : "EAttribute") + " '" +
                     feature.getName() + "', ignored (class-level property only, use on EClass instead)",
                     KEY_METADATA_MERGE);
         }
         if (details.containsKey(KEY_METADATA_KEY)) {
-            addDiagnostic(aspect, DiagnosticSeverity.ERROR,
+            addDiagnostic(diagnostics, DiagnosticSeverity.ERROR,
                     "Annotation key '" + KEY_METADATA_KEY + "' is not valid on " +
                     (feature instanceof EReference ? "EReference" : "EAttribute") + " '" +
                     feature.getName() + "', ignored (class-level property only, use on EClass instead)",
@@ -1323,18 +1366,18 @@ public class CodecAspectProvider implements AspectProvider {
      *   <li>T-V31: Both typeInclude and typeStrategy set → WARNING (typeStrategy takes precedence)</li>
      * </ul>
      */
-    private void checkForDeprecatedTypeInclude(ClassCodecAspect aspect, Map<String, String> details, EClass eClass) {
+    private void checkForDeprecatedTypeInclude(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EClass eClass) {
         if (details.containsKey(KEY_TYPE_INCLUDE)) {
             if (details.containsKey(KEY_TYPE_STRATEGY)) {
                 // T-V31: Both present - typeStrategy takes precedence
-                addClassDiagnostic(aspect, DiagnosticSeverity.WARNING,
+                addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                         "Annotation key '" + KEY_TYPE_INCLUDE + "' on EClass '" + eClass.getName() +
                         "' is DEPRECATED and ignored because '" + KEY_TYPE_STRATEGY + "' is also set. " +
                         "Use typeStrategy=NONE instead of typeInclude=false",
                         KEY_TYPE_INCLUDE);
             } else {
                 // T-V30: Only typeInclude present - deprecated
-                addClassDiagnostic(aspect, DiagnosticSeverity.WARNING,
+                addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                         "Annotation key '" + KEY_TYPE_INCLUDE + "' on EClass '" + eClass.getName() +
                         "' is DEPRECATED. Use typeStrategy=NONE instead of typeInclude=false",
                         KEY_TYPE_INCLUDE);
@@ -1433,25 +1476,16 @@ public class CodecAspectProvider implements AspectProvider {
     }
 
     /**
-     * Adds a diagnostic to a feature aspect.
+     * Adds a diagnostic to an aspect entry's diagnostics list (D2: diagnostics live on
+     * the {@link AspectEntry}, not on the codec aspect content).
      */
-    private void addDiagnostic(FeatureCodecAspect aspect, DiagnosticSeverity severity, String message, String key) {
+    private static void addDiagnostic(EList<MetadataDiagnostic> diagnostics, DiagnosticSeverity severity,
+            String message, String key) {
         MetadataDiagnostic diagnostic = MetadataFactory.eINSTANCE.createMetadataDiagnostic();
         diagnostic.setSeverity(severity);
         diagnostic.setMessage(message);
         diagnostic.setKey(key);
-        aspect.getDiagnostics().add(diagnostic);
-    }
-
-    /**
-     * Adds a diagnostic to a class aspect.
-     */
-    private void addClassDiagnostic(ClassCodecAspect aspect, DiagnosticSeverity severity, String message, String key) {
-        MetadataDiagnostic diagnostic = MetadataFactory.eINSTANCE.createMetadataDiagnostic();
-        diagnostic.setSeverity(severity);
-        diagnostic.setMessage(message);
-        diagnostic.setKey(key);
-        aspect.getDiagnostics().add(diagnostic);
+        diagnostics.add(diagnostic);
     }
 
 }

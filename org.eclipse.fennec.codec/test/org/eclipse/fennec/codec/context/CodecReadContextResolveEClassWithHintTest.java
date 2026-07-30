@@ -12,13 +12,15 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.context;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +40,7 @@ class CodecReadContextResolveEClassWithHintTest extends CodecReadContextTestBase
         EClass personClass = mock(EClass.class);
         ClassMetadata metadata = mock(ClassMetadata.class);
         when(metadata.getEClass()).thenReturn(employeeClass);
-        when(metadataService.getClassMetadataByURI(typeValue)).thenReturn(metadata);
+        when(metadataService.getClassMetadataByURI(typeValue)).thenReturn(Optional.of(metadata));
 
         assertSame(employeeClass, context.resolveEClass(typeValue, personClass));
     }
@@ -61,7 +63,7 @@ class CodecReadContextResolveEClassWithHintTest extends CodecReadContextTestBase
     @DisplayName("priority 2: returns hint when type value not resolved")
     void priority2ReturnsHintWhenTypeValueNotResolved() {
         EClass hintClass = mock(EClass.class);
-        when(metadataService.getClassMetadataByURI("unknown")).thenReturn(null);
+        when(metadataService.getClassMetadataByURI("unknown")).thenReturn(Optional.empty());
         assertSame(hintClass, context.resolveEClass("unknown", hintClass));
     }
 

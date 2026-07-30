@@ -20,7 +20,7 @@ import static org.eclipse.fennec.codec.config.ConfigMergeHelper.getString;
 import java.util.Map;
 
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 
 /**
  * Immutable reference serialization configuration.

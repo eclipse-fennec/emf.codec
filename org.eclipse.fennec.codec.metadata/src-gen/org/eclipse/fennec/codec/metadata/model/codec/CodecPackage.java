@@ -20,8 +20,6 @@ import org.eclipse.emf.ecore.EReference;
 
 import org.eclipse.fennec.emf.osgi.annotation.provide.EPackage;
 
-import org.eclipse.fennec.model.metadata.MetadataPackage;
-
 import org.osgi.annotation.versioning.ProviderType;
 
 /**
@@ -42,7 +40,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = CodecPackage.eNS_URI, genModel = "/model/codec.genmodel", genModelSourceLocations = {"model/codec.genmodel","org.eclipse.fennec.codec.metadata/model/codec.genmodel"}, ecore = "/model/codec.ecore", ecoreSourceLocations = "/model/codec.ecore")
+@EPackage(uri = CodecPackage.eNS_URI, fingerprint = "fp1:0b9de76be976df8df617cf48a03107d37591210ec08f4150340bf1b7dc02daca", genModel = "/model/codec.genmodel", genModelSourceLocations = {"model/codec.genmodel","org.eclipse.fennec.codec.metadata/model/codec.genmodel"}, ecore = "/model/codec.ecore", ecoreSourceLocations = "/model/codec.ecore")
 public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.
@@ -77,14 +75,14 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	CodecPackage eINSTANCE = org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl.init();
 
 	/**
-	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl <em>Type Serialization Config</em>}' class.
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.BaseTypeConfigImpl <em>Base Type Config</em>}' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl
-	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getTypeSerializationConfig()
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.BaseTypeConfigImpl
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getBaseTypeConfig()
 	 * @generated
 	 */
-	int TYPE_SERIALIZATION_CONFIG = 0;
+	int BASE_TYPE_CONFIG = 0;
 
 	/**
 	 * The feature id for the '<em><b>Format</b></em>' attribute.
@@ -93,7 +91,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__FORMAT = MetadataPackage.BASE_TYPE_CONFIG__FORMAT;
+	int BASE_TYPE_CONFIG__FORMAT = 0;
 
 	/**
 	 * The feature id for the '<em><b>Strategy</b></em>' attribute.
@@ -102,7 +100,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__STRATEGY = MetadataPackage.BASE_TYPE_CONFIG__STRATEGY;
+	int BASE_TYPE_CONFIG__STRATEGY = 1;
 
 	/**
 	 * The feature id for the '<em><b>Type Key</b></em>' attribute.
@@ -111,7 +109,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__TYPE_KEY = MetadataPackage.BASE_TYPE_CONFIG__TYPE_KEY;
+	int BASE_TYPE_CONFIG__TYPE_KEY = 2;
 
 	/**
 	 * The feature id for the '<em><b>Schema Key</b></em>' attribute.
@@ -120,7 +118,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__SCHEMA_KEY = MetadataPackage.BASE_TYPE_CONFIG__SCHEMA_KEY;
+	int BASE_TYPE_CONFIG__SCHEMA_KEY = 3;
 
 	/**
 	 * The feature id for the '<em><b>Name Key</b></em>' attribute.
@@ -129,7 +127,444 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__NAME_KEY = MetadataPackage.BASE_TYPE_CONFIG__NAME_KEY;
+	int BASE_TYPE_CONFIG__NAME_KEY = 4;
+
+	/**
+	 * The number of structural features of the '<em>Base Type Config</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_TYPE_CONFIG_FEATURE_COUNT = 5;
+
+	/**
+	 * The number of operations of the '<em>Base Type Config</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_TYPE_CONFIG_OPERATION_COUNT = 0;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.BaseIdConfigImpl <em>Base Id Config</em>}' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.BaseIdConfigImpl
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getBaseIdConfig()
+	 * @generated
+	 */
+	int BASE_ID_CONFIG = 1;
+
+	/**
+	 * The feature id for the '<em><b>Strategy</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG__STRATEGY = 0;
+
+	/**
+	 * The feature id for the '<em><b>Key Mode</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG__KEY_MODE = 1;
+
+	/**
+	 * The feature id for the '<em><b>Format</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG__FORMAT = 2;
+
+	/**
+	 * The feature id for the '<em><b>Id Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG__ID_KEY = 3;
+
+	/**
+	 * The feature id for the '<em><b>Separator</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG__SEPARATOR = 4;
+
+	/**
+	 * The feature id for the '<em><b>On Top</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG__ON_TOP = 5;
+
+	/**
+	 * The feature id for the '<em><b>Serialize Separator</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG__SERIALIZE_SEPARATOR = 6;
+
+	/**
+	 * The feature id for the '<em><b>Separator Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG__SEPARATOR_KEY = 7;
+
+	/**
+	 * The feature id for the '<em><b>Value Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG__VALUE_KEY = 8;
+
+	/**
+	 * The number of structural features of the '<em>Base Id Config</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG_FEATURE_COUNT = 9;
+
+	/**
+	 * The number of operations of the '<em>Base Id Config</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_ID_CONFIG_OPERATION_COUNT = 0;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.BaseReferenceConfigImpl <em>Base Reference Config</em>}' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.BaseReferenceConfigImpl
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getBaseReferenceConfig()
+	 * @generated
+	 */
+	int BASE_REFERENCE_CONFIG = 2;
+
+	/**
+	 * The feature id for the '<em><b>Format</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_REFERENCE_CONFIG__FORMAT = 0;
+
+	/**
+	 * The feature id for the '<em><b>Type Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_REFERENCE_CONFIG__TYPE_KEY = 1;
+
+	/**
+	 * The feature id for the '<em><b>Ref Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_REFERENCE_CONFIG__REF_KEY = 2;
+
+	/**
+	 * The number of structural features of the '<em>Base Reference Config</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_REFERENCE_CONFIG_FEATURE_COUNT = 3;
+
+	/**
+	 * The number of operations of the '<em>Base Reference Config</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_REFERENCE_CONFIG_OPERATION_COUNT = 0;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.BaseSuperTypeConfigImpl <em>Base Super Type Config</em>}' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.BaseSuperTypeConfigImpl
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getBaseSuperTypeConfig()
+	 * @generated
+	 */
+	int BASE_SUPER_TYPE_CONFIG = 3;
+
+	/**
+	 * The feature id for the '<em><b>Enabled</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_SUPER_TYPE_CONFIG__ENABLED = 0;
+
+	/**
+	 * The feature id for the '<em><b>Selection</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_SUPER_TYPE_CONFIG__SELECTION = 1;
+
+	/**
+	 * The feature id for the '<em><b>Format</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_SUPER_TYPE_CONFIG__FORMAT = 2;
+
+	/**
+	 * The feature id for the '<em><b>As Array</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_SUPER_TYPE_CONFIG__AS_ARRAY = 3;
+
+	/**
+	 * The feature id for the '<em><b>Separator</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_SUPER_TYPE_CONFIG__SEPARATOR = 4;
+
+	/**
+	 * The feature id for the '<em><b>Super Type Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_SUPER_TYPE_CONFIG__SUPER_TYPE_KEY = 5;
+
+	/**
+	 * The number of structural features of the '<em>Base Super Type Config</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_SUPER_TYPE_CONFIG_FEATURE_COUNT = 6;
+
+	/**
+	 * The number of operations of the '<em>Base Super Type Config</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_SUPER_TYPE_CONFIG_OPERATION_COUNT = 0;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.BaseFeatureConfigImpl <em>Base Feature Config</em>}' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.BaseFeatureConfigImpl
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getBaseFeatureConfig()
+	 * @generated
+	 */
+	int BASE_FEATURE_CONFIG = 4;
+
+	/**
+	 * The feature id for the '<em><b>Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG__KEY = 0;
+
+	/**
+	 * The feature id for the '<em><b>Ignore</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG__IGNORE = 1;
+
+	/**
+	 * The feature id for the '<em><b>Ignore Read</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG__IGNORE_READ = 2;
+
+	/**
+	 * The feature id for the '<em><b>Ignore Write</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG__IGNORE_WRITE = 3;
+
+	/**
+	 * The feature id for the '<em><b>Force Read</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG__FORCE_READ = 4;
+
+	/**
+	 * The feature id for the '<em><b>Force Write</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG__FORCE_WRITE = 5;
+
+	/**
+	 * The feature id for the '<em><b>Serialize Null</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG__SERIALIZE_NULL = 6;
+
+	/**
+	 * The feature id for the '<em><b>Serialize Empty</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG__SERIALIZE_EMPTY = 7;
+
+	/**
+	 * The feature id for the '<em><b>Serialize Defaults</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG__SERIALIZE_DEFAULTS = 8;
+
+	/**
+	 * The feature id for the '<em><b>Enum Serialization</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG__ENUM_SERIALIZATION = 9;
+
+	/**
+	 * The number of structural features of the '<em>Base Feature Config</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG_FEATURE_COUNT = 10;
+
+	/**
+	 * The number of operations of the '<em>Base Feature Config</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BASE_FEATURE_CONFIG_OPERATION_COUNT = 0;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl <em>Type Serialization Config</em>}' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getTypeSerializationConfig()
+	 * @generated
+	 */
+	int TYPE_SERIALIZATION_CONFIG = 5;
+
+	/**
+	 * The feature id for the '<em><b>Format</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int TYPE_SERIALIZATION_CONFIG__FORMAT = BASE_TYPE_CONFIG__FORMAT;
+
+	/**
+	 * The feature id for the '<em><b>Strategy</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int TYPE_SERIALIZATION_CONFIG__STRATEGY = BASE_TYPE_CONFIG__STRATEGY;
+
+	/**
+	 * The feature id for the '<em><b>Type Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int TYPE_SERIALIZATION_CONFIG__TYPE_KEY = BASE_TYPE_CONFIG__TYPE_KEY;
+
+	/**
+	 * The feature id for the '<em><b>Schema Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int TYPE_SERIALIZATION_CONFIG__SCHEMA_KEY = BASE_TYPE_CONFIG__SCHEMA_KEY;
+
+	/**
+	 * The feature id for the '<em><b>Name Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int TYPE_SERIALIZATION_CONFIG__NAME_KEY = BASE_TYPE_CONFIG__NAME_KEY;
 
 	/**
 	 * The feature id for the '<em><b>Map Id</b></em>' attribute.
@@ -138,7 +573,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__MAP_ID = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 0;
+	int TYPE_SERIALIZATION_CONFIG__MAP_ID = BASE_TYPE_CONFIG_FEATURE_COUNT + 0;
 
 	/**
 	 * The feature id for the '<em><b>Discriminator Path</b></em>' attribute.
@@ -147,7 +582,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_PATH = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 1;
+	int TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_PATH = BASE_TYPE_CONFIG_FEATURE_COUNT + 1;
 
 	/**
 	 * The feature id for the '<em><b>Discriminator Value</b></em>' attribute.
@@ -156,7 +591,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_VALUE = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 2;
+	int TYPE_SERIALIZATION_CONFIG__DISCRIMINATOR_VALUE = BASE_TYPE_CONFIG_FEATURE_COUNT + 2;
 
 	/**
 	 * The feature id for the '<em><b>Fingerprint Mode</b></em>' attribute.
@@ -165,7 +600,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__FINGERPRINT_MODE = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 3;
+	int TYPE_SERIALIZATION_CONFIG__FINGERPRINT_MODE = BASE_TYPE_CONFIG_FEATURE_COUNT + 3;
 
 	/**
 	 * The feature id for the '<em><b>Fingerprint Key</b></em>' attribute.
@@ -174,7 +609,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__FINGERPRINT_KEY = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 4;
+	int TYPE_SERIALIZATION_CONFIG__FINGERPRINT_KEY = BASE_TYPE_CONFIG_FEATURE_COUNT + 4;
 
 	/**
 	 * The feature id for the '<em><b>Strategy Scope</b></em>' attribute.
@@ -183,7 +618,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__STRATEGY_SCOPE = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 5;
+	int TYPE_SERIALIZATION_CONFIG__STRATEGY_SCOPE = BASE_TYPE_CONFIG_FEATURE_COUNT + 5;
 
 	/**
 	 * The feature id for the '<em><b>Format Scope</b></em>' attribute.
@@ -192,7 +627,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG__FORMAT_SCOPE = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 6;
+	int TYPE_SERIALIZATION_CONFIG__FORMAT_SCOPE = BASE_TYPE_CONFIG_FEATURE_COUNT + 6;
 
 	/**
 	 * The number of structural features of the '<em>Type Serialization Config</em>' class.
@@ -201,7 +636,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG_FEATURE_COUNT = MetadataPackage.BASE_TYPE_CONFIG_FEATURE_COUNT + 7;
+	int TYPE_SERIALIZATION_CONFIG_FEATURE_COUNT = BASE_TYPE_CONFIG_FEATURE_COUNT + 7;
 
 	/**
 	 * The number of operations of the '<em>Type Serialization Config</em>' class.
@@ -210,7 +645,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int TYPE_SERIALIZATION_CONFIG_OPERATION_COUNT = MetadataPackage.BASE_TYPE_CONFIG_OPERATION_COUNT + 0;
+	int TYPE_SERIALIZATION_CONFIG_OPERATION_COUNT = BASE_TYPE_CONFIG_OPERATION_COUNT + 0;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.IdSerializationConfigImpl <em>Id Serialization Config</em>}' class.
@@ -220,7 +655,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getIdSerializationConfig()
 	 * @generated
 	 */
-	int ID_SERIALIZATION_CONFIG = 1;
+	int ID_SERIALIZATION_CONFIG = 6;
 
 	/**
 	 * The feature id for the '<em><b>Strategy</b></em>' attribute.
@@ -229,7 +664,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__STRATEGY = MetadataPackage.BASE_ID_CONFIG__STRATEGY;
+	int ID_SERIALIZATION_CONFIG__STRATEGY = BASE_ID_CONFIG__STRATEGY;
 
 	/**
 	 * The feature id for the '<em><b>Key Mode</b></em>' attribute.
@@ -238,7 +673,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__KEY_MODE = MetadataPackage.BASE_ID_CONFIG__KEY_MODE;
+	int ID_SERIALIZATION_CONFIG__KEY_MODE = BASE_ID_CONFIG__KEY_MODE;
 
 	/**
 	 * The feature id for the '<em><b>Format</b></em>' attribute.
@@ -247,7 +682,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__FORMAT = MetadataPackage.BASE_ID_CONFIG__FORMAT;
+	int ID_SERIALIZATION_CONFIG__FORMAT = BASE_ID_CONFIG__FORMAT;
 
 	/**
 	 * The feature id for the '<em><b>Id Key</b></em>' attribute.
@@ -256,7 +691,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__ID_KEY = MetadataPackage.BASE_ID_CONFIG__ID_KEY;
+	int ID_SERIALIZATION_CONFIG__ID_KEY = BASE_ID_CONFIG__ID_KEY;
 
 	/**
 	 * The feature id for the '<em><b>Separator</b></em>' attribute.
@@ -265,7 +700,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__SEPARATOR = MetadataPackage.BASE_ID_CONFIG__SEPARATOR;
+	int ID_SERIALIZATION_CONFIG__SEPARATOR = BASE_ID_CONFIG__SEPARATOR;
 
 	/**
 	 * The feature id for the '<em><b>On Top</b></em>' attribute.
@@ -274,7 +709,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__ON_TOP = MetadataPackage.BASE_ID_CONFIG__ON_TOP;
+	int ID_SERIALIZATION_CONFIG__ON_TOP = BASE_ID_CONFIG__ON_TOP;
 
 	/**
 	 * The feature id for the '<em><b>Serialize Separator</b></em>' attribute.
@@ -283,7 +718,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__SERIALIZE_SEPARATOR = MetadataPackage.BASE_ID_CONFIG__SERIALIZE_SEPARATOR;
+	int ID_SERIALIZATION_CONFIG__SERIALIZE_SEPARATOR = BASE_ID_CONFIG__SERIALIZE_SEPARATOR;
 
 	/**
 	 * The feature id for the '<em><b>Separator Key</b></em>' attribute.
@@ -292,7 +727,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__SEPARATOR_KEY = MetadataPackage.BASE_ID_CONFIG__SEPARATOR_KEY;
+	int ID_SERIALIZATION_CONFIG__SEPARATOR_KEY = BASE_ID_CONFIG__SEPARATOR_KEY;
 
 	/**
 	 * The feature id for the '<em><b>Value Key</b></em>' attribute.
@@ -301,7 +736,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__VALUE_KEY = MetadataPackage.BASE_ID_CONFIG__VALUE_KEY;
+	int ID_SERIALIZATION_CONFIG__VALUE_KEY = BASE_ID_CONFIG__VALUE_KEY;
 
 	/**
 	 * The feature id for the '<em><b>Id Features</b></em>' attribute list.
@@ -310,7 +745,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__ID_FEATURES = MetadataPackage.BASE_ID_CONFIG_FEATURE_COUNT + 0;
+	int ID_SERIALIZATION_CONFIG__ID_FEATURES = BASE_ID_CONFIG_FEATURE_COUNT + 0;
 
 	/**
 	 * The feature id for the '<em><b>Id Value Writer Name</b></em>' attribute.
@@ -319,7 +754,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__ID_VALUE_WRITER_NAME = MetadataPackage.BASE_ID_CONFIG_FEATURE_COUNT + 1;
+	int ID_SERIALIZATION_CONFIG__ID_VALUE_WRITER_NAME = BASE_ID_CONFIG_FEATURE_COUNT + 1;
 
 	/**
 	 * The feature id for the '<em><b>Id Value Reader Name</b></em>' attribute.
@@ -328,7 +763,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__ID_VALUE_READER_NAME = MetadataPackage.BASE_ID_CONFIG_FEATURE_COUNT + 2;
+	int ID_SERIALIZATION_CONFIG__ID_VALUE_READER_NAME = BASE_ID_CONFIG_FEATURE_COUNT + 2;
 
 	/**
 	 * The feature id for the '<em><b>Strategy Scope</b></em>' attribute.
@@ -337,7 +772,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__STRATEGY_SCOPE = MetadataPackage.BASE_ID_CONFIG_FEATURE_COUNT + 3;
+	int ID_SERIALIZATION_CONFIG__STRATEGY_SCOPE = BASE_ID_CONFIG_FEATURE_COUNT + 3;
 
 	/**
 	 * The feature id for the '<em><b>Format Scope</b></em>' attribute.
@@ -346,7 +781,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG__FORMAT_SCOPE = MetadataPackage.BASE_ID_CONFIG_FEATURE_COUNT + 4;
+	int ID_SERIALIZATION_CONFIG__FORMAT_SCOPE = BASE_ID_CONFIG_FEATURE_COUNT + 4;
 
 	/**
 	 * The number of structural features of the '<em>Id Serialization Config</em>' class.
@@ -355,7 +790,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG_FEATURE_COUNT = MetadataPackage.BASE_ID_CONFIG_FEATURE_COUNT + 5;
+	int ID_SERIALIZATION_CONFIG_FEATURE_COUNT = BASE_ID_CONFIG_FEATURE_COUNT + 5;
 
 	/**
 	 * The number of operations of the '<em>Id Serialization Config</em>' class.
@@ -364,7 +799,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int ID_SERIALIZATION_CONFIG_OPERATION_COUNT = MetadataPackage.BASE_ID_CONFIG_OPERATION_COUNT + 0;
+	int ID_SERIALIZATION_CONFIG_OPERATION_COUNT = BASE_ID_CONFIG_OPERATION_COUNT + 0;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ReferenceSerializationConfigImpl <em>Reference Serialization Config</em>}' class.
@@ -374,7 +809,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getReferenceSerializationConfig()
 	 * @generated
 	 */
-	int REFERENCE_SERIALIZATION_CONFIG = 2;
+	int REFERENCE_SERIALIZATION_CONFIG = 7;
 
 	/**
 	 * The feature id for the '<em><b>Format</b></em>' attribute.
@@ -383,7 +818,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REFERENCE_SERIALIZATION_CONFIG__FORMAT = MetadataPackage.BASE_REFERENCE_CONFIG__FORMAT;
+	int REFERENCE_SERIALIZATION_CONFIG__FORMAT = BASE_REFERENCE_CONFIG__FORMAT;
 
 	/**
 	 * The feature id for the '<em><b>Type Key</b></em>' attribute.
@@ -392,7 +827,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REFERENCE_SERIALIZATION_CONFIG__TYPE_KEY = MetadataPackage.BASE_REFERENCE_CONFIG__TYPE_KEY;
+	int REFERENCE_SERIALIZATION_CONFIG__TYPE_KEY = BASE_REFERENCE_CONFIG__TYPE_KEY;
 
 	/**
 	 * The feature id for the '<em><b>Ref Key</b></em>' attribute.
@@ -401,7 +836,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REFERENCE_SERIALIZATION_CONFIG__REF_KEY = MetadataPackage.BASE_REFERENCE_CONFIG__REF_KEY;
+	int REFERENCE_SERIALIZATION_CONFIG__REF_KEY = BASE_REFERENCE_CONFIG__REF_KEY;
 
 	/**
 	 * The feature id for the '<em><b>Include Type</b></em>' attribute.
@@ -410,7 +845,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REFERENCE_SERIALIZATION_CONFIG__INCLUDE_TYPE = MetadataPackage.BASE_REFERENCE_CONFIG_FEATURE_COUNT + 0;
+	int REFERENCE_SERIALIZATION_CONFIG__INCLUDE_TYPE = BASE_REFERENCE_CONFIG_FEATURE_COUNT + 0;
 
 	/**
 	 * The feature id for the '<em><b>Expand</b></em>' attribute.
@@ -419,7 +854,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REFERENCE_SERIALIZATION_CONFIG__EXPAND = MetadataPackage.BASE_REFERENCE_CONFIG_FEATURE_COUNT + 1;
+	int REFERENCE_SERIALIZATION_CONFIG__EXPAND = BASE_REFERENCE_CONFIG_FEATURE_COUNT + 1;
 
 	/**
 	 * The number of structural features of the '<em>Reference Serialization Config</em>' class.
@@ -428,7 +863,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REFERENCE_SERIALIZATION_CONFIG_FEATURE_COUNT = MetadataPackage.BASE_REFERENCE_CONFIG_FEATURE_COUNT + 2;
+	int REFERENCE_SERIALIZATION_CONFIG_FEATURE_COUNT = BASE_REFERENCE_CONFIG_FEATURE_COUNT + 2;
 
 	/**
 	 * The number of operations of the '<em>Reference Serialization Config</em>' class.
@@ -437,7 +872,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REFERENCE_SERIALIZATION_CONFIG_OPERATION_COUNT = MetadataPackage.BASE_REFERENCE_CONFIG_OPERATION_COUNT + 0;
+	int REFERENCE_SERIALIZATION_CONFIG_OPERATION_COUNT = BASE_REFERENCE_CONFIG_OPERATION_COUNT + 0;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.SuperTypeSerializationConfigImpl <em>Super Type Serialization Config</em>}' class.
@@ -447,7 +882,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getSuperTypeSerializationConfig()
 	 * @generated
 	 */
-	int SUPER_TYPE_SERIALIZATION_CONFIG = 3;
+	int SUPER_TYPE_SERIALIZATION_CONFIG = 8;
 
 	/**
 	 * The feature id for the '<em><b>Enabled</b></em>' attribute.
@@ -456,7 +891,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SUPER_TYPE_SERIALIZATION_CONFIG__ENABLED = MetadataPackage.BASE_SUPER_TYPE_CONFIG__ENABLED;
+	int SUPER_TYPE_SERIALIZATION_CONFIG__ENABLED = BASE_SUPER_TYPE_CONFIG__ENABLED;
 
 	/**
 	 * The feature id for the '<em><b>Selection</b></em>' attribute.
@@ -465,7 +900,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SUPER_TYPE_SERIALIZATION_CONFIG__SELECTION = MetadataPackage.BASE_SUPER_TYPE_CONFIG__SELECTION;
+	int SUPER_TYPE_SERIALIZATION_CONFIG__SELECTION = BASE_SUPER_TYPE_CONFIG__SELECTION;
 
 	/**
 	 * The feature id for the '<em><b>Format</b></em>' attribute.
@@ -474,7 +909,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SUPER_TYPE_SERIALIZATION_CONFIG__FORMAT = MetadataPackage.BASE_SUPER_TYPE_CONFIG__FORMAT;
+	int SUPER_TYPE_SERIALIZATION_CONFIG__FORMAT = BASE_SUPER_TYPE_CONFIG__FORMAT;
 
 	/**
 	 * The feature id for the '<em><b>As Array</b></em>' attribute.
@@ -483,7 +918,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SUPER_TYPE_SERIALIZATION_CONFIG__AS_ARRAY = MetadataPackage.BASE_SUPER_TYPE_CONFIG__AS_ARRAY;
+	int SUPER_TYPE_SERIALIZATION_CONFIG__AS_ARRAY = BASE_SUPER_TYPE_CONFIG__AS_ARRAY;
 
 	/**
 	 * The feature id for the '<em><b>Separator</b></em>' attribute.
@@ -492,7 +927,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SUPER_TYPE_SERIALIZATION_CONFIG__SEPARATOR = MetadataPackage.BASE_SUPER_TYPE_CONFIG__SEPARATOR;
+	int SUPER_TYPE_SERIALIZATION_CONFIG__SEPARATOR = BASE_SUPER_TYPE_CONFIG__SEPARATOR;
 
 	/**
 	 * The feature id for the '<em><b>Super Type Key</b></em>' attribute.
@@ -501,7 +936,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SUPER_TYPE_SERIALIZATION_CONFIG__SUPER_TYPE_KEY = MetadataPackage.BASE_SUPER_TYPE_CONFIG__SUPER_TYPE_KEY;
+	int SUPER_TYPE_SERIALIZATION_CONFIG__SUPER_TYPE_KEY = BASE_SUPER_TYPE_CONFIG__SUPER_TYPE_KEY;
 
 	/**
 	 * The feature id for the '<em><b>Use Smart Compression</b></em>' attribute.
@@ -510,7 +945,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SUPER_TYPE_SERIALIZATION_CONFIG__USE_SMART_COMPRESSION = MetadataPackage.BASE_SUPER_TYPE_CONFIG_FEATURE_COUNT + 0;
+	int SUPER_TYPE_SERIALIZATION_CONFIG__USE_SMART_COMPRESSION = BASE_SUPER_TYPE_CONFIG_FEATURE_COUNT + 0;
 
 	/**
 	 * The number of structural features of the '<em>Super Type Serialization Config</em>' class.
@@ -519,7 +954,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SUPER_TYPE_SERIALIZATION_CONFIG_FEATURE_COUNT = MetadataPackage.BASE_SUPER_TYPE_CONFIG_FEATURE_COUNT + 1;
+	int SUPER_TYPE_SERIALIZATION_CONFIG_FEATURE_COUNT = BASE_SUPER_TYPE_CONFIG_FEATURE_COUNT + 1;
 
 	/**
 	 * The number of operations of the '<em>Super Type Serialization Config</em>' class.
@@ -528,7 +963,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SUPER_TYPE_SERIALIZATION_CONFIG_OPERATION_COUNT = MetadataPackage.BASE_SUPER_TYPE_CONFIG_OPERATION_COUNT + 0;
+	int SUPER_TYPE_SERIALIZATION_CONFIG_OPERATION_COUNT = BASE_SUPER_TYPE_CONFIG_OPERATION_COUNT + 0;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.FeatureSerializationConfigImpl <em>Feature Serialization Config</em>}' class.
@@ -538,7 +973,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getFeatureSerializationConfig()
 	 * @generated
 	 */
-	int FEATURE_SERIALIZATION_CONFIG = 4;
+	int FEATURE_SERIALIZATION_CONFIG = 9;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -547,7 +982,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__KEY = MetadataPackage.BASE_FEATURE_CONFIG__KEY;
+	int FEATURE_SERIALIZATION_CONFIG__KEY = BASE_FEATURE_CONFIG__KEY;
 
 	/**
 	 * The feature id for the '<em><b>Ignore</b></em>' attribute.
@@ -556,7 +991,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__IGNORE = MetadataPackage.BASE_FEATURE_CONFIG__IGNORE;
+	int FEATURE_SERIALIZATION_CONFIG__IGNORE = BASE_FEATURE_CONFIG__IGNORE;
 
 	/**
 	 * The feature id for the '<em><b>Ignore Read</b></em>' attribute.
@@ -565,7 +1000,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__IGNORE_READ = MetadataPackage.BASE_FEATURE_CONFIG__IGNORE_READ;
+	int FEATURE_SERIALIZATION_CONFIG__IGNORE_READ = BASE_FEATURE_CONFIG__IGNORE_READ;
 
 	/**
 	 * The feature id for the '<em><b>Ignore Write</b></em>' attribute.
@@ -574,7 +1009,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__IGNORE_WRITE = MetadataPackage.BASE_FEATURE_CONFIG__IGNORE_WRITE;
+	int FEATURE_SERIALIZATION_CONFIG__IGNORE_WRITE = BASE_FEATURE_CONFIG__IGNORE_WRITE;
 
 	/**
 	 * The feature id for the '<em><b>Force Read</b></em>' attribute.
@@ -583,7 +1018,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__FORCE_READ = MetadataPackage.BASE_FEATURE_CONFIG__FORCE_READ;
+	int FEATURE_SERIALIZATION_CONFIG__FORCE_READ = BASE_FEATURE_CONFIG__FORCE_READ;
 
 	/**
 	 * The feature id for the '<em><b>Force Write</b></em>' attribute.
@@ -592,7 +1027,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__FORCE_WRITE = MetadataPackage.BASE_FEATURE_CONFIG__FORCE_WRITE;
+	int FEATURE_SERIALIZATION_CONFIG__FORCE_WRITE = BASE_FEATURE_CONFIG__FORCE_WRITE;
 
 	/**
 	 * The feature id for the '<em><b>Serialize Null</b></em>' attribute.
@@ -601,7 +1036,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__SERIALIZE_NULL = MetadataPackage.BASE_FEATURE_CONFIG__SERIALIZE_NULL;
+	int FEATURE_SERIALIZATION_CONFIG__SERIALIZE_NULL = BASE_FEATURE_CONFIG__SERIALIZE_NULL;
 
 	/**
 	 * The feature id for the '<em><b>Serialize Empty</b></em>' attribute.
@@ -610,7 +1045,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__SERIALIZE_EMPTY = MetadataPackage.BASE_FEATURE_CONFIG__SERIALIZE_EMPTY;
+	int FEATURE_SERIALIZATION_CONFIG__SERIALIZE_EMPTY = BASE_FEATURE_CONFIG__SERIALIZE_EMPTY;
 
 	/**
 	 * The feature id for the '<em><b>Serialize Defaults</b></em>' attribute.
@@ -619,7 +1054,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__SERIALIZE_DEFAULTS = MetadataPackage.BASE_FEATURE_CONFIG__SERIALIZE_DEFAULTS;
+	int FEATURE_SERIALIZATION_CONFIG__SERIALIZE_DEFAULTS = BASE_FEATURE_CONFIG__SERIALIZE_DEFAULTS;
 
 	/**
 	 * The feature id for the '<em><b>Enum Serialization</b></em>' attribute.
@@ -628,7 +1063,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__ENUM_SERIALIZATION = MetadataPackage.BASE_FEATURE_CONFIG__ENUM_SERIALIZATION;
+	int FEATURE_SERIALIZATION_CONFIG__ENUM_SERIALIZATION = BASE_FEATURE_CONFIG__ENUM_SERIALIZATION;
 
 	/**
 	 * The feature id for the '<em><b>Feature Name</b></em>' attribute.
@@ -637,7 +1072,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__FEATURE_NAME = MetadataPackage.BASE_FEATURE_CONFIG_FEATURE_COUNT + 0;
+	int FEATURE_SERIALIZATION_CONFIG__FEATURE_NAME = BASE_FEATURE_CONFIG_FEATURE_COUNT + 0;
 
 	/**
 	 * The feature id for the '<em><b>Value Writer Name</b></em>' attribute.
@@ -646,7 +1081,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__VALUE_WRITER_NAME = MetadataPackage.BASE_FEATURE_CONFIG_FEATURE_COUNT + 1;
+	int FEATURE_SERIALIZATION_CONFIG__VALUE_WRITER_NAME = BASE_FEATURE_CONFIG_FEATURE_COUNT + 1;
 
 	/**
 	 * The feature id for the '<em><b>Value Reader Name</b></em>' attribute.
@@ -655,7 +1090,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__VALUE_READER_NAME = MetadataPackage.BASE_FEATURE_CONFIG_FEATURE_COUNT + 2;
+	int FEATURE_SERIALIZATION_CONFIG__VALUE_READER_NAME = BASE_FEATURE_CONFIG_FEATURE_COUNT + 2;
 
 	/**
 	 * The feature id for the '<em><b>Expand</b></em>' attribute.
@@ -664,7 +1099,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__EXPAND = MetadataPackage.BASE_FEATURE_CONFIG_FEATURE_COUNT + 3;
+	int FEATURE_SERIALIZATION_CONFIG__EXPAND = BASE_FEATURE_CONFIG_FEATURE_COUNT + 3;
 
 	/**
 	 * The feature id for the '<em><b>Reference Config</b></em>' containment reference.
@@ -673,7 +1108,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__REFERENCE_CONFIG = MetadataPackage.BASE_FEATURE_CONFIG_FEATURE_COUNT + 4;
+	int FEATURE_SERIALIZATION_CONFIG__REFERENCE_CONFIG = BASE_FEATURE_CONFIG_FEATURE_COUNT + 4;
 
 	/**
 	 * The feature id for the '<em><b>Type Config</b></em>' containment reference.
@@ -682,7 +1117,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG__TYPE_CONFIG = MetadataPackage.BASE_FEATURE_CONFIG_FEATURE_COUNT + 5;
+	int FEATURE_SERIALIZATION_CONFIG__TYPE_CONFIG = BASE_FEATURE_CONFIG_FEATURE_COUNT + 5;
 
 	/**
 	 * The number of structural features of the '<em>Feature Serialization Config</em>' class.
@@ -691,7 +1126,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG_FEATURE_COUNT = MetadataPackage.BASE_FEATURE_CONFIG_FEATURE_COUNT + 6;
+	int FEATURE_SERIALIZATION_CONFIG_FEATURE_COUNT = BASE_FEATURE_CONFIG_FEATURE_COUNT + 6;
 
 	/**
 	 * The number of operations of the '<em>Feature Serialization Config</em>' class.
@@ -700,7 +1135,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_SERIALIZATION_CONFIG_OPERATION_COUNT = MetadataPackage.BASE_FEATURE_CONFIG_OPERATION_COUNT + 0;
+	int FEATURE_SERIALIZATION_CONFIG_OPERATION_COUNT = BASE_FEATURE_CONFIG_OPERATION_COUNT + 0;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ClassCodecAspectImpl <em>Class Codec Aspect</em>}' class.
@@ -710,34 +1145,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getClassCodecAspect()
 	 * @generated
 	 */
-	int CLASS_CODEC_ASPECT = 5;
-
-	/**
-	 * The feature id for the '<em><b>Type Id</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int CLASS_CODEC_ASPECT__TYPE_ID = MetadataPackage.CLASS_ASPECT__TYPE_ID;
-
-	/**
-	 * The feature id for the '<em><b>Diagnostics</b></em>' containment reference list.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int CLASS_CODEC_ASPECT__DIAGNOSTICS = MetadataPackage.CLASS_ASPECT__DIAGNOSTICS;
-
-	/**
-	 * The feature id for the '<em><b>Class Metadata</b></em>' container reference.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int CLASS_CODEC_ASPECT__CLASS_METADATA = MetadataPackage.CLASS_ASPECT__CLASS_METADATA;
+	int CLASS_CODEC_ASPECT = 10;
 
 	/**
 	 * The feature id for the '<em><b>Type Config</b></em>' containment reference.
@@ -746,7 +1154,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT__TYPE_CONFIG = MetadataPackage.CLASS_ASPECT_FEATURE_COUNT + 0;
+	int CLASS_CODEC_ASPECT__TYPE_CONFIG = 0;
 
 	/**
 	 * The feature id for the '<em><b>Id Config</b></em>' containment reference.
@@ -755,7 +1163,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT__ID_CONFIG = MetadataPackage.CLASS_ASPECT_FEATURE_COUNT + 1;
+	int CLASS_CODEC_ASPECT__ID_CONFIG = 1;
 
 	/**
 	 * The feature id for the '<em><b>Super Type Config</b></em>' containment reference.
@@ -764,7 +1172,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT__SUPER_TYPE_CONFIG = MetadataPackage.CLASS_ASPECT_FEATURE_COUNT + 2;
+	int CLASS_CODEC_ASPECT__SUPER_TYPE_CONFIG = 2;
 
 	/**
 	 * The feature id for the '<em><b>Inherit From Parent</b></em>' attribute.
@@ -773,7 +1181,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT__INHERIT_FROM_PARENT = MetadataPackage.CLASS_ASPECT_FEATURE_COUNT + 3;
+	int CLASS_CODEC_ASPECT__INHERIT_FROM_PARENT = 3;
 
 	/**
 	 * The feature id for the '<em><b>Discriminator Value</b></em>' attribute.
@@ -782,7 +1190,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT__DISCRIMINATOR_VALUE = MetadataPackage.CLASS_ASPECT_FEATURE_COUNT + 4;
+	int CLASS_CODEC_ASPECT__DISCRIMINATOR_VALUE = 4;
 
 	/**
 	 * The feature id for the '<em><b>Strict On Unknown</b></em>' attribute.
@@ -791,7 +1199,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT__STRICT_ON_UNKNOWN = MetadataPackage.CLASS_ASPECT_FEATURE_COUNT + 5;
+	int CLASS_CODEC_ASPECT__STRICT_ON_UNKNOWN = 5;
 
 	/**
 	 * The feature id for the '<em><b>Strict On Missing</b></em>' attribute.
@@ -800,7 +1208,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT__STRICT_ON_MISSING = MetadataPackage.CLASS_ASPECT_FEATURE_COUNT + 6;
+	int CLASS_CODEC_ASPECT__STRICT_ON_MISSING = 6;
 
 	/**
 	 * The feature id for the '<em><b>Metadata Merge</b></em>' attribute.
@@ -809,7 +1217,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT__METADATA_MERGE = MetadataPackage.CLASS_ASPECT_FEATURE_COUNT + 7;
+	int CLASS_CODEC_ASPECT__METADATA_MERGE = 7;
 
 	/**
 	 * The feature id for the '<em><b>Metadata Key</b></em>' attribute.
@@ -818,7 +1226,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT__METADATA_KEY = MetadataPackage.CLASS_ASPECT_FEATURE_COUNT + 8;
+	int CLASS_CODEC_ASPECT__METADATA_KEY = 8;
 
 	/**
 	 * The number of structural features of the '<em>Class Codec Aspect</em>' class.
@@ -827,7 +1235,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT_FEATURE_COUNT = MetadataPackage.CLASS_ASPECT_FEATURE_COUNT + 9;
+	int CLASS_CODEC_ASPECT_FEATURE_COUNT = 9;
 
 	/**
 	 * The number of operations of the '<em>Class Codec Aspect</em>' class.
@@ -836,7 +1244,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT_OPERATION_COUNT = MetadataPackage.CLASS_ASPECT_OPERATION_COUNT + 0;
+	int CLASS_CODEC_ASPECT_OPERATION_COUNT = 0;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.FeatureCodecAspectImpl <em>Feature Codec Aspect</em>}' class.
@@ -846,34 +1254,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getFeatureCodecAspect()
 	 * @generated
 	 */
-	int FEATURE_CODEC_ASPECT = 6;
-
-	/**
-	 * The feature id for the '<em><b>Type Id</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int FEATURE_CODEC_ASPECT__TYPE_ID = MetadataPackage.FEATURE_ASPECT__TYPE_ID;
-
-	/**
-	 * The feature id for the '<em><b>Diagnostics</b></em>' containment reference list.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int FEATURE_CODEC_ASPECT__DIAGNOSTICS = MetadataPackage.FEATURE_ASPECT__DIAGNOSTICS;
-
-	/**
-	 * The feature id for the '<em><b>Feature Metadata</b></em>' container reference.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int FEATURE_CODEC_ASPECT__FEATURE_METADATA = MetadataPackage.FEATURE_ASPECT__FEATURE_METADATA;
+	int FEATURE_CODEC_ASPECT = 11;
 
 	/**
 	 * The feature id for the '<em><b>Effective Key</b></em>' attribute.
@@ -882,7 +1263,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__EFFECTIVE_KEY = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 0;
+	int FEATURE_CODEC_ASPECT__EFFECTIVE_KEY = 0;
 
 	/**
 	 * The feature id for the '<em><b>Ignore</b></em>' attribute.
@@ -891,7 +1272,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__IGNORE = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 1;
+	int FEATURE_CODEC_ASPECT__IGNORE = 1;
 
 	/**
 	 * The feature id for the '<em><b>Ignore Read</b></em>' attribute.
@@ -900,7 +1281,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__IGNORE_READ = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 2;
+	int FEATURE_CODEC_ASPECT__IGNORE_READ = 2;
 
 	/**
 	 * The feature id for the '<em><b>Ignore Write</b></em>' attribute.
@@ -909,7 +1290,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__IGNORE_WRITE = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 3;
+	int FEATURE_CODEC_ASPECT__IGNORE_WRITE = 3;
 
 	/**
 	 * The feature id for the '<em><b>Force Read</b></em>' attribute.
@@ -918,7 +1299,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__FORCE_READ = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 4;
+	int FEATURE_CODEC_ASPECT__FORCE_READ = 4;
 
 	/**
 	 * The feature id for the '<em><b>Force Write</b></em>' attribute.
@@ -927,7 +1308,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__FORCE_WRITE = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 5;
+	int FEATURE_CODEC_ASPECT__FORCE_WRITE = 5;
 
 	/**
 	 * The feature id for the '<em><b>Serialize Null</b></em>' attribute.
@@ -936,7 +1317,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__SERIALIZE_NULL = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 6;
+	int FEATURE_CODEC_ASPECT__SERIALIZE_NULL = 6;
 
 	/**
 	 * The feature id for the '<em><b>Serialize Empty</b></em>' attribute.
@@ -945,7 +1326,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__SERIALIZE_EMPTY = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 7;
+	int FEATURE_CODEC_ASPECT__SERIALIZE_EMPTY = 7;
 
 	/**
 	 * The feature id for the '<em><b>Serialize Defaults</b></em>' attribute.
@@ -954,7 +1335,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__SERIALIZE_DEFAULTS = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 8;
+	int FEATURE_CODEC_ASPECT__SERIALIZE_DEFAULTS = 8;
 
 	/**
 	 * The feature id for the '<em><b>Value Writer Name</b></em>' attribute.
@@ -963,7 +1344,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__VALUE_WRITER_NAME = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 9;
+	int FEATURE_CODEC_ASPECT__VALUE_WRITER_NAME = 9;
 
 	/**
 	 * The feature id for the '<em><b>Value Reader Name</b></em>' attribute.
@@ -972,7 +1353,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__VALUE_READER_NAME = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 10;
+	int FEATURE_CODEC_ASPECT__VALUE_READER_NAME = 10;
 
 	/**
 	 * The feature id for the '<em><b>Enum Serialization</b></em>' attribute.
@@ -981,7 +1362,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__ENUM_SERIALIZATION = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 11;
+	int FEATURE_CODEC_ASPECT__ENUM_SERIALIZATION = 11;
 
 	/**
 	 * The feature id for the '<em><b>Date Format</b></em>' attribute.
@@ -990,7 +1371,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT__DATE_FORMAT = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 12;
+	int FEATURE_CODEC_ASPECT__DATE_FORMAT = 12;
 
 	/**
 	 * The number of structural features of the '<em>Feature Codec Aspect</em>' class.
@@ -999,7 +1380,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT_FEATURE_COUNT = MetadataPackage.FEATURE_ASPECT_FEATURE_COUNT + 13;
+	int FEATURE_CODEC_ASPECT_FEATURE_COUNT = 13;
 
 	/**
 	 * The number of operations of the '<em>Feature Codec Aspect</em>' class.
@@ -1008,7 +1389,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int FEATURE_CODEC_ASPECT_OPERATION_COUNT = MetadataPackage.FEATURE_ASPECT_OPERATION_COUNT + 0;
+	int FEATURE_CODEC_ASPECT_OPERATION_COUNT = 0;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ReferenceCodecAspectImpl <em>Reference Codec Aspect</em>}' class.
@@ -1018,34 +1399,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getReferenceCodecAspect()
 	 * @generated
 	 */
-	int REFERENCE_CODEC_ASPECT = 7;
-
-	/**
-	 * The feature id for the '<em><b>Type Id</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int REFERENCE_CODEC_ASPECT__TYPE_ID = FEATURE_CODEC_ASPECT__TYPE_ID;
-
-	/**
-	 * The feature id for the '<em><b>Diagnostics</b></em>' containment reference list.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int REFERENCE_CODEC_ASPECT__DIAGNOSTICS = FEATURE_CODEC_ASPECT__DIAGNOSTICS;
-
-	/**
-	 * The feature id for the '<em><b>Feature Metadata</b></em>' container reference.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int REFERENCE_CODEC_ASPECT__FEATURE_METADATA = FEATURE_CODEC_ASPECT__FEATURE_METADATA;
+	int REFERENCE_CODEC_ASPECT = 12;
 
 	/**
 	 * The feature id for the '<em><b>Effective Key</b></em>' attribute.
@@ -1226,16 +1580,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getCodecPackageProfile()
 	 * @generated
 	 */
-	int CODEC_PACKAGE_PROFILE = 8;
-
-	/**
-	 * The feature id for the '<em><b>Type Id</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int CODEC_PACKAGE_PROFILE__TYPE_ID = MetadataPackage.PACKAGE_PROFILE__TYPE_ID;
+	int CODEC_PACKAGE_PROFILE = 13;
 
 	/**
 	 * The feature id for the '<em><b>Class Profiles</b></em>' containment reference list.
@@ -1244,7 +1589,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CODEC_PACKAGE_PROFILE__CLASS_PROFILES = MetadataPackage.PACKAGE_PROFILE__CLASS_PROFILES;
+	int CODEC_PACKAGE_PROFILE__CLASS_PROFILES = 0;
 
 	/**
 	 * The number of structural features of the '<em>Package Profile</em>' class.
@@ -1253,7 +1598,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CODEC_PACKAGE_PROFILE_FEATURE_COUNT = MetadataPackage.PACKAGE_PROFILE_FEATURE_COUNT + 0;
+	int CODEC_PACKAGE_PROFILE_FEATURE_COUNT = 1;
 
 	/**
 	 * The number of operations of the '<em>Package Profile</em>' class.
@@ -1262,7 +1607,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CODEC_PACKAGE_PROFILE_OPERATION_COUNT = MetadataPackage.PACKAGE_PROFILE_OPERATION_COUNT + 0;
+	int CODEC_PACKAGE_PROFILE_OPERATION_COUNT = 0;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.CodecClassProfileImpl <em>Class Profile</em>}' class.
@@ -1272,7 +1617,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getCodecClassProfile()
 	 * @generated
 	 */
-	int CODEC_CLASS_PROFILE = 9;
+	int CODEC_CLASS_PROFILE = 14;
 
 	/**
 	 * The feature id for the '<em><b>EClass</b></em>' reference.
@@ -1281,7 +1626,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CODEC_CLASS_PROFILE__ECLASS = MetadataPackage.CLASS_PROFILE__ECLASS;
+	int CODEC_CLASS_PROFILE__ECLASS = 0;
 
 	/**
 	 * The feature id for the '<em><b>Type Config</b></em>' containment reference.
@@ -1290,7 +1635,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CODEC_CLASS_PROFILE__TYPE_CONFIG = MetadataPackage.CLASS_PROFILE_FEATURE_COUNT + 0;
+	int CODEC_CLASS_PROFILE__TYPE_CONFIG = 1;
 
 	/**
 	 * The feature id for the '<em><b>Id Config</b></em>' containment reference.
@@ -1299,7 +1644,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CODEC_CLASS_PROFILE__ID_CONFIG = MetadataPackage.CLASS_PROFILE_FEATURE_COUNT + 1;
+	int CODEC_CLASS_PROFILE__ID_CONFIG = 2;
 
 	/**
 	 * The feature id for the '<em><b>Super Type Config</b></em>' containment reference.
@@ -1308,7 +1653,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CODEC_CLASS_PROFILE__SUPER_TYPE_CONFIG = MetadataPackage.CLASS_PROFILE_FEATURE_COUNT + 2;
+	int CODEC_CLASS_PROFILE__SUPER_TYPE_CONFIG = 3;
 
 	/**
 	 * The feature id for the '<em><b>Feature Configs</b></em>' containment reference list.
@@ -1317,7 +1662,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CODEC_CLASS_PROFILE__FEATURE_CONFIGS = MetadataPackage.CLASS_PROFILE_FEATURE_COUNT + 3;
+	int CODEC_CLASS_PROFILE__FEATURE_CONFIGS = 4;
 
 	/**
 	 * The number of structural features of the '<em>Class Profile</em>' class.
@@ -1326,7 +1671,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CODEC_CLASS_PROFILE_FEATURE_COUNT = MetadataPackage.CLASS_PROFILE_FEATURE_COUNT + 4;
+	int CODEC_CLASS_PROFILE_FEATURE_COUNT = 5;
 
 	/**
 	 * The number of operations of the '<em>Class Profile</em>' class.
@@ -1335,7 +1680,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int CODEC_CLASS_PROFILE_OPERATION_COUNT = MetadataPackage.CLASS_PROFILE_OPERATION_COUNT + 0;
+	int CODEC_CLASS_PROFILE_OPERATION_COUNT = 0;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.CodecConfigImpl <em>Config</em>}' class.
@@ -1345,7 +1690,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getCodecConfig()
 	 * @generated
 	 */
-	int CODEC_CONFIG = 10;
+	int CODEC_CONFIG = 15;
 
 	/**
 	 * The feature id for the '<em><b>Format</b></em>' attribute.
@@ -1562,7 +1907,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getStrategyScope()
 	 * @generated
 	 */
-	int STRATEGY_SCOPE = 11;
+	int STRATEGY_SCOPE = 16;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeHintMode <em>Type Hint Mode</em>}' enum.
@@ -1572,7 +1917,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getTypeHintMode()
 	 * @generated
 	 */
-	int TYPE_HINT_MODE = 12;
+	int TYPE_HINT_MODE = 17;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.DeserializationMode <em>Deserialization Mode</em>}' enum.
@@ -1582,7 +1927,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getDeserializationMode()
 	 * @generated
 	 */
-	int DESERIALIZATION_MODE = 13;
+	int DESERIALIZATION_MODE = 18;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.FallbackStrategy <em>Fallback Strategy</em>}' enum.
@@ -1592,7 +1937,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getFallbackStrategy()
 	 * @generated
 	 */
-	int FALLBACK_STRATEGY = 14;
+	int FALLBACK_STRATEGY = 19;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode <em>Fingerprint Mode</em>}' enum.
@@ -1602,8 +1947,481 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getFingerprintMode()
 	 * @generated
 	 */
-	int FINGERPRINT_MODE = 15;
+	int FINGERPRINT_MODE = 20;
 
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat <em>Serialization Format</em>}' enum.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getSerializationFormat()
+	 * @generated
+	 */
+	int SERIALIZATION_FORMAT = 21;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy <em>Type Strategy</em>}' enum.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getTypeStrategy()
+	 * @generated
+	 */
+	int TYPE_STRATEGY = 22;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.IdStrategy <em>Id Strategy</em>}' enum.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.IdStrategy
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getIdStrategy()
+	 * @generated
+	 */
+	int ID_STRATEGY = 23;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode <em>Id Key Mode</em>}' enum.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getIdKeyMode()
+	 * @generated
+	 */
+	int ID_KEY_MODE = 24;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection <em>Super Type Selection</em>}' enum.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getSuperTypeSelection()
+	 * @generated
+	 */
+	int SUPER_TYPE_SELECTION = 25;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy <em>Enum Serialization Strategy</em>}' enum.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getEnumSerializationStrategy()
+	 * @generated
+	 */
+	int ENUM_SERIALIZATION_STRATEGY = 26;
+
+
+	/**
+	 * Returns the meta object for class '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig <em>Base Type Config</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for class '<em>Base Type Config</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig
+	 * @generated
+	 */
+	EClass getBaseTypeConfig();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig#getFormat <em>Format</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Format</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig#getFormat()
+	 * @see #getBaseTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseTypeConfig_Format();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig#getStrategy <em>Strategy</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Strategy</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig#getStrategy()
+	 * @see #getBaseTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseTypeConfig_Strategy();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig#getTypeKey <em>Type Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Type Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig#getTypeKey()
+	 * @see #getBaseTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseTypeConfig_TypeKey();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig#getSchemaKey <em>Schema Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Schema Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig#getSchemaKey()
+	 * @see #getBaseTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseTypeConfig_SchemaKey();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig#getNameKey <em>Name Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Name Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseTypeConfig#getNameKey()
+	 * @see #getBaseTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseTypeConfig_NameKey();
+
+	/**
+	 * Returns the meta object for class '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig <em>Base Id Config</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for class '<em>Base Id Config</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig
+	 * @generated
+	 */
+	EClass getBaseIdConfig();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getStrategy <em>Strategy</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Strategy</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getStrategy()
+	 * @see #getBaseIdConfig()
+	 * @generated
+	 */
+	EAttribute getBaseIdConfig_Strategy();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getKeyMode <em>Key Mode</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Key Mode</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getKeyMode()
+	 * @see #getBaseIdConfig()
+	 * @generated
+	 */
+	EAttribute getBaseIdConfig_KeyMode();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getFormat <em>Format</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Format</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getFormat()
+	 * @see #getBaseIdConfig()
+	 * @generated
+	 */
+	EAttribute getBaseIdConfig_Format();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getIdKey <em>Id Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Id Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getIdKey()
+	 * @see #getBaseIdConfig()
+	 * @generated
+	 */
+	EAttribute getBaseIdConfig_IdKey();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getSeparator <em>Separator</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Separator</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getSeparator()
+	 * @see #getBaseIdConfig()
+	 * @generated
+	 */
+	EAttribute getBaseIdConfig_Separator();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#isOnTop <em>On Top</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>On Top</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#isOnTop()
+	 * @see #getBaseIdConfig()
+	 * @generated
+	 */
+	EAttribute getBaseIdConfig_OnTop();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#isSerializeSeparator <em>Serialize Separator</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Serialize Separator</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#isSerializeSeparator()
+	 * @see #getBaseIdConfig()
+	 * @generated
+	 */
+	EAttribute getBaseIdConfig_SerializeSeparator();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getSeparatorKey <em>Separator Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Separator Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getSeparatorKey()
+	 * @see #getBaseIdConfig()
+	 * @generated
+	 */
+	EAttribute getBaseIdConfig_SeparatorKey();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getValueKey <em>Value Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Value Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getValueKey()
+	 * @see #getBaseIdConfig()
+	 * @generated
+	 */
+	EAttribute getBaseIdConfig_ValueKey();
+
+	/**
+	 * Returns the meta object for class '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseReferenceConfig <em>Base Reference Config</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for class '<em>Base Reference Config</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseReferenceConfig
+	 * @generated
+	 */
+	EClass getBaseReferenceConfig();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseReferenceConfig#getFormat <em>Format</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Format</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseReferenceConfig#getFormat()
+	 * @see #getBaseReferenceConfig()
+	 * @generated
+	 */
+	EAttribute getBaseReferenceConfig_Format();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseReferenceConfig#getTypeKey <em>Type Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Type Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseReferenceConfig#getTypeKey()
+	 * @see #getBaseReferenceConfig()
+	 * @generated
+	 */
+	EAttribute getBaseReferenceConfig_TypeKey();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseReferenceConfig#getRefKey <em>Ref Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Ref Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseReferenceConfig#getRefKey()
+	 * @see #getBaseReferenceConfig()
+	 * @generated
+	 */
+	EAttribute getBaseReferenceConfig_RefKey();
+
+	/**
+	 * Returns the meta object for class '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig <em>Base Super Type Config</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for class '<em>Base Super Type Config</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig
+	 * @generated
+	 */
+	EClass getBaseSuperTypeConfig();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#isEnabled <em>Enabled</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Enabled</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#isEnabled()
+	 * @see #getBaseSuperTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseSuperTypeConfig_Enabled();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#getSelection <em>Selection</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Selection</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#getSelection()
+	 * @see #getBaseSuperTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseSuperTypeConfig_Selection();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#getFormat <em>Format</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Format</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#getFormat()
+	 * @see #getBaseSuperTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseSuperTypeConfig_Format();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#isAsArray <em>As Array</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>As Array</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#isAsArray()
+	 * @see #getBaseSuperTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseSuperTypeConfig_AsArray();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#getSeparator <em>Separator</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Separator</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#getSeparator()
+	 * @see #getBaseSuperTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseSuperTypeConfig_Separator();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#getSuperTypeKey <em>Super Type Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Super Type Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#getSuperTypeKey()
+	 * @see #getBaseSuperTypeConfig()
+	 * @generated
+	 */
+	EAttribute getBaseSuperTypeConfig_SuperTypeKey();
+
+	/**
+	 * Returns the meta object for class '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig <em>Base Feature Config</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for class '<em>Base Feature Config</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig
+	 * @generated
+	 */
+	EClass getBaseFeatureConfig();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getKey <em>Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Key</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getKey()
+	 * @see #getBaseFeatureConfig()
+	 * @generated
+	 */
+	EAttribute getBaseFeatureConfig_Key();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getIgnore <em>Ignore</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Ignore</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getIgnore()
+	 * @see #getBaseFeatureConfig()
+	 * @generated
+	 */
+	EAttribute getBaseFeatureConfig_Ignore();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getIgnoreRead <em>Ignore Read</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Ignore Read</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getIgnoreRead()
+	 * @see #getBaseFeatureConfig()
+	 * @generated
+	 */
+	EAttribute getBaseFeatureConfig_IgnoreRead();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getIgnoreWrite <em>Ignore Write</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Ignore Write</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getIgnoreWrite()
+	 * @see #getBaseFeatureConfig()
+	 * @generated
+	 */
+	EAttribute getBaseFeatureConfig_IgnoreWrite();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getForceRead <em>Force Read</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Force Read</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getForceRead()
+	 * @see #getBaseFeatureConfig()
+	 * @generated
+	 */
+	EAttribute getBaseFeatureConfig_ForceRead();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getForceWrite <em>Force Write</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Force Write</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getForceWrite()
+	 * @see #getBaseFeatureConfig()
+	 * @generated
+	 */
+	EAttribute getBaseFeatureConfig_ForceWrite();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getSerializeNull <em>Serialize Null</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Serialize Null</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getSerializeNull()
+	 * @see #getBaseFeatureConfig()
+	 * @generated
+	 */
+	EAttribute getBaseFeatureConfig_SerializeNull();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getSerializeEmpty <em>Serialize Empty</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Serialize Empty</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getSerializeEmpty()
+	 * @see #getBaseFeatureConfig()
+	 * @generated
+	 */
+	EAttribute getBaseFeatureConfig_SerializeEmpty();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getSerializeDefaults <em>Serialize Defaults</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Serialize Defaults</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getSerializeDefaults()
+	 * @see #getBaseFeatureConfig()
+	 * @generated
+	 */
+	EAttribute getBaseFeatureConfig_SerializeDefaults();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getEnumSerialization <em>Enum Serialization</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Enum Serialization</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.BaseFeatureConfig#getEnumSerialization()
+	 * @see #getBaseFeatureConfig()
+	 * @generated
+	 */
+	EAttribute getBaseFeatureConfig_EnumSerialization();
 
 	/**
 	 * Returns the meta object for class '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig <em>Type Serialization Config</em>}'.
@@ -2213,6 +3031,17 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	EClass getCodecPackageProfile();
 
 	/**
+	 * Returns the meta object for the containment reference list '{@link org.eclipse.fennec.codec.metadata.model.codec.CodecPackageProfile#getClassProfiles <em>Class Profiles</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the containment reference list '<em>Class Profiles</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackageProfile#getClassProfiles()
+	 * @see #getCodecPackageProfile()
+	 * @generated
+	 */
+	EReference getCodecPackageProfile_ClassProfiles();
+
+	/**
 	 * Returns the meta object for class '{@link org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile <em>Class Profile</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -2221,6 +3050,17 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 */
 	EClass getCodecClassProfile();
+
+	/**
+	 * Returns the meta object for the reference '{@link org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile#getEClass <em>EClass</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the reference '<em>EClass</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile#getEClass()
+	 * @see #getCodecClassProfile()
+	 * @generated
+	 */
+	EReference getCodecClassProfile_EClass();
 
 	/**
 	 * Returns the meta object for the containment reference '{@link org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile#getTypeConfig <em>Type Config</em>}'.
@@ -2558,6 +3398,66 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	EEnum getFingerprintMode();
 
 	/**
+	 * Returns the meta object for enum '{@link org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat <em>Serialization Format</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for enum '<em>Serialization Format</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat
+	 * @generated
+	 */
+	EEnum getSerializationFormat();
+
+	/**
+	 * Returns the meta object for enum '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy <em>Type Strategy</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for enum '<em>Type Strategy</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy
+	 * @generated
+	 */
+	EEnum getTypeStrategy();
+
+	/**
+	 * Returns the meta object for enum '{@link org.eclipse.fennec.codec.metadata.model.codec.IdStrategy <em>Id Strategy</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for enum '<em>Id Strategy</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.IdStrategy
+	 * @generated
+	 */
+	EEnum getIdStrategy();
+
+	/**
+	 * Returns the meta object for enum '{@link org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode <em>Id Key Mode</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for enum '<em>Id Key Mode</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode
+	 * @generated
+	 */
+	EEnum getIdKeyMode();
+
+	/**
+	 * Returns the meta object for enum '{@link org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection <em>Super Type Selection</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for enum '<em>Super Type Selection</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection
+	 * @generated
+	 */
+	EEnum getSuperTypeSelection();
+
+	/**
+	 * Returns the meta object for enum '{@link org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy <em>Enum Serialization Strategy</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for enum '<em>Enum Serialization Strategy</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy
+	 * @generated
+	 */
+	EEnum getEnumSerializationStrategy();
+
+	/**
 	 * Returns the factory that creates the instances of the model.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -2580,6 +3480,320 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 */
 	interface Literals {
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.BaseTypeConfigImpl <em>Base Type Config</em>}' class.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.BaseTypeConfigImpl
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getBaseTypeConfig()
+		 * @generated
+		 */
+		EClass BASE_TYPE_CONFIG = eINSTANCE.getBaseTypeConfig();
+
+		/**
+		 * The meta object literal for the '<em><b>Format</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_TYPE_CONFIG__FORMAT = eINSTANCE.getBaseTypeConfig_Format();
+
+		/**
+		 * The meta object literal for the '<em><b>Strategy</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_TYPE_CONFIG__STRATEGY = eINSTANCE.getBaseTypeConfig_Strategy();
+
+		/**
+		 * The meta object literal for the '<em><b>Type Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_TYPE_CONFIG__TYPE_KEY = eINSTANCE.getBaseTypeConfig_TypeKey();
+
+		/**
+		 * The meta object literal for the '<em><b>Schema Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_TYPE_CONFIG__SCHEMA_KEY = eINSTANCE.getBaseTypeConfig_SchemaKey();
+
+		/**
+		 * The meta object literal for the '<em><b>Name Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_TYPE_CONFIG__NAME_KEY = eINSTANCE.getBaseTypeConfig_NameKey();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.BaseIdConfigImpl <em>Base Id Config</em>}' class.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.BaseIdConfigImpl
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getBaseIdConfig()
+		 * @generated
+		 */
+		EClass BASE_ID_CONFIG = eINSTANCE.getBaseIdConfig();
+
+		/**
+		 * The meta object literal for the '<em><b>Strategy</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_ID_CONFIG__STRATEGY = eINSTANCE.getBaseIdConfig_Strategy();
+
+		/**
+		 * The meta object literal for the '<em><b>Key Mode</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_ID_CONFIG__KEY_MODE = eINSTANCE.getBaseIdConfig_KeyMode();
+
+		/**
+		 * The meta object literal for the '<em><b>Format</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_ID_CONFIG__FORMAT = eINSTANCE.getBaseIdConfig_Format();
+
+		/**
+		 * The meta object literal for the '<em><b>Id Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_ID_CONFIG__ID_KEY = eINSTANCE.getBaseIdConfig_IdKey();
+
+		/**
+		 * The meta object literal for the '<em><b>Separator</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_ID_CONFIG__SEPARATOR = eINSTANCE.getBaseIdConfig_Separator();
+
+		/**
+		 * The meta object literal for the '<em><b>On Top</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_ID_CONFIG__ON_TOP = eINSTANCE.getBaseIdConfig_OnTop();
+
+		/**
+		 * The meta object literal for the '<em><b>Serialize Separator</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_ID_CONFIG__SERIALIZE_SEPARATOR = eINSTANCE.getBaseIdConfig_SerializeSeparator();
+
+		/**
+		 * The meta object literal for the '<em><b>Separator Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_ID_CONFIG__SEPARATOR_KEY = eINSTANCE.getBaseIdConfig_SeparatorKey();
+
+		/**
+		 * The meta object literal for the '<em><b>Value Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_ID_CONFIG__VALUE_KEY = eINSTANCE.getBaseIdConfig_ValueKey();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.BaseReferenceConfigImpl <em>Base Reference Config</em>}' class.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.BaseReferenceConfigImpl
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getBaseReferenceConfig()
+		 * @generated
+		 */
+		EClass BASE_REFERENCE_CONFIG = eINSTANCE.getBaseReferenceConfig();
+
+		/**
+		 * The meta object literal for the '<em><b>Format</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_REFERENCE_CONFIG__FORMAT = eINSTANCE.getBaseReferenceConfig_Format();
+
+		/**
+		 * The meta object literal for the '<em><b>Type Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_REFERENCE_CONFIG__TYPE_KEY = eINSTANCE.getBaseReferenceConfig_TypeKey();
+
+		/**
+		 * The meta object literal for the '<em><b>Ref Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_REFERENCE_CONFIG__REF_KEY = eINSTANCE.getBaseReferenceConfig_RefKey();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.BaseSuperTypeConfigImpl <em>Base Super Type Config</em>}' class.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.BaseSuperTypeConfigImpl
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getBaseSuperTypeConfig()
+		 * @generated
+		 */
+		EClass BASE_SUPER_TYPE_CONFIG = eINSTANCE.getBaseSuperTypeConfig();
+
+		/**
+		 * The meta object literal for the '<em><b>Enabled</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_SUPER_TYPE_CONFIG__ENABLED = eINSTANCE.getBaseSuperTypeConfig_Enabled();
+
+		/**
+		 * The meta object literal for the '<em><b>Selection</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_SUPER_TYPE_CONFIG__SELECTION = eINSTANCE.getBaseSuperTypeConfig_Selection();
+
+		/**
+		 * The meta object literal for the '<em><b>Format</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_SUPER_TYPE_CONFIG__FORMAT = eINSTANCE.getBaseSuperTypeConfig_Format();
+
+		/**
+		 * The meta object literal for the '<em><b>As Array</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_SUPER_TYPE_CONFIG__AS_ARRAY = eINSTANCE.getBaseSuperTypeConfig_AsArray();
+
+		/**
+		 * The meta object literal for the '<em><b>Separator</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_SUPER_TYPE_CONFIG__SEPARATOR = eINSTANCE.getBaseSuperTypeConfig_Separator();
+
+		/**
+		 * The meta object literal for the '<em><b>Super Type Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_SUPER_TYPE_CONFIG__SUPER_TYPE_KEY = eINSTANCE.getBaseSuperTypeConfig_SuperTypeKey();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.BaseFeatureConfigImpl <em>Base Feature Config</em>}' class.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.BaseFeatureConfigImpl
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getBaseFeatureConfig()
+		 * @generated
+		 */
+		EClass BASE_FEATURE_CONFIG = eINSTANCE.getBaseFeatureConfig();
+
+		/**
+		 * The meta object literal for the '<em><b>Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_FEATURE_CONFIG__KEY = eINSTANCE.getBaseFeatureConfig_Key();
+
+		/**
+		 * The meta object literal for the '<em><b>Ignore</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_FEATURE_CONFIG__IGNORE = eINSTANCE.getBaseFeatureConfig_Ignore();
+
+		/**
+		 * The meta object literal for the '<em><b>Ignore Read</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_FEATURE_CONFIG__IGNORE_READ = eINSTANCE.getBaseFeatureConfig_IgnoreRead();
+
+		/**
+		 * The meta object literal for the '<em><b>Ignore Write</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_FEATURE_CONFIG__IGNORE_WRITE = eINSTANCE.getBaseFeatureConfig_IgnoreWrite();
+
+		/**
+		 * The meta object literal for the '<em><b>Force Read</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_FEATURE_CONFIG__FORCE_READ = eINSTANCE.getBaseFeatureConfig_ForceRead();
+
+		/**
+		 * The meta object literal for the '<em><b>Force Write</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_FEATURE_CONFIG__FORCE_WRITE = eINSTANCE.getBaseFeatureConfig_ForceWrite();
+
+		/**
+		 * The meta object literal for the '<em><b>Serialize Null</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_FEATURE_CONFIG__SERIALIZE_NULL = eINSTANCE.getBaseFeatureConfig_SerializeNull();
+
+		/**
+		 * The meta object literal for the '<em><b>Serialize Empty</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_FEATURE_CONFIG__SERIALIZE_EMPTY = eINSTANCE.getBaseFeatureConfig_SerializeEmpty();
+
+		/**
+		 * The meta object literal for the '<em><b>Serialize Defaults</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_FEATURE_CONFIG__SERIALIZE_DEFAULTS = eINSTANCE.getBaseFeatureConfig_SerializeDefaults();
+
+		/**
+		 * The meta object literal for the '<em><b>Enum Serialization</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute BASE_FEATURE_CONFIG__ENUM_SERIALIZATION = eINSTANCE.getBaseFeatureConfig_EnumSerialization();
+
 		/**
 		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.TypeSerializationConfigImpl <em>Type Serialization Config</em>}' class.
 		 * <!-- begin-user-doc -->
@@ -3047,6 +4261,14 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 		EClass CODEC_PACKAGE_PROFILE = eINSTANCE.getCodecPackageProfile();
 
 		/**
+		 * The meta object literal for the '<em><b>Class Profiles</b></em>' containment reference list feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference CODEC_PACKAGE_PROFILE__CLASS_PROFILES = eINSTANCE.getCodecPackageProfile_ClassProfiles();
+
+		/**
 		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.CodecClassProfileImpl <em>Class Profile</em>}' class.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
@@ -3055,6 +4277,14 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EClass CODEC_CLASS_PROFILE = eINSTANCE.getCodecClassProfile();
+
+		/**
+		 * The meta object literal for the '<em><b>EClass</b></em>' reference feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference CODEC_CLASS_PROFILE__ECLASS = eINSTANCE.getCodecClassProfile_EClass();
 
 		/**
 		 * The meta object literal for the '<em><b>Type Config</b></em>' containment reference feature.
@@ -3315,6 +4545,66 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EEnum FINGERPRINT_MODE = eINSTANCE.getFingerprintMode();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat <em>Serialization Format</em>}' enum.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getSerializationFormat()
+		 * @generated
+		 */
+		EEnum SERIALIZATION_FORMAT = eINSTANCE.getSerializationFormat();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy <em>Type Strategy</em>}' enum.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getTypeStrategy()
+		 * @generated
+		 */
+		EEnum TYPE_STRATEGY = eINSTANCE.getTypeStrategy();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.IdStrategy <em>Id Strategy</em>}' enum.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.IdStrategy
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getIdStrategy()
+		 * @generated
+		 */
+		EEnum ID_STRATEGY = eINSTANCE.getIdStrategy();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode <em>Id Key Mode</em>}' enum.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getIdKeyMode()
+		 * @generated
+		 */
+		EEnum ID_KEY_MODE = eINSTANCE.getIdKeyMode();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection <em>Super Type Selection</em>}' enum.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getSuperTypeSelection()
+		 * @generated
+		 */
+		EEnum SUPER_TYPE_SELECTION = eINSTANCE.getSuperTypeSelection();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy <em>Enum Serialization Strategy</em>}' enum.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getEnumSerializationStrategy()
+		 * @generated
+		 */
+		EEnum ENUM_SERIALIZATION_STRATEGY = eINSTANCE.getEnumSerializationStrategy();
 
 	}
 

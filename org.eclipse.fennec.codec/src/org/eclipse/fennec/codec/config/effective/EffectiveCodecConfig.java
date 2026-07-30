@@ -35,11 +35,10 @@ import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.fennec.codec.util.PackageResolver;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 /**
  * Effective codec configuration for a single serialization/deserialization operation.
@@ -306,7 +305,7 @@ public final class EffectiveCodecConfig
      * @return the class metadata, or null if not found or no metadata service
      */
     public ClassMetadata getClassMetadata(EClass eClass) {
-        return metadataService != null ? metadataService.getClassMetadata(eClass) : null;
+        return metadataService != null ? metadataService.getClassMetadata(eClass).orElse(null) : null;
     }
 
     /**
@@ -324,15 +323,15 @@ public final class EffectiveCodecConfig
         int hash = uri.indexOf('#');
         if (hash > 0) {
             String nsURI = uri.substring(0, hash);
-            // Null-guard: a real MetadataService never returns null here (empty EList for an
+            // Null-guard: a real MetadataService never returns null here (empty list for an
             // unknown nsURI), but Mockito mocks / alternate impls may — treat null as "no
             // version info" so the ambiguity check is simply skipped (R1-safe).
-            EList<PackageMetadata> versions = metadataService.getPackageMetadataVersions(nsURI);
+            List<PackageMetadata> versions = metadataService.getPackageMetadataVersions(nsURI);
             if (versions != null && versions.size() > 1) {
                 throw new IllegalStateException(PackageResolver.ambiguityMessage(nsURI, versions));
             }
         }
-        ClassMetadata metadata = metadataService.getClassMetadataByURI(uri);
+        ClassMetadata metadata = metadataService.getClassMetadataByURI(uri).orElse(null);
         return metadata != null ? metadata.getEClass() : null;
     }
 

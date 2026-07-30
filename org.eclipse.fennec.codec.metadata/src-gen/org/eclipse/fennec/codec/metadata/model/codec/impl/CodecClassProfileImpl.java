@@ -23,6 +23,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
+import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.ecore.util.InternalEList;
@@ -34,8 +35,6 @@ import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
 
-import org.eclipse.fennec.model.metadata.impl.ClassProfileImpl;
-
 /**
  * <!-- begin-user-doc -->
  * An implementation of the model object '<em><b>Class Profile</b></em>'.
@@ -44,6 +43,7 @@ import org.eclipse.fennec.model.metadata.impl.ClassProfileImpl;
  * The following features are implemented:
  * </p>
  * <ul>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.CodecClassProfileImpl#getEClass <em>EClass</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.CodecClassProfileImpl#getTypeConfig <em>Type Config</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.CodecClassProfileImpl#getIdConfig <em>Id Config</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.CodecClassProfileImpl#getSuperTypeConfig <em>Super Type Config</em>}</li>
@@ -52,7 +52,17 @@ import org.eclipse.fennec.model.metadata.impl.ClassProfileImpl;
  *
  * @generated
  */
-public class CodecClassProfileImpl extends ClassProfileImpl implements CodecClassProfile {
+public class CodecClassProfileImpl extends MinimalEObjectImpl.Container implements CodecClassProfile {
+	/**
+	 * The cached value of the '{@link #getEClass() <em>EClass</em>}' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getEClass()
+	 * @generated
+	 * @ordered
+	 */
+	protected EClass eClass;
+
 	/**
 	 * The cached value of the '{@link #getTypeConfig() <em>Type Config</em>}' containment reference.
 	 * <!-- begin-user-doc -->
@@ -110,6 +120,46 @@ public class CodecClassProfileImpl extends ClassProfileImpl implements CodecClas
 	@Override
 	protected EClass eStaticClass() {
 		return CodecPackage.Literals.CODEC_CLASS_PROFILE;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EClass getEClass() {
+		if (eClass != null && eClass.eIsProxy()) {
+			InternalEObject oldEClass = (InternalEObject)eClass;
+			eClass = (EClass)eResolveProxy(oldEClass);
+			if (eClass != oldEClass) {
+				if (eNotificationRequired())
+					eNotify(new ENotificationImpl(this, Notification.RESOLVE, CodecPackage.CODEC_CLASS_PROFILE__ECLASS, oldEClass, eClass));
+			}
+		}
+		return eClass;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EClass basicGetEClass() {
+		return eClass;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setEClass(EClass newEClass) {
+		EClass oldEClass = eClass;
+		eClass = newEClass;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.CODEC_CLASS_PROFILE__ECLASS, oldEClass, eClass));
 	}
 
 	/**
@@ -288,6 +338,9 @@ public class CodecClassProfileImpl extends ClassProfileImpl implements CodecClas
 	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
+			case CodecPackage.CODEC_CLASS_PROFILE__ECLASS:
+				if (resolve) return getEClass();
+				return basicGetEClass();
 			case CodecPackage.CODEC_CLASS_PROFILE__TYPE_CONFIG:
 				return getTypeConfig();
 			case CodecPackage.CODEC_CLASS_PROFILE__ID_CONFIG:
@@ -309,6 +362,9 @@ public class CodecClassProfileImpl extends ClassProfileImpl implements CodecClas
 	@Override
 	public void eSet(int featureID, Object newValue) {
 		switch (featureID) {
+			case CodecPackage.CODEC_CLASS_PROFILE__ECLASS:
+				setEClass((EClass)newValue);
+				return;
 			case CodecPackage.CODEC_CLASS_PROFILE__TYPE_CONFIG:
 				setTypeConfig((TypeSerializationConfig)newValue);
 				return;
@@ -334,6 +390,9 @@ public class CodecClassProfileImpl extends ClassProfileImpl implements CodecClas
 	@Override
 	public void eUnset(int featureID) {
 		switch (featureID) {
+			case CodecPackage.CODEC_CLASS_PROFILE__ECLASS:
+				setEClass((EClass)null);
+				return;
 			case CodecPackage.CODEC_CLASS_PROFILE__TYPE_CONFIG:
 				setTypeConfig((TypeSerializationConfig)null);
 				return;
@@ -358,6 +417,8 @@ public class CodecClassProfileImpl extends ClassProfileImpl implements CodecClas
 	@Override
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
+			case CodecPackage.CODEC_CLASS_PROFILE__ECLASS:
+				return eClass != null;
 			case CodecPackage.CODEC_CLASS_PROFILE__TYPE_CONFIG:
 				return typeConfig != null;
 			case CodecPackage.CODEC_CLASS_PROFILE__ID_CONFIG:

@@ -24,10 +24,10 @@ import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;
@@ -247,7 +247,7 @@ public class TypeSerializationEntry implements SerializationEntry {
         if (metadataService == null) {
             return null;
         }
-        PackageMetadata metadata = metadataService.getPackageMetadata(ePackage);
+        PackageMetadata metadata = metadataService.getPackageMetadata(ePackage).orElse(null);
         return metadata != null ? metadata.getModelFingerprint() : null;
     }
 

@@ -19,16 +19,16 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 /**
  * Per-load resolver of an {@code nsURI} to a concrete {@link EPackage}/{@link PackageMetadata}
@@ -138,7 +138,7 @@ public final class PackageResolver {
         if (isNull(ePackage)) {
             return;
         }
-        PackageMetadata pm = metadataService.getPackageMetadata(ePackage);
+        PackageMetadata pm = metadataService.getPackageMetadata(ePackage).orElse(null);
         if (nonNull(pm)) {
             pins.putIfAbsent(ePackage.getNsURI(), pm);
             callerPinnedNsUris.add(ePackage.getNsURI());
@@ -170,7 +170,7 @@ public final class PackageResolver {
             return new StreamFingerprintResult(StreamFingerprintOutcome.UNKNOWN, null, null, false);
         }
 
-        PackageMetadata fromStream = metadataService.getPackageMetadataByFingerprint(fingerprint);
+        PackageMetadata fromStream = metadataService.getPackageMetadataByFingerprint(fingerprint).orElse(null);
 
         if (callerPinnedNsUris.contains(nsURI)) {
             PackageMetadata callerPin = pins.get(nsURI);
@@ -220,7 +220,7 @@ public final class PackageResolver {
 
         // Explicit fingerprint short-circuits to a direct resolve.
         if (nonNull(fingerprint) && !fingerprint.isEmpty()) {
-            PackageMetadata pm = metadataService.getPackageMetadataByFingerprint(fingerprint);
+            PackageMetadata pm = metadataService.getPackageMetadataByFingerprint(fingerprint).orElse(null);
             if (isNull(pm)) {
                 throw new IOException("Unknown fingerprint: " + fingerprint);
             }
@@ -243,7 +243,7 @@ public final class PackageResolver {
         if (nonNull(resourceSetRegistry)) {
             EPackage ePackage = resourceSetRegistry.getEPackage(nsURI);
             if (nonNull(ePackage)) {
-                PackageMetadata pm = metadataService.getPackageMetadata(ePackage);
+                PackageMetadata pm = metadataService.getPackageMetadata(ePackage).orElse(null);
                 if (nonNull(pm)) {
                     pins.put(nsURI, pm);
                     return pm;
@@ -252,7 +252,7 @@ public final class PackageResolver {
         }
 
         // Tier 3: MetadataService candidate query + count rule.
-        EList<PackageMetadata> versions = metadataService.getPackageMetadataVersions(nsURI);
+        List<PackageMetadata> versions = metadataService.getPackageMetadataVersions(nsURI);
         if (versions.size() == 1) {
             PackageMetadata pm = versions.get(0);
             pins.put(nsURI, pm);
@@ -312,7 +312,7 @@ public final class PackageResolver {
      * Builds the standard A.3 ambiguity error message listing the candidate fingerprints.
      * Shared by all resolution sites so the message is uniform.
      */
-    public static String ambiguityMessage(String nsURI, EList<PackageMetadata> versions) {
+    public static String ambiguityMessage(String nsURI, List<PackageMetadata> versions) {
         String fingerprints = versions.stream()
                 .map(PackageMetadata::getModelFingerprint)
                 .collect(Collectors.joining(", "));

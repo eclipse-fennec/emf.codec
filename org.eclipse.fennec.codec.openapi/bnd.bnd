@@ -6,8 +6,7 @@ Bundle-Description: EMF / Codec extension to handle OpenAPI
 -buildpath: \
 	org.osgi.service.condition;version=latest,\
 	org.eclipse.fennec.openapi.model;version=snapshot,\
-	org.eclipse.fennec.model.metadata.api;version=latest,\
-	org.eclipse.fennec.model.metadata;version=latest,\
+	org.eclipse.fennec.emf.osgi.metadata;version=latest,\
 	org.eclipse.fennec.codec.api;version=snapshot,\
 	org.eclipse.fennec.codec;version=snapshot,\
 	org.eclipse.fennec.codec.jsonschema;version=snapshot,\

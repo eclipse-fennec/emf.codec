@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
-import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
 
 /**
  * Immutable feature-level codec configuration.

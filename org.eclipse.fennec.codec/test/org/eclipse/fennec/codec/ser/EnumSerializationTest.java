@@ -37,11 +37,14 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecFactory;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
+import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
-import org.eclipse.fennec.model.metadata.FeatureMetadata;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
+import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
+import org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataFactory;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -434,19 +437,19 @@ class EnumSerializationTest {
     }
 
     private void setEnumStrategy(MetadataWhiteboard ms, EAttribute attribute, EnumSerializationStrategy strategy) {
-        FeatureMetadata featureMetadata = ms.getFeatureMetadata(attribute);
-        if (featureMetadata != null) {
-            // Find or create FeatureCodecAspect
-            FeatureCodecAspect aspect = featureMetadata.getAspects().stream()
-                    .filter(FeatureCodecAspect.class::isInstance)
-                    .map(FeatureCodecAspect.class::cast)
-                    .findFirst()
-                    .orElseGet(() -> {
-                        FeatureCodecAspect newAspect = CodecFactory.eINSTANCE.createFeatureCodecAspect();
-                        featureMetadata.getAspects().add(newAspect);
-                        return newAspect;
-                    });
-            aspect.setEnumSerialization(strategy);
+        FeatureMetadata featureMetadata = ms.getFeatureMetadata(attribute).orElseThrow();
+        // Find or create the codec FeatureCodecAspect. The aspect lives in the content of an
+        // AspectEntry, so it is read through CodecAspectProvider and, when absent, added
+        // wrapped in a fresh entry carrying the codec type id.
+        FeatureCodecAspect aspect =
+                CodecAspectProvider.codecAspect(featureMetadata.getAspects(), FeatureCodecAspect.class);
+        if (aspect == null) {
+            aspect = CodecFactory.eINSTANCE.createFeatureCodecAspect();
+            AspectEntry entry = MetadataFactory.eINSTANCE.createAspectEntry();
+            entry.setTypeId(CodecAspectProvider.ASPECT_TYPE_ID);
+            entry.setContent(aspect);
+            featureMetadata.getAspects().add(entry);
         }
+        aspect.setEnumSerialization(strategy);
     }
 }

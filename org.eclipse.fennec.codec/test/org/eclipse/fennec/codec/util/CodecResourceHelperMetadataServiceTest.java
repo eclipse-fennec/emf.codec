@@ -14,7 +14,7 @@ package org.eclipse.fennec.codec.util;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import org.eclipse.fennec.model.metadata.api.MetadataService;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

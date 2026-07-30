@@ -12,7 +12,7 @@
  */
 package org.eclipse.fennec.codec.metadata.model.codec;
 
-import org.eclipse.fennec.model.metadata.ClassAspect;
+import org.eclipse.emf.ecore.EObject;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -45,7 +45,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface ClassCodecAspect extends ClassAspect {
+public interface ClassCodecAspect extends EObject {
 	/**
 	 * Returns the value of the '<em><b>Type Config</b></em>' containment reference.
 	 * <!-- begin-user-doc -->

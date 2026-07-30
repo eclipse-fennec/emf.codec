@@ -16,8 +16,8 @@ import java.io.IOException;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.service.MetadataServiceImpl;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataServices;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +45,7 @@ abstract class CodecResourceHelperTestBase {
 
 	@BeforeEach
     void setUp() throws IOException {
-        metadataService = new MetadataServiceImpl();
+        metadataService = MetadataServices.createWhiteboard();
         helper = new CodecResourceHelper(metadataService);
 
         ecoreHelper = new EcoreHelper();

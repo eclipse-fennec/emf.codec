@@ -36,12 +36,13 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
+import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.FeatureMetadata;
-import org.eclipse.fennec.model.metadata.IdStrategy;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata;
+import org.eclipse.fennec.codec.metadata.model.codec.IdStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -157,14 +158,10 @@ class CodecResourceAnnotationTest {
         @Test
         @DisplayName("parses ID configuration from codec.id annotation")
         void parsesIdConfiguration() {
-            ClassMetadata metadata = metadataService.getClassMetadata(productClass);
+            ClassMetadata metadata = metadataService.getClassMetadata(productClass).orElseThrow();
             assertNotNull(metadata, "ClassMetadata should exist");
 
-            ClassCodecAspect aspect = metadata.getAspects().stream()
-                    .filter(ClassCodecAspect.class::isInstance)
-                    .map(ClassCodecAspect.class::cast)
-                    .findFirst()
-                    .orElse(null);
+            ClassCodecAspect aspect = CodecAspectProvider.codecAspect(metadata.getAspects(), ClassCodecAspect.class);
 
             assertNotNull(aspect, "ClassCodecAspect should exist");
             assertNotNull(aspect.getIdConfig(), "IdConfig should exist");
@@ -175,12 +172,8 @@ class CodecResourceAnnotationTest {
         @Test
         @DisplayName("parses type configuration from codec.type annotation")
         void parsesTypeConfiguration() {
-            ClassMetadata metadata = metadataService.getClassMetadata(productClass);
-            ClassCodecAspect aspect = metadata.getAspects().stream()
-                    .filter(ClassCodecAspect.class::isInstance)
-                    .map(ClassCodecAspect.class::cast)
-                    .findFirst()
-                    .orElse(null);
+            ClassMetadata metadata = metadataService.getClassMetadata(productClass).orElseThrow();
+            ClassCodecAspect aspect = CodecAspectProvider.codecAspect(metadata.getAspects(), ClassCodecAspect.class);
 
             assertNotNull(aspect, "ClassCodecAspect should exist");
             assertNotNull(aspect.getTypeConfig(), "TypeConfig should exist");
@@ -191,12 +184,8 @@ class CodecResourceAnnotationTest {
         @Test
         @DisplayName("parses combined ID configuration from Order class")
         void parsesCombinedIdConfiguration() {
-            ClassMetadata metadata = metadataService.getClassMetadata(orderClass);
-            ClassCodecAspect aspect = metadata.getAspects().stream()
-                    .filter(ClassCodecAspect.class::isInstance)
-                    .map(ClassCodecAspect.class::cast)
-                    .findFirst()
-                    .orElse(null);
+            ClassMetadata metadata = metadataService.getClassMetadata(orderClass).orElseThrow();
+            ClassCodecAspect aspect = CodecAspectProvider.codecAspect(metadata.getAspects(), ClassCodecAspect.class);
 
             assertNotNull(aspect, "ClassCodecAspect should exist");
             assertNotNull(aspect.getIdConfig(), "IdConfig should exist");
@@ -213,14 +202,11 @@ class CodecResourceAnnotationTest {
         @Test
         @DisplayName("parses transient annotation on feature")
         void parsesTransientAnnotation() {
-            FeatureMetadata metadata = metadataService.getFeatureMetadata(internalCodeAttribute);
+            FeatureMetadata metadata = metadataService.getFeatureMetadata(internalCodeAttribute).orElseThrow();
             assertNotNull(metadata, "FeatureMetadata should exist");
 
-            FeatureCodecAspect aspect = metadata.getAspects().stream()
-                    .filter(FeatureCodecAspect.class::isInstance)
-                    .map(FeatureCodecAspect.class::cast)
-                    .findFirst()
-                    .orElse(null);
+            FeatureCodecAspect aspect =
+                    CodecAspectProvider.codecAspect(metadata.getAspects(), FeatureCodecAspect.class);
 
             assertNotNull(aspect, "FeatureCodecAspect should exist");
             assertTrue(aspect.isIgnore(), "Transient feature should have ignore=true");
@@ -229,12 +215,8 @@ class CodecResourceAnnotationTest {
         @Test
         @DisplayName("parses supertype configuration from Customer class")
         void parsesSuperTypeConfiguration() {
-            ClassMetadata metadata = metadataService.getClassMetadata(customerClass);
-            ClassCodecAspect aspect = metadata.getAspects().stream()
-                    .filter(ClassCodecAspect.class::isInstance)
-                    .map(ClassCodecAspect.class::cast)
-                    .findFirst()
-                    .orElse(null);
+            ClassMetadata metadata = metadataService.getClassMetadata(customerClass).orElseThrow();
+            ClassCodecAspect aspect = CodecAspectProvider.codecAspect(metadata.getAspects(), ClassCodecAspect.class);
 
             assertNotNull(aspect, "ClassCodecAspect should exist");
             assertNotNull(aspect.getSuperTypeConfig(), "SuperTypeConfig should exist");

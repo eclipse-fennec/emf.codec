@@ -15,7 +15,6 @@ package org.eclipse.fennec.codec.metadata.provider;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,27 +28,21 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecClassProfile;
-import org.eclipse.fennec.codec.metadata.model.codec.CodecFactory;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecPackageProfile;
+import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.IdStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
-import org.eclipse.fennec.model.metadata.ClassAspect;
-import org.eclipse.fennec.model.metadata.ClassMetadata;
-import org.eclipse.fennec.model.metadata.ClassProfile;
-import org.eclipse.fennec.model.metadata.FeatureAspect;
-import org.eclipse.fennec.model.metadata.FeatureMetadata;
-import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
-import org.eclipse.fennec.model.metadata.IdKeyMode;
-import org.eclipse.fennec.model.metadata.IdStrategy;
-import org.eclipse.fennec.model.metadata.PackageMetadata;
-import org.eclipse.fennec.model.metadata.PackageProfile;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
-import org.eclipse.fennec.model.metadata.SuperTypeSelection;
-import org.eclipse.fennec.model.metadata.TypeStrategy;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
-import org.eclipse.fennec.model.metadata.service.MetadataServiceImpl;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataServices;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -73,7 +66,7 @@ class CodecProfileBuildTest {
 
 	@BeforeEach
     void setUp() {
-        service = new MetadataServiceImpl();
+        service = MetadataServices.createWhiteboard(new CodecAspectProvider());
         createTestPackage();
     }
 
@@ -104,229 +97,60 @@ class CodecProfileBuildTest {
     }
 
     // ========================================================================
-    // buildProfiles Parameter Immutability Tests
+    // Profile Retrieval — the profile lives in the package-level AspectEntry
     // ========================================================================
 
-    @Test
-    void testBuildProfilesReceivesCopy() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
-
-        PackageMetadata received = provider.receivedMetadataCopy;
-        assertNotNull(received, "buildProfiles should have been called");
-
-        PackageMetadata original = service.getPackageMetadata("http://test.example.org/profile/1.0");
-        assertNotSame(original, received,
-                "buildProfiles should receive a copy, not the original PackageMetadata");
+    /**
+     * The codec profile of a package. It is no longer a metadata concept of its own: the
+     * provider hangs a {@link CodecPackageProfile} into the package-level
+     * {@link org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry AspectEntry}, and the
+     * per-class profiles live inside it (issue #85, D2).
+     */
+    private CodecPackageProfile packageProfileOf(EPackage ePackage) {
+        PackageMetadata packageMetadata = service.registerPackage(ePackage).orElseThrow();
+        CodecPackageProfile profile =
+                CodecAspectProvider.codecAspect(packageMetadata.getAspects(), CodecPackageProfile.class);
+        assertNotNull(profile, "a codec package profile must be built for " + ePackage.getNsURI());
+        return profile;
     }
 
-    @Test
-    void testBuildProfilesCopyMutationDoesNotAffectOriginal() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
-
-        PackageMetadata received = provider.receivedMetadataCopy;
-        assertNotNull(received);
-        assertTrue(received.getClasses().size() > 0, "Copy should have classes");
-
-        // Mutate the copy
-        received.getClasses().clear();
-
-        // Original should be unaffected
-        PackageMetadata original = service.getPackageMetadata("http://test.example.org/profile/1.0");
-        assertEquals(2, original.getClasses().size(),
-                "Clearing the copy's classes must not affect the original PackageMetadata");
-    }
-
-    @Test
-    void testBuildProfilesCopyPreservesStructure() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
-
-        PackageMetadata received = provider.receivedMetadataCopy;
-        assertNotNull(received);
-
-        // Structure should match the original
-        assertEquals("http://test.example.org/profile/1.0", received.getNsURI());
-        assertSame(testPackage, received.getEPackage());
-        assertEquals(2, received.getClasses().size());
-
-        // Class metadata should reference the same EClasses
-        boolean foundPerson = false;
-        boolean foundAddress = false;
-        for (ClassMetadata classMeta : received.getClasses()) {
-            if (classMeta.getEClass() == personClass) {
-                foundPerson = true;
-                assertEquals("Person", classMeta.getName());
-            } else if (classMeta.getEClass() == addressClass) {
-                foundAddress = true;
-                assertEquals("Address", classMeta.getName());
-            }
-        }
-        assertTrue(foundPerson, "Copy should contain Person class metadata");
-        assertTrue(foundAddress, "Copy should contain Address class metadata");
-    }
-
-    @Test
-    void testBuildProfilesCopyIsFiltered() {
-        // Register two providers — the CodecAspectProvider and a capturing one
-        CodecAspectProvider codecProvider = new CodecAspectProvider();
-        ProfileCapturingProvider capturingProvider = new ProfileCapturingProvider();
-        service.registerAspectProvider(codecProvider);
-        service.registerAspectProvider(capturingProvider);
-        service.registerPackage(testPackage);
-
-        PackageMetadata received = capturingProvider.receivedMetadataCopy;
-        assertNotNull(received);
-
-        // The filtered copy should only contain aspects from the capturing provider
-        for (ClassMetadata classMeta : received.getClasses()) {
-            for (ClassAspect aspect : classMeta.getAspects()) {
-                assertEquals("test-profile", aspect.getTypeId(),
-                        "Filtered copy should only contain aspects from this provider");
-            }
-            for (FeatureMetadata featureMeta : classMeta.getFeatures()) {
-                for (FeatureAspect aspect : featureMeta.getAspects()) {
-                    assertEquals("test-profile", aspect.getTypeId(),
-                            "Filtered copy should only contain aspects from this provider");
-                }
-            }
-        }
-    }
-
-    // ========================================================================
-    // Profile Retrieval Tests
-    // ========================================================================
-
-    @Test
-    void testGetPackageProfile() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
-
-        PackageProfile profile = service.getPackageProfile(testPackage, "test-profile");
-        assertNotNull(profile, "Should find PackageProfile by EPackage and typeId");
-        assertEquals("test-profile", profile.getTypeId());
-        assertTrue(profile instanceof CodecPackageProfile);
-    }
-
-    @Test
-    void testGetPackageProfileByNsURI() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
-
-        PackageProfile profile = service.getPackageProfileByNsURI(
-                "http://test.example.org/profile/1.0", "test-profile");
-        assertNotNull(profile, "Should find PackageProfile by nsURI and typeId");
-        assertEquals("test-profile", profile.getTypeId());
-    }
-
-    @Test
-    void testGetPackageProfileNotFound() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
-
-        PackageProfile profile = service.getPackageProfile(testPackage, "nonexistent");
-        assertNull(profile, "Should return null for unknown typeId");
-    }
-
-    @Test
-    void testGetPackageProfileNullPackage() {
-        PackageProfile profile = service.getPackageProfile(null, "test-profile");
-        assertNull(profile);
-    }
-
-    @Test
-    void testGetClassProfile() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
-
-        ClassProfile profile = service.getClassProfile(personClass, "test-profile");
-        assertNotNull(profile, "Should find ClassProfile by EClass and typeId");
-        assertTrue(profile instanceof CodecClassProfile);
-        assertSame(personClass, profile.getEClass());
-    }
-
-    @Test
-    void testGetClassProfileByURI() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
-
-        ClassMetadata personMeta = service.getClassMetadata(personClass);
-        String uri = personMeta.getTypeURI();
-
-        ClassProfile profile = service.getClassProfileByURI(uri, "test-profile");
-        assertNotNull(profile, "Should find ClassProfile by URI and typeId");
-        assertSame(personClass, profile.getEClass());
-    }
-
-    @Test
-    void testGetClassProfileNotFound() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
-
-        ClassProfile profile = service.getClassProfile(personClass, "nonexistent");
-        assertNull(profile, "Should return null for unknown typeId");
-    }
-
-    @Test
-    void testGetClassProfileNullClass() {
-        ClassProfile profile = service.getClassProfile(null, "test-profile");
-        assertNull(profile);
-    }
-
-    @Test
-    void testProfileContainedInPackageMetadata() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
-
-        PackageMetadata pkgMeta = service.getPackageMetadata("http://test.example.org/profile/1.0");
-        assertFalse(pkgMeta.getProfiles().isEmpty(),
-                "PackageMetadata should contain profiles after provider builds them");
-
-        PackageProfile profile = pkgMeta.getProfiles().stream()
-                .filter(p -> "test-profile".equals(p.getTypeId()))
+    /** The class profile for one class of the given package. */
+    private CodecClassProfile classProfileOf(EPackage ePackage, EClass eClass) {
+        return packageProfileOf(ePackage).getClassProfiles().stream()
+                .filter(profile -> profile.getEClass() == eClass)
                 .findFirst()
-                .orElse(null);
-        assertNotNull(profile, "Profile should be contained in PackageMetadata.profiles");
+                .orElseThrow(() -> new AssertionError("no class profile for " + eClass.getName()));
     }
 
     @Test
-    void testClassProfilesContainedInPackageProfile() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
+    @DisplayName("the package-level aspect entry carries the codec profile")
+    void profileLivesInPackageAspectEntry() {
+        PackageMetadata packageMetadata = service.registerPackage(testPackage).orElseThrow();
 
-        PackageProfile pkgProfile = service.getPackageProfile(testPackage, "test-profile");
-        assertNotNull(pkgProfile);
-
-        assertEquals(2, pkgProfile.getClassProfiles().size(),
-                "PackageProfile should have one ClassProfile per EClass");
+        assertFalse(packageMetadata.getAspects().isEmpty(),
+                "the package metadata must carry an aspect entry after registration");
+        assertNotNull(CodecAspectProvider.codecAspect(packageMetadata.getAspects(), CodecPackageProfile.class),
+                "the codec entry must hold the package profile");
     }
 
     @Test
-    void testProfileRemovedOnProviderUnregister() {
-        ProfileCapturingProvider provider = new ProfileCapturingProvider();
-        service.registerAspectProvider(provider);
-        service.registerPackage(testPackage);
+    @DisplayName("an unknown aspect type yields no profile")
+    void unknownAspectTypeYieldsNothing() {
+        PackageMetadata packageMetadata = service.registerPackage(testPackage).orElseThrow();
 
-        // Verify profile exists
-        assertNotNull(service.getPackageProfile(testPackage, "test-profile"));
+        assertNull(CodecAspectProvider.codecAspect(packageMetadata.getAspects(), CodecClassProfile.class),
+                "the package entry holds a CodecPackageProfile, not a CodecClassProfile");
+    }
 
-        // Unregister provider
-        service.unregisterAspectProvider(provider);
+    @Test
+    @DisplayName("one class profile per EClass, keyed by the EClass instance")
+    void oneClassProfilePerEClass() {
+        CodecPackageProfile packageProfile = packageProfileOf(testPackage);
 
-        // Profile should be removed
-        assertNull(service.getPackageProfile(testPackage, "test-profile"));
+        assertEquals(2, packageProfile.getClassProfiles().size(),
+                "the package profile should have one class profile per EClass");
+        assertSame(personClass, classProfileOf(testPackage, personClass).getEClass());
+        assertSame(addressClass, classProfileOf(testPackage, addressClass).getEClass());
     }
 
     // ========================================================================
@@ -338,17 +162,7 @@ class CodecProfileBuildTest {
     class DefaultProfileTests {
 
         private CodecClassProfile getPersonProfile() {
-            CodecAspectProvider codecProvider = new CodecAspectProvider();
-            service.registerAspectProvider(codecProvider);
-            service.registerPackage(testPackage);
-
-            PackageProfile pkgProfile = service.getPackageProfile(testPackage, "codec");
-            assertNotNull(pkgProfile, "Codec package profile should exist");
-
-            ClassProfile classProfile = service.getClassProfile(personClass, "codec");
-            assertNotNull(classProfile, "Person class profile should exist");
-            assertTrue(classProfile instanceof CodecClassProfile);
-            return (CodecClassProfile) classProfile;
+            return classProfileOf(testPackage, personClass);
         }
 
         @Test
@@ -476,13 +290,7 @@ class CodecProfileBuildTest {
         }
 
         private CodecClassProfile getProfile() {
-            CodecAspectProvider codecProvider = new CodecAspectProvider();
-            service.registerAspectProvider(codecProvider);
-            service.registerPackage(annotatedPackage);
-
-            ClassProfile classProfile = service.getClassProfile(annotatedClass, "codec");
-            assertNotNull(classProfile);
-            return (CodecClassProfile) classProfile;
+            return classProfileOf(annotatedPackage, annotatedClass);
         }
 
         @Test
@@ -536,16 +344,12 @@ class CodecProfileBuildTest {
         void testTypeConfigIsCopy() {
             addClassAnnotation("typeStrategy", "NAME");
 
-            CodecAspectProvider codecProvider = new CodecAspectProvider();
-            service.registerAspectProvider(codecProvider);
-            service.registerPackage(annotatedPackage);
-
-            CodecClassProfile profile = (CodecClassProfile) service.getClassProfile(annotatedClass, "codec");
+            CodecClassProfile profile = classProfileOf(annotatedPackage, annotatedClass);
             assertNotNull(profile.getTypeConfig());
 
             // The profile's config should be a copy, not shared with aspect
             // (Verifying EcoreUtil.copy was used)
-            PackageMetadata pkgMeta = service.getPackageMetadata("http://test.example.org/annotated/1.0");
+            PackageMetadata pkgMeta = service.getPackageMetadata("http://test.example.org/annotated/1.0").orElseThrow();
             ClassMetadata classMeta = pkgMeta.getClasses().stream()
                     .filter(cm -> cm.getEClass() == annotatedClass)
                     .findFirst()
@@ -637,13 +441,7 @@ class CodecProfileBuildTest {
         }
 
         private CodecClassProfile getEntityProfile() {
-            CodecAspectProvider codecProvider = new CodecAspectProvider();
-            service.registerAspectProvider(codecProvider);
-            service.registerPackage(featurePackage);
-
-            ClassProfile classProfile = service.getClassProfile(entityClass, "codec");
-            assertNotNull(classProfile);
-            return (CodecClassProfile) classProfile;
+            return classProfileOf(featurePackage, entityClass);
         }
 
         @Test
@@ -712,11 +510,7 @@ class CodecProfileBuildTest {
         @Test
         @DisplayName("profile has one feature config per feature")
         void testFeatureConfigCountMatchesFeatures() {
-            CodecAspectProvider codecProvider = new CodecAspectProvider();
-            service.registerAspectProvider(codecProvider);
-            service.registerPackage(testPackage);
-
-            CodecClassProfile profile = (CodecClassProfile) service.getClassProfile(personClass, "codec");
+            CodecClassProfile profile = classProfileOf(testPackage, personClass);
             assertNotNull(profile);
 
             // Person has "name" (EAttribute) and "address" (EReference) = 2 features
@@ -727,11 +521,7 @@ class CodecProfileBuildTest {
         @Test
         @DisplayName("feature configs are in same order as EClass features")
         void testFeatureConfigOrder() {
-            CodecAspectProvider codecProvider = new CodecAspectProvider();
-            service.registerAspectProvider(codecProvider);
-            service.registerPackage(testPackage);
-
-            CodecClassProfile profile = (CodecClassProfile) service.getClassProfile(personClass, "codec");
+            CodecClassProfile profile = classProfileOf(testPackage, personClass);
             assertNotNull(profile);
 
             // personClass features: name, address (in that order)
@@ -742,12 +532,8 @@ class CodecProfileBuildTest {
         @Test
         @DisplayName("class without features has empty feature configs")
         void testClassWithoutFeatures() {
-            CodecAspectProvider codecProvider = new CodecAspectProvider();
-            service.registerAspectProvider(codecProvider);
-            service.registerPackage(testPackage);
-
             // addressClass has no features
-            CodecClassProfile profile = (CodecClassProfile) service.getClassProfile(addressClass, "codec");
+            CodecClassProfile profile = classProfileOf(testPackage, addressClass);
             assertNotNull(profile);
 
             assertTrue(profile.getFeatureConfigs().isEmpty(),
@@ -761,13 +547,7 @@ class CodecProfileBuildTest {
         @Test
         @DisplayName("package profile has correct number of class profiles")
         void testPackageProfileClassCount() {
-            CodecAspectProvider codecProvider = new CodecAspectProvider();
-            service.registerAspectProvider(codecProvider);
-            service.registerPackage(testPackage);
-
-            PackageProfile pkgProfile = service.getPackageProfile(testPackage, "codec");
-            assertNotNull(pkgProfile);
-            assertTrue(pkgProfile instanceof CodecPackageProfile);
+            CodecPackageProfile pkgProfile = packageProfileOf(testPackage);
 
             // testPackage has Person and Address = 2 classes
             assertEquals(2, pkgProfile.getClassProfiles().size());
@@ -776,17 +556,11 @@ class CodecProfileBuildTest {
         @Test
         @DisplayName("class profiles reference correct EClasses")
         void testClassProfileEClasses() {
-            CodecAspectProvider codecProvider = new CodecAspectProvider();
-            service.registerAspectProvider(codecProvider);
-            service.registerPackage(testPackage);
-
-            CodecPackageProfile pkgProfile = (CodecPackageProfile)
-                    service.getPackageProfile(testPackage, "codec");
-            assertNotNull(pkgProfile);
+            CodecPackageProfile pkgProfile = packageProfileOf(testPackage);
 
             boolean foundPerson = false;
             boolean foundAddress = false;
-            for (ClassProfile cp : pkgProfile.getClassProfiles()) {
+            for (CodecClassProfile cp : pkgProfile.getClassProfiles()) {
                 if (cp.getEClass() == personClass) foundPerson = true;
                 if (cp.getEClass() == addressClass) foundAddress = true;
             }
@@ -795,34 +569,4 @@ class CodecProfileBuildTest {
         }
     }
 
-    // ========================================================================
-    // Test Provider that builds profiles using concrete codec EMF types
-    // ========================================================================
-
-    /**
-     * AspectProvider that uses CodecAspectProvider for aspects but captures
-     * the buildProfiles parameter and returns concrete CodecPackageProfile/CodecClassProfile.
-     */
-    private static class ProfileCapturingProvider extends CodecAspectProvider {
-
-        PackageMetadata receivedMetadataCopy;
-
-        @Override
-        public String getAspectTypeId() {
-            return "test-profile";
-        }
-
-        @Override
-        public PackageProfile buildProfiles(PackageMetadata filteredMetadataCopy) {
-            this.receivedMetadataCopy = filteredMetadataCopy;
-
-            CodecPackageProfile pkgProfile = CodecFactory.eINSTANCE.createCodecPackageProfile();
-            for (ClassMetadata classMeta : filteredMetadataCopy.getClasses()) {
-                CodecClassProfile classProfile = CodecFactory.eINSTANCE.createCodecClassProfile();
-                classProfile.setEClass(classMeta.getEClass());
-                pkgProfile.getClassProfiles().add(classProfile);
-            }
-            return pkgProfile;
-        }
-    }
 }

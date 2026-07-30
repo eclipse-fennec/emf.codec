@@ -55,7 +55,7 @@ import tools.jackson.core.JsonToken;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.json.JsonMapper;
-import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
 import org.eclipse.fennec.codec.tabular.model.tabular.BigDecimalCell;
 import org.eclipse.fennec.codec.tabular.model.tabular.BinaryCell;
 import org.eclipse.fennec.codec.tabular.model.tabular.BooleanCell;

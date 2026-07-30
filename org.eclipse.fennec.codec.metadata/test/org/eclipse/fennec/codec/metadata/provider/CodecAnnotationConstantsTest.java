@@ -12,8 +12,22 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.metadata.provider;
 
-import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.CODEC_SOURCE;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.INLINE_MAPPING_KNOWN_KEYS;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.INLINE_MAPPING_SOURCE;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_FALLBACK_ECLASS;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_FALLBACK_STRATEGY;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_TYPE_DISCRIMINATOR;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_TYPE_DISCRIMINATOR_PATH;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.TYPE_MAPPING_KNOWN_KEYS;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.TYPE_MAPPING_SOURCE_PREFIX;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.extractMapIdFromSource;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.isTypeMappingSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

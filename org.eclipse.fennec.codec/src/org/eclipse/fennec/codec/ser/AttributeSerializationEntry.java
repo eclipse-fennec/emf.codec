@@ -29,7 +29,7 @@ import org.eclipse.fennec.codec.value.AttributeValueWriter;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
-import org.eclipse.fennec.model.metadata.EnumSerializationStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;

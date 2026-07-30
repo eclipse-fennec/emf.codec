@@ -23,7 +23,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.fennec.codec.config.SuperTypeConfig;
-import org.eclipse.fennec.model.metadata.SuperTypeSelection;
+import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

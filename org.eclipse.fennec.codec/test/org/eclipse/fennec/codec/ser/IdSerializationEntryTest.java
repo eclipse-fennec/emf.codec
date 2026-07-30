@@ -32,7 +32,7 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.codec.config.IdConfig;
-import org.eclipse.fennec.model.metadata.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -75,7 +75,7 @@ class IdSerializationEntryTest {
     private IdConfig createDefaultConfig() {
         return IdConfig.builder()
                 .key("_id")
-                .strategy(org.eclipse.fennec.model.metadata.IdStrategy.ID_FIELD)
+                .strategy(org.eclipse.fennec.codec.metadata.model.codec.IdStrategy.ID_FIELD)
                 .onTop(true)
                 .build();
     }
@@ -104,7 +104,7 @@ class IdSerializationEntryTest {
     void shouldSerializeReturnsFalseWhenFeatureOnly() {
         IdConfig config = IdConfig.builder()
                 .key("_id")
-                .keyMode(org.eclipse.fennec.model.metadata.IdKeyMode.FEATURE_ONLY)
+                .keyMode(org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode.FEATURE_ONLY)
                 .build();
 
         IdSerializationEntry entry = new IdSerializationEntry(config, testEClass);

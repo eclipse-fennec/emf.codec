@@ -33,7 +33,7 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
-import org.eclipse.fennec.model.metadata.api.MetadataWhiteboard;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -68,8 +68,8 @@ class FingerprintWriteTest {
         metadataService = MetadataServiceFactory.create();
         mainPackage = buildMainPackage();
         otherPackage = buildOtherPackage();
-        mainFingerprint = metadataService.registerPackage(mainPackage).getModelFingerprint();
-        otherFingerprint = metadataService.registerPackage(otherPackage).getModelFingerprint();
+        mainFingerprint = metadataService.registerPackage(mainPackage).orElseThrow().getModelFingerprint();
+        otherFingerprint = metadataService.registerPackage(otherPackage).orElseThrow().getModelFingerprint();
     }
 
     /**
@@ -128,7 +128,7 @@ class FingerprintWriteTest {
         leafRef.setContainment(true);
         node.getEStructuralFeatures().add(leafRef);
         // Re-register: the model changed, so its fingerprint changed with it.
-        mainFingerprint = metadataService.registerPackage(mainPackage).getModelFingerprint();
+        mainFingerprint = metadataService.registerPackage(mainPackage).orElseThrow().getModelFingerprint();
     }
 
     private EObject createNode(String name) {
