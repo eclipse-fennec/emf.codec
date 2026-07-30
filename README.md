@@ -35,7 +35,6 @@ Further documentation:
 | `org.eclipse.fennec.codec` | Codec runtime (serialization/deserialization) |
 | `org.eclipse.fennec.codec.api` | Configuration API (TypeConfig, IdConfig, etc.) |
 | `org.eclipse.fennec.codec.metadata` | Codec-specific metadata aspects |
-| `org.eclipse.fennec.model.metadata` | Generic metadata service infrastructure |
 | `org.eclipse.fennec.codec.bson` | BSON (MongoDB) format provider |
 | `org.eclipse.fennec.codec.cbor` | CBOR format provider |
 | `org.eclipse.fennec.codec.yaml` | YAML format provider |

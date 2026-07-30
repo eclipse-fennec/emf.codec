@@ -4,7 +4,7 @@ This document consolidates all active plans for completing the codec migration. 
 Spec Compliance Refactoring Plan and the Deprecated API Migration Plan into a single phased roadmap.
 
 **Created:** 2026-02-02
-**Updated:** 2026-06-24
+**Updated:** 2026-07-30
 
 **Related documents:**
 - [`docs/codec-v2-development-guide.md`](codec-v2-development-guide.md) — Session continuity, current state
@@ -41,6 +41,28 @@ The 8-step package migration from `codec.v2.*` to `codec.*` is **complete**:
 - Migrated `codec.api.value.*` to `codec.value.*` API
 - Migrated dependent projects: `codec.geojson`, `codec.jsonschema`, `codec.openapi`
 - Fixed `forceWrite`/`forceRead` bugs (two-gate model, volatile features)
+
+**Metadata migration to emf.osgi COMPLETE** (2026-07-30, umbrella #85 with #86-#92, PR #95):
+
+The codec consumes the metadata and fingerprint infrastructure of the `emf.osgi` project; the
+dependency on `eclipse-fennec/model.metadata` is gone from every buildpath, bndrun and from
+`cnf/central.mvn`. Outcome and the traps that cost time are recorded in the 2026-07-30 entry of
+[`codec-v2-development-guide.md`](codec-v2-development-guide.md); the short version:
+
+- `org.eclipse.fennec.emf.osgi.metadata` (API + service) and `…emf.osgi.model.metadata` (tree)
+  replace the old bundles; the six codec enums are codec-owned in
+  `org.eclipse.fennec.codec.metadata.model.codec` since `codec.ecore` became standalone.
+- Aspects live in `AspectEntry.content` as a bare `EObject`, so type-filtering `getAspects()`
+  compiles and yields nothing — always go through `CodecAspectProvider.codecAspect(...)`.
+  Diagnostics sit on the owning entry and are **not** aggregated into the tree.
+- The `AspectProvider` SPI is replaced by `MetadataHandler.onPackageRegistered`, which mutates
+  the real tree; the copy-and-filter guarantee of `buildProfiles` is gone, and with it 15 tests
+  in `CodecProfileBuildTest` (three replacements cover the surviving contract).
+- Upstream needed two additions, both landed: `MetadataServices.createWhiteboard` (emf.osgi #66)
+  and a parameterless overload reading the default `FingerprintService` from `FingerprintHelper`
+  (emf.osgi #67).
+
+3,530 tests, 0 failures across all projects; CI green on Java 21 and 25.
 
 **Code Cleanup COMPLETE** (2026-02-05):
 - Deleted 55 src + 9 test files from `codec.v2.*`, 11 src + 14 test files from deprecated API

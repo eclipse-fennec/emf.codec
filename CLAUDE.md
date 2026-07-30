@@ -32,8 +32,9 @@
 | Architecture details | See below |
 
 ### Architecture Docs (read on demand)
-- `org.eclipse.fennec.model.metadata/model-metadata-architecture.md`
 - `org.eclipse.fennec.codec.metadata/codec-metadata-architecture.md`
+- Generic metadata & fingerprint API: `/opt/git/emf.osgi` (project `org.eclipse.fennec.emf.osgi.metadata`,
+  guide `docs/model-fingerprint-guide.md`) — the codec consumes it, it is not part of this workspace
 
 ## Session Handoff
 Update `docs/codec-v2-development-guide.md` at session end.
