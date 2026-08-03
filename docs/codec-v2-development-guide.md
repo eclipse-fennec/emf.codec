@@ -2,7 +2,20 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-07-30
+**Last Updated:** 2026-08-03
+
+**Session Summary (2026-08-03) — issue #97, BSON native BsonDateTime:**
+
+**`java.util.Date` attributes now round-trip through BSON's native date-time type (commit `ab3c490` on `snapshot`):**
+
+- **API:** `FormatDelegate` grew the `supportsNativeDateTime()` (default `false`) / `writeDateTime(long epochMillis)` (default: `writeLong`) escape hatch, mirroring the existing native-ObjectId pair. `BsonFormatDelegate` implements it via `BsonDocumentWriter.writeDateTime`; `BsonFormatProvider.BsonStreamWriter` and `FormatDelegateGenerator` pass it through. `AttributeSerializationEntry.writeDateValue` uses it when the generator is a `FormatDelegateGenerator` with native support.
+- **Deliberate deviation from the issue text:** no `nativeDateTime` opt-in option — native is the **default** whenever no `dateFormat` is configured. Justification (signed off by Mark): the old default wrote `Date.toString()` (`Fri Feb 13 ...`), which `convertObjectFromString` (only `yyyy-MM-dd`/ISO) could never parse back, so the default-format round trip was already broken and there is no legacy data to protect; the BSON format is a new development without released consumers. A configured `dateFormat` always wins and keeps the string form; JSON/YAML/CBOR delegates keep the `false` default and are byte-identical. Documented in the issue: https://github.com/eclipse-fennec/emf.codec/issues/97#issuecomment-5171067084
+- **Read-back:** `BsonFormatReaderDelegate` maps `DATE_TIME` → `TokenType.VALUE_NUMBER_INT` and `readLong()` reads it via `reader.readDateTime()` — no new TokenType. `AttributeDeserializationEntry.convertFromInteger` converts a long to `Date` when the target instance class is Date-assignable (this also upgrades JSON: epoch-millis ints for EDate attributes now bind instead of failing at `eSet`). The string path stays as fallback for `dateFormat`-written documents.
+- **`Date[]` array attributes fixed symmetrically:** the write side emits native elements through `writeValue`, and `readObjectArray` now converts `VALUE_NUMBER_INT` elements directly to `Date` — previously the epoch-millis string went through `convertObjectFromString`, threw, and the element was **silently dropped** (warning only).
+- **Tests:** `BsonDateTimeRoundTripTest` (native round trip, `Date[]` round trip, configured-`dateFormat`-stays-string; the date assertion is timezone-tolerant on purpose), `BsonFormatDelegateTest` unit additions, `ArrayAttributeDeserializationTest.dateArrayFromEpochMillis`.
+- **Docs:** `codec-options-reference.md` — the `codec.dateFormat` row no longer claims an "ISO 8601 fallback" (that was never true); it now states native-vs-`toString()` behavior and warns the `toString()` fallback is write-only. Spec `17-format-abstraction.md` §6.1 documents the native date-time contract.
+- **Verification:** local `./gradlew build` green (0 test failures; the Felix Jetty weaving-hook message in the OSGi run is pre-existing noise). CI run 30848039352 was still in flight at handoff.
+- **Open follow-up:** `java.time` types (`Instant`, `LocalDateTime`, …) still fall through to `toString()` — extending the native path to them is noted in the issue as a follow-up candidate.
 
 **Session Summary (2026-07-30) — metadata migration:**
 
