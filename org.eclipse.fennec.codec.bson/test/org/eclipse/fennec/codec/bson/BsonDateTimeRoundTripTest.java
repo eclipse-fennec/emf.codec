@@ -19,6 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,9 +53,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Date attributes round-trip as native {@link BsonDateTime} (issue #97): without a
- * configured date format the BSON format stores the instant natively; a configured
- * {@code dateFormat} keeps the established string representation.
+ * Temporal attributes round-trip as native {@link BsonDateTime}: without a configured
+ * date format the BSON format stores {@code java.util.Date} (issue #97) and the
+ * instant-like {@code java.time} types (issue #98) natively; zoned types keep the ISO
+ * string form (a native instant cannot restore the zone), and a configured
+ * {@code dateFormat} keeps the established string representation for everything.
  */
 @DisplayName("BSON native DateTime round trip")
 class BsonDateTimeRoundTripTest {
@@ -60,6 +67,11 @@ class BsonDateTimeRoundTripTest {
     private EAttribute nameAttr;
     private EAttribute bornAttr;
     private EAttribute checkupsAttr;
+    private EAttribute lastSeenAttr;
+    private EAttribute localBornAttr;
+    private EAttribute birthdayAttr;
+    private EAttribute meetingAttr;
+    private EAttribute checkinsAttr;
     private MetadataWhiteboard metadataService;
 
     @BeforeEach
@@ -76,24 +88,35 @@ class BsonDateTimeRoundTripTest {
         personClass.getEStructuralFeatures().add(nameAttr);
         personClass.getEStructuralFeatures().add(bornAttr);
 
-        EDataType dateArrayType = ecore.createEDataType();
-        dateArrayType.setName("DateArray");
-        dateArrayType.setInstanceClass(Date[].class);
-        checkupsAttr = ecore.createEAttribute();
-        checkupsAttr.setName("checkups");
-        checkupsAttr.setEType(dateArrayType);
-        personClass.getEStructuralFeatures().add(checkupsAttr);
-
         testPackage = ecore.createEPackage();
         testPackage.setName("datetest");
         testPackage.setNsURI("urn:bson:datetime:test");
         testPackage.setNsPrefix("datetest");
-        testPackage.getEClassifiers().add(dateArrayType);
         testPackage.getEClassifiers().add(personClass);
+
+        checkupsAttr = addAttribute("checkups", "DateArray", Date[].class);
+        lastSeenAttr = addAttribute("lastSeen", "InstantType", Instant.class);
+        localBornAttr = addAttribute("localBorn", "LocalDateTimeType", LocalDateTime.class);
+        birthdayAttr = addAttribute("birthday", "LocalDateType", LocalDate.class);
+        meetingAttr = addAttribute("meeting", "ZonedDateTimeType", ZonedDateTime.class);
+        checkinsAttr = addAttribute("checkins", "InstantArray", Instant[].class);
 
         EPackage.Registry.INSTANCE.put(testPackage.getNsURI(), testPackage);
         metadataService = MetadataServiceFactory.create();
         metadataService.registerPackage(testPackage);
+    }
+
+    private EAttribute addAttribute(String attributeName, String typeName, Class<?> instanceClass) {
+        EcoreFactory ecore = EcoreFactory.eINSTANCE;
+        EDataType dataType = ecore.createEDataType();
+        dataType.setName(typeName);
+        dataType.setInstanceClass(instanceClass);
+        testPackage.getEClassifiers().add(dataType);
+        EAttribute attribute = ecore.createEAttribute();
+        attribute.setName(attributeName);
+        attribute.setEType(dataType);
+        personClass.getEStructuralFeatures().add(attribute);
+        return attribute;
     }
 
     @AfterEach
@@ -172,17 +195,95 @@ class BsonDateTimeRoundTripTest {
     }
 
     @Test
+    @DisplayName("stores instant-like java.time values natively and reads them back")
+    void javaTimeRoundTrip() throws IOException {
+        Instant lastSeen = Instant.ofEpochMilli(1234567890123L);
+        LocalDateTime localBorn = LocalDateTime.of(2009, 2, 13, 23, 31, 30);
+        LocalDate birthday = LocalDate.of(2009, 2, 13);
+        EObject person = person(new Date(1234567890123L));
+        person.eSet(lastSeenAttr, lastSeen);
+        person.eSet(localBornAttr, localBorn);
+        person.eSet(birthdayAttr, birthday);
+        ConfigurationResolver resolver = ConfigurationResolver.defaults();
+
+        byte[] bytes = serialize(person, resolver);
+        BsonDocument document = new RawBsonDocument(bytes);
+        assertInstanceOf(BsonDateTime.class, document.get("lastSeen"),
+                "Instant must be stored as native BSON date-time");
+        assertEquals(1234567890123L, document.getDateTime("lastSeen").getValue());
+        assertInstanceOf(BsonDateTime.class, document.get("localBorn"),
+                "LocalDateTime must be stored as native BSON date-time (UTC convention)");
+        assertInstanceOf(BsonDateTime.class, document.get("birthday"),
+                "LocalDate must be stored as native BSON date-time (UTC start of day)");
+
+        EObject loaded = deserialize(bytes, resolver);
+        assertEquals(lastSeen, loaded.eGet(lastSeenAttr));
+        assertEquals(localBorn, loaded.eGet(localBornAttr));
+        assertEquals(birthday, loaded.eGet(birthdayAttr));
+    }
+
+    @Test
+    @DisplayName("keeps zoned types on the ISO string path — a native instant cannot restore the zone")
+    void zonedDateTimeStaysString() throws IOException {
+        ZonedDateTime meeting = ZonedDateTime.of(2009, 2, 13, 23, 31, 30, 0,
+                ZoneId.of("Europe/Berlin"));
+        EObject person = person(new Date(1234567890123L));
+        person.eSet(meetingAttr, meeting);
+        ConfigurationResolver resolver = ConfigurationResolver.defaults();
+
+        byte[] bytes = serialize(person, resolver);
+        BsonDocument document = new RawBsonDocument(bytes);
+        assertInstanceOf(BsonString.class, document.get("meeting"),
+                "zoned types must keep the ISO string form to round-trip the zone");
+
+        EObject loaded = deserialize(bytes, resolver);
+        assertEquals(meeting, loaded.eGet(meetingAttr));
+    }
+
+    @Test
+    @DisplayName("stores Instant[] elements natively and reads them back")
+    void instantArrayRoundTrip() throws IOException {
+        Instant first = Instant.ofEpochMilli(1234567890123L);
+        Instant second = Instant.ofEpochMilli(981173106789L);
+        EObject person = person(new Date(1234567890123L));
+        person.eSet(checkinsAttr, new Instant[] { first, second });
+        ConfigurationResolver resolver = ConfigurationResolver.defaults();
+
+        byte[] bytes = serialize(person, resolver);
+        BsonDocument document = new RawBsonDocument(bytes);
+        BsonArray checkins = document.getArray("checkins");
+        assertInstanceOf(BsonDateTime.class, checkins.get(0),
+                "Instant array elements must use the native BSON date-time type as well");
+        assertInstanceOf(BsonDateTime.class, checkins.get(1));
+
+        EObject loaded = deserialize(bytes, resolver);
+        Instant[] loadedCheckins = (Instant[]) loaded.eGet(checkinsAttr);
+        assertEquals(2, loadedCheckins.length);
+        assertEquals(first, loadedCheckins[0]);
+        assertEquals(second, loadedCheckins[1]);
+    }
+
+    @Test
     @DisplayName("a configured dateFormat keeps the string representation")
     void configuredDateFormatStaysString() throws IOException {
         Date born = new Date(1234567890123L);
+        Instant lastSeen = Instant.ofEpochMilli(1234567890123L);
         ConfigurationResolver resolver = ConfigurationResolver.builder()
                 .optionsProperties(Map.of(CodecOptions.CODEC_DATE_FORMAT, "yyyy-MM-dd"))
                 .build();
 
-        byte[] bytes = serialize(person(born), resolver);
+        EObject person = person(born);
+        person.eSet(lastSeenAttr, lastSeen);
+        byte[] bytes = serialize(person, resolver);
         BsonDocument document = new RawBsonDocument(bytes);
         assertInstanceOf(BsonString.class, document.get("born"),
                 "an explicitly configured dateFormat must keep the string form");
         assertTrue(document.getString("born").getValue().startsWith("2009-02-1"));
+        assertInstanceOf(BsonString.class, document.get("lastSeen"),
+                "a configured dateFormat opts java.time values out of the native path too");
+
+        EObject loaded = deserialize(bytes, resolver);
+        assertEquals(lastSeen, loaded.eGet(lastSeenAttr),
+                "the ISO toString form must still round-trip");
     }
 }

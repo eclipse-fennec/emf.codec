@@ -15,6 +15,10 @@ package org.eclipse.fennec.codec.ser;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -190,6 +194,8 @@ public class AttributeSerializationEntry implements SerializationEntry {
             writeJavaEnumValue(gen, e);
         } else if (value instanceof Date d) {
             writeDateValue(gen, d);
+        } else if (value instanceof Instant || value instanceof LocalDateTime || value instanceof LocalDate) {
+            writeJavaTimeValue(gen, value);
         } else if (value.getClass().isArray()) {
             writeArrayValue(gen, value, ctxt);
         } else {
@@ -212,6 +218,35 @@ public class AttributeSerializationEntry implements SerializationEntry {
         } else {
             gen.writeString(date.toString());
         }
+    }
+
+    /**
+     * Writes an instant-like java.time value ({@code Instant}, {@code LocalDateTime},
+     * {@code LocalDate}). Formats with a native date-time type (BSON) receive the
+     * instant as epoch milliseconds — the zone-less types use the UTC convention;
+     * all other formats keep the ISO-8601 {@code toString()} form. Zoned/offset
+     * types never take the native path because an epoch instant cannot restore
+     * their zone. A configured {@code dateFormat} opts java.time values out of the
+     * native path as well, keeping every temporal value on the string vocabulary.
+     */
+    private void writeJavaTimeValue(JsonGenerator gen, Object value) {
+        if (config.getDateFormat() == null
+                && gen instanceof FormatDelegateGenerator<?> delegating
+                && delegating.supportsNativeDateTime()) {
+            delegating.writeDateTime(toEpochMillis(value));
+        } else {
+            gen.writeString(value.toString());
+        }
+    }
+
+    private static long toEpochMillis(Object value) {
+        if (value instanceof Instant instant) {
+            return instant.toEpochMilli();
+        }
+        if (value instanceof LocalDateTime localDateTime) {
+            return localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+        }
+        return ((LocalDate) value).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli();
     }
 
     /**

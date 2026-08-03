@@ -407,13 +407,26 @@ Some formats have native types that don't exist in JSON:
 **Native date-time (built-in).** The format delegate declares a native date-time
 type via `supportsNativeDateTime()` (default `false`) and writes it via
 `writeDateTime(long epochMillis)` — mirroring the `supportsNativeObjectId()` /
-`writeObjectId(Object)` escape hatch. `java.util.Date` attribute values without a
+`writeObjectId(Object)` escape hatch. Temporal attribute values without a
 configured `dateFormat` are written natively when the delegate supports it (BSON:
-`BsonDateTime`); a configured `dateFormat` always wins and keeps the string form.
-On read, a native date-time surfaces as `VALUE_NUMBER_INT` carrying epoch
-milliseconds, which the attribute deserialization converts back to `Date` —
-no dedicated token type is needed. Formats without native support are unchanged:
-they keep the `dateFormat` string or the legacy `toString()` fallback.
+`BsonDateTime`); a configured `dateFormat` always wins and keeps every temporal
+value on the string vocabulary. On read, a native date-time surfaces as
+`VALUE_NUMBER_INT` carrying epoch milliseconds, which the attribute
+deserialization converts back to the target temporal type — no dedicated token
+type is needed. Formats without native support are unchanged.
+
+Covered temporal types and their epoch-millisecond mapping:
+
+| Type | Write | Read back | Notes |
+|------|-------|-----------|-------|
+| `java.util.Date` | `getTime()` | `new Date(millis)` | `dateFormat` wins; without it the legacy `toString()` fallback (non-native formats) is write-only |
+| `java.time.Instant` | `toEpochMilli()` | `Instant.ofEpochMilli(millis)` | sub-millisecond precision is truncated (BSON DateTime is millis) |
+| `java.time.LocalDateTime` | UTC convention | `LocalDateTime.ofInstant(…, UTC)` | zone-less — UTC convention on both sides, lossless round trip |
+| `java.time.LocalDate` | UTC start of day | `Instant.ofEpochMilli(…).atZone(UTC).toLocalDate()` | lossless round trip |
+| `OffsetDateTime`, `ZonedDateTime` | — (ISO string) | `parse(CharSequence)` | never native: an epoch instant cannot restore the offset/zone; the ISO-8601 `toString()` form round-trips exactly |
+
+All other `java.time` types (`LocalTime`, `Duration`, `Period`, `Year`, `YearMonth`,
+…) stay on the ISO string path unconditionally.
 
 ### 6.2 Custom Value Writers for Format-Specific Types
 

@@ -19,6 +19,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -568,9 +572,9 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
                 if (token == JsonToken.VALUE_STRING) {
                     value = convertObjectFromString(parser.getString(), componentType);
                 } else if (token == JsonToken.VALUE_NUMBER_INT) {
-                    if (Date.class.isAssignableFrom(componentType)) {
+                    if (isEpochMillisTarget(componentType)) {
                         // native date-times (BSON DateTime) arrive as epoch millis
-                        value = new Date(parser.getLongValue());
+                        value = fromEpochMillis(parser.getLongValue(), componentType);
                     } else {
                         value = convertObjectFromString(String.valueOf(parser.getLongValue()), componentType);
                     }
@@ -649,8 +653,13 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
             try {
                 return targetType.getMethod("valueOf", String.class).invoke(null, stringValue);
             } catch (NoSuchMethodException e2) {
-                // Try parse static method
-                return targetType.getMethod("parse", String.class).invoke(null, stringValue);
+                // Try parse static method — the java.time types declare
+                // parse(CharSequence), not parse(String)
+                try {
+                    return targetType.getMethod("parse", String.class).invoke(null, stringValue);
+                } catch (NoSuchMethodException e3) {
+                    return targetType.getMethod("parse", CharSequence.class).invoke(null, stringValue);
+                }
             }
         }
     }
@@ -666,8 +675,22 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         if (dataType instanceof EEnum eEnum) {
             return convertEnumFromString(stringValue, eEnum);
         }
-        // Use EMF's conversion mechanism for other data types
-        return EcoreUtil.createFromString(dataType, stringValue);
+        // Use EMF's conversion mechanism for other data types. Dynamic EDataTypes
+        // have no factory conversion — fall back to the safe reflection targets
+        // (java.time et al.) before giving up.
+        try {
+            return EcoreUtil.createFromString(dataType, stringValue);
+        } catch (RuntimeException emfFailure) {
+            if (instanceClass == null) {
+                throw emfFailure;
+            }
+            try {
+                return convertObjectFromString(stringValue, instanceClass);
+            } catch (Exception reflectionFailure) {
+                emfFailure.addSuppressed(reflectionFailure);
+                throw emfFailure;
+            }
+        }
     }
 
     /**
@@ -721,12 +744,38 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         if (instanceClass == Float.class || instanceClass == float.class) {
             return (float) parser.getLongValue();
         }
-        if (instanceClass != null && Date.class.isAssignableFrom(instanceClass)) {
+        if (instanceClass != null && isEpochMillisTarget(instanceClass)) {
             // native date-times (BSON DateTime) arrive as epoch millis
-            return new Date(parser.getLongValue());
+            return fromEpochMillis(parser.getLongValue(), instanceClass);
         }
         // Default: return as long
         return parser.getLongValue();
+    }
+
+    /**
+     * Temporal types whose values a native date-time format delivers as epoch
+     * milliseconds. Zone-less java.time types use the UTC convention, mirroring
+     * the write side; zoned/offset types are excluded because an epoch instant
+     * cannot restore their zone — they stay on the ISO string path.
+     */
+    private static boolean isEpochMillisTarget(Class<?> targetType) {
+        return Date.class.isAssignableFrom(targetType)
+                || targetType == Instant.class
+                || targetType == LocalDateTime.class
+                || targetType == LocalDate.class;
+    }
+
+    private static Object fromEpochMillis(long epochMillis, Class<?> targetType) {
+        if (targetType == Instant.class) {
+            return Instant.ofEpochMilli(epochMillis);
+        }
+        if (targetType == LocalDateTime.class) {
+            return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneOffset.UTC);
+        }
+        if (targetType == LocalDate.class) {
+            return Instant.ofEpochMilli(epochMillis).atZone(ZoneOffset.UTC).toLocalDate();
+        }
+        return new Date(epochMillis);
     }
 
     /**
