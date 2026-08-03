@@ -115,6 +115,30 @@ public class FormatDelegateGenerator<T> extends GeneratorBase {
         return delegate;
     }
 
+    /**
+     * Returns whether the wrapped delegate writes a native date-time type.
+     *
+     * @return {@code true} if {@link #writeDateTime(long)} produces a native value
+     */
+    public boolean supportsNativeDateTime() {
+        return delegate.supportsNativeDateTime();
+    }
+
+    /**
+     * Writes a native date-time value (epoch milliseconds, UTC) through the delegate.
+     *
+     * @param epochMillis the instant as milliseconds since the epoch, UTC
+     * @return this generator
+     */
+    public JsonGenerator writeDateTime(long epochMillis) throws JacksonException {
+        try {
+            delegate.writeDateTime(epochMillis);
+        } catch (IOException e) {
+            throw _wrapIOFailure(e);
+        }
+        return this;
+    }
+
     // ========================================================================
     // JsonGenerator — metadata / context
     // ========================================================================

@@ -644,6 +644,24 @@ class ArrayAttributeDeserializationTest {
         }
 
         @Test
+        @DisplayName("Date[] - epoch millis (native date-times)")
+        void dateArrayFromEpochMillis() throws IOException {
+            String json = """
+                {
+                    "dateArray": [1234567890123, 981173106789]
+                }
+                """;
+
+            EObject holder = loadJson(json);
+            Date[] result = (Date[]) holder.eGet(dateArrayAttr);
+
+            assertNotNull(result);
+            assertEquals(2, result.length);
+            assertEquals(new Date(1234567890123L), result[0]);
+            assertEquals(new Date(981173106789L), result[1]);
+        }
+
+        @Test
         @DisplayName("BigDecimal[] - decimal numbers as strings")
         void bigDecimalArray() throws IOException {
             String json = """

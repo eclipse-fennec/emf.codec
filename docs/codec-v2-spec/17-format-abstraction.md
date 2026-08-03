@@ -400,9 +400,20 @@ Some formats have native types that don't exist in JSON:
 
 | Format | Native Types | Handling |
 |--------|--------------|----------|
-| BSON | ObjectId, Decimal128, BsonBinary, Date | `getNativeValue(Class)` / `writeNativeValue(Object)` |
+| BSON | ObjectId, Decimal128, BsonBinary, DateTime | `getNativeValue(Class)` / `writeNativeValue(Object)` |
 | JSON | - | All values as JSON primitives |
 | CSV | - | All values as strings |
+
+**Native date-time (built-in).** The format delegate declares a native date-time
+type via `supportsNativeDateTime()` (default `false`) and writes it via
+`writeDateTime(long epochMillis)` — mirroring the `supportsNativeObjectId()` /
+`writeObjectId(Object)` escape hatch. `java.util.Date` attribute values without a
+configured `dateFormat` are written natively when the delegate supports it (BSON:
+`BsonDateTime`); a configured `dateFormat` always wins and keeps the string form.
+On read, a native date-time surfaces as `VALUE_NUMBER_INT` carrying epoch
+milliseconds, which the attribute deserialization converts back to `Date` —
+no dedicated token type is needed. Formats without native support are unchanged:
+they keep the `dateFormat` string or the legacy `toString()` fallback.
 
 ### 6.2 Custom Value Writers for Format-Specific Types
 

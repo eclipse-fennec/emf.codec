@@ -39,6 +39,7 @@ import org.eclipse.fennec.codec.format.TokenType;
  *   <li>{@code ARRAY} → {@code START_ARRAY}</li>
  *   <li>{@code STRING}, {@code OBJECT_ID} → {@code VALUE_STRING}</li>
  *   <li>{@code INT32}, {@code INT64} → {@code VALUE_NUMBER_INT}</li>
+ *   <li>{@code DATE_TIME} → {@code VALUE_NUMBER_INT} (epoch milliseconds via {@link #readLong()})</li>
  *   <li>{@code DOUBLE}, {@code DECIMAL128} → {@code VALUE_NUMBER_FLOAT}</li>
  *   <li>{@code BOOLEAN} → {@code VALUE_BOOLEAN}</li>
  *   <li>{@code NULL} → {@code VALUE_NULL}</li>
@@ -180,6 +181,12 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
                 currentToken = TokenType.VALUE_NUMBER_INT;
                 valueConsumed = false;
                 break;
+            case DATE_TIME:
+                // native BSON date-times surface as epoch millis; the attribute
+                // deserialization converts them to the target temporal type
+                currentToken = TokenType.VALUE_NUMBER_INT;
+                valueConsumed = false;
+                break;
             case DOUBLE:
             case DECIMAL128:
                 currentToken = TokenType.VALUE_NUMBER_FLOAT;
@@ -251,6 +258,9 @@ public class BsonFormatReaderDelegate implements FormatReaderDelegate<BsonDocume
         BsonType type = reader.getCurrentBsonType();
         if (type == BsonType.INT32) {
             return reader.readInt32();
+        }
+        if (type == BsonType.DATE_TIME) {
+            return reader.readDateTime();
         }
         return reader.readInt64();
     }

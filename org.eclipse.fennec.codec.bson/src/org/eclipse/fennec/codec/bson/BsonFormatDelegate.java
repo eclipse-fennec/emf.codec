@@ -32,6 +32,7 @@ import org.eclipse.fennec.codec.format.FormatDelegate;
  * Supports native BSON types:
  * <ul>
  *   <li>{@code ObjectId} — via {@link #writeObjectId(Object)}</li>
+ *   <li>{@code DateTime} — via {@link #writeDateTime(long)}</li>
  *   <li>{@code Decimal128} — via {@link #writeBigDecimal(BigDecimal)}</li>
  *   <li>{@code BsonBinary} — via {@link #writeBinary(byte[])}</li>
  *   <li>{@code Int32}, {@code Int64}, {@code Double} — native numeric types</li>
@@ -177,6 +178,20 @@ public class BsonFormatDelegate implements FormatDelegate<BsonDocument> {
         } else {
             writer.writeBinaryData(new BsonBinary(data));
         }
+    }
+
+    // ========================================================================
+    // Format-Specific: Native DateTime
+    // ========================================================================
+
+    @Override
+    public boolean supportsNativeDateTime() {
+        return true;
+    }
+
+    @Override
+    public void writeDateTime(long epochMillis) {
+        writer.writeDateTime(epochMillis);
     }
 
     // ========================================================================

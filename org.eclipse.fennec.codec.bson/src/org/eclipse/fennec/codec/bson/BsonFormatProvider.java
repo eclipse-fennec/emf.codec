@@ -226,6 +226,16 @@ public class BsonFormatProvider implements CodecFormatProvider<InputStream, Outp
         }
 
         @Override
+        public boolean supportsNativeDateTime() {
+            return delegate.supportsNativeDateTime();
+        }
+
+        @Override
+        public void writeDateTime(long epochMillis) throws IOException {
+            delegate.writeDateTime(epochMillis);
+        }
+
+        @Override
         public void flush() throws IOException {
             delegate.flush();
         }

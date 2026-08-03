@@ -238,6 +238,32 @@ public interface FormatDelegate<T> {
         writeString(value != null ? value.toString() : null);
     }
 
+    /**
+     * Returns whether this format supports a native date-time type.
+     * <p>
+     * When {@code true}, {@link #writeDateTime(long)} writes a native date-time
+     * value (e.g., BSON DateTime). When {@code false}, temporal values are written
+     * through the string/number vocabulary.
+     *
+     * @return {@code true} if native date-time is supported
+     */
+    default boolean supportsNativeDateTime() {
+        return false;
+    }
+
+    /**
+     * Writes a native date-time value as epoch milliseconds (UTC).
+     * <p>
+     * Default implementation writes the value via {@link #writeLong(long)}.
+     * Formats with a native date-time type (e.g., BSON) should override this.
+     *
+     * @param epochMillis the instant as milliseconds since the epoch, UTC
+     * @throws IOException if an I/O error occurs
+     */
+    default void writeDateTime(long epochMillis) throws IOException {
+        writeLong(epochMillis);
+    }
+
     // ========================================================================
     // Lifecycle
     // ========================================================================

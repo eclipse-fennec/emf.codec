@@ -110,7 +110,7 @@ These options apply to every format. Java constants are in
 | `codec.serializeEmpty` | `CODEC_SERIALIZE_EMPTY` | Boolean | `false` | Write many-valued features that are empty collections. |
 | `codec.serializeDefaults` | `CODEC_SERIALIZE_DEFAULTS` | Boolean | `false` | Write features whose value equals the EAttribute default. |
 | `codec.enumSerialization` | `CODEC_ENUM_SERIALIZATION` | String | `LITERAL` | How enum values are written. Values: `LITERAL` (name string), `VALUE` (integer ordinal), `NAME` (EMF name). |
-| `codec.dateFormat` | `CODEC_DATE_FORMAT` | String | ISO 8601 | `SimpleDateFormat` pattern for `java.util.Date` attributes. Null = ISO 8601 fallback. |
+| `codec.dateFormat` | `CODEC_DATE_FORMAT` | String | none | `SimpleDateFormat` pattern for `java.util.Date` attributes, written as string. Without a pattern, formats with a native date-time type (BSON) store the instant natively as epoch milliseconds; other formats fall back to `Date.toString()` (write-only — not parseable on load, configure a pattern for string round-trips). |
 | `codec.fieldOrder` | `CODEC_FIELD_ORDER` | String | `DECLARATION` | Column/field ordering for tabular formats. Values: `DECLARATION`, `ALPHABETICAL`. |
 | `codec.key` | `CODEC_KEY` | String | feature name | Override the JSON property name for a specific feature (annotation or per-feature scope only). |
 | `codec.transient` | `CODEC_TRANSIENT` | Boolean | `false` | Mark a feature as not serialized/deserialized. |

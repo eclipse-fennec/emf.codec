@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
+import org.eclipse.fennec.codec.format.impl.FormatDelegateGenerator;
 import org.eclipse.fennec.codec.value.AttributeValueWriter;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
@@ -197,12 +198,17 @@ public class AttributeSerializationEntry implements SerializationEntry {
     }
 
     /**
-     * Writes a Date value using the configured date format, or toString() if none is configured.
+     * Writes a Date value using the configured date format. Without a configured
+     * format, a format with a native date-time type (BSON) receives the instant
+     * natively — the {@code toString()} fallback is not machine-readable and only
+     * remains for formats without a native representation.
      */
     private void writeDateValue(JsonGenerator gen, Date date) {
         String dateFormat = config.getDateFormat();
         if (dateFormat != null) {
             gen.writeString(new SimpleDateFormat(dateFormat).format(date));
+        } else if (gen instanceof FormatDelegateGenerator<?> delegating && delegating.supportsNativeDateTime()) {
+            delegating.writeDateTime(date.getTime());
         } else {
             gen.writeString(date.toString());
         }

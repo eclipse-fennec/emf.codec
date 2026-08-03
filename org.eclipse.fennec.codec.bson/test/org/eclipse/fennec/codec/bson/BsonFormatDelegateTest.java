@@ -62,6 +62,12 @@ class BsonFormatDelegateTest {
         void supportsNativeObjectId() {
             assertTrue(delegate.supportsNativeObjectId());
         }
+
+        @Test
+        @DisplayName("supports native DateTime")
+        void supportsNativeDateTime() {
+            assertTrue(delegate.supportsNativeDateTime());
+        }
     }
 
     @Nested
@@ -77,6 +83,17 @@ class BsonFormatDelegateTest {
             delegate.writeEndObject();
 
             assertEquals("Alice", document.getString("name").getValue());
+        }
+
+        @Test
+        @DisplayName("writes native BSON DateTime")
+        void writeDateTime() throws IOException {
+            delegate.writeStartObject();
+            delegate.writeName("born");
+            delegate.writeDateTime(1234567890123L);
+            delegate.writeEndObject();
+
+            assertEquals(1234567890123L, document.getDateTime("born").getValue());
         }
 
         @Test

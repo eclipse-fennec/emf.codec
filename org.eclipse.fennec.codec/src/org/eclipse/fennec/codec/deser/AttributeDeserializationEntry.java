@@ -568,7 +568,12 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
                 if (token == JsonToken.VALUE_STRING) {
                     value = convertObjectFromString(parser.getString(), componentType);
                 } else if (token == JsonToken.VALUE_NUMBER_INT) {
-                    value = convertObjectFromString(String.valueOf(parser.getLongValue()), componentType);
+                    if (Date.class.isAssignableFrom(componentType)) {
+                        // native date-times (BSON DateTime) arrive as epoch millis
+                        value = new Date(parser.getLongValue());
+                    } else {
+                        value = convertObjectFromString(String.valueOf(parser.getLongValue()), componentType);
+                    }
                 } else if (token == JsonToken.VALUE_NUMBER_FLOAT) {
                     value = convertObjectFromString(String.valueOf(parser.getDoubleValue()), componentType);
                 } else if (token == JsonToken.VALUE_TRUE || token == JsonToken.VALUE_FALSE) {
@@ -715,6 +720,10 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         }
         if (instanceClass == Float.class || instanceClass == float.class) {
             return (float) parser.getLongValue();
+        }
+        if (instanceClass != null && Date.class.isAssignableFrom(instanceClass)) {
+            // native date-times (BSON DateTime) arrive as epoch millis
+            return new Date(parser.getLongValue());
         }
         // Default: return as long
         return parser.getLongValue();
