@@ -6,7 +6,7 @@ This document provides context for continuing codec development across sessions.
 
 **Session Summary (2026-08-05) — issue #108, STRUCTURED id decode:**
 
-Single-defect session, found via emf.persistence-jpa#110 (Mongo compound `_id`). `IdDeserializationEntry.deserializeStructured` overwrote an id component with the combined value whenever the `eID` attribute was itself one of the `idFeatures`. Fixed by scoping the combined write to the separate-derived-key case; see §7.3 (2026-08-05) for the full entry. Full codec suite green (1394 tests, 0 failures).
+Single-defect session, found via emf.persistence-jpa#110 (Mongo compound `_id`). `IdDeserializationEntry.deserializeStructured` overwrote an id component with the combined value whenever the `eID` attribute was itself one of the `idFeatures`. Fixed by scoping the combined write to the separate-derived-key case; the inverse gap on the PLAIN path (a derived key attribute was never filled at all) was fixed in the same PR, so both formats now restore identical object state. See §7.3 (2026-08-05) for the full entry. Full `./gradlew build` green (3419 tests, 0 failures).
 
 **Session Summary (2026-08-05) — id-plane issue batch #99-#104 (branch `issue#99-#104`, one commit per issue, not pushed):**
 
@@ -1460,7 +1460,9 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 - `OrderLine` with `idFeatures=[orderId, lineNo]`, `orderId` also the `eID` attribute: after decoding `{"_id": {"orderId": "A", "lineNo": 2}}` the object carried `orderId="A-2"` instead of `"A"`
 - Root cause: `deserializeStructured` sets the component features first, then — for `idValues.size() > 1` with an EIDAttribute present — additionally wrote `combineIdValues(...)` into the EIDAttribute. That write is meant for a **separate derived key** attribute; when the EIDAttribute is one of the id features it overwrites the component just restored
 - Fix: the combined write is skipped when the EIDAttribute's name appears in the resolved id feature list (or in the parsed `idValues`). The derived-key case is unchanged
-- Tests: `IdDeserializationEntryTest.StructuredFormatTests` — `keepsComponentValueWhenEIdAttributeIsIdFeature` (new `OrderLine` fixture) and `setsCombinedValueOnSeparateDerivedIdAttribute` (new `DerivedKeyPerson` fixture pinning the retained behavior), both in `test-deserialization.ecore`
+- **Same session, the mirror-image gap on the PLAIN path:** PLAIN only split the `_id` string onto the components and never fed a separate derived key attribute, so a `DerivedKeyPerson`-shaped class round-tripped through STRUCTURED but lost its `key` through PLAIN. PLAIN now writes the raw combined `_id` string into a derived key attribute
+- Both paths now share `isDerivedKeyAttribute(List)` as the single rule ("the EIDAttribute is not one of the id features and is changeable"); the `isChangeable()` guard replaces the STRUCTURED path's catch-and-log for non-changeable attributes
+- Tests: `IdDeserializationEntryTest` — `keepsComponentValueWhenEIdAttributeIsIdFeature` + `setsCombinedValueOnSeparateDerivedIdAttribute`, once in `StructuredFormatTests` and once in `MultipleIdFeaturesTests` (PLAIN). New fixtures in `test-deserialization.ecore`: `OrderLine` (eID attribute is an id feature) and `DerivedKeyPerson` (separate derived key)
 
 **2026-07-29:**
 ✅ **`XMLURIHandler.resolve()` crash on short relative `xsi:schemaLocation` URIs** (`XMLURIHandler`, issue #83)
