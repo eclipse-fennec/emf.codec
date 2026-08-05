@@ -48,6 +48,8 @@ public abstract class DeserializationEntryTestBase {
     protected EClass multiIdPersonClass;
     protected EClass intIdEntityClass;
     protected EClass longIdEntityClass;
+    protected EClass orderLineClass;
+    protected EClass derivedKeyPersonClass;
 
     // EAttributes on Person
     protected EAttribute idAttribute;
@@ -66,6 +68,15 @@ public abstract class DeserializationEntryTestBase {
     // EAttributes on IntIdEntity / LongIdEntity (for type conversion tests)
     protected EAttribute intIdAttribute;
     protected EAttribute longIdAttribute;
+
+    // EAttributes on OrderLine (eID attribute is itself an id feature)
+    protected EAttribute orderIdAttribute;
+    protected EAttribute lineNoAttribute;
+
+    // EAttributes on DerivedKeyPerson (separate derived eID key)
+    protected EAttribute derivedKeyAttribute;
+    protected EAttribute derivedFirstNameAttribute;
+    protected EAttribute derivedLastNameAttribute;
 
     // EReferences on Person
     protected EReference addressRef;       // containment, single
@@ -86,6 +97,8 @@ public abstract class DeserializationEntryTestBase {
         multiIdPersonClass = EcoreHelper.getEClass(testPackage, "MultiIdPerson");
         intIdEntityClass = EcoreHelper.getEClass(testPackage, "IntIdEntity");
         longIdEntityClass = EcoreHelper.getEClass(testPackage, "LongIdEntity");
+        orderLineClass = EcoreHelper.getEClass(testPackage, "OrderLine");
+        derivedKeyPersonClass = EcoreHelper.getEClass(testPackage, "DerivedKeyPerson");
 
         // Load EAttributes on Person
         idAttribute = (EAttribute) EcoreHelper.getFeature(personClass, "id");
@@ -104,6 +117,13 @@ public abstract class DeserializationEntryTestBase {
         // Load EAttributes on IntIdEntity / LongIdEntity
         intIdAttribute = (EAttribute) EcoreHelper.getFeature(intIdEntityClass, "id");
         longIdAttribute = (EAttribute) EcoreHelper.getFeature(longIdEntityClass, "id");
+
+        // Load EAttributes on OrderLine / DerivedKeyPerson
+        orderIdAttribute = (EAttribute) EcoreHelper.getFeature(orderLineClass, "orderId");
+        lineNoAttribute = (EAttribute) EcoreHelper.getFeature(orderLineClass, "lineNo");
+        derivedKeyAttribute = (EAttribute) EcoreHelper.getFeature(derivedKeyPersonClass, "key");
+        derivedFirstNameAttribute = (EAttribute) EcoreHelper.getFeature(derivedKeyPersonClass, "firstName");
+        derivedLastNameAttribute = (EAttribute) EcoreHelper.getFeature(derivedKeyPersonClass, "lastName");
 
         // Load EReferences
         addressRef = (EReference) EcoreHelper.getFeature(personClass, "address");
@@ -176,6 +196,24 @@ public abstract class DeserializationEntryTestBase {
      */
     protected EObject createLongIdEntity() {
         return testPackage.getEFactoryInstance().create(longIdEntityClass);
+    }
+
+    /**
+     * Creates a new OrderLine EObject instance.
+     *
+     * @return a new OrderLine instance
+     */
+    protected EObject createOrderLine() {
+        return testPackage.getEFactoryInstance().create(orderLineClass);
+    }
+
+    /**
+     * Creates a new DerivedKeyPerson EObject instance.
+     *
+     * @return a new DerivedKeyPerson instance
+     */
+    protected EObject createDerivedKeyPerson() {
+        return testPackage.getEFactoryInstance().create(derivedKeyPersonClass);
     }
 
     /**

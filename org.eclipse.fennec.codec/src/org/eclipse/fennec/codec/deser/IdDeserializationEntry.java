@@ -193,7 +193,8 @@ public class IdDeserializationEntry implements DeserializationEntry {
      * <ol>
      *   <li>Extract individual field values (and optional separator)</li>
      *   <li>Set corresponding feature values on the EObject</li>
-     *   <li>Optionally set the EIDAttribute with combined/computed value</li>
+     *   <li>Optionally set the EIDAttribute with the combined value - only when it is a
+     *       separate derived key and not one of the ID features itself</li>
      * </ol>
      * </p>
      * <p>
@@ -269,8 +270,13 @@ public class IdDeserializationEntry implements DeserializationEntry {
             }
         }
 
-        // If there's an EIDAttribute and we have multiple features, set the combined value
-        if (idAttribute != null && idValues.size() > 1) {
+        // If there's an EIDAttribute and we have multiple features, set the combined value.
+        // The EIDAttribute may be one of the id features itself - it then already holds its
+        // own component value from the loop above and must not be overwritten (issue #108).
+        boolean idAttributeIsIdFeature = idAttribute != null
+                && (featuresToRead.contains(idAttribute.getName())
+                        || idValues.containsKey(idAttribute.getName()));
+        if (idAttribute != null && idValues.size() > 1 && !idAttributeIsIdFeature) {
             String combinedValue = combineIdValues(idValues, effectiveSeparator);
             if (combinedValue != null) {
                 try {
