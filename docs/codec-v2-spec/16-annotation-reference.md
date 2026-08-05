@@ -1027,7 +1027,7 @@ Values for the `idStrategy` annotation key. These control **how** the object's I
 
 | Value | Description |
 |-------|-------------|
-| `ID_FIELD` **(default)** | Use features marked with `eID="true"` |
+| `ID_FIELD` **(default)** | Use the attribute marked with `eID="true"` (at most one per EClass) |
 | `COMBINED` | Combine `idFeatures` with `idSeparator` |
 
 ### IdKeyMode Values
