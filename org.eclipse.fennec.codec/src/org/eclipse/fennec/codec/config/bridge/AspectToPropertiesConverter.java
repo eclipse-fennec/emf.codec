@@ -21,6 +21,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
+import org.eclipse.fennec.codec.metadata.model.codec.CodecPackage;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
@@ -200,6 +201,10 @@ public final class AspectToPropertiesConverter {
             putIfNotDefault(props, "idValueKey", idConfig.getValueKey(), "id");
             putIfNotDefault(props, "idSeparator", idConfig.getSeparator(), "-");
             putIfNotDefault(props, "idSeparatorKey", idConfig.getSeparatorKey(), "separator");
+            putIfNotDefault(props, "idSeparatorSerialize", idConfig.isSerializeSeparator(), Boolean.TRUE);
+            putIfNotDefault(props, "idOnTop", idConfig.isOnTop(), Boolean.TRUE);
+            putIfNotNull(props, "idValueReaderName", idConfig.getIdValueReaderName());
+            putIfNotNull(props, "idValueWriterName", idConfig.getIdValueWriterName());
             if (!idConfig.getIdFeatures().isEmpty()) {
                 props.put("idFeatures", idConfig.getIdFeatures());
             }
@@ -214,6 +219,15 @@ public final class AspectToPropertiesConverter {
             putIfNotDefault(props, "superTypeStrategy",
                     superConfig.getSelection() != null ? superConfig.getSelection().name() : null, null);
             putIfNotDefault(props, "superTypeKey", superConfig.getSuperTypeKey(), "_supertype");
+            putIfNotDefault(props, "superTypeAsArray", superConfig.isAsArray(), Boolean.TRUE);
+            putIfNotDefault(props, "superTypeSeparator", superConfig.getSeparator(), ",");
+            // The runtime default is null (inherit from typeFormat), but the generated enum
+            // getter can never return null - only an explicitly set format may be forwarded.
+            // Requires the attribute to be unsettable in codec.ecore (issue #106).
+            if (superConfig.eIsSet(CodecPackage.Literals.BASE_SUPER_TYPE_CONFIG__FORMAT)
+                    && superConfig.getFormat() != null) {
+                props.put("superTypeFormat", superConfig.getFormat().name());
+            }
         }
 
         // Discriminator value

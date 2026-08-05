@@ -105,13 +105,15 @@ public interface BaseSuperTypeConfig extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Output format for supertype entries. Inherits from the parent type configuration format if not explicitly set.
+	 * Output format for supertype entries. Inherits from the parent type configuration format if not explicitly set. Unsettable so that consumers (e.g. the properties bridge, issue #106) can distinguish an explicit PLAIN from the inherit-from-type default via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Format</em>' attribute.
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat
+	 * @see #isSetFormat()
+	 * @see #unsetFormat()
 	 * @see #setFormat(SerializationFormat)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getBaseSuperTypeConfig_Format()
-	 * @model default="PLAIN"
+	 * @model default="PLAIN" unsettable="true"
 	 * @generated
 	 */
 	SerializationFormat getFormat();
@@ -122,10 +124,35 @@ public interface BaseSuperTypeConfig extends EObject {
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Format</em>' attribute.
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat
+	 * @see #isSetFormat()
+	 * @see #unsetFormat()
 	 * @see #getFormat()
 	 * @generated
 	 */
 	void setFormat(SerializationFormat value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#getFormat <em>Format</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetFormat()
+	 * @see #getFormat()
+	 * @see #setFormat(SerializationFormat)
+	 * @generated
+	 */
+	void unsetFormat();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseSuperTypeConfig#getFormat <em>Format</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Format</em>' attribute is set.
+	 * @see #unsetFormat()
+	 * @see #getFormat()
+	 * @see #setFormat(SerializationFormat)
+	 * @generated
+	 */
+	boolean isSetFormat();
 
 	/**
 	 * Returns the value of the '<em><b>As Array</b></em>' attribute.

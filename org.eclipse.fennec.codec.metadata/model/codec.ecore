@@ -375,9 +375,9 @@
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="#//SerializationFormat"
-        defaultValueLiteral="PLAIN">
+        defaultValueLiteral="PLAIN" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Output format for supertype entries. Inherits from the parent type configuration format if not explicitly set."/>
+        <details key="documentation" value="Output format for supertype entries. Inherits from the parent type configuration format if not explicitly set. Unsettable so that consumers (e.g. the properties bridge, issue #106) can distinguish an explicit PLAIN from the inherit-from-type default via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="asArray" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
