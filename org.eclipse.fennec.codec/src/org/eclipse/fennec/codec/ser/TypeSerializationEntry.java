@@ -357,7 +357,10 @@ public class TypeSerializationEntry implements SerializationEntry {
         }
 
         SuperTypeConfig superTypeConfig = superTypeEntry.getConfig();
-        String superTypeKey = superTypeConfig.getSuperTypeKey();
+        // The block is written inside the STRUCTURED _type object, so the STRUCTURED default
+        // key applies when none is configured - the raw getter returns null there (issue #108
+        // follow-up: null key made save throw)
+        String superTypeKey = superTypeConfig.getEffectiveSuperTypeKey(SerializationFormat.STRUCTURED);
 
         if (superTypeConfig.isAsArray()) {
             gen.writeArrayPropertyStart(superTypeKey);

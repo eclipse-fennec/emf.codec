@@ -222,6 +222,32 @@ class CodecResourceSuperTypeTest {
         }
 
         @Test
+        @DisplayName("supertype embedded in STRUCTURED _type object uses the format default key")
+        void superTypeEmbeddedInStructuredTypeObject() throws IOException {
+            EObject vip = createVipCustomer("vip@example.com", "Jane", "VIP", 5);
+
+            // typeFormat=STRUCTURED puts the supertype inside the _type object; without an
+            // explicit superTypeKey the STRUCTURED default ("supertype") applies (spec 07 §6.1)
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .moduleProperties(Map.of(
+                            "superTypeSerialize", true,
+                            "superTypeStrategy", "ALL",
+                            "typeFormat", "STRUCTURED"
+                    ))
+                    .build();
+
+            String json = serializeWithResolver(vip, resolver);
+            System.out.println("VIPCustomer (STRUCTURED type + supertype) JSON:\n" + json);
+
+            assertTrue(json.contains("\"supertype\""),
+                    "Supertype should be embedded under the STRUCTURED default key");
+            assertTrue(json.contains("Customer"),
+                    "Supertype value should contain Customer");
+            assertFalse(json.contains("\"null\""),
+                    "Supertype must not be written under a null key");
+        }
+
+        @Test
         @DisplayName("supertype not serialized for class without supertypes")
         void superTypeNotSerializedForRootClass() throws IOException {
             EObject customer = createCustomer("john@example.com", "John", "Doe");
