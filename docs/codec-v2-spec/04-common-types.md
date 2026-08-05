@@ -200,8 +200,8 @@ Controls how object identity is serialized.
 ```java
 public enum IdStrategy {
     /**
-     * Use attributes marked with eID="true" in the model.
-     * The first eID attribute (or XMI-compatible ID) is used.
+     * Use the attribute marked with eID="true" in the model.
+     * Ecore allows at most one eID attribute per EClass.
      */
     ID_FIELD,
 
