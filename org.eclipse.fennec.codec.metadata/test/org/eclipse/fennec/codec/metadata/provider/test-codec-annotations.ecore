@@ -218,7 +218,7 @@
       <details key="idFormat" value="STRUCTURED"/>
       <details key="idKeyMode" value="BOTH"/>
       <details key="idOnTop" value="false"/>
-      <details key="idSerializeSeparator" value="true"/>
+      <details key="idSeparatorSerialize" value="true"/>
       <details key="idSeparatorKey" value="sep"/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
