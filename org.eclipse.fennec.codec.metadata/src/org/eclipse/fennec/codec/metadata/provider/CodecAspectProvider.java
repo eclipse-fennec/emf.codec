@@ -70,7 +70,6 @@ import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstant
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_TYPE_VALUE_WRITER_NAME;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_VALUE_READER_NAME;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_VALUE_WRITER_NAME;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
@@ -731,10 +730,17 @@ public class CodecAspectProvider implements MetadataHandler {
         // Separator for combined IDs
         AnnotationParseHelper.ifStringPresent(details, KEY_ID_SEPARATOR, config::setSeparator);
 
-        // ID features for combined strategy
+        // ID features for combined strategy. A level that states idFeatures REPLACES the
+        // inherited list — restating the key is an override, not an addition (issue #102).
         String idFeatures = details.get(KEY_ID_FEATURES);
         if (idFeatures != null) {
-            config.getIdFeatures().addAll(Arrays.asList(idFeatures.split(",")));
+            config.getIdFeatures().clear();
+            for (String token : idFeatures.split(",")) {
+                String featureName = token.trim();
+                if (!featureName.isEmpty()) {
+                    config.getIdFeatures().add(featureName);
+                }
+            }
         }
 
         // Custom reader/writer

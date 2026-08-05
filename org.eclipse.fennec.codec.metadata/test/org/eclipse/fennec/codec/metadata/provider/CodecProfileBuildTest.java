@@ -19,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -355,6 +357,33 @@ class CodecProfileBuildTest {
                     .findFirst()
                     .orElse(null);
             assertNotNull(classMeta);
+        }
+
+        @Test
+        @DisplayName("idFeatures tokens are trimmed and empties dropped")
+        void testIdFeaturesTokensTrimmed() {
+            // Spec 09-id.md uses spaced lists: idFeatures="firstName, lastName, sequence"
+            addClassAnnotation("idFeatures", "firstName, lastName , sequence,");
+
+            IdSerializationConfig idConfig = getProfile().getIdConfig();
+
+            assertEquals(List.of("firstName", "lastName", "sequence"), idConfig.getIdFeatures());
+        }
+
+        @Test
+        @DisplayName("class-level idFeatures replaces the package default")
+        void testIdFeaturesClassLevelReplacesPackageDefault() {
+            EAnnotation packageAnnotation = EcoreFactory.eINSTANCE.createEAnnotation();
+            packageAnnotation.setSource("http://eclipse.org/fennec/codec");
+            packageAnnotation.getDetails().put("idFeatures", "packageId");
+            annotatedPackage.getEAnnotations().add(packageAnnotation);
+
+            addClassAnnotation("idFeatures", "firstName, lastName");
+
+            IdSerializationConfig idConfig = getProfile().getIdConfig();
+
+            assertEquals(List.of("firstName", "lastName"), idConfig.getIdFeatures(),
+                    "restating idFeatures on the class must override, not append to, the package default");
         }
 
         @Test
