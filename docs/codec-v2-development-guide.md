@@ -4,6 +4,10 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-08-05
 
+**Session Summary (2026-08-05) — issue #108, STRUCTURED id decode:**
+
+Single-defect session, found via emf.persistence-jpa#110 (Mongo compound `_id`). `IdDeserializationEntry.deserializeStructured` overwrote an id component with the combined value whenever the `eID` attribute was itself one of the `idFeatures`. Fixed by scoping the combined write to the separate-derived-key case; see §7.3 (2026-08-05) for the full entry. Full codec suite green (1394 tests, 0 failures).
+
 **Session Summary (2026-08-05) — id-plane issue batch #99-#104 (branch `issue#99-#104`, one commit per issue, not pushed):**
 
 All six issues came out of the MongoDB backend work (emf.persistence-jpa#110) but were verified as general codec defects first; every claim was confirmed against the code before touching anything.
@@ -1450,6 +1454,13 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 3. isChangeable() pre-check not documented
 
 ### 7.3 Fixed Bugs
+
+**2026-08-05:**
+✅ **STRUCTURED id decode clobbered a component when the eID attribute is itself an id feature** (`IdDeserializationEntry`, issue #108)
+- `OrderLine` with `idFeatures=[orderId, lineNo]`, `orderId` also the `eID` attribute: after decoding `{"_id": {"orderId": "A", "lineNo": 2}}` the object carried `orderId="A-2"` instead of `"A"`
+- Root cause: `deserializeStructured` sets the component features first, then — for `idValues.size() > 1` with an EIDAttribute present — additionally wrote `combineIdValues(...)` into the EIDAttribute. That write is meant for a **separate derived key** attribute; when the EIDAttribute is one of the id features it overwrites the component just restored
+- Fix: the combined write is skipped when the EIDAttribute's name appears in the resolved id feature list (or in the parsed `idValues`). The derived-key case is unchanged
+- Tests: `IdDeserializationEntryTest.StructuredFormatTests` — `keepsComponentValueWhenEIdAttributeIsIdFeature` (new `OrderLine` fixture) and `setsCombinedValueOnSeparateDerivedIdAttribute` (new `DerivedKeyPerson` fixture pinning the retained behavior), both in `test-deserialization.ecore`
 
 **2026-07-29:**
 ✅ **`XMLURIHandler.resolve()` crash on short relative `xsi:schemaLocation` URIs** (`XMLURIHandler`, issue #83)
