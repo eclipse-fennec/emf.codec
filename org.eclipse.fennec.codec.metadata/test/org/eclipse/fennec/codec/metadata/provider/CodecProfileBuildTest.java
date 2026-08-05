@@ -387,6 +387,18 @@ class CodecProfileBuildTest {
         }
 
         @Test
+        @DisplayName("idSeparatorSerialize annotation key matches the spec")
+        void testIdSeparatorSerializeAnnotationKey() {
+            // Spec 09-id.md §5.0 / 16-annotation-reference.md §ID: the key is
+            // "idSeparatorSerialize", not the swapped "idSerializeSeparator".
+            addClassAnnotation("idSeparatorSerialize", "false");
+
+            IdSerializationConfig idConfig = getProfile().getIdConfig();
+
+            assertFalse(idConfig.isSerializeSeparator());
+        }
+
+        @Test
         @DisplayName("structured IdConfig preserves all fields")
         void testStructuredIdConfig() {
             addClassAnnotation("idStrategy", "COMBINED", "idFormat", "STRUCTURED",

@@ -274,7 +274,7 @@ public final class CodecAnnotationConstants {
      * Detail key for whether to serialize separator in STRUCTURED ID format.
      * Value: "true" or "false". Default: "true".
      */
-    public static final String KEY_ID_SERIALIZE_SEPARATOR = "idSerializeSeparator";
+    public static final String KEY_ID_SERIALIZE_SEPARATOR = "idSeparatorSerialize";
 
     /**
      * Detail key for separator field name in STRUCTURED ID format.
