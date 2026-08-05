@@ -90,6 +90,14 @@ public final class IdConfig implements Mergeable<IdConfig> {
     /**
      * Returns the ID strategy (ID_FIELD, COMBINED, etc.).
      * Default: ID_FIELD
+     * <p>
+     * The strategy is <b>informational</b>: the ser/deser entries dispatch on the
+     * resolved id feature list — configured {@code idFeatures} win (combined output
+     * when more than one), otherwise the EClass's single {@code eID} attribute.
+     * Setting {@code COMBINED} does not by itself enable combining; {@code COMBINED}
+     * with empty {@code idFeatures} fails {@link #validate(DiagnosticCollector)}.
+     * See spec 09-id.md §5.0 (issue #100).
+     * </p>
      */
     public IdStrategy getStrategy() {
         return strategy;

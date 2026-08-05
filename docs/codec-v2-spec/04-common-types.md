@@ -229,6 +229,10 @@ public enum IdStrategy {
 
 **Default:** `ID_FIELD`
 
+> **Note:** The strategy value is informational — the runtime dispatches on the resolved
+> id feature list (`idFeatures` if configured, else the single `eID` attribute). See
+> [ID Serialization](09-id.md) §5.0.
+
 > **See also:** [ID Serialization](09-id.md) for complete ID configuration including STRUCTURED format examples.
 
 ---
