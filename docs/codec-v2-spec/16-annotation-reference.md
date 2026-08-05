@@ -1013,7 +1013,7 @@ ID configuration describes how an object identifies itself.
 | `idSeparatorKey` | `codec.idSeparatorKey` | ✅ | ✅ | ✅ | ❌ | ❌ | Key for separator field (**default:** `separator`) |
 | `idSeparatorSerialize` | `codec.idSeparatorSerialize` | ✅ | ❌ | ✅ | ❌ | ❌ | Include separator in STRUCTURED (**default:** `true`) |
 | `idKeyMode` | `codec.idKeyMode` | ✅ | ✅ | ✅ | ❌ | ❌ | ID_ONLY, BOTH, or FEATURE_ONLY (see below) |
-| `idOnTop` | `codec.idOnTop` | ✅ | ✅ | ✅ | ❌ | ❌ | ID before type in output (**default:** `false`) |
+| `idOnTop` | `codec.idOnTop` | ✅ | ✅ | ✅ | ❌ | ❌ | ID before type in output (**default:** `true`) |
 | `idValueReaderName` | `codec.idValueReaderName` | ✅ | ✅ | ✅ | ❌ | ❌ | Custom value reader service name |
 | `idValueWriterName` | `codec.idValueWriterName` | ✅ | ✅ | ✅ | ❌ | ❌ | Custom value writer service name |
 | — | `codec.idScope` | 🔧 | ❌ | ❌ | ❌ | ❌ | Strategy scope (see [StrategyScope](#strategyscope)) |
@@ -1236,7 +1236,7 @@ Config.builder()
 
 The `idOnTop` property still controls whether ID comes first or last:
 
-**`idOnTop=true`:**
+**`idOnTop=true` (default):**
 ```json
 {
   "_metadata": {
@@ -1248,7 +1248,7 @@ The `idOnTop` property still controls whether ID comes first or last:
 }
 ```
 
-**`idOnTop=false` (default):**
+**`idOnTop=false`:**
 ```json
 {
   "_metadata": {

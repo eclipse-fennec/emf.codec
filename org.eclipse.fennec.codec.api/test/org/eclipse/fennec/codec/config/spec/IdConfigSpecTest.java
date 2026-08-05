@@ -145,13 +145,13 @@ class IdConfigSpecTest {
         }
 
         /**
-         * Spec §12: "ID on Top | codec.idOnTop | false"
+         * Spec §12: "ID on Top | codec.idOnTop | true"
          */
         @Test
-        @DisplayName("1.9 idOnTop defaults to false")
-        void idOnTop_defaultsToFalse() {
+        @DisplayName("1.9 idOnTop defaults to true")
+        void idOnTop_defaultsToTrue() {
             IdConfig config = IdConfig.defaults();
-            assertFalse(config.isOnTop());
+            assertTrue(config.isOnTop());
         }
 
         /**
@@ -788,16 +788,16 @@ class IdConfigSpecTest {
         @DisplayName("6.5 Boolean values merge correctly")
         void booleanValues_mergeCorrectly() {
             IdConfig base = IdConfig.defaults();
-            assertFalse(base.isOnTop());
+            assertTrue(base.isOnTop());
             assertTrue(base.isSerializeSeparator());
 
             Map<String, Object> override = new HashMap<>();
-            override.put("codec.idOnTop", true);
+            override.put("codec.idOnTop", false);
             override.put("codec.idSeparatorSerialize", false);
 
             IdConfig merged = base.mergeWith(override);
 
-            assertTrue(merged.isOnTop());
+            assertFalse(merged.isOnTop());
             assertFalse(merged.isSerializeSeparator());
         }
 
@@ -1012,15 +1012,15 @@ class IdConfigSpecTest {
     class IdOnTopOrderingConstraint {
 
         /**
-         * Spec §8.7: "idOnTop=false (default) → Type entry → SuperType entry → ID entry → features"
+         * Spec §8.7: "idOnTop=true (default) → ID entry → Type entry → SuperType entry → features"
          */
         @Test
-        @DisplayName("8.1 idOnTop=false (default): type before id")
-        void idOnTopFalse_default_typeBeforeId() {
+        @DisplayName("8.1 idOnTop=true (default): id before type")
+        void idOnTopTrue_default_idBeforeType() {
             IdConfig config = IdConfig.defaults();
 
-            assertFalse(config.isOnTop(),
-                "Spec §8.7: default idOnTop must be false");
+            assertTrue(config.isOnTop(),
+                "Spec §8.7: default idOnTop must be true (issue #106)");
         }
 
         /**
@@ -1043,10 +1043,10 @@ class IdConfigSpecTest {
         @DisplayName("8.3 idOnTop can be overridden via property map")
         void idOnTop_canBeOverridden() {
             IdConfig base = IdConfig.defaults();
-            assertFalse(base.isOnTop());
+            assertTrue(base.isOnTop());
 
-            IdConfig merged = base.mergeWith(Map.of("codec.idOnTop", true));
-            assertTrue(merged.isOnTop());
+            IdConfig merged = base.mergeWith(Map.of("codec.idOnTop", false));
+            assertFalse(merged.isOnTop());
         }
 
         /**

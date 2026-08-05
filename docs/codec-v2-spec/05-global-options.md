@@ -454,9 +454,9 @@ Controls the order of properties in serialized output.
 | `metadataFieldsFirst` | `true` | Place `_type`, `_id`, `_supertype` before features |
 
 When `metadataFieldsFirst=true`, the output order is:
-1. `_type` (if enabled) — default first when `idOnTop=false`
+1. `_type` (if enabled) — first when `idOnTop=false`
 2. `_supertype` (if enabled)
-3. `_id` (if enabled) — or first if `idOnTop=true`
+3. `_id` (if enabled) — or first if `idOnTop=true` (the default)
 4. Features (in configured order)
 
 > **Note:** The relative order of `_id` and `_type` is controlled by `idOnTop` (see [09-id.md §8.7](09-id.md#87-metadata-field-ordering-idontop)). The default (`idOnTop=false`) places `_type` before `_id`.
@@ -654,7 +654,7 @@ Single merged metadata object:
 
 The `idOnTop` property controls whether ID fields come before or after type fields within the merged object:
 
-**`idOnTop=false` (default):** Type fields first, then ID
+**`idOnTop=false`:** Type fields first, then ID
 ```json
 {
   "_metadata": {
@@ -666,7 +666,7 @@ The `idOnTop` property controls whether ID fields come before or after type fiel
 }
 ```
 
-**`idOnTop=true`:** ID first, then type fields
+**`idOnTop=true` (default):** ID first, then type fields
 ```json
 {
   "_metadata": {

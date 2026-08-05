@@ -87,7 +87,7 @@ These options apply to every format. Java constants are in
 | `codec.idKey` | `CODEC_ID_KEY` | String | `_id` | JSON property name for the generated ID field. |
 | `codec.idKeyMode` | `CODEC_ID_KEY_MODE` | String | `ID_ONLY` | Controls which key names appear. Values: `ID_ONLY`, `FEATURE_ONLY`, `BOTH`, `NONE`. |
 | `codec.idFormat` | `CODEC_ID_FORMAT` | String | `PLAIN` | `PLAIN` writes a bare value; `STRUCTURED` wraps it in an object. |
-| `codec.idOnTop` | `CODEC_ID_ON_TOP` | Boolean | `false` | Write the ID field before the type field. |
+| `codec.idOnTop` | `CODEC_ID_ON_TOP` | Boolean | `true` | Write the ID field before the type field. |
 | `codec.idFeatures` | `CODEC_ID_FEATURES` | List\<String\> | — | Feature names to concatenate for `COMBINED` strategy. |
 | `codec.idSeparator` | `CODEC_ID_SEPARATOR` | String | `-` | Separator between parts in `COMBINED` strategy. |
 
