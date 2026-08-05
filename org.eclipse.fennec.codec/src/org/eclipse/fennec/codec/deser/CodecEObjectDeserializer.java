@@ -963,7 +963,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 
         // Add ID entry (the entry handles FEATURE_ONLY mode internally)
         if (idConfig != null) {
-            IdDeserializationEntry idEntry = new IdDeserializationEntry(idConfig, eClass);
+            IdDeserializationEntry idEntry = new IdDeserializationEntry(idConfig, eClass, entryContext);
             entries.put(idEntry.getKey(), idEntry);
         }
 

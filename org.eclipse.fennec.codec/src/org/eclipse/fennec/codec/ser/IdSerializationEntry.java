@@ -13,15 +13,22 @@
 package org.eclipse.fennec.codec.ser;
 
 import java.util.ArrayList;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.config.IdConfig;
+import org.eclipse.fennec.codec.context.CodecEntryContext;
+import org.eclipse.fennec.codec.value.CodecValueRegistry;
+import org.eclipse.fennec.codec.value.CodecValueWriter;
+import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
 import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 
@@ -51,6 +58,8 @@ public class IdSerializationEntry implements SerializationEntry {
 
     private final IdConfig config;
     private final EClass eClass;
+    private final CodecEntryContext entryContext;
+    private final CodecValueWriter<Object, EAttribute> customWriter;
 
     /**
      * Creates a new IdSerializationEntry with the ID configuration.
@@ -59,8 +68,34 @@ public class IdSerializationEntry implements SerializationEntry {
      * @param eClass the EClass being serialized (used to resolve features)
      */
     public IdSerializationEntry(IdConfig config, EClass eClass) {
+        this(config, eClass, null);
+    }
+
+    /**
+     * Creates a new IdSerializationEntry with custom id value writer support (issue #104).
+     *
+     * @param config the ID configuration
+     * @param eClass the EClass being serialized (used to resolve features)
+     * @param entryContext the codec entry context for custom writers (may be null)
+     */
+    @SuppressWarnings("unchecked")
+    public IdSerializationEntry(IdConfig config, EClass eClass, CodecEntryContext entryContext) {
         this.config = config;
         this.eClass = eClass;
+        this.entryContext = entryContext;
+
+        String writerName = config.getValueWriterName();
+        CodecValueRegistry valueRegistry = entryContext != null ? entryContext.getValueRegistry() : null;
+        if (writerName != null && !writerName.isEmpty() && valueRegistry != null) {
+            CodecValueWriter<?, ?> writer = valueRegistry.getWriter(writerName).orElse(null);
+            if (writer == null) {
+                LOGGER.warning("Id value writer '" + writerName + "' is not registered - "
+                        + "using default id serialization for " + eClass.getName());
+            }
+            this.customWriter = (CodecValueWriter<Object, EAttribute>) writer;
+        } else {
+            this.customWriter = null;
+        }
     }
 
     @Override
@@ -92,23 +127,51 @@ public class IdSerializationEntry implements SerializationEntry {
         if (config.getFormat() == SerializationFormat.STRUCTURED) {
             serializeStructured(gen, idValues);
         } else {
-            serializePlain(gen, idValues);
+            serializePlain(gen, idValues, ctxt);
         }
     }
 
     /**
      * Serializes ID in PLAIN format (combined string with separator).
+     * <p>
+     * A configured id value writer ({@code idValueWriterName}, issue #104) takes over writing
+     * the scalar id value - e.g. the BSON module's "objectId" writer emits a native ObjectId.
+     * </p>
      */
-    private void serializePlain(JsonGenerator gen, Map<String, Object> idValues) {
+    private void serializePlain(JsonGenerator gen, Map<String, Object> idValues, SerializationContext ctxt) {
         String combinedValue = combineValues(idValues);
         if (combinedValue != null) {
-            gen.writeStringProperty(config.getKey(), combinedValue);
+            if (customWriter != null && entryContext != null) {
+                gen.writeName(config.getKey());
+                try {
+                    CodecWriterContext writerCtx = entryContext.createWriterContext(gen, ctxt);
+                    customWriter.write(combinedValue, singleIdAttribute(), writerCtx);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(
+                            "Custom id value writer failed for " + eClass.getName(), e);
+                }
+            } else {
+                gen.writeStringProperty(config.getKey(), combinedValue);
+            }
 
             // Write separator field if enabled and multiple features
             if (config.isSerializeSeparator() && idValues.size() > 1) {
                 gen.writeStringProperty(getPlainSeparatorKey(), config.getSeparator());
             }
         }
+    }
+
+    /**
+     * Resolves the single id attribute handed to a custom id value writer, or {@code null}
+     * for compound ids (the writer receives the already combined scalar value).
+     */
+    private EAttribute singleIdAttribute() {
+        List<String> names = getIdFeatureNames();
+        if (names.size() != 1) {
+            return null;
+        }
+        return eClass.getEStructuralFeature(names.get(0)) instanceof EAttribute attribute
+                ? attribute : null;
     }
 
     /**

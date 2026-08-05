@@ -188,7 +188,7 @@ BSON has the most format-specific concerns due to MongoDB heritage:
 | Concern | Details | Affected Features |
 |---------|---------|-------------------|
 | **`_id` semantics** | BSON/MongoDB treats `_id` specially: auto-generated, indexed, required | #13 ID, #21 ID_FIELD, #24 IdKeyMode BOTH |
-| **ObjectId** | Native 12-byte ObjectId type; needs custom value handler | #48 Custom values |
+| **ObjectId** | Native 12-byte ObjectId type; shipped as the `objectId` id value handler pair (issue #104, `BsonObjectIdRoundTripTest`) | #48 Custom values |
 | **Decimal128** | Native 128-bit decimal; BigDecimal mapping | #4 Double (precision) |
 | **Int32 vs Int64** | BSON distinguishes int32 and int64; must map correctly | #2 Int, #3 Long |
 | **BsonNull** | Explicit null type vs absent field | #28 Null handling |
