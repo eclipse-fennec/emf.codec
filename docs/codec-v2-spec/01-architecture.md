@@ -93,8 +93,8 @@ EMFContextHolder (internal holder)
 2. `CodecJsonFactory` creates generator with `CodecJsonWriteContext`
 3. `CodecEObjectSerializer` writes metadata fields, then iterates features:
    - **Metadata field ordering:** The `idOnTop` property (from effective ID config) determines whether `_id` or `_type` is written first:
-     - `idOnTop=true`: `_id` → `_type` → `_supertype` → features
-     - `idOnTop=false` (default): `_type` → `_supertype` → `_id` → features
+     - `idOnTop=true` (default): `_id` → `_type` → `_supertype` → features
+     - `idOnTop=false`: `_type` → `_supertype` → `_id` → features
    - Get `EffectiveFeatureConfig` for each feature
    - Delegate to `SerializationEntry` (Attribute, Reference, etc.)
 4. Each entry uses pre-merged config (no fallback logic needed)

@@ -652,8 +652,8 @@ class CodecResourceIdTest {
     class IdOnTopOrderingTests {
 
         @Test
-        @DisplayName("default (idOnTop=false) puts _type before _id when type is included")
-        void defaultOrderPutsTypeBeforeId() throws IOException {
+        @DisplayName("default (idOnTop=true) puts _id before _type when type is included")
+        void defaultOrderPutsIdBeforeType() throws IOException {
             EObject person = createPerson("john-123", "John Doe");
 
             ConfigurationResolver resolver = ConfigurationResolver.builder()
@@ -667,8 +667,28 @@ class CodecResourceIdTest {
 
             assertTrue(typePos >= 0, "_type should be present. JSON: " + json);
             assertTrue(idPos >= 0, "_id should be present. JSON: " + json);
+            assertTrue(idPos < typePos,
+                    "_id should appear before _type by default (idOnTop=true, issue #106). JSON: " + json);
+        }
+
+        @Test
+        @DisplayName("idOnTop=false puts _type before _id when type is included")
+        void idOnTopFalsePutsTypeBeforeId() throws IOException {
+            EObject person = createPerson("john-123", "John Doe");
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .moduleProperties(Map.of("typeInclude", true, "idOnTop", false))
+                    .build();
+
+            String json = serialize(person, resolver);
+
+            int typePos = json.indexOf("\"_type\"");
+            int idPos = json.indexOf("\"_id\"");
+
+            assertTrue(typePos >= 0, "_type should be present. JSON: " + json);
+            assertTrue(idPos >= 0, "_id should be present. JSON: " + json);
             assertTrue(typePos < idPos,
-                    "_type should appear before _id when idOnTop=false (default). JSON: " + json);
+                    "_type should appear before _id when idOnTop=false. JSON: " + json);
         }
 
         @Test

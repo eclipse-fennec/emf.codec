@@ -256,11 +256,24 @@ class TabularDocumentBuilderOptionTest {
                 .build();
     }
 
+    private static ConfigurationResolver idOnTopFalseResolver() {
+        return ConfigurationResolver.builder()
+                .optionsProperties(Map.of("idOnTop", Boolean.FALSE))
+                .build();
+    }
+
     @Test
-    @DisplayName("default → EClass-declared order")
+    @DisplayName("default → eID column floats to front (idOnTop defaults to true, issue #106)")
+    void defaultFloatsIdColumn() {
+        assertEquals(List.of("id", "zebra", "alpha"),
+                headers(createOrderedItem(), Collections.emptyMap(), ConfigurationResolver.defaults()));
+    }
+
+    @Test
+    @DisplayName("idOnTop=false → EClass-declared order")
     void declarationOrder() {
         assertEquals(List.of("zebra", "id", "alpha"),
-                headers(createOrderedItem(), Collections.emptyMap(), ConfigurationResolver.defaults()));
+                headers(createOrderedItem(), Collections.emptyMap(), idOnTopFalseResolver()));
     }
 
     @Test
@@ -271,11 +284,11 @@ class TabularDocumentBuilderOptionTest {
     }
 
     @Test
-    @DisplayName("fieldOrder=ALPHABETICAL → columns sorted by header")
+    @DisplayName("fieldOrder=ALPHABETICAL → columns sorted by header (idOnTop=false)")
     void alphabetical() {
         assertEquals(List.of("alpha", "id", "zebra"),
                 headers(createOrderedItem(), Map.of("fieldOrder", "ALPHABETICAL"),
-                        ConfigurationResolver.defaults()));
+                        idOnTopFalseResolver()));
     }
 
     @Test

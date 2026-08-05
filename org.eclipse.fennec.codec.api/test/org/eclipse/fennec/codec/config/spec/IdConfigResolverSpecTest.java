@@ -94,7 +94,7 @@ class IdConfigResolverSpecTest {
         assertEquals("-", config.getSeparator());
         assertEquals("separator", config.getSeparatorKey());
         assertTrue(config.isSerializeSeparator());
-        assertFalse(config.isOnTop());
+        assertTrue(config.isOnTop());
     }
 
     /**

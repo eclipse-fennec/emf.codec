@@ -151,7 +151,7 @@ public enum ConfigProperty {
     ID_SEPARATOR_SERIALIZE("idSeparatorSerialize", Boolean.class, true,
         levels(GLOBAL, ECLASS), directions(WRITE), directions(READ)),  // (R)W
 
-    ID_ON_TOP("idOnTop", Boolean.class, false,
+    ID_ON_TOP("idOnTop", Boolean.class, true,
         levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
     ID_SCOPE("idScope", String.class, "ALL",

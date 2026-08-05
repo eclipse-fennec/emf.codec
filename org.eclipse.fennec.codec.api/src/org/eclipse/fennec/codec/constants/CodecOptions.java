@@ -396,7 +396,7 @@ public final class CodecOptions {
 
     /**
      * ID appears before type in output.
-     * <p>Default: false</p>
+     * <p>Default: true</p>
      */
     public static final String CODEC_ID_ON_TOP = "codec.idOnTop";
 

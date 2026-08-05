@@ -53,7 +53,7 @@ class IdConfigTest {
             assertEquals("-", config.getSeparator());
             assertEquals("separator", config.getSeparatorKey());
             assertTrue(config.isSerializeSeparator());
-            assertFalse(config.isOnTop());
+            assertTrue(config.isOnTop());
         }
     }
 
@@ -135,11 +135,11 @@ class IdConfigTest {
         @DisplayName("overrides boolean from source")
         void overridesBooleanFromSource() {
             IdConfig config = IdConfig.defaults();
-            assertFalse(config.isOnTop());
+            assertTrue(config.isOnTop());
 
-            IdConfig result = config.mergeWith(Map.of("idOnTop", true));
+            IdConfig result = config.mergeWith(Map.of("idOnTop", false));
 
-            assertTrue(result.isOnTop());
+            assertFalse(result.isOnTop());
         }
 
         @Test
