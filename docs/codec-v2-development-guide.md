@@ -4,6 +4,17 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-08-05
 
+**Session Summary (2026-08-05) — ser/deser asymmetry review (#110) + crash fix #111:**
+
+The #108 work raised the question whether more ser/deser asymmetries exist. A four-way sweep (id, type/supertype, attribute, reference + orchestration) produced ~34 candidates; every severe one was re-read in the code before being reported. **Read `docs/codec-v2-ser-deser-asymmetry-review.md` before touching any entry class** — it carries the full assessment with file:line evidence.
+
+- **The rating matters more than the count: 1 crash + 16 real defects.** 7 candidates are one-directional **by design**, 2 are documented limitations, 3 are residue, the rest are gaps missing on *both* sides. Calibration case (Mark): the supertype plane is a **write direction** — `_supertype` is for consumers, state is rebuilt from `_type` + features, and reading it only makes sense as opt-in verification. See [[supertype-is-a-write-only-plane]] in the assistant memory. The spec itself settles most calls: 10-reference.md §9.2/§10.4, 11-feature.md §13.1 (the visibility gates deliberately differ per direction), 13-load-save-options.md §2.11.
+- **Two root causes** cover nearly every defect: (1) the write side resolves an *effective/scoped* value while the read side reads it *raw or global* (the crash, scoped `typeKey`, `typeSchemaKey`, PLAIN `_separator`, the `_supertype` key); (2) the write side has a permissive fallback, the read side a closed allowlist (`EJavaObject` maps, array component types, id conversion, `EDate`). Both hid because **every round-trip test drives both sides from the same resolver** — new tests must load with a *fresh* resolver.
+- **Two standing rules set by Mark:** where the codec does more than the spec, the **spec is pulled up to the code** (the written output is the contract — hence #117: if the writer emits an array type, the reader must read it back and §7.1 gains the row); and where the spec is vague, it is **sharpened by adding wording**, not reinterpreted silently.
+- **Four decisions:** STRUCTURED `_id` follows the spec (`idKeyMode`/`idValueKey`, #119, existing tests get pulled along); `EDate` in plain JSON moves to the canonical ISO form (#118); `codec.flatten` becomes a documented write-only export feature (#121); `idFeatures` on an EReference gets implemented (#120).
+- **Fixed here:** #111 — `typeFormat=STRUCTURED` + `superTypeSerialize=true` threw an NPE on save because `ser/TypeSerializationEntry.java:360` used the raw `getSuperTypeKey()` (null default) instead of `getEffectiveSuperTypeKey(STRUCTURED)`. Regression test `CodecResourceSuperTypeTest.superTypeEmbeddedInStructuredTypeObject`.
+- **Open:** #112-#117 and #119-#121 are filed individually; the remaining BUG entries and the RESIDUE batch live in the review doc only and share root cause 1.
+
 **Session Summary (2026-08-05) — issue #108, STRUCTURED id decode:**
 
 Single-defect session, found via emf.persistence-jpa#110 (Mongo compound `_id`). `IdDeserializationEntry.deserializeStructured` overwrote an id component with the combined value whenever the `eID` attribute was itself one of the `idFeatures`. Fixed by scoping the combined write to the separate-derived-key case; the inverse gap on the PLAIN path (a derived key attribute was never filled at all) was fixed in the same PR, so both formats now restore identical object state. See §7.3 (2026-08-05) for the full entry. Full `./gradlew build` green (3419 tests, 0 failures).
@@ -1454,6 +1465,13 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 3. isChangeable() pre-check not documented
 
 ### 7.3 Fixed Bugs
+
+**2026-08-05 (b):**
+✅ **`typeFormat=STRUCTURED` + `superTypeSerialize=true` threw an NPE on save** (`TypeSerializationEntry`, issue #111)
+- `serializeSuperTypeInStructured` took the raw `superTypeConfig.getSuperTypeKey()`, which is `null` by default (the key is format-dependent), and handed it to `gen.writeArrayPropertyStart(null)`
+- The PLAIN entry had it right all along (`SuperTypeSerializationEntry:81` uses `getEffectiveSuperTypeKey(format)`); only the embedded STRUCTURED path used the raw getter
+- Fix: resolve the embedded key via `getEffectiveSuperTypeKey(SerializationFormat.STRUCTURED)` — the block sits inside the STRUCTURED `_type` object, so the STRUCTURED default (`supertype`) applies when nothing is configured
+- Tests: `CodecResourceSuperTypeTest.superTypeEmbeddedInStructuredTypeObject`. The existing unit tests always set `superTypeKey` explicitly, which is exactly what masked the null default
 
 **2026-08-05:**
 ✅ **STRUCTURED id decode clobbered a component when the eID attribute is itself an id feature** (`IdDeserializationEntry`, issue #108)
