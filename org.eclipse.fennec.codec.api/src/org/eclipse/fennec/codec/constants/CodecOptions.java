@@ -384,7 +384,7 @@ public final class CodecOptions {
      * Include separator in STRUCTURED output.
      * <p>Default: true</p>
      */
-    public static final String CODEC_ID_SERIALIZE_SEPARATOR = "codec.idSerializeSeparator";
+    public static final String CODEC_ID_SERIALIZE_SEPARATOR = "codec.idSeparatorSerialize";
 
     /**
      * ID key mode.
