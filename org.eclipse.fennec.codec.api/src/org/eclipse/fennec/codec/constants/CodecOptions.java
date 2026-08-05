@@ -341,7 +341,9 @@ public final class CodecOptions {
 
     /**
      * ID serialization strategy.
-     * <p>Values: "ID_FIELD" (default), "COMBINED", "NONE"</p>
+     * <p>Values: "ID_FIELD" (default), "COMBINED". Informational — the runtime dispatches
+     * on {@code codec.idFeatures}; to disable ID serialization use
+     * {@link #CODEC_ID_KEY_MODE} = "NONE" (issue #100).</p>
      */
     public static final String CODEC_ID_STRATEGY = "codec.idStrategy";
 

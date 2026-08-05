@@ -1260,14 +1260,17 @@ public final class ConfigurationResolver {
         /**
          * Enables or disables ID serialization.
          * <p>
-         * Convenience method that sets idStrategy to "ID_FIELD" (enabled) or "NONE" (disabled).
+         * Convenience method that sets idKeyMode to "ID_ONLY" (enabled) or "NONE" (disabled).
+         * The key mode is the switch the runtime actually consumes — the earlier mapping to
+         * {@code idStrategy="NONE"} named a non-existent IdStrategy literal and was a
+         * silent no-op (issue #100).
          *
          * @param useId true to enable ID serialization, false to disable
          * @return this builder
-         * @see #idStrategy(String)
+         * @see #idKeyMode(String)
          */
         public Builder useId(boolean useId) {
-            return idStrategy(useId ? "ID_FIELD" : "NONE");
+            return idKeyMode(useId ? "ID_ONLY" : "NONE");
         }
 
         /**

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
@@ -45,6 +46,8 @@ import tools.jackson.databind.SerializationContext;
  * @since 2025-12-16
  */
 public class IdSerializationEntry implements SerializationEntry {
+
+    private static final Logger LOGGER = Logger.getLogger(IdSerializationEntry.class.getName());
 
     private final IdConfig config;
     private final EClass eClass;
@@ -175,9 +178,19 @@ public class IdSerializationEntry implements SerializationEntry {
             return value != null ? value.toString() : null;
         }
 
+        String separator = config.getSeparator();
         StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for (Object value : idValues.values()) {
+        for (Map.Entry<String, Object> entry : idValues.entrySet()) {
+            Object value = entry.getValue();
+            // A component containing the separator makes the PLAIN combined id ambiguous on
+            // deserialization — the split becomes the only source under keyMode=ID_ONLY (#101).
+            if (value != null && value.toString().contains(separator)) {
+                LOGGER.warning("Id component '" + entry.getKey() + "' of " + eClass.getName()
+                        + " contains the id separator '" + separator
+                        + "' — the combined id will not round-trip correctly. "
+                        + "Use STRUCTURED idFormat or a different idSeparator.");
+            }
             if (!first) {
                 sb.append(config.getSeparator());
             }

@@ -14,6 +14,7 @@ package org.eclipse.fennec.codec.ser;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.eclipse.emf.ecore.EAttribute;
@@ -31,6 +32,7 @@ import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecWriteContext;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
 import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 
 import tools.jackson.core.JsonGenerator;
@@ -202,9 +204,13 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
         }
 
         // Add ID entry after type/supertype (the entry itself handles FEATURE_ONLY/NONE via shouldSerialize())
+        Set<String> idOnlyComponents = Set.of();
         if (idConfig != null) {
             IdSerializationEntry idEntry = new IdSerializationEntry(idConfig, eClass);
             entries.put(idEntry.getKey(), idEntry);
+            if (idConfig.getKeyMode() == IdKeyMode.ID_ONLY) {
+                idOnlyComponents = Set.copyOf(idEntry.getIdFeatureNames());
+            }
         }
 
         // Add feature entries
@@ -215,6 +221,14 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
             // Skip features that should not be serialized
             // shouldSerialize() considers ignore, ignoreWrite, forceWrite flags
             if (!featureConfig.shouldSerialize()) {
+                continue;
+            }
+
+            // keyMode=ID_ONLY: id component attributes live only under the id key (spec 09-id.md
+            // §2/§7, issue #101). EReference id sources keep their payload entry (spec §4), and an
+            // explicit forceWrite wins over the suppression.
+            if (feature instanceof EAttribute && idOnlyComponents.contains(feature.getName())
+                    && !featureConfig.isForceWrite()) {
                 continue;
             }
 

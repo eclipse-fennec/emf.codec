@@ -327,6 +327,93 @@ class CodecResourceIdTest {
         }
 
         @Test
+        @DisplayName("ID_ONLY mode suppresses the id attribute in the payload")
+        void idOnlyModeSuppressesIdAttribute() throws IOException {
+            EObject person = createPerson("john-123", "John Doe");
+
+            ConfigurationResolver resolver = idResolver(Map.of(
+                    "idStrategy", "ID_FIELD",
+                    "idKeyMode", "ID_ONLY"));
+
+            String json = serialize(person, resolver);
+
+            assertTrue(json.contains("\"_id\":\"john-123\""), "Should have _id");
+            assertFalse(json.contains("\"personId\""),
+                    "ID_ONLY must not duplicate the id attribute as payload feature: " + json);
+            assertTrue(json.contains("\"name\":\"John Doe\""),
+                    "Non-id features stay in the payload");
+        }
+
+        @Test
+        @DisplayName("ID_ONLY mode suppresses combined id components in the payload")
+        void idOnlyModeSuppressesCombinedComponents() throws IOException {
+            EObject obj = createMultiId("John", "Doe", 1);
+
+            ConfigurationResolver resolver = idResolver(Map.of(
+                    "idFeatures", List.of("firstName", "lastName", "sequence"),
+                    "idKeyMode", "ID_ONLY"));
+
+            String json = serialize(obj, resolver);
+
+            assertTrue(json.contains("\"_id\":\"John-Doe-1\""), "Should have combined _id");
+            assertFalse(json.contains("\"firstName\""), "firstName must live only in _id: " + json);
+            assertFalse(json.contains("\"lastName\""), "lastName must live only in _id: " + json);
+            assertFalse(json.contains("\"sequence\""), "sequence must live only in _id: " + json);
+        }
+
+        @Test
+        @DisplayName("forceWrite overrides ID_ONLY suppression")
+        void forceWriteOverridesIdOnlySuppression() throws IOException {
+            EObject person = createPerson("john-123", "John Doe");
+
+            Map<String, Object> props = new HashMap<>();
+            props.put("idStrategy", "ID_FIELD");
+            props.put("idKeyMode", "ID_ONLY");
+            props.put("Person", Map.of("personId", Map.of("forceWrite", true)));
+            ConfigurationResolver resolver = idResolver(props);
+
+            String json = serialize(person, resolver);
+
+            assertTrue(json.contains("\"_id\":\"john-123\""), "Should have _id");
+            assertTrue(json.contains("\"personId\":\"john-123\""),
+                    "explicit forceWrite wins over ID_ONLY suppression: " + json);
+        }
+
+        @Test
+        @DisplayName("ID_ONLY round trip restores the id attribute from _id")
+        void idOnlyRoundTripSingle() throws IOException {
+            EObject person = createPerson("john-123", "John Doe");
+
+            ConfigurationResolver resolver = idResolver(Map.of(
+                    "idStrategy", "ID_FIELD",
+                    "idKeyMode", "ID_ONLY"));
+
+            String json = serialize(person, resolver);
+            EObject restored = deserialize(json, personClass, resolver);
+
+            assertEquals("john-123", restored.eGet(personIdAttribute),
+                    "id attribute must be filled back from _id");
+            assertEquals("John Doe", restored.eGet(personNameAttribute));
+        }
+
+        @Test
+        @DisplayName("ID_ONLY round trip restores combined components from _id")
+        void idOnlyRoundTripCombined() throws IOException {
+            EObject obj = createMultiId("John", "Doe", 1);
+
+            ConfigurationResolver resolver = idResolver(Map.of(
+                    "idFeatures", List.of("firstName", "lastName", "sequence"),
+                    "idKeyMode", "ID_ONLY"));
+
+            String json = serialize(obj, resolver);
+            EObject restored = deserialize(json, multiIdClass, resolver);
+
+            assertEquals("John", restored.eGet(firstNameAttribute));
+            assertEquals("Doe", restored.eGet(lastNameAttribute));
+            assertEquals(1, restored.eGet(sequenceAttribute));
+        }
+
+        @Test
         @DisplayName("FEATURE_ONLY mode - no _id field")
         void featureOnlyMode() throws IOException {
             EObject person = createPerson("john-123", "John Doe");
@@ -633,11 +720,12 @@ class CodecResourceIdTest {
         @Test
         @DisplayName("idOnTop=true also floats the EIDAttribute feature to front")
         void idOnTopFloatsIdFeatureToFront() throws IOException {
-            // Person's EIDAttribute has JSON key "personId"; idOnTop should place it before other features
+            // Person's EIDAttribute has JSON key "personId"; idOnTop should place it before other
+            // features. keyMode=BOTH keeps the feature in the payload (ID_ONLY suppresses it, #101).
             EObject person = createPerson("john-123", "John Doe");
 
             ConfigurationResolver resolver = ConfigurationResolver.builder()
-                    .moduleProperties(Map.of("idOnTop", true))
+                    .moduleProperties(Map.of("idOnTop", true, "idKeyMode", "BOTH"))
                     .build();
 
             String json = serialize(person, resolver);
@@ -657,7 +745,7 @@ class CodecResourceIdTest {
             EObject person = createPerson("john-123", "John Doe");
 
             ConfigurationResolver resolver = ConfigurationResolver.builder()
-                    .moduleProperties(Map.of("typeInclude", true, "idOnTop", true))
+                    .moduleProperties(Map.of("typeInclude", true, "idOnTop", true, "idKeyMode", "BOTH"))
                     .build();
 
             String json = serialize(person, resolver);
