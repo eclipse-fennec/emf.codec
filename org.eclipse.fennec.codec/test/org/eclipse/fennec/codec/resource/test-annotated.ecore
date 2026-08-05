@@ -35,6 +35,10 @@
       <details key="idKey" value="orderId"/>
       <details key="idSeparator" value="-"/>
       <details key="idFeatures" value="customerId,orderDate"/>
+      <!-- BOTH keeps the id components in the payload - required here because the "-"
+           separator collides with the data values, so the combined orderId alone does
+           not round-trip (see OrderCompact for the ID_ONLY variant, issue #101) -->
+      <details key="idKeyMode" value="BOTH"/>
     </eAnnotations>
 
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="customerId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -43,6 +47,21 @@
 
     <!-- Containment reference to items -->
     <eStructuralFeatures xsi:type="ecore:EReference" name="items" upperBound="-1" eType="#//OrderItem" containment="true"/>
+  </eClassifiers>
+
+  <!-- OrderCompact - combined ID with keyMode ID_ONLY: components live only in the id key (issue #101) -->
+  <eClassifiers xsi:type="ecore:EClass" name="OrderCompact">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idStrategy" value="COMBINED"/>
+      <details key="idKey" value="orderId"/>
+      <details key="idSeparator" value="_"/>
+      <details key="idFeatures" value="customerId,orderDate"/>
+      <details key="idKeyMode" value="ID_ONLY"/>
+    </eAnnotations>
+
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="customerId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="orderDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="total" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
   </eClassifiers>
 
   <!-- OrderItem - nested class -->

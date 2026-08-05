@@ -40,6 +40,7 @@ import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
 import org.eclipse.fennec.codec.metadata.model.codec.IdStrategy;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
@@ -69,6 +70,7 @@ class CodecResourceAnnotationTest {
     // EClasses
     private EClass productClass;
     private EClass orderClass;
+    private EClass orderCompactClass;
     private EClass orderItemClass;
     private EClass customerClass;
     private EClass vipCustomerClass;
@@ -100,6 +102,7 @@ class CodecResourceAnnotationTest {
         // Load EClasses
         productClass = EcoreHelper.getEClass(testPackage, "Product");
         orderClass = EcoreHelper.getEClass(testPackage, "Order");
+        orderCompactClass = EcoreHelper.getEClass(testPackage, "OrderCompact");
         orderItemClass = EcoreHelper.getEClass(testPackage, "OrderItem");
         customerClass = EcoreHelper.getEClass(testPackage, "Customer");
         vipCustomerClass = EcoreHelper.getEClass(testPackage, "VIPCustomer");
@@ -197,6 +200,7 @@ class CodecResourceAnnotationTest {
             assertEquals(2, idFeatures.size());
             assertTrue(idFeatures.contains("customerId"));
             assertTrue(idFeatures.contains("orderDate"));
+            assertEquals(IdKeyMode.BOTH, aspect.getIdConfig().getKeyMode());
         }
 
         @Test
@@ -362,6 +366,33 @@ class CodecResourceAnnotationTest {
             assertEquals(2, loadedItems.size());
             assertEquals("Widget A", loadedItems.get(0).eGet(orderItemClass.getEStructuralFeature("productName")));
             assertEquals(2, loadedItems.get(0).eGet(orderItemClass.getEStructuralFeature("quantity")));
+        }
+
+        @Test
+        @DisplayName("round-trips OrderCompact via the combined _id alone (ID_ONLY)")
+        void roundTripsOrderCompactIdOnly() throws IOException {
+            EObject order = testPackage.getEFactoryInstance().create(orderCompactClass);
+            order.eSet(orderCompactClass.getEStructuralFeature("customerId"), "CUST-001");
+            order.eSet(orderCompactClass.getEStructuralFeature("orderDate"), "2025-12-17");
+            order.eSet(orderCompactClass.getEStructuralFeature("total"), 149.97);
+
+            String json = serialize(order);
+
+            assertTrue(json.contains("\"orderId\":\"CUST-001_2025-12-17\""),
+                    "combined id under the custom key: " + json);
+            assertFalse(json.contains("\"customerId\""),
+                    "ID_ONLY suppresses the id components in the payload: " + json);
+            assertFalse(json.contains("\"orderDate\""),
+                    "ID_ONLY suppresses the id components in the payload: " + json);
+
+            EObject loaded = deserialize(json, orderCompactClass);
+
+            assertNotNull(loaded);
+            assertEquals("CUST-001", loaded.eGet(orderCompactClass.getEStructuralFeature("customerId")),
+                    "customerId must be restored from the combined _id");
+            assertEquals("2025-12-17", loaded.eGet(orderCompactClass.getEStructuralFeature("orderDate")),
+                    "orderDate must be restored from the combined _id");
+            assertEquals(149.97, (Double) loaded.eGet(orderCompactClass.getEStructuralFeature("total")), 0.001);
         }
 
         @Test
