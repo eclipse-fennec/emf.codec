@@ -11,6 +11,8 @@
       - MultiIdPerson (for combined ID tests with firstName + lastName)
       - IntIdEntity (for integer ID type conversion)
       - LongIdEntity (for long ID type conversion)
+      - OrderLine (compound ID where the eID attribute is itself an id feature)
+      - DerivedKeyPerson (compound ID with a separate derived eID key attribute)
 
     Features tested:
       - Single-valued attributes (name, age, active, score)
@@ -76,6 +78,20 @@
   <eClassifiers xsi:type="ecore:EClass" name="LongIdEntity">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong" iD="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
+  <!-- OrderLine - compound ID (orderId + lineNo) where orderId is also the eID attribute -->
+  <eClassifiers xsi:type="ecore:EClass" name="OrderLine">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="orderId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lineNo" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="quantity" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+
+  <!-- DerivedKeyPerson - compound ID (firstName + lastName) with a separate derived eID key -->
+  <eClassifiers xsi:type="ecore:EClass" name="DerivedKeyPerson">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" iD="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="firstName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lastName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
 
 </ecore:EPackage>
