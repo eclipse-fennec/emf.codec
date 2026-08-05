@@ -104,6 +104,15 @@ public abstract class BaseSuperTypeConfigImpl extends MinimalEObjectImpl.Contain
 	protected SerializationFormat format = FORMAT_EDEFAULT;
 
 	/**
+	 * This is true if the Format attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean formatESet;
+
+	/**
 	 * The default value of the '{@link #isAsArray() <em>As Array</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -247,8 +256,35 @@ public abstract class BaseSuperTypeConfigImpl extends MinimalEObjectImpl.Contain
 	public void setFormat(SerializationFormat newFormat) {
 		SerializationFormat oldFormat = format;
 		format = newFormat == null ? FORMAT_EDEFAULT : newFormat;
+		boolean oldFormatESet = formatESet;
+		formatESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_SUPER_TYPE_CONFIG__FORMAT, oldFormat, format));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_SUPER_TYPE_CONFIG__FORMAT, oldFormat, format, !oldFormatESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetFormat() {
+		SerializationFormat oldFormat = format;
+		boolean oldFormatESet = formatESet;
+		format = FORMAT_EDEFAULT;
+		formatESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_SUPER_TYPE_CONFIG__FORMAT, oldFormat, FORMAT_EDEFAULT, oldFormatESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetFormat() {
+		return formatESet;
 	}
 
 	/**
@@ -389,7 +425,7 @@ public abstract class BaseSuperTypeConfigImpl extends MinimalEObjectImpl.Contain
 				setSelection(SELECTION_EDEFAULT);
 				return;
 			case CodecPackage.BASE_SUPER_TYPE_CONFIG__FORMAT:
-				setFormat(FORMAT_EDEFAULT);
+				unsetFormat();
 				return;
 			case CodecPackage.BASE_SUPER_TYPE_CONFIG__AS_ARRAY:
 				setAsArray(AS_ARRAY_EDEFAULT);
@@ -417,7 +453,7 @@ public abstract class BaseSuperTypeConfigImpl extends MinimalEObjectImpl.Contain
 			case CodecPackage.BASE_SUPER_TYPE_CONFIG__SELECTION:
 				return selection != SELECTION_EDEFAULT;
 			case CodecPackage.BASE_SUPER_TYPE_CONFIG__FORMAT:
-				return format != FORMAT_EDEFAULT;
+				return isSetFormat();
 			case CodecPackage.BASE_SUPER_TYPE_CONFIG__AS_ARRAY:
 				return asArray != AS_ARRAY_EDEFAULT;
 			case CodecPackage.BASE_SUPER_TYPE_CONFIG__SEPARATOR:
@@ -443,7 +479,7 @@ public abstract class BaseSuperTypeConfigImpl extends MinimalEObjectImpl.Contain
 		result.append(", selection: ");
 		result.append(selection);
 		result.append(", format: ");
-		result.append(format);
+		if (formatESet) result.append(format); else result.append("<unset>");
 		result.append(", asArray: ");
 		result.append(asArray);
 		result.append(", separator: ");
