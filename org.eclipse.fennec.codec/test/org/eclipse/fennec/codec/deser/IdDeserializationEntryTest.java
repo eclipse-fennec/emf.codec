@@ -190,6 +190,55 @@ class IdDeserializationEntryTest extends DeserializationEntryTestBase {
                 assertNull(person.eGet(lastNameAttribute));
             }
         }
+
+        @Test
+        @DisplayName("sets the combined value on a separate derived eID attribute")
+        void setsCombinedValueOnSeparateDerivedIdAttribute() {
+            IdConfig config = IdConfig.builder()
+                    .key("_id")
+                    .format(SerializationFormat.PLAIN)
+                    .separator("-")
+                    .idFeatures(List.of("firstName", "lastName"))
+                    .build();
+
+            IdDeserializationEntry entry = new IdDeserializationEntry(config, derivedKeyPersonClass);
+
+            EObject person = createDerivedKeyPerson();
+            DeserializationState state = createStateWithObject(person);
+
+            // "key" is the eID attribute but not an ID feature - it holds the combined value,
+            // mirroring the STRUCTURED behavior (issue #108)
+            try (JsonParser parser = createParser("\"John-Doe\"")) {
+                entry.deserialize(state, parser, null);
+                assertEquals("John", person.eGet(derivedFirstNameAttribute));
+                assertEquals("Doe", person.eGet(derivedLastNameAttribute));
+                assertEquals("John-Doe", person.eGet(derivedKeyAttribute));
+            }
+        }
+
+        @Test
+        @DisplayName("keeps the component value when the eID attribute is itself an ID feature")
+        void keepsComponentValueWhenEIdAttributeIsIdFeature() {
+            IdConfig config = IdConfig.builder()
+                    .key("_id")
+                    .format(SerializationFormat.PLAIN)
+                    .separator("-")
+                    .idFeatures(List.of("orderId", "lineNo"))
+                    .build();
+
+            IdDeserializationEntry entry = new IdDeserializationEntry(config, orderLineClass);
+
+            EObject orderLine = createOrderLine();
+            DeserializationState state = createStateWithObject(orderLine);
+
+            // orderId is the eID attribute AND the first ID feature - it keeps its component
+            // value, the combined "A-2" must not be written over it (issue #108)
+            try (JsonParser parser = createParser("\"A-2\"")) {
+                entry.deserialize(state, parser, null);
+                assertEquals("A", orderLine.eGet(orderIdAttribute));
+                assertEquals(2, orderLine.eGet(lineNoAttribute));
+            }
+        }
     }
 
     // ========================================================================

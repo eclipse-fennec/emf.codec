@@ -143,6 +143,11 @@ public class IdDeserializationEntry implements DeserializationEntry {
 
     /**
      * Deserializes ID in PLAIN format (single string, optionally combined with separator).
+     * <p>
+     * For a combined ID the parts are mapped onto the ID features; a separate derived key
+     * attribute additionally receives the whole combined value (see
+     * {@link #isDerivedKeyAttribute(List)}).
+     * </p>
      */
     private void deserializePlain(EObject eObject, JsonParser parser, DeserializationContext ctxt) {
         List<String> configuredFeatures = config.getIdFeatures();
@@ -165,6 +170,13 @@ public class IdDeserializationEntry implements DeserializationEntry {
                     if (value != null) {
                         eObject.eSet(feature, value);
                     }
+                }
+            }
+
+            if (isDerivedKeyAttribute(configuredFeatures)) {
+                Object derivedKey = convertValue(combinedValue, idAttribute);
+                if (derivedKey != null) {
+                    eObject.eSet(idAttribute, derivedKey);
                 }
             }
         } else if (idAttribute != null) {
@@ -270,13 +282,9 @@ public class IdDeserializationEntry implements DeserializationEntry {
             }
         }
 
-        // If there's an EIDAttribute and we have multiple features, set the combined value.
-        // The EIDAttribute may be one of the id features itself - it then already holds its
-        // own component value from the loop above and must not be overwritten (issue #108).
-        boolean idAttributeIsIdFeature = idAttribute != null
-                && (featuresToRead.contains(idAttribute.getName())
-                        || idValues.containsKey(idAttribute.getName()));
-        if (idAttribute != null && idValues.size() > 1 && !idAttributeIsIdFeature) {
+        // A separate derived key attribute carries the combined value of all components
+        if (idValues.size() > 1 && isDerivedKeyAttribute(featuresToRead)
+                && !idValues.containsKey(idAttribute.getName())) {
             String combinedValue = combineIdValues(idValues, effectiveSeparator);
             if (combinedValue != null) {
                 try {
@@ -288,6 +296,24 @@ public class IdDeserializationEntry implements DeserializationEntry {
                 }
             }
         }
+    }
+
+    /**
+     * Tells whether the EIDAttribute is a separate derived key, i.e. it is not one of the ID
+     * features itself.
+     * <p>
+     * Only such an attribute receives the combined ID value. An EIDAttribute that is listed
+     * among the ID features already holds its own component value and must not be overwritten
+     * by the combination (issue #108).
+     * </p>
+     *
+     * @param idFeatureNames the resolved ID feature names
+     * @return {@code true} if the combined value belongs on the EIDAttribute
+     */
+    private boolean isDerivedKeyAttribute(List<String> idFeatureNames) {
+        return idAttribute != null
+                && idAttribute.isChangeable()
+                && (idFeatureNames == null || !idFeatureNames.contains(idAttribute.getName()));
     }
 
     /**
