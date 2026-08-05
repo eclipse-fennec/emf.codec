@@ -206,7 +206,7 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
         // Add ID entry after type/supertype (the entry itself handles FEATURE_ONLY/NONE via shouldSerialize())
         Set<String> idOnlyComponents = Set.of();
         if (idConfig != null) {
-            IdSerializationEntry idEntry = new IdSerializationEntry(idConfig, eClass);
+            IdSerializationEntry idEntry = new IdSerializationEntry(idConfig, eClass, entryContext);
             entries.put(idEntry.getKey(), idEntry);
             if (idConfig.getKeyMode() == IdKeyMode.ID_ONLY) {
                 idOnlyComponents = Set.copyOf(idEntry.getIdFeatureNames());

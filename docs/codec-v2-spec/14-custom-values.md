@@ -499,6 +499,14 @@ public class MongoIdReader implements CodecValueReader<String, EReference> {
 }
 ```
 
+> **Shipped id-plane handlers (issue #104):** For the *id plane* (as opposed to the reference
+> URI transformation above) the BSON module ships a ready-made pair registered under the name
+> **`objectId`**: `ObjectIdValueWriter` stores a valid 24-char hex id as a **native BSON
+> `ObjectId`** (guarded by `ObjectId.isValid`, plain string otherwise), and
+> `ObjectIdValueReader` restores the hex string on load. Wire it via `idValueWriterName` /
+> `idValueReaderName` (see [09-id.md §5.0](09-id.md#50-configuration-keys)). `ObjectId` is a
+> plain BSON spec type from the `org.bson` library — no MongoDB driver involved.
+
 #### Serialization Flow (Non-Containment)
 
 ```

@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.deser;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,8 +28,12 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.buffer.CodecTokenBuffer;
 import org.eclipse.fennec.codec.config.IdConfig;
+import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.codec.value.CodecReaderContext;
+import org.eclipse.fennec.codec.value.CodecValueReader;
+import org.eclipse.fennec.codec.value.CodecValueRegistry;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -66,6 +72,8 @@ public class IdDeserializationEntry implements DeserializationEntry {
     private final IdConfig config;
     private final EClass eClass;
     private final EAttribute idAttribute;
+    private final CodecEntryContext entryContext;
+    private final CodecValueReader<Object, EAttribute> customReader;
 
     /**
      * Creates a new IdDeserializationEntry.
@@ -74,9 +82,35 @@ public class IdDeserializationEntry implements DeserializationEntry {
      * @param eClass the EClass to find the ID attribute from
      */
     public IdDeserializationEntry(IdConfig config, EClass eClass) {
+        this(config, eClass, null);
+    }
+
+    /**
+     * Creates a new IdDeserializationEntry with custom id value reader support (issue #104).
+     *
+     * @param config the effective ID configuration
+     * @param eClass the EClass to find the ID attribute from
+     * @param entryContext the codec entry context for custom readers (may be null)
+     */
+    @SuppressWarnings("unchecked")
+    public IdDeserializationEntry(IdConfig config, EClass eClass, CodecEntryContext entryContext) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.eClass = Objects.requireNonNull(eClass, "eClass must not be null");
         this.idAttribute = findIdAttribute(eClass);
+        this.entryContext = entryContext;
+
+        String readerName = config.getValueReaderName();
+        CodecValueRegistry valueRegistry = entryContext != null ? entryContext.getValueRegistry() : null;
+        if (readerName != null && !readerName.isEmpty() && valueRegistry != null) {
+            CodecValueReader<?, ?> reader = valueRegistry.getReader(readerName).orElse(null);
+            if (reader == null) {
+                LOGGER.warning("Id value reader '" + readerName + "' is not registered - "
+                        + "using default id deserialization for " + eClass.getName());
+            }
+            this.customReader = (CodecValueReader<Object, EAttribute>) reader;
+        } else {
+            this.customReader = null;
+        }
     }
 
     @Override
@@ -103,19 +137,19 @@ public class IdDeserializationEntry implements DeserializationEntry {
         if (config.getFormat() == SerializationFormat.STRUCTURED) {
             deserializeStructured(eObject, parser, ctxt);
         } else {
-            deserializePlain(eObject, parser);
+            deserializePlain(eObject, parser, ctxt);
         }
     }
 
     /**
      * Deserializes ID in PLAIN format (single string, optionally combined with separator).
      */
-    private void deserializePlain(EObject eObject, JsonParser parser) {
+    private void deserializePlain(EObject eObject, JsonParser parser, DeserializationContext ctxt) {
         List<String> configuredFeatures = config.getIdFeatures();
 
         if (configuredFeatures != null && configuredFeatures.size() > 1) {
             // Multiple ID features - split by separator
-            String combinedValue = parser.getString();
+            String combinedValue = readPlainIdString(parser, ctxt);
             if (combinedValue == null) {
                 return;
             }
@@ -135,7 +169,13 @@ public class IdDeserializationEntry implements DeserializationEntry {
             }
         } else if (idAttribute != null) {
             // Single ID attribute
-            Object idValue = readIdValue(parser, idAttribute);
+            Object idValue;
+            if (customReader != null && entryContext != null) {
+                String raw = readPlainIdString(parser, ctxt);
+                idValue = raw != null ? convertValue(raw, idAttribute) : null;
+            } else {
+                idValue = readIdValue(parser, idAttribute);
+            }
             if (idValue != null) {
                 eObject.eSet(idAttribute, idValue);
             }
@@ -296,6 +336,24 @@ public class IdDeserializationEntry implements DeserializationEntry {
             result.add(idAttr);
         }
         return result;
+    }
+
+    /**
+     * Reads the raw PLAIN id value as string, routing through the configured custom id
+     * value reader ({@code idValueReaderName}, issue #104) when present.
+     */
+    private String readPlainIdString(JsonParser parser, DeserializationContext ctxt) {
+        if (customReader != null && entryContext != null) {
+            try {
+                CodecReaderContext readerCtx = entryContext.createReaderContext(parser, ctxt);
+                Object raw = customReader.read(readerCtx, idAttribute);
+                return raw != null ? raw.toString() : null;
+            } catch (IOException e) {
+                throw new UncheckedIOException(
+                        "Custom id value reader failed for " + eClass.getName(), e);
+            }
+        }
+        return parser.getString();
     }
 
     /**

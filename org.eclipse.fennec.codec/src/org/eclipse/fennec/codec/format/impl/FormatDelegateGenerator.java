@@ -116,6 +116,29 @@ public class FormatDelegateGenerator<T> extends GeneratorBase {
     }
 
     /**
+     * Returns whether the wrapped delegate writes a native ObjectId type.
+     *
+     * @return {@code true} if {@link #writeObjectId(Object)} produces a native value
+     */
+    public boolean supportsNativeObjectId() {
+        return delegate.supportsNativeObjectId();
+    }
+
+    /**
+     * Writes a native ObjectId value through the delegate.
+     *
+     * @param value the ObjectId value (delegate-specific type or its string form)
+     */
+    public JsonGenerator writeObjectId(Object value) throws JacksonException {
+        try {
+            delegate.writeObjectId(value);
+        } catch (IOException e) {
+            throw _wrapIOFailure(e);
+        }
+        return this;
+    }
+
+    /**
      * Returns whether the wrapped delegate writes a native date-time type.
      *
      * @return {@code true} if {@link #writeDateTime(long)} produces a native value
