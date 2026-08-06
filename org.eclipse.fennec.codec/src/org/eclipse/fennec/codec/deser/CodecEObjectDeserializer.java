@@ -333,6 +333,14 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
      * </ol>
      */
     private boolean isTypeKey(String propertyName, EClass hintEClass) {
+        // 0. Any key configured anywhere. The write side may have used a class- or
+        // reference-scoped key, and which one applies is only known once the type is
+        // resolved - which in turn needs the key. This has to be checked before the
+        // hint's own config, because that one merges in the global key and would
+        // answer "false" for a scoped key (issue #116).
+        if (config.collectConfiguredTypeKeys().contains(propertyName)) {
+            return true;
+        }
         // 1. Check class-level type key from hint (most specific)
         if (hintEClass != null) {
             TypeConfig classTypeConfig = config.resolveTypeConfig(hintEClass);

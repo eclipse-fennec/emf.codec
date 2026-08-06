@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -72,6 +73,7 @@ public final class ConfigurationResolver {
     // Level 6 (defaults) is built into config classes
 
     // Caches for resolved configurations
+    private volatile Set<String> configuredTypeKeys;
     private final ConcurrentHashMap<EClass, TypeConfig> typeConfigCache = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EClass, SuperTypeConfig> superTypeConfigCache = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<EClass, IdConfig> idConfigCache = new ConcurrentHashMap<>();
@@ -209,6 +211,72 @@ public final class ConfigurationResolver {
             }
         }
         return globalTypeConfig;
+    }
+
+    /**
+     * Collects every type key that is configured anywhere — globally, per EClass or per
+     * feature.
+     * <p>
+     * Deserialization has a chicken-and-egg problem: the scoped configuration that decides
+     * the type key can only be resolved once the type is known, and the type is only known
+     * after its key has been recognized. Knowing all configured keys upfront resolves it —
+     * a key that no configuration mentions can never be a type key (issue #116).
+     * </p>
+     *
+     * @return the configured type keys, never null
+     */
+    public Set<String> collectConfiguredTypeKeys() {
+        if (configuredTypeKeys == null) {
+            synchronized (this) {
+                if (configuredTypeKeys == null) {
+                    Set<String> keys = new LinkedHashSet<>();
+                    for (Map<String, Object> source : List.of(
+                            nullSafe(annotationProperties), nullSafe(moduleProperties),
+                            nullSafe(factoryProperties), nullSafe(resourceProperties),
+                            nullSafe(optionsProperties))) {
+                        collectTypeKeys(source, keys);
+                    }
+                    configuredTypeKeys = Set.copyOf(keys);
+                }
+            }
+        }
+        return configuredTypeKeys;
+    }
+
+    private static Map<String, Object> nullSafe(Map<String, Object> source) {
+        return source != null ? source : Map.of();
+    }
+
+    /** Adds the global type key of a source plus every type key nested in a scoped map. */
+    private static void collectTypeKeys(Map<String, Object> source, Set<String> keys) {
+        if (source.isEmpty()) {
+            return;
+        }
+        addTypeKey(source, keys);
+        for (ConfigProperty scope : List.of(ConfigProperty.ECLASS_CONFIG,
+                ConfigProperty.EREFERENCE_CONFIG, ConfigProperty.EATTRIBUTE_CONFIG)) {
+            Object scoped = source.get(scope.getKey());
+            if (scoped == null) {
+                scoped = source.get(scope.getPropertyKey());
+            }
+            if (scoped instanceof Map<?, ?> scopedMap) {
+                for (Object entry : scopedMap.values()) {
+                    if (entry instanceof Map<?, ?> properties) {
+                        addTypeKey(properties, keys);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void addTypeKey(Map<?, ?> properties, Set<String> keys) {
+        Object key = properties.get(ConfigProperty.TYPE_KEY.getKey());
+        if (key == null) {
+            key = properties.get(ConfigProperty.TYPE_KEY.getPropertyKey());
+        }
+        if (key instanceof String typeKey && !typeKey.isEmpty()) {
+            keys.add(typeKey);
+        }
     }
 
     // ========================================================================

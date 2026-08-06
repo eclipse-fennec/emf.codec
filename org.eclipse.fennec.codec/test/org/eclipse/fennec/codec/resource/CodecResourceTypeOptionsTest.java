@@ -592,5 +592,72 @@ class CodecResourceTypeOptionsTest {
             assertTrue(json.contains("\"Address\""),
                     "Address should use NAME strategy from per-reference override");
         }
+
+        @Test
+        @DisplayName("per-reference typeKey is understood when reading back")
+        void perReference_typeKeyRoundTrips() throws IOException {
+            // The 'address' reference writes its type under a different key
+            Map<String, Object> options = new HashMap<>();
+            options.put(CodecOptions.CODEC_TYPE_STRATEGY, "URI");
+            options.put(CodecOptions.CODEC_EREFERENCE_CONFIG,
+                    Map.of(personClass.getEStructuralFeature("address"),
+                            Map.of(CodecOptions.CODEC_TYPE_KEY, "kind")));
+
+            EObject person = createPerson("Uma", 34);
+            person.eSet(personClass.getEStructuralFeature("address"),
+                    createAddress("321 Elm St", "Ogdenville"));
+
+            String json = serialize(person, options);
+            assertTrue(json.contains("\"kind\""),
+                    "the per-reference type key must be written, was: " + json);
+
+            Map<String, Object> loadOptions = new HashMap<>();
+            loadOptions.put(CodecResource.CODEC_ROOT_TYPE, personClass);
+            EObject loaded = deserialize(json, options, loadOptions);
+
+            EObject address = (EObject) loaded.eGet(personClass.getEStructuralFeature("address"));
+            assertNotNull(address, "the address must survive the round trip");
+            assertEquals(addressClass, address.eClass(),
+                    "the type written under the per-reference key must be understood on read");
+            assertEquals("321 Elm St",
+                    address.eGet(addressClass.getEStructuralFeature("street")));
+        }
+    }
+
+    // ========================================================================
+    // 10. Per-Class Type Config — read side (issue #116)
+    // ========================================================================
+
+    @Nested
+    @DisplayName("PerClassTypeConfig read side")
+    class PerClassTypeConfigReadSide {
+
+        @Test
+        @DisplayName("per-class NUMERIC strategy round-trips")
+        void perClass_numericRoundTrips() throws IOException {
+            // Global URI, but Address writes its classifier id
+            Map<String, Object> options = new HashMap<>();
+            options.put(CodecOptions.CODEC_TYPE_STRATEGY, "URI");
+            options.put(CodecOptions.CODEC_ECLASS_CONFIG,
+                    Map.of(addressClass, Map.of(
+                            CodecOptions.CODEC_TYPE_STRATEGY, "NUMERIC")));
+
+            EObject person = createPerson("Vera", 41);
+            person.eSet(personClass.getEStructuralFeature("address"),
+                    createAddress("77 Sunset Blvd", "Shelbyville"));
+
+            String json = serialize(person, options);
+
+            Map<String, Object> loadOptions = new HashMap<>();
+            loadOptions.put(CodecResource.CODEC_ROOT_TYPE, personClass);
+            EObject loaded = deserialize(json, options, loadOptions);
+
+            EObject address = (EObject) loaded.eGet(personClass.getEStructuralFeature("address"));
+            assertNotNull(address, "the address must survive the round trip, json was: " + json);
+            assertEquals(addressClass, address.eClass(),
+                    "a per-class strategy must be applied on read as well");
+            assertEquals("77 Sunset Blvd",
+                    address.eGet(addressClass.getEStructuralFeature("street")));
+        }
     }
 }
