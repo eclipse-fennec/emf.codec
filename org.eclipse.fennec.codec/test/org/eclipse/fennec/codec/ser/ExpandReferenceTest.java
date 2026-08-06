@@ -468,6 +468,82 @@ class ExpandReferenceTest {
             assertNull(bob.eContainer(), "Bob should be an orphan");
             assertNull(charlie.eContainer(), "Charlie should be an orphan");
         }
+
+        @Test
+        @DisplayName("deserializes a mixed array keeping every element at its position")
+        void deserializesMixedExpandedAndProxyElements() throws IOException {
+            // A mixed array is normal output: with expand on, an unresolved proxy target is
+            // never expanded, so expanded elements and $ref elements end up side by side.
+            String json = """
+                {
+                  "_type": "http://test.example.org/roundtrip/1.0#//Person",
+                  "name": "Alice",
+                  "friends": [
+                    {
+                      "_type": "http://test.example.org/roundtrip/1.0#//Person",
+                      "name": "Bob"
+                    },
+                    {
+                      "_type": "http://test.example.org/roundtrip/1.0#//Person",
+                      "$ref": "other.json#//@persons.0"
+                    },
+                    {
+                      "_type": "http://test.example.org/roundtrip/1.0#//Person",
+                      "name": "Charlie"
+                    }
+                  ]
+                }
+                """;
+
+            EObject loaded = deserialize(json, personClass);
+
+            @SuppressWarnings("unchecked")
+            List<EObject> friends = (List<EObject>) loaded.eGet(friendsRef);
+
+            assertEquals(3, friends.size(), "no element may be lost (issue #114)");
+            assertEquals("Bob", friends.get(0).eGet(personNameAttribute));
+            assertTrue(friends.get(1).eIsProxy(), "the middle element must be the proxy");
+            assertEquals("Charlie", friends.get(2).eGet(personNameAttribute),
+                    "the element after the proxy must keep its position");
+        }
+
+        @Test
+        @DisplayName("mixed array: a $ref without _type falls back to the declared reference type")
+        void deserializesMixedArrayWithUntypedRef() throws IOException {
+            // Spec §1: without type information the declared reference type applies
+            // (after CODEC_FEATURE_TYPE_HINTS, which is not set here)
+            String json = """
+                {
+                  "_type": "http://test.example.org/roundtrip/1.0#//Person",
+                  "name": "Alice",
+                  "friends": [
+                    {
+                      "_type": "http://test.example.org/roundtrip/1.0#//Person",
+                      "name": "Bob"
+                    },
+                    {
+                      "$ref": "other.json#//@persons.0"
+                    },
+                    {
+                      "_type": "http://test.example.org/roundtrip/1.0#//Person",
+                      "name": "Charlie"
+                    }
+                  ]
+                }
+                """;
+
+            EObject loaded = deserialize(json, personClass);
+
+            @SuppressWarnings("unchecked")
+            List<EObject> friends = (List<EObject>) loaded.eGet(friendsRef);
+
+            assertEquals(3, friends.size(), "no element may be lost (issue #114)");
+            assertEquals("Bob", friends.get(0).eGet(personNameAttribute));
+            assertTrue(friends.get(1).eIsProxy(), "the untyped $ref must still become a proxy");
+            assertEquals(personClass, friends.get(1).eClass(),
+                    "an untyped proxy takes the declared reference type");
+            assertEquals("Charlie", friends.get(2).eGet(personNameAttribute));
+        }
     }
 
     // ========================================================================

@@ -420,6 +420,56 @@ class CrossResourceReferenceTest {
                 "order and identity of each element must be preserved");
     }
 
+    @Test
+    @DisplayName("mixed array of expanded and referenced elements resolves to three values [plain JSON]")
+    void plainMixedArrayResolvesToThreeValues() throws IOException {
+        mixedArrayResolvesToThreeValues(false);
+    }
+
+    @Test
+    @DisplayName("mixed array of expanded and referenced elements resolves to three values [format delegate]")
+    void delegateMixedArrayResolvesToThreeValues() throws IOException {
+        mixedArrayResolvesToThreeValues(true);
+    }
+
+    /**
+     * An array mixing expanded elements with a reference must keep all three positions, and
+     * once the middle proxy resolves, every element carries a real value (issue #114).
+     */
+    private void mixedArrayResolvesToThreeValues(boolean withFormatProvider) throws IOException {
+        ResourceSet writeSet = newResourceSet(withFormatProvider);
+        Resource otherRes = writeSet.createResource(fileUri("other.json"));
+        EObject target = createPerson("Target");
+        otherRes.getContents().add(target);
+        otherRes.save(Collections.emptyMap());
+
+        // Build the mixed document by hand: expanded, referenced, expanded
+        String refUri = EcoreUtil.getURI(target).deresolve(fileUri("person.json")).toString();
+        String nsUri = testPackage.getNsURI();
+        Files.writeString(tempDir.resolve("person.json"), """
+                {
+                  "_type": "%s#//Person",
+                  "name": "Alice",
+                  "friends": [
+                    { "_type": "%s#//Person", "name": "Bob" },
+                    { "_type": "%s#//Person", "$ref": "%s" },
+                    { "_type": "%s#//Person", "name": "Charlie" }
+                  ]
+                }
+                """.formatted(nsUri, nsUri, nsUri, refUri, nsUri));
+
+        ResourceSet readSet = newResourceSet(withFormatProvider);
+        Resource loaded = readSet.getResource(fileUri("person.json"), true);
+        List<EObject> friends = friendsOf(loaded.getContents().get(0));
+
+        assertEquals(3, friends.size(), "no element may be lost");
+        assertEquals(List.of("Bob", "Target", "Charlie"),
+                friends.stream()
+                        .map(f -> EcoreUtil.resolve(f, readSet).eGet(nameAttribute))
+                        .toList(),
+                "every element must carry its own value once the proxy resolves");
+    }
+
     // ========================================================================
     // Helpers
     // ========================================================================

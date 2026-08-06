@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
@@ -197,6 +198,49 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      *
      * @see <a href="docs/codec-v2-spec/10-reference.md#11-plain-strategy">Spec: PLAIN Strategy</a>
      */
+    /**
+     * Reserves an array element's position with a proxy and registers it for resolution.
+     * <p>
+     * Every element of a multi-valued reference is collected in place, as the spec's array
+     * flow requires. Carrying the JSON index instead made resolution overwrite a neighbouring
+     * element whenever expanded and referenced elements were mixed in one array (issue #114).
+     * </p>
+     */
+    private void reserveElement(DeserializationState state, EObject eObject, List<EObject> values,
+            String refUri, int index, EClass typeFromContent) {
+        EObject placeholder = createProxyPlaceholder(refUri, typeFromContent);
+        int targetIndex = index;
+        if (placeholder != null) {
+            values.add(placeholder);
+            targetIndex = values.size() - 1;
+        }
+        state.addUnresolvedReference(typeFromContent != null
+                ? new UnresolvedReference(eObject, reference, refUri, targetIndex, typeFromContent)
+                : new UnresolvedReference(eObject, reference, refUri, targetIndex));
+    }
+
+    /**
+     * Creates the proxy that holds an element's position until resolution replaces it.
+     * <p>
+     * The type follows the spec's resolution order: the type carried in the data if present,
+     * otherwise the declared reference type. An abstract or interface type yields no
+     * placeholder — such an element cannot be instantiated and is reported during resolution.
+     * </p>
+     *
+     * @param refUri the reference URI read from the data
+     * @param typeFromContent the type resolved from the element, may be null
+     * @return the placeholder proxy, or null if no instantiable type is available
+     */
+    private EObject createProxyPlaceholder(String refUri, EClass typeFromContent) {
+        EClass type = typeFromContent != null ? typeFromContent : reference.getEReferenceType();
+        if (type == null || type.isAbstract() || type.isInterface()) {
+            return null;
+        }
+        EObject placeholder = EcoreUtil.create(type);
+        ((InternalEObject) placeholder).eSetProxyURI(URI.createURI(refUri));
+        return placeholder;
+    }
+
     /**
      * Tells whether the reference key is a real feature of the referenced type.
      * <p>
@@ -667,9 +711,10 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         JsonToken token = parser.currentToken();
 
         if (token == JsonToken.VALUE_STRING) {
-            // Direct URI string (PLAIN format)
+            // Direct URI string (PLAIN format) - no type in the data, so the declared
+            // reference type applies (spec §1 type resolution)
             String refUri = readReferenceValue(parser, ctxt);
-            state.addUnresolvedReference(new UnresolvedReference(eObject, reference, refUri, index));
+            reserveElement(state, eObject, values, refUri, index, null);
             return;
         }
 
@@ -684,7 +729,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         if (ctxt == null) {
             String refUri = readRefUri(parser);
             if (refUri != null) {
-                state.addUnresolvedReference(new UnresolvedReference(eObject, reference, refUri, index));
+                reserveElement(state, eObject, values, refUri, index, null);
             }
             return;
         }
@@ -749,8 +794,11 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                     values.add(proxyWithProjection);
                 }
             } else if (refUri != null) {
-                // Has _ref only: create simple proxy reference (resolve later)
-                state.addUnresolvedReference(new UnresolvedReference(eObject, reference, refUri, index, typeFromContent));
+                // Has _ref only: reserve the position with a proxy and resolve it later.
+                // Collecting every element in place is what the spec's array flow requires;
+                // carrying the JSON index instead made resolution overwrite a neighbouring
+                // element whenever expanded and referenced elements were mixed (issue #114).
+                reserveElement(state, eObject, values, refUri, index, typeFromContent);
             } else {
                 // No _ref: deserialize as orphan object (expanded reference)
                 replayParser = buffer.asParser(ctxt, parser);
