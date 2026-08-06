@@ -152,10 +152,24 @@ public class IdDeserializationEntry implements DeserializationEntry {
     private void deserializePlain(EObject eObject, JsonParser parser, DeserializationContext ctxt) {
         List<String> configuredFeatures = config.getIdFeatures();
 
-        if (configuredFeatures != null && configuredFeatures.size() > 1) {
-            // Multiple ID features - split by separator
-            String combinedValue = readPlainIdString(parser, ctxt);
+        if (configuredFeatures != null && !configuredFeatures.isEmpty()) {
+            // Configured id features win over the eID attribute, whatever the list length
+            EAttribute firstFeature = idFeatureAttribute(configuredFeatures.get(0));
+            String combinedValue = readPlainIdString(parser, ctxt,
+                    firstFeature != null ? firstFeature : idAttribute);
             if (combinedValue == null) {
+                return;
+            }
+
+            if (configuredFeatures.size() == 1) {
+                // A single feature owns the whole value - nothing to split, and there is no
+                // combined value that could belong on a derived key attribute (issue #112)
+                if (firstFeature != null) {
+                    Object value = convertValue(combinedValue, firstFeature);
+                    if (value != null && firstFeature.isChangeable()) {
+                        eObject.eSet(firstFeature, value);
+                    }
+                }
                 return;
             }
 
@@ -180,10 +194,10 @@ public class IdDeserializationEntry implements DeserializationEntry {
                 }
             }
         } else if (idAttribute != null) {
-            // Single ID attribute
+            // No configured features - fall back to the eID attribute
             Object idValue;
             if (customReader != null && entryContext != null) {
-                String raw = readPlainIdString(parser, ctxt);
+                String raw = readPlainIdString(parser, ctxt, idAttribute);
                 idValue = raw != null ? convertValue(raw, idAttribute) : null;
             } else {
                 idValue = readIdValue(parser, idAttribute);
@@ -299,6 +313,18 @@ public class IdDeserializationEntry implements DeserializationEntry {
     }
 
     /**
+     * Resolves a configured id feature name to its EAttribute.
+     *
+     * @param featureName the configured feature name
+     * @return the attribute, or {@code null} if the name is unknown or not an EAttribute
+     *         (an EReference id source is not restorable from the id value, see spec §9.6)
+     */
+    private EAttribute idFeatureAttribute(String featureName) {
+        EStructuralFeature feature = eClass.getEStructuralFeature(featureName);
+        return feature instanceof EAttribute attr ? attr : null;
+    }
+
+    /**
      * Tells whether the EIDAttribute is a separate derived key, i.e. it is not one of the ID
      * features itself.
      * <p>
@@ -374,11 +400,12 @@ public class IdDeserializationEntry implements DeserializationEntry {
      * Reads the raw PLAIN id value as string, routing through the configured custom id
      * value reader ({@code idValueReaderName}, issue #104) when present.
      */
-    private String readPlainIdString(JsonParser parser, DeserializationContext ctxt) {
+    private String readPlainIdString(JsonParser parser, DeserializationContext ctxt,
+            EAttribute targetAttribute) {
         if (customReader != null && entryContext != null) {
             try {
                 CodecReaderContext readerCtx = entryContext.createReaderContext(parser, ctxt);
-                Object raw = customReader.read(readerCtx, idAttribute);
+                Object raw = customReader.read(readerCtx, targetAttribute);
                 return raw != null ? raw.toString() : null;
             } catch (IOException e) {
                 throw new UncheckedIOException(

@@ -247,6 +247,41 @@ class IdSerializationEntryTest {
         }
 
         @Test
+        @DisplayName("PLAIN format writes a single-entry idFeatures value, not the eID attribute")
+        void plainFormatWritesSingleEntryIdFeature() {
+            // issue #112: a one-entry idFeatures list wins over the eID attribute on both sides
+            EClass keyedClass = EcoreFactory.eINSTANCE.createEClass();
+            keyedClass.setName("KeyedPerson");
+
+            EAttribute personIdAttr = EcoreFactory.eINSTANCE.createEAttribute();
+            personIdAttr.setName("personId");
+            personIdAttr.setEType(EcorePackage.Literals.ESTRING);
+            personIdAttr.setID(true);
+            keyedClass.getEStructuralFeatures().add(personIdAttr);
+
+            EAttribute nameAttr = EcoreFactory.eINSTANCE.createEAttribute();
+            nameAttr.setName("name");
+            nameAttr.setEType(EcorePackage.Literals.ESTRING);
+            keyedClass.getEStructuralFeatures().add(nameAttr);
+
+            EObject eObject = mock(EObject.class);
+            when(eObject.eClass()).thenReturn(keyedClass);
+            when(eObject.eGet(personIdAttr)).thenReturn("p-123");
+            when(eObject.eGet(nameAttr)).thenReturn("John Doe");
+
+            IdConfig config = IdConfig.builder()
+                    .key("_id")
+                    .format(SerializationFormat.PLAIN)
+                    .idFeatures(List.of("name"))
+                    .build();
+
+            IdSerializationEntry entry = new IdSerializationEntry(config, keyedClass);
+            entry.serialize(createState(eObject), generator, null);
+
+            verify(generator).writeStringProperty("_id", "John Doe");
+        }
+
+        @Test
         @DisplayName("PLAIN format writes separator field when serializeSeparator=true")
         void plainFormatWritesSeparatorField() {
             EObject eObject = mock(EObject.class);

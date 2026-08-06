@@ -94,6 +94,128 @@ class IdDeserializationEntryTest extends DeserializationEntryTestBase {
     }
 
     // ========================================================================
+    // Single-entry idFeatures list (issue #112)
+    //
+    // A one-entry list is a configured id feature like any other: it wins over the
+    // eID attribute, which keeps its own value. Covered for both formats, with and
+    // without an eID attribute on the class.
+    // ========================================================================
+
+    @Nested
+    @DisplayName("Single-entry idFeatures list")
+    class SingleEntryIdFeaturesTests {
+
+        @Test
+        @DisplayName("PLAIN sets the configured feature and leaves the eID attribute alone")
+        void plainSetsConfiguredFeatureAndLeavesIdAttributeAlone() {
+            IdConfig config = IdConfig.builder()
+                    .key("_id")
+                    .format(SerializationFormat.PLAIN)
+                    .idFeatures(List.of("name"))
+                    .build();
+
+            IdDeserializationEntry entry = new IdDeserializationEntry(config, personClass);
+
+            EObject person = createPerson();
+            person.eSet(idAttribute, "p-123");
+            DeserializationState state = createStateWithObject(person);
+
+            try (JsonParser parser = createParser("\"John Doe\"")) {
+                entry.deserialize(state, parser, null);
+                assertEquals("John Doe", person.eGet(nameAttribute));
+                assertEquals("p-123", person.eGet(idAttribute),
+                        "eID attribute must keep its own value when idFeatures names another feature");
+            }
+        }
+
+        @Test
+        @DisplayName("STRUCTURED sets the configured feature and leaves the eID attribute alone")
+        void structuredSetsConfiguredFeatureAndLeavesIdAttributeAlone() {
+            IdConfig config = IdConfig.builder()
+                    .key("_id")
+                    .format(SerializationFormat.STRUCTURED)
+                    .idFeatures(List.of("name"))
+                    .build();
+
+            IdDeserializationEntry entry = new IdDeserializationEntry(config, personClass);
+
+            EObject person = createPerson();
+            person.eSet(idAttribute, "p-123");
+            DeserializationState state = createStateWithObject(person);
+
+            try (JsonParser parser = createParser("{\"name\": \"John Doe\"}")) {
+                entry.deserialize(state, parser, null);
+                assertEquals("John Doe", person.eGet(nameAttribute));
+                assertEquals("p-123", person.eGet(idAttribute));
+            }
+        }
+
+        @Test
+        @DisplayName("PLAIN sets the configured feature on a class without an eID attribute")
+        void plainSetsConfiguredFeatureWithoutIdAttribute() {
+            IdConfig config = IdConfig.builder()
+                    .key("_id")
+                    .format(SerializationFormat.PLAIN)
+                    .idFeatures(List.of("firstName"))
+                    .build();
+
+            // MultiIdPerson has no eID attribute at all
+            IdDeserializationEntry entry = new IdDeserializationEntry(config, multiIdPersonClass);
+
+            EObject person = createMultiIdPerson();
+            DeserializationState state = createStateWithObject(person);
+
+            try (JsonParser parser = createParser("\"John\"")) {
+                entry.deserialize(state, parser, null);
+                assertEquals("John", person.eGet(firstNameAttribute));
+            }
+        }
+
+        @Test
+        @DisplayName("PLAIN keeps the plain single-id behaviour when the entry is the eID attribute")
+        void plainKeepsBehaviourWhenEntryIsTheIdAttribute() {
+            IdConfig config = IdConfig.builder()
+                    .key("_id")
+                    .format(SerializationFormat.PLAIN)
+                    .idFeatures(List.of("orderId"))
+                    .build();
+
+            // orderId is the eID attribute - the common case must not change
+            IdDeserializationEntry entry = new IdDeserializationEntry(config, orderLineClass);
+
+            EObject orderLine = createOrderLine();
+            DeserializationState state = createStateWithObject(orderLine);
+
+            try (JsonParser parser = createParser("\"A\"")) {
+                entry.deserialize(state, parser, null);
+                assertEquals("A", orderLine.eGet(orderIdAttribute));
+            }
+        }
+
+        @Test
+        @DisplayName("PLAIN does not split a single-entry value on the separator")
+        void plainDoesNotSplitSingleEntryValue() {
+            IdConfig config = IdConfig.builder()
+                    .key("_id")
+                    .format(SerializationFormat.PLAIN)
+                    .separator("-")
+                    .idFeatures(List.of("name"))
+                    .build();
+
+            IdDeserializationEntry entry = new IdDeserializationEntry(config, personClass);
+
+            EObject person = createPerson();
+            DeserializationState state = createStateWithObject(person);
+
+            // One feature means the whole value belongs to it, separator or not
+            try (JsonParser parser = createParser("\"John-Doe-Jr\"")) {
+                entry.deserialize(state, parser, null);
+                assertEquals("John-Doe-Jr", person.eGet(nameAttribute));
+            }
+        }
+    }
+
+    // ========================================================================
     // Multiple ID Features Tests (using MultiIdPerson)
     // ========================================================================
 
