@@ -153,6 +153,16 @@ public final class EffectiveCodecConfig
     }
 
     /**
+     * Returns every type key configured anywhere - globally, per EClass or per feature.
+     *
+     * @return the configured type keys, never null
+     * @see org.eclipse.fennec.codec.config.ConfigurationResolver#collectConfiguredTypeKeys()
+     */
+    public Set<String> collectConfiguredTypeKeys() {
+        return resolver.collectConfiguredTypeKeys();
+    }
+
+    /**
      * Resolves effective IdConfig for an EClass.
      *
      * @param eClass the EClass

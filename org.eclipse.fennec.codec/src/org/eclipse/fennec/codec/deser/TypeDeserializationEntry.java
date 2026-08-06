@@ -614,6 +614,14 @@ public class TypeDeserializationEntry implements DeserializationEntry {
                 break;
         }
 
+        // A class-scoped strategy override is invisible here: the type is not resolved yet,
+        // so only the global strategy is known. When that one fails and the value looks like
+        // a classifier id, try NUMERIC before giving up (issue #116).
+        if (resolved == null && strategy != TypeStrategy.NUMERIC && isClassifierId(typeValue)) {
+            String numericContextSchema = ctxt != null ? ContextHelper.getContextSchemaUri(ctxt) : null;
+            resolved = TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass, numericContextSchema);
+        }
+
         // S-4: Add resource diagnostic when resolution fails due to missing context
         if (resolved == null && contextPackage == null && ctxt != null) {
             String msg = "Type resolution for '" + typeValue + "' failed: "
@@ -623,6 +631,19 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         }
 
         return resolved;
+    }
+
+    /** Tells whether a type value is a plain non-negative integer, i.e. a classifier id. */
+    private static boolean isClassifierId(String typeValue) {
+        if (typeValue == null || typeValue.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < typeValue.length(); i++) {
+            if (!Character.isDigit(typeValue.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
