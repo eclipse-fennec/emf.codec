@@ -242,6 +242,30 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     }
 
     /**
+     * Moves the parser to the end of the structure it currently sits in, so a failed element
+     * cannot desynchronize the enclosing array or object.
+     */
+    private void skipToEndOfCurrentStructure(JsonParser parser) {
+        try {
+            JsonToken current = parser.currentToken();
+            if (current == JsonToken.START_OBJECT || current == JsonToken.START_ARRAY) {
+                parser.skipChildren();
+            }
+        } catch (Exception e) {
+            LOGGER.fine("Could not resynchronize parser after a failed element: " + e.getMessage());
+        }
+    }
+
+    /** Sets a contained child, either into the list being built or on the reference itself. */
+    private void addContained(EObject eObject, List<EObject> values, EObject child) {
+        if (values != null) {
+            values.add(child);
+        } else if (reference.isChangeable()) {
+            eObject.eSet(reference, child);
+        }
+    }
+
+    /**
      * Tells whether the reference key is a real feature of the referenced type.
      * <p>
      * Some models use the very name the codec uses as its reference key — OpenAPI declares
@@ -279,12 +303,18 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      */
     private void deserializeContainment(DeserializationState state, JsonParser parser,
             DeserializationContext ctxt, EObject eObject) {
+        deserializeContainment(state, parser, ctxt, eObject, null, -1);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void deserializeContainment(DeserializationState state, JsonParser parser,
+            DeserializationContext ctxt, EObject eObject, List<EObject> values, int index) {
         if (modelOwnsRefKey()) {
             // The model declares a feature under the reference key (e.g. OpenAPI's "$ref"),
             // so the key carries data, not a reference marker. The model wins.
             EObject child = deserializeContainedObject(state, parser, ctxt);
-            if (child != null && reference.isChangeable()) {
-                eObject.eSet(reference, child);
+            if (child != null) {
+                addContained(eObject, values, child);
             }
             return;
         }
@@ -303,7 +333,11 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             String rawTypeValue = null;
             String entryFingerprint = null;
 
-            while (bufferParser.nextToken() != JsonToken.END_OBJECT) {
+            // Stop at stream end too: a truncated buffer returns null forever, and
+            // comparing that against END_OBJECT spins without ever raising anything
+            JsonToken bufferToken;
+            while ((bufferToken = bufferParser.nextToken()) != null
+                    && bufferToken != JsonToken.END_OBJECT) {
                 String fieldName = bufferParser.currentName();
                 bufferParser.nextToken();
 
@@ -322,22 +356,28 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
 
             if (refUri != null) {
                 EClass typeFromContent = resolveTypeFromValue(rawTypeValue, ctxt, entryFingerprint);
-                state.addUnresolvedReference(
-                        new UnresolvedReference(eObject, reference, refUri, -1, typeFromContent));
+                if (values != null) {
+                    // list element: hold the position, exactly as on the non-containment side
+                    reserveElement(state, eObject, values, refUri, index, typeFromContent);
+                } else {
+                    state.addUnresolvedReference(
+                            new UnresolvedReference(eObject, reference, refUri, -1, typeFromContent));
+                }
                 return;
             }
 
             // No reference key: an ordinary inline contained object
             replayParser = buffer.asParser(ctxt, parser);
             replayParser.nextToken(); // START_OBJECT
-            EObject child = deserializeContainedObject(state, replayParser, ctxt);
+            EObject child = deserializeContainedObject(state, replayParser, ctxt, parser);
             replayParser.close();
             replayParser = null;
 
-            if (child != null && reference.isChangeable()) {
-                eObject.eSet(reference, child);
+            if (child != null) {
+                addContained(eObject, values, child);
             }
         } catch (Exception e) {
+            if (true) throw new IllegalStateException("TEMP-PROOF swallowed: " + e, e);
             String msg = "Error deserializing containment reference '" + reference.getName()
                     + "': " + e.getMessage();
             LOGGER.severe(msg);
@@ -400,8 +440,14 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         List<EObject> values = (List<EObject>) eObject.eGet(reference);
         int index = 0;
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
-            if (reference.isContainment() || hasCustomReferenceReader(ctxt)) {
+        // Terminate on stream end as well: an element that fails to consume its own tokens
+        // would otherwise leave this loop spinning forever instead of reporting the problem
+        JsonToken elementToken;
+        while ((elementToken = parser.nextToken()) != null && elementToken != JsonToken.END_ARRAY) {
+            if (reference.isContainment() && !hasCustomReferenceReader(ctxt) && ctxt != null) {
+                // a list element may be a cross-document reference too (issue #128)
+                deserializeContainment(state, parser, ctxt, eObject, values, index);
+            } else if (reference.isContainment() || hasCustomReferenceReader(ctxt)) {
                 EObject child = deserializeContainedObject(state, parser, ctxt);
                 if (child != null) {
                     values.add(child);
@@ -420,7 +466,10 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     @SuppressWarnings("unchecked")
     private void deserializeSingleElement(DeserializationState state, JsonParser parser,
             DeserializationContext ctxt, EObject eObject, int index) {
-        if (reference.isContainment() || hasCustomReferenceReader(ctxt)) {
+        if (reference.isContainment() && !hasCustomReferenceReader(ctxt) && ctxt != null) {
+            deserializeContainment(state, parser, ctxt, eObject,
+                    (List<EObject>) eObject.eGet(reference), index);
+        } else if (reference.isContainment() || hasCustomReferenceReader(ctxt)) {
             EObject child = deserializeContainedObject(state, parser, ctxt);
             if (child != null) {
                 ((List<EObject>) eObject.eGet(reference)).add(child);
@@ -463,6 +512,24 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      */
     private EObject deserializeContainedObject(DeserializationState parentState, JsonParser parser,
             DeserializationContext ctxt) {
+        return deserializeContainedObject(parentState, parser, ctxt, null);
+    }
+
+    /**
+     * Deserializes a contained object, optionally taking the stream context from another
+     * parser.
+     * <p>
+     * When the content was buffered to inspect it for a reference key, the replay parser
+     * carries no codec stream context, and the object would fall through to the reduced
+     * fallback path - silently losing attribute values. The original parser is handed in as
+     * the context source so the buffered replay is deserialized exactly like a direct read
+     * (issue #128).
+     * </p>
+     *
+     * @param contextSource parser to take the stream context from, or null to use {@code parser}
+     */
+    private EObject deserializeContainedObject(DeserializationState parentState, JsonParser parser,
+            DeserializationContext ctxt, JsonParser contextSource) {
         try {
             // Priority 1: Check for runtime type hint from CODEC_FEATURE_TYPE_HINTS option
             EClass runtimeTypeHint = ContextHelper.getFeatureTypeHint(ctxt, reference);
@@ -503,7 +570,8 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             }
 
             // Check if we have an EMF-aware context from the parser
-            TokenStreamContext streamContext = parser.streamReadContext();
+            TokenStreamContext streamContext =
+                    (contextSource != null ? contextSource : parser).streamReadContext();
 
             if (streamContext instanceof CodecJsonReadContext codecContext) {
                 // Create a child context for this nested object
@@ -621,7 +689,11 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             String entryFingerprint = null;
             boolean hasOtherFields = false;
 
-            while (bufferParser.nextToken() != JsonToken.END_OBJECT) {
+            // Stop at stream end too: a truncated buffer returns null forever, and
+            // comparing that against END_OBJECT spins without ever raising anything
+            JsonToken bufferToken;
+            while ((bufferToken = bufferParser.nextToken()) != null
+                    && bufferToken != JsonToken.END_OBJECT) {
                 String fieldName = bufferParser.currentName();
                 bufferParser.nextToken(); // Move to value
 
@@ -751,7 +823,11 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             String entryFingerprint = null;
             boolean hasOtherFields = false;
 
-            while (bufferParser.nextToken() != JsonToken.END_OBJECT) {
+            // Stop at stream end too: a truncated buffer returns null forever, and
+            // comparing that against END_OBJECT spins without ever raising anything
+            JsonToken bufferToken;
+            while ((bufferToken = bufferParser.nextToken()) != null
+                    && bufferToken != JsonToken.END_OBJECT) {
                 String fieldName = bufferParser.currentName();
                 bufferParser.nextToken(); // Move to value
 

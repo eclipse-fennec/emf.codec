@@ -470,6 +470,68 @@ class CrossResourceReferenceTest {
                 "every element must carry its own value once the proxy resolves");
     }
 
+    @Test
+    @DisplayName("multi-valued cross-document containment comes back as a proxy [plain JSON]")
+    void plainMultiValuedCrossDocumentContainment() throws IOException {
+        multiValuedCrossDocumentContainment(false);
+    }
+
+    @Test
+    @DisplayName("multi-valued cross-document containment comes back as a proxy [format delegate]")
+    void delegateMultiValuedCrossDocumentContainment() throws IOException {
+        multiValuedCrossDocumentContainment(true);
+    }
+
+    /**
+     * The #123 proxy branch only covered single-valued containment; an element of a
+     * containment <b>list</b> living in another resource still became an empty object
+     * (issue #128).
+     */
+    private void multiValuedCrossDocumentContainment(boolean withFormatProvider) throws IOException {
+        ResourceSet writeSet = newResourceSet(withFormatProvider);
+        Resource companyRes = writeSet.createResource(fileUri("company.json"));
+        Resource externalRes = writeSet.createResource(fileUri("external.json"));
+
+        EObject company = testPackage.getEFactoryInstance().create(companyClass);
+        company.eSet(companyNameAttribute, "ACME");
+
+        EObject local = createPerson("Local");
+        EObject external = createPerson("External");
+        employeesOf(company).add(local);
+        employeesOf(company).add(external);
+        companyRes.getContents().add(company);
+        // the second employee stays contained but lives in its own resource
+        externalRes.getContents().add(external);
+
+        externalRes.save(Collections.emptyMap());
+        companyRes.save(Collections.emptyMap());
+
+        String json = Files.readString(tempDir.resolve("company.json"));
+        assertTrue(json.contains("external.json"),
+                "the cross-document element must reference its file, was: " + json);
+        assertFalse(json.contains("\"External\""),
+                "the cross-document element must not be inlined, was: " + json);
+
+        ResourceSet readSet = newResourceSet(withFormatProvider);
+        Resource loaded = readSet.getResource(fileUri("company.json"), true);
+
+        // read unresolved: eGet with resolve=true would make EMF resolve the containment
+        // proxy right away, hiding what the codec actually produced
+        @SuppressWarnings("unchecked")
+        List<EObject> raw = (List<EObject>) loaded.getContents().get(0).eGet(employeesRef, false);
+
+        assertEquals(2, raw.size(), "both employees must survive");
+        assertEquals("Local", raw.get(0).eGet(nameAttribute));
+
+        // The element must carry the identity of the object in the other file - either as a
+        // proxy pointing there, or already resolved when the target resource was reachable.
+        // What it must never be is a new empty object, which is what issue #128 produced.
+        EObject restored = EcoreUtil.resolve(raw.get(1), readSet);
+        assertFalse(restored.eIsProxy(), "the cross-document element must be resolvable");
+        assertEquals("External", restored.eGet(nameAttribute),
+                "the element must be the object from the other file, not an empty one");
+    }
+
     // ========================================================================
     // Helpers
     // ========================================================================
