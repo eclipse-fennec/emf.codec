@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -101,6 +102,45 @@ class FormatDelegateParserTest {
         @DisplayName("returns read capabilities")
         void readCapabilities() {
             assertNotNull(parser.streamReadCapabilities());
+        }
+    }
+
+    @Nested
+    @DisplayName("numeric tokens (issue #129)")
+    class NumericTokenTests {
+
+        @Test
+        @DisplayName("getString on a float token returns the number, not a delegate string read")
+        void floatTokenHasText() throws IOException {
+            when(delegate.nextToken()).thenReturn(TokenType.VALUE_NUMBER_FLOAT);
+            when(delegate.readDouble()).thenReturn(1.5);
+            parser.nextToken();
+
+            assertEquals("1.5", parser.getString());
+            verify(delegate, never()).readString();
+        }
+
+        @Test
+        @DisplayName("getString on an int token returns the number")
+        void intTokenHasText() throws IOException {
+            when(delegate.nextToken()).thenReturn(TokenType.VALUE_NUMBER_INT);
+            when(delegate.readLong()).thenReturn(42L);
+            parser.nextToken();
+
+            assertEquals("42", parser.getString());
+            verify(delegate, never()).readString();
+        }
+
+        @Test
+        @DisplayName("a deferred number is materialized, not left to the textual form")
+        void deferredNumberIsEager() throws IOException {
+            // Jackson's TokenBuffer takes numbers deferred; leaving that to the textual
+            // form is what made buffered decimals come back empty (issue #128)
+            when(delegate.nextToken()).thenReturn(TokenType.VALUE_NUMBER_FLOAT);
+            when(delegate.readDouble()).thenReturn(2.25);
+            parser.nextToken();
+
+            assertEquals(2.25, ((Number) parser.getNumberValueDeferred()).doubleValue(), 0.0001);
         }
     }
 
