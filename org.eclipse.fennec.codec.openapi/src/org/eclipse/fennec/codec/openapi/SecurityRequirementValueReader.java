@@ -69,12 +69,14 @@ public class SecurityRequirementValueReader implements ReferenceValueReader<Secu
 			return null;
 		}
 		SecurityRequirement requirement = OpenApiFactory.eINSTANCE.createSecurityRequirement();
-		while (parser.nextToken() != JsonToken.END_OBJECT) {
+		JsonToken fieldToken;
+		while ((fieldToken = parser.nextToken()) != null && fieldToken != JsonToken.END_OBJECT) {
 			String scheme = parser.currentName();
 			parser.nextToken();
 			EList<String> scopes = new BasicEList<>();
 			if (parser.currentToken() == JsonToken.START_ARRAY) {
-				while (parser.nextToken() != JsonToken.END_ARRAY) {
+				JsonToken itemToken;
+				while ((itemToken = parser.nextToken()) != null && itemToken != JsonToken.END_ARRAY) {
 					scopes.add(parser.getString());
 				}
 			} else {

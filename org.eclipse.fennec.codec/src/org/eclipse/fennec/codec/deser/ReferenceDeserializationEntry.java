@@ -40,6 +40,7 @@ import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.ReferenceValueReader;
+import org.eclipse.fennec.codec.util.TokenLoops;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -1110,7 +1111,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     private String readRefUri(JsonParser parser, DeserializationContext ctxt) {
         String uri = null;
 
-        while (parser.nextToken() != JsonToken.END_OBJECT) {
+        while (TokenLoops.hasNextField(parser)) {
             String fieldName = parser.currentName();
             parser.nextToken(); // Move to value
 
@@ -1276,7 +1277,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
 
         try {
             // Iterate over JSON object fields
-            while (parser.nextToken() != JsonToken.END_OBJECT) {
+            while (TokenLoops.hasNextField(parser)) {
                 String key = parser.currentName();
                 parser.nextToken(); // Move to value
 

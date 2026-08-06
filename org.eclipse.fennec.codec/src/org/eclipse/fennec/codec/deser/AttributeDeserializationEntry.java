@@ -46,6 +46,7 @@ import org.eclipse.fennec.codec.value.AttributeValueReader;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
+import org.eclipse.fennec.codec.util.TokenLoops;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -233,7 +234,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
 
         List<Object> values = (List<Object>) eObject.eGet(attribute);
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             Object value = readValue(parser, ctxt, attribute.getEAttributeType());
             if (value != null) {
                 values.add(value);
@@ -419,7 +420,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     private Object readNestedArray(JsonParser parser, DeserializationContext ctxt, Class<?> componentType, int depth) {
         List<Object> elements = new ArrayList<>();
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             if (parser.currentToken() == JsonToken.START_ARRAY) {
                 Object nested = readArrayValue(parser, ctxt, componentType, depth + 1);
                 if (nested != null) {
@@ -442,7 +443,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     private double[] readDoubleArray(JsonParser parser) {
         List<Double> values = new ArrayList<>();
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             JsonToken token = parser.currentToken();
             if (token == JsonToken.VALUE_NUMBER_FLOAT || token == JsonToken.VALUE_NUMBER_INT) {
                 values.add(parser.getDoubleValue());
@@ -462,7 +463,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     private int[] readIntArray(JsonParser parser) {
         List<Integer> values = new ArrayList<>();
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             if (parser.currentToken() == JsonToken.VALUE_NUMBER_INT) {
                 values.add(parser.getIntValue());
             }
@@ -481,7 +482,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     private long[] readLongArray(JsonParser parser) {
         List<Long> values = new ArrayList<>();
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             if (parser.currentToken() == JsonToken.VALUE_NUMBER_INT) {
                 values.add(parser.getLongValue());
             }
@@ -500,7 +501,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     private float[] readFloatArray(JsonParser parser) {
         List<Float> values = new ArrayList<>();
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             JsonToken token = parser.currentToken();
             if (token == JsonToken.VALUE_NUMBER_FLOAT || token == JsonToken.VALUE_NUMBER_INT) {
                 values.add(parser.getFloatValue());
@@ -520,7 +521,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     private boolean[] readBooleanArray(JsonParser parser) {
         List<Boolean> values = new ArrayList<>();
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             JsonToken token = parser.currentToken();
             if (token == JsonToken.VALUE_TRUE || token == JsonToken.VALUE_FALSE) {
                 values.add(parser.getBooleanValue());
@@ -540,7 +541,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     private String[] readStringArray(JsonParser parser) {
         List<String> values = new ArrayList<>();
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             if (parser.currentToken() == JsonToken.VALUE_STRING) {
                 values.add(parser.getString());
             }
@@ -564,7 +565,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     private Object readObjectArray(JsonParser parser, DeserializationContext ctxt, Class<?> componentType) {
         List<Object> values = new ArrayList<>();
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             JsonToken token = parser.currentToken();
             Object value = null;
 
@@ -942,7 +943,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         List<Object> list = new ArrayList<>();
         boolean limitExceeded = false;
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             if (!limitExceeded && list.size() >= MAX_COLLECTION_SIZE) {
                 String msg = "Array exceeds maximum size: " + MAX_COLLECTION_SIZE;
                 LOGGER.warning(msg);
@@ -970,7 +971,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         Map<String, Object> map = new LinkedHashMap<>();
         boolean limitExceeded = false;
 
-        while (parser.nextToken() != JsonToken.END_OBJECT) {
+        while (TokenLoops.hasNextField(parser)) {
             if (!limitExceeded && map.size() >= MAX_COLLECTION_SIZE) {
                 String msg = "Object exceeds maximum size: " + MAX_COLLECTION_SIZE;
                 LOGGER.warning(msg);
@@ -1031,7 +1032,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         sb.append("{");
         boolean first = true;
 
-        while (parser.nextToken() != JsonToken.END_OBJECT) {
+        while (TokenLoops.hasNextField(parser)) {
             if (!first) {
                 sb.append(",");
             }
@@ -1064,7 +1065,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         sb.append("[");
         boolean first = true;
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             if (!first) {
                 sb.append(",");
             }
