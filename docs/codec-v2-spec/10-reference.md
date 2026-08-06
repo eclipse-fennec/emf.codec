@@ -816,7 +816,10 @@ This flow covers how the codec deserializes a JSON value that represents a non-c
 
 > **Prerequisite:** The feature layer has already evaluated the **visibility gate** (ignore, ignoreRead, forceRead, transient/volatile/changeable checks) during entry building (see [§13.1](11-feature.md#131-feature-entry-building-visibility-gate)). Only references that have a `DeserializationEntry` reach this flow — excluded features have no entry and their JSON fields are skipped as unknown.
 
-> **Implementation Status:** This flow covers **non-containment references** only. Cross-document containment deserialization is not yet fully supported — the codec creates proxy objects but does not automatically resolve them. See [§7.2](#72-cross-document-containment-configuration) and [§9.3](#93-cross-resource-references) for details and workarounds.
+> **Implementation Status:** This flow is written for **non-containment references**, but
+> cross-document containment follows the same path: a containment object carrying the reference
+> key becomes a proxy rather than an inline object. Neither is resolved by the codec — see
+> [§9.3](#93-cross-resource-references) for who does the resolving.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -996,18 +999,49 @@ INPUT: JsonParser positioned at value token, EReference, effective ReferenceConf
 
 ### 9.3 Cross-Resource References
 
-> **Current Limitation:** Full automatic cross-resource reference resolution during deserialization is not yet implemented. The codec creates proxy objects that must be resolved manually via the ResourceSet.
+> **Not resolving is the contract, not a gap.** The codec produces proxies and stops there —
+> exactly like EMF's XMI reader (`XMLHandler.handleProxy`). Whether a proxy resolves on access
+> is decided by EMF and the model, never by the codec. See [§9.3.3](#933-who-resolves-a-proxy).
 
 #### 9.3.1 Supported Behavior
 
-**Serialization:** ✓ Fully supported
-- Cross-document containment references are serialized as `_ref` URIs
-- Relative URIs are computed from source to target resource
+**Serialization:** ✓ Fully supported, containment and non-containment alike
+- A contained object that owns a direct resource, or is a proxy, is written as a **reference**
+  instead of being inlined — the same rule EMF applies in `XMLSaveImpl.saveElement`
+  (`eDirectResource() != null || eIsProxy()`)
+- A reference whose target lives in another resource is written with **that resource in the
+  URI**, deresolved against the source resource; a same-document target keeps a bare fragment
+- The source resource is taken from the object being serialized, so this holds on every save
+  path, with or without a format provider
 
-**Deserialization:** Partial (proxy creation only)
-- When a reference URI points to another resource, a **proxy object** is created
-- The proxy has its `eProxyURI` set to the reference URI
-- The proxy is **not automatically resolved**
+**Deserialization:** ✓ Proxy creation, containment and non-containment alike
+- A reference URI produces a **proxy** of the expected type with `eProxyURI` set, resolved
+  against the loading resource's URI
+- The proxy object is created through the **EFactory of its package**, so a generated model
+  yields generated instances and a reflective model dynamic ones — **the codec behaves
+  identically for generated and reflective use**
+- The proxy is **not resolved by the codec**
+
+#### 9.3.3 Who resolves a proxy
+
+Resolution is EMF semantics and depends on the model, not on the codec:
+
+| Situation | Behavior |
+|---|---|
+| Non-containment reference, `resolveProxies=true` (default) | EMF resolves on access (`eGet` with resolve) |
+| Containment reference, **reflective/dynamic** model | EMF picks a resolving setting delegate at runtime from `resolveProxies` (`EStructuralFeatureImpl`), so it resolves on access |
+| Containment reference, **generated** model | Only when the model was generated with the GenModel option **"Containment Proxies"**; otherwise a non-resolving list is generated and the proxy stays a proxy |
+| Any of the above, explicitly | `EcoreUtil.resolve(proxy, resourceSet)` always works |
+
+> Cross-resource containment must be *designed into* a model: EMF disables proxy resolution for
+> containment references by default for backwards compatibility, and each containment reference
+> has to have its `resolveProxies` set deliberately.
+
+#### 9.3.4 When the model owns the reference key
+
+If the referenced type declares a feature under the very key used for references — by name or
+via a configured key, as OpenAPI does with `ref` annotated `key="$ref"` — then **the model
+wins**: the key carries payload and is never interpreted as a cross-document marker.
 
 #### 9.3.2 Workaround: Manual Resolution
 
