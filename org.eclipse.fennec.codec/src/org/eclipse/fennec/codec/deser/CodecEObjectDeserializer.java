@@ -1024,6 +1024,12 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         if (idConfig != null) {
             IdDeserializationEntry idEntry = new IdDeserializationEntry(idConfig, eClass, entryContext);
             entries.put(idEntry.getKey(), idEntry);
+
+            // A document that carries its own separator overrules the configured one
+            // (spec §9.3) - it states how the id was actually written
+            IdSeparatorDeserializationEntry separatorEntry =
+                    new IdSeparatorDeserializationEntry(idConfig);
+            entries.putIfAbsent(separatorEntry.getKey(), separatorEntry);
         }
 
         // Add supertype entry (parses supertype info; validation depends on config)
