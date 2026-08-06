@@ -43,10 +43,12 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
 
     private final boolean strictOnUnknown;
     private final boolean strictOnMissing;
+    private final boolean strictOnConversion;
 
     private ClassConfig(Builder builder) {
         this.strictOnUnknown = builder.strictOnUnknown;
         this.strictOnMissing = builder.strictOnMissing;
+        this.strictOnConversion = builder.strictOnConversion;
     }
 
     // ========================================================================
@@ -82,6 +84,20 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
         return strictOnMissing;
     }
 
+    /**
+     * Returns whether a value that cannot be converted should fail the load.
+     * <p>
+     * When {@code false} (default), a failed conversion is reported as a diagnostic and the
+     * feature keeps its default value - which is indistinguishable from the value simply
+     * being absent. A caller who would rather fail than silently store a default can set
+     * this to {@code true} (issue #131).
+     *
+     * @return {@code true} if a failed value conversion should cause an error
+     */
+    public boolean isStrictOnConversion() {
+        return strictOnConversion;
+    }
+
     // ========================================================================
     // Merge support
     // ========================================================================
@@ -101,6 +117,7 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
         return toBuilder()
                 .strictOnUnknown(getBoolean(source, ConfigProperty.STRICT_ON_UNKNOWN, this.strictOnUnknown))
                 .strictOnMissing(getBoolean(source, ConfigProperty.STRICT_ON_MISSING, this.strictOnMissing))
+                .strictOnConversion(getBoolean(source, ConfigProperty.STRICT_ON_CONVERSION, this.strictOnConversion))
                 .build();
     }
 
@@ -131,7 +148,8 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
     public Builder toBuilder() {
         return new Builder()
                 .strictOnUnknown(this.strictOnUnknown)
-                .strictOnMissing(this.strictOnMissing);
+                .strictOnMissing(this.strictOnMissing)
+                .strictOnConversion(this.strictOnConversion);
     }
 
     /**
@@ -144,11 +162,23 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
     public static final class Builder {
         private boolean strictOnUnknown = ConfigProperty.STRICT_ON_UNKNOWN.getDefaultValue();
         private boolean strictOnMissing = ConfigProperty.STRICT_ON_MISSING.getDefaultValue();
+        private boolean strictOnConversion = ConfigProperty.STRICT_ON_CONVERSION.getDefaultValue();
 
         private Builder() {}
 
         public Builder strictOnUnknown(boolean strictOnUnknown) {
             this.strictOnUnknown = strictOnUnknown;
+            return this;
+        }
+
+        /**
+         * Sets whether a failed value conversion fails the load.
+         *
+         * @param strictOnConversion true to fail instead of keeping the default value
+         * @return this builder
+         */
+        public Builder strictOnConversion(boolean strictOnConversion) {
+            this.strictOnConversion = strictOnConversion;
             return this;
         }
 
@@ -165,6 +195,7 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
     @Override
     public String toString() {
         return "ClassConfig[strictOnUnknown=" + strictOnUnknown
-                + ", strictOnMissing=" + strictOnMissing + "]";
+                + ", strictOnMissing=" + strictOnMissing
+                + ", strictOnConversion=" + strictOnConversion + "]";
     }
 }

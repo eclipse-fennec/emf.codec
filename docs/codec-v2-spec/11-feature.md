@@ -982,6 +982,7 @@ When deserializing JSON, fields may appear that don't correspond to any EMF feat
 |----------------|--------------|:------:|:------:|---------|-------------|
 | `strictOnUnknown` | `codec.strictOnUnknown` | ✅ | ✅ | `false` | ERROR on unknown JSON field |
 | `strictOnMissing` | `codec.strictOnMissing` | ✅ | ✅ | `false` | ERROR on missing required feature |
+| `strictOnConversion` | `codec.strictOnConversion` | ✅ | ✅ | `false` | ERROR when a present value cannot be converted |
 
 **Note:** Strictness is not supported on EReference or EAttribute level. It applies to all features of a class uniformly.
 
@@ -1037,6 +1038,12 @@ for (Diagnostic warning : resource.getWarnings()) {
 
 ### 11.5 Strictness Use Cases
 
+- `strictOnConversion=true`: Fail instead of storing a default when a value is present but
+  cannot be converted. Worth considering wherever a wrong value is more expensive than a
+  failed load: by default such a value is reported as a diagnostic and the feature keeps its
+  default, which a caller **cannot distinguish from the value being absent** — `0` and `0.0`
+  are values a model may legitimately hold. The diagnostic is the only trace, and it is easy
+  to miss because the load itself reports success.
 - `strictOnUnknown=true` at Global: Fail-fast for any unexpected JSON field (strict schema validation)
 - `strictOnMissing=true` on EAttribute: Ensure this specific required field is always present
 - `strictOnUnknown=false` on EReference: Allow extension fields in objects accessed via this reference (forward compatibility)
