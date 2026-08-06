@@ -235,20 +235,21 @@ public class ReferenceSerializationEntry implements SerializationEntry {
                 gen.writeStartArray();
                 for (Object item : list) {
                     if (item instanceof EObject target) {
-                        serializeReference(target, gen, ctxt);
+                        serializeReference(state.getEObject(), target, gen, ctxt);
                     }
                 }
                 gen.writeEndArray();
             }
         } else if (value instanceof EObject target) {
-            serializeReference(target, gen, ctxt);
+            serializeReference(state.getEObject(), target, gen, ctxt);
         }
     }
 
-    private void serializeReference(EObject target, JsonGenerator gen, SerializationContext ctxt) {
+    private void serializeReference(EObject source, EObject target, JsonGenerator gen,
+            SerializationContext ctxt) {
         ReferenceValueWriter<?> effectiveWriter = resolveEffectiveReferenceWriter(ctxt);
-        if (reference.isContainment() && isCrossDocument(gen, target, ctxt)) {
-            writeReferenceObject(target, gen, true, ctxt);
+        if (reference.isContainment() && isCrossDocument(gen, source, target, ctxt)) {
+            writeReferenceObject(source, target, gen, true, ctxt);
         } else if (reference.isContainment()) {
             // Set the current reference for inline mapping reverse lookup.
             // TypeSerializationEntry uses this to find the correct discriminator value.
@@ -270,7 +271,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         } else if (shouldExpandReference(target)) {
             serializeExpandedReference(target, gen, ctxt);
         } else {
-            writeReferenceObject(target, gen, false, ctxt);
+            writeReferenceObject(source, target, gen, false, ctxt);
         }
     }
 
@@ -355,35 +356,52 @@ public class ReferenceSerializationEntry implements SerializationEntry {
      * Resolves the source EMF Resource for the object currently being serialized.
      * <p>
      * Primary source is the {@link CodecWriteContext} (used by the direct
-     * {@code CodecJsonFactory} path). When the generator carries a plain Jackson
-     * stream context (e.g. {@code FormatDelegateGenerator}), it falls back to the
-     * {@link ContextHelper#RESOURCE} attribute — mirroring the reader side.
+     * {@code CodecJsonFactory} path), then the {@link ContextHelper#RESOURCE} attribute
+     * (set by the format-provider path). Neither exists on the plain JSON save path, so
+     * the object being serialized is asked last — it always knows its own resource
+     * (issue #113).
      * </p>
      *
      * @param gen the JSON generator
      * @param ctxt the serialization context (may be null)
+     * @param source the object whose reference is being written (may be null)
      * @return the source resource, or null if it cannot be determined
      */
-    private Resource resolveSourceResource(JsonGenerator gen, SerializationContext ctxt) {
+    private Resource resolveSourceResource(JsonGenerator gen, SerializationContext ctxt,
+            EObject source) {
         TokenStreamContext ctx = gen.streamWriteContext();
         if (ctx instanceof CodecWriteContext codecCtx) {
             return codecCtx.getResource();
         }
-        return ContextHelper.getResource(ctxt);
+        Resource fromContext = ContextHelper.getResource(ctxt);
+        if (fromContext != null) {
+            return fromContext;
+        }
+        return source != null ? source.eResource() : null;
     }
 
-    private boolean isCrossDocument(JsonGenerator gen, EObject target, SerializationContext ctxt) {
-        Resource sourceResource = resolveSourceResource(gen, ctxt);
-        if (sourceResource == null) {
-            // Without a known source resource we cannot tell — treat as same
-            // document (inline containment), preserving the previous default.
-            return false;
+    /**
+     * Tells whether the target has to be written as a reference instead of being inlined.
+     * <p>
+     * Follows EMF's rule in {@code XMLSaveImpl.saveElement}: a contained object that owns a
+     * direct resource, or is a proxy, is written as a reference. That check needs no context
+     * at all — the object itself carries the answer.
+     * </p>
+     */
+    private boolean isCrossDocument(JsonGenerator gen, EObject source, EObject target,
+            SerializationContext ctxt) {
+        if (target.eIsProxy()) {
+            return true;
+        }
+        if (target instanceof InternalEObject internalEObject
+                && internalEObject.eDirectResource() != null) {
+            Resource sourceResource = resolveSourceResource(gen, ctxt, source);
+            return sourceResource != internalEObject.eDirectResource();
         }
 
-        if (target.eIsProxy() && target instanceof InternalEObject internalEObject) {
-            URI proxyUri = internalEObject.eProxyURI();
-            return proxyUri != null && sourceResource.getURI() != null
-                    && !sourceResource.getURI().equals(proxyUri.trimFragment());
+        Resource sourceResource = resolveSourceResource(gen, ctxt, source);
+        if (sourceResource == null) {
+            return false;
         }
 
         Resource targetResource = target.eResource();
@@ -406,11 +424,11 @@ public class ReferenceSerializationEntry implements SerializationEntry {
      *
      * @see <a href="docs/codec-v2-spec/10-reference.md#11-plain-strategy">Spec: PLAIN Strategy</a>
      */
-    private void writeReferenceObject(EObject target, JsonGenerator gen, boolean crossDocument,
+    private void writeReferenceObject(EObject source, EObject target, JsonGenerator gen, boolean crossDocument,
             SerializationContext ctxt) {
         if (refFormat == SerializationFormat.PLAIN) {
             // PLAIN format: just write the URI string directly
-            writeReferenceValue(target, gen, crossDocument, ctxt);
+            writeReferenceValue(source, target, gen, crossDocument, ctxt);
         } else {
             // STRUCTURED format: object with _type and $ref
             gen.writeStartObject();
@@ -426,7 +444,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             writeFingerprintIfDue(target, gen, ctxt);
 
             gen.writeName(refKey);
-            writeReferenceValue(target, gen, crossDocument, ctxt);
+            writeReferenceValue(source, target, gen, crossDocument, ctxt);
 
             gen.writeEndObject();
         }
@@ -468,7 +486,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         }
     }
 
-    private void writeReferenceValue(EObject target, JsonGenerator gen, boolean crossDocument,
+    private void writeReferenceValue(EObject source, EObject target, JsonGenerator gen, boolean crossDocument,
             SerializationContext ctxt) {
         if (uriWriter != null && entryContext != null) {
             try {
@@ -481,7 +499,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             return;
         }
 
-        String uri = getReferenceUri(gen, target, crossDocument, ctxt);
+        String uri = getReferenceUri(gen, source, target, crossDocument, ctxt);
         gen.writeString(uri);
     }
 
@@ -495,9 +513,9 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         return typeUri;
     }
 
-    private String getReferenceUri(JsonGenerator gen, EObject target, boolean crossDocument,
-            SerializationContext ctxt) {
-        Resource sourceResource = resolveSourceResource(gen, ctxt);
+    private String getReferenceUri(JsonGenerator gen, EObject source, EObject target,
+            boolean crossDocument, SerializationContext ctxt) {
+        Resource sourceResource = resolveSourceResource(gen, ctxt, source);
 
         // Unresolved proxy: preserve the proxy URI (which carries the id),
         // never fall back to the type URI. eResource() is null for proxies,
