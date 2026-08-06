@@ -172,8 +172,7 @@ class CrossResourceReferenceTest {
     }
 
     @Test
-    @Disabled("read side pending: cross-document containment still builds an empty object "
-            + "instead of a proxy - see the #113 follow-up")
+    @Disabled("#123 - cross-document containment still builds an empty object instead of a proxy")
     @DisplayName("cross-document containment resolves from a fresh set")
     void crossDocumentContainmentResolvesAcrossFiles() throws IOException {
         ResourceSet writeSet = newResourceSet();
