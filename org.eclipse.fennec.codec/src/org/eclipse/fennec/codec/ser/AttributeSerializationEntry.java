@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -198,9 +199,45 @@ public class AttributeSerializationEntry implements SerializationEntry {
             writeJavaTimeValue(gen, value);
         } else if (value.getClass().isArray()) {
             writeArrayValue(gen, value, ctxt);
+        } else if (value instanceof Map<?, ?> map) {
+            writeMapValue(gen, map, ctxt);
+        } else if (value instanceof Collection<?> collection) {
+            writeCollectionValue(gen, collection, ctxt);
         } else {
             gen.writeString(value.toString());
         }
+    }
+
+    /**
+     * Writes a {@code Map} as a JSON object (spec 11-feature.md §9.3).
+     * <p>
+     * Values go through {@link #writeValue} again, so nesting, numbers and nulls inside the
+     * map are treated exactly as they are at the top level. Keys are written as strings —
+     * JSON has no other kind of key.
+     * </p>
+     */
+    private void writeMapValue(JsonGenerator gen, Map<?, ?> map, SerializationContext ctxt) {
+        gen.writeStartObject();
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (entry.getKey() == null) {
+                continue;
+            }
+            gen.writeName(entry.getKey().toString());
+            writeValue(gen, entry.getValue(), ctxt);
+        }
+        gen.writeEndObject();
+    }
+
+    /**
+     * Writes a {@code Collection} as a JSON array (spec 11-feature.md §9.3).
+     */
+    private void writeCollectionValue(JsonGenerator gen, Collection<?> collection,
+            SerializationContext ctxt) {
+        gen.writeStartArray();
+        for (Object element : collection) {
+            writeValue(gen, element, ctxt);
+        }
+        gen.writeEndArray();
     }
 
     /**

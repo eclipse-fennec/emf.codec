@@ -23,6 +23,9 @@
     <!-- Multi-valued attribute -->
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="tags" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
 
+    <!-- EJavaObject attribute - holds any JSON value (String, Number, Boolean, Map, List) -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="metadata" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>
+
     <!-- Containment reference (single) -->
     <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true"/>
 
