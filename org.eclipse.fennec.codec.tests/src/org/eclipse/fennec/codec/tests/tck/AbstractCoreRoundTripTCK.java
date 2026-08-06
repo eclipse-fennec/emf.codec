@@ -528,7 +528,23 @@ public abstract class AbstractCoreRoundTripTCK {
 
         ByteArrayInputStream in = new ByteArrayInputStream(data);
         resource.load(in, options);
+        assertNoDiagnostics(resource);
 
         return resource.getContents().isEmpty() ? null : resource.getContents().get(0);
+    }
+
+    /**
+     * Fails when a round trip reported problems (issue #131).
+     * <p>
+     * Deserialization catches, logs and continues, so a load succeeds even when a value was
+     * dropped. The diagnostics are the only trace - a test that ignores them cannot tell a
+     * clean round trip from a lossy one.
+     * </p>
+     */
+    private static void assertNoDiagnostics(CodecResource resource) {
+        assertTrue(resource.getErrors().isEmpty(),
+                "round trip reported errors: " + resource.getErrors());
+        assertTrue(resource.getWarnings().isEmpty(),
+                "round trip reported warnings: " + resource.getWarnings());
     }
 }

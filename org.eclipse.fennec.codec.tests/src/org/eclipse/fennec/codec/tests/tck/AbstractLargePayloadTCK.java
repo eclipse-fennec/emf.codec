@@ -13,6 +13,7 @@
 package org.eclipse.fennec.codec.tests.tck;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.ByteArrayInputStream;
@@ -106,6 +107,7 @@ public abstract class AbstractLargePayloadTCK {
         Map<String, Object> options = new HashMap<>();
         options.put(CodecResource.CODEC_ROOT_TYPE, entryClass);
         loadResource.load(new ByteArrayInputStream(out.toByteArray()), options);
+        assertNoDiagnostics(loadResource);
 
         assertEquals(PAYLOAD_SIZE, loadResource.getContents().size(),
                 "Should have " + PAYLOAD_SIZE + " root objects");
@@ -136,5 +138,20 @@ public abstract class AbstractLargePayloadTCK {
                 URI.createURI("test://largepayload." + getFileExtension()),
                 metadataService, ConfigurationResolver.defaults(),
                 null, null, createFormatProvider());
+    }
+
+    /**
+     * Fails when a round trip reported problems (issue #131).
+     * <p>
+     * Deserialization catches, logs and continues, so a load succeeds even when a value was
+     * dropped. The diagnostics are the only trace - a test that ignores them cannot tell a
+     * clean round trip from a lossy one.
+     * </p>
+     */
+    private static void assertNoDiagnostics(CodecResource resource) {
+        assertTrue(resource.getErrors().isEmpty(),
+                "round trip reported errors: " + resource.getErrors());
+        assertTrue(resource.getWarnings().isEmpty(),
+                "round trip reported warnings: " + resource.getWarnings());
     }
 }
