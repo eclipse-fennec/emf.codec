@@ -39,6 +39,7 @@ import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.fennec.codec.config.ClassConfig;
 import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
@@ -337,11 +338,39 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
             return null;
 
         } catch (Exception e) {
-            String msg = "Error converting value for attribute '" + attribute.getName() + "': " + e.getMessage();
-            LOGGER.warning(msg);
-            ContextHelper.addWarning(ctxt, msg, parser, "AttributeDeserializationEntry");
+            reportConversionFailure(parser, ctxt,
+                    "Error converting value for attribute '" + attribute.getName() + "': "
+                            + e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Reports a value that could not be converted.
+     * <p>
+     * By default this is a diagnostic and the feature keeps its default - which a caller
+     * cannot distinguish from the value being absent. With {@code strictOnConversion} the
+     * load fails instead, so callers who would rather break than silently store a default
+     * have that option (issue #131).
+     * </p>
+     */
+    private void reportConversionFailure(JsonParser parser, DeserializationContext ctxt,
+            String msg) {
+        LOGGER.warning(msg);
+        if (isStrictOnConversion()) {
+            ContextHelper.addError(ctxt, msg, parser, "AttributeDeserializationEntry");
+            throw new IllegalStateException(msg);
+        }
+        ContextHelper.addWarning(ctxt, msg, parser, "AttributeDeserializationEntry");
+    }
+
+    private boolean isStrictOnConversion() {
+        if (entryContext == null || entryContext.getEffectiveConfig() == null) {
+            return false;
+        }
+        ClassConfig classConfig = entryContext.getEffectiveConfig()
+                .resolveClassConfig(attribute.getEContainingClass());
+        return classConfig != null && classConfig.isStrictOnConversion();
     }
 
     /**

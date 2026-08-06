@@ -320,6 +320,9 @@ public enum ConfigProperty {
     STRICT_ON_MISSING("strictOnMissing", Boolean.class, false,
         levels(GLOBAL, ECLASS), directions(READ)),
 
+    STRICT_ON_CONVERSION("strictOnConversion", Boolean.class, false,
+        levels(GLOBAL, ECLASS), directions(READ)),
+
     DESERIALIZATION_MODE("deserializationMode", String.class, "LENIENT",
         levels(GLOBAL, ECLASS), directions(READ)),
 
