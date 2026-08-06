@@ -871,4 +871,58 @@ class CodecResourceIdTest {
             assertEquals(original.eGet(sequenceAttribute), result.eGet(sequenceAttribute));
         }
     }
+
+    // ========================================================================
+    // Document separator wins over configuration (spec §9.3)
+    // ========================================================================
+
+    @Nested
+    @DisplayName("Document separator")
+    class DocumentSeparatorTests {
+
+        @Test
+        @DisplayName("a separator in the document overrules the configured one")
+        void documentSeparatorWins() throws IOException {
+            // Written with "|", read by a resolver configured for "-". The document states
+            // how it was actually written; splitting with the configured separator would put
+            // the whole value into the first feature.
+            String json = """
+                    {
+                      "_type": "%s#//MultiId",
+                      "_id": "John|Doe|42",
+                      "_separator": "|"
+                    }
+                    """.formatted(testPackage.getNsURI());
+
+            EObject loaded = deserialize(json, multiIdClass, idResolver(Map.of(
+                    "idFeatures", List.of("firstName", "lastName", "sequence"),
+                    "idSeparator", "-")));
+
+            assertNotNull(loaded);
+            assertEquals("John", loaded.eGet(firstNameAttribute),
+                    "the document separator must be used for the split");
+            assertEquals("Doe", loaded.eGet(lastNameAttribute));
+            assertEquals(42, loaded.eGet(sequenceAttribute));
+        }
+
+        @Test
+        @DisplayName("without a separator in the document the configured one applies")
+        void configuredSeparatorAppliesWithoutDocumentValue() throws IOException {
+            String json = """
+                    {
+                      "_type": "%s#//MultiId",
+                      "_id": "John-Doe-42"
+                    }
+                    """.formatted(testPackage.getNsURI());
+
+            EObject loaded = deserialize(json, multiIdClass, idResolver(Map.of(
+                    "idFeatures", List.of("firstName", "lastName", "sequence"),
+                    "idSeparator", "-")));
+
+            assertNotNull(loaded);
+            assertEquals("John", loaded.eGet(firstNameAttribute));
+            assertEquals("Doe", loaded.eGet(lastNameAttribute));
+            assertEquals(42, loaded.eGet(sequenceAttribute));
+        }
+    }
 }

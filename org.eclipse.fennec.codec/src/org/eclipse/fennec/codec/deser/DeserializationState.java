@@ -53,6 +53,8 @@ public class DeserializationState {
     private List<UnresolvedReference> unresolvedReferences;
     private DiagnosticCollector diagnosticCollector;
     private boolean isRootObject;
+    /** Re-splits a compound id when the document carries its own separator (issue #110/ID-2). */
+    private java.util.function.Consumer<String> idResplitter;
 
     /**
      * Creates a root deserialization state.
@@ -344,6 +346,33 @@ public class DeserializationState {
          */
         public EClass getEffectiveType() {
             return targetType != null ? targetType : reference.getEReferenceType();
+        }
+    }
+
+    /**
+     * Registers how to re-split the compound id of this object with a different separator.
+     * <p>
+     * The separator is written after the id, so it is unknown while the id is being read.
+     * Spec 09-id.md §9.3 gives the separator in the document precedence over the configured
+     * one - the document states how it was actually written, whereas a configured value can
+     * come from anywhere. Splitting with the wrong separator puts parts of an id into the
+     * wrong features.
+     * </p>
+     *
+     * @param resplitter accepts the separator found in the document
+     */
+    public void setIdResplitter(java.util.function.Consumer<String> resplitter) {
+        this.idResplitter = resplitter;
+    }
+
+    /**
+     * Applies a separator read from the document to the id of this object, if one was read.
+     *
+     * @param separator the separator found in the document
+     */
+    public void applyDocumentSeparator(String separator) {
+        if (idResplitter != null && separator != null && !separator.isEmpty()) {
+            idResplitter.accept(separator);
         }
     }
 }

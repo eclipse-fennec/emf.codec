@@ -138,7 +138,7 @@ public class IdDeserializationEntry implements DeserializationEntry {
         if (config.getFormat() == SerializationFormat.STRUCTURED) {
             deserializeStructured(eObject, parser, ctxt);
         } else {
-            deserializePlain(eObject, parser, ctxt);
+            deserializePlain(state, eObject, parser, ctxt);
         }
     }
 
@@ -150,7 +150,8 @@ public class IdDeserializationEntry implements DeserializationEntry {
      * {@link #isDerivedKeyAttribute(List)}).
      * </p>
      */
-    private void deserializePlain(EObject eObject, JsonParser parser, DeserializationContext ctxt) {
+    private void deserializePlain(DeserializationState state, EObject eObject, JsonParser parser,
+            DeserializationContext ctxt) {
         List<String> configuredFeatures = config.getIdFeatures();
 
         if (configuredFeatures != null && !configuredFeatures.isEmpty()) {
@@ -174,19 +175,12 @@ public class IdDeserializationEntry implements DeserializationEntry {
                 return;
             }
 
-            String separator = config.getSeparator();
-            String[] parts = combinedValue.split(java.util.regex.Pattern.quote(separator), -1);
+            splitInto(eObject, combinedValue, config.getSeparator(), configuredFeatures);
 
-            for (int i = 0; i < Math.min(parts.length, configuredFeatures.size()); i++) {
-                String featureName = configuredFeatures.get(i);
-                EStructuralFeature feature = eClass.getEStructuralFeature(featureName);
-                if (feature instanceof EAttribute attr) {
-                    Object value = convertValue(parts[i], attr);
-                    if (value != null) {
-                        eObject.eSet(feature, value);
-                    }
-                }
-            }
+            // The separator is written after the id, so the document's own separator only
+            // arrives later - re-split when it does (spec §9.3, issue #110/ID-2)
+            state.setIdResplitter(documentSeparator ->
+                    splitInto(eObject, combinedValue, documentSeparator, configuredFeatures));
 
             if (isDerivedKeyAttribute(configuredFeatures)) {
                 Object derivedKey = convertValue(combinedValue, idAttribute);
@@ -210,6 +204,23 @@ public class IdDeserializationEntry implements DeserializationEntry {
             // No ID attribute - ID may be used for resource URI fragment
             String idString = parser.getString();
             LOGGER.fine("ID value without ID attribute: " + idString + " (may be used for URI fragment)");
+        }
+    }
+
+    /**
+     * Splits a combined id value and assigns the parts to the configured features.
+     */
+    private void splitInto(EObject eObject, String combinedValue, String separator,
+            List<String> featureNames) {
+        String[] parts = combinedValue.split(java.util.regex.Pattern.quote(separator), -1);
+        for (int i = 0; i < Math.min(parts.length, featureNames.size()); i++) {
+            EStructuralFeature feature = eClass.getEStructuralFeature(featureNames.get(i));
+            if (feature instanceof EAttribute attr && feature.isChangeable()) {
+                Object value = convertValue(parts[i], attr);
+                if (value != null) {
+                    eObject.eSet(feature, value);
+                }
+            }
         }
     }
 
