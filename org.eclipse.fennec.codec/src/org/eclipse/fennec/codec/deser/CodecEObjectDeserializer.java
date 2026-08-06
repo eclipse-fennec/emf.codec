@@ -366,6 +366,47 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     }
 
     /**
+     * Tells whether a property is one the codec knowingly does not read back.
+     * <p>
+     * Three kinds: keys the writer emits for consumers rather than for reading (the supertype
+     * key, the id separator), and features the configuration excludes from reading via
+     * {@code ignoreRead}. All three are legitimate - what is not legitimate is reporting them
+     * as unknown, because then a clean round trip of the codec's own output still produces
+     * warnings and no one can use the diagnostics to spot a real problem (issue #131).
+     * </p>
+     */
+    private boolean isDeliberatelyNotRead(String propertyName, EClass eClass) {
+        SuperTypeConfig superTypeConfig = config.resolveSuperTypeConfig(eClass);
+        if (superTypeConfig != null && superTypeConfig.isSerialize()
+                && propertyName.equals(superTypeConfig.getEffectiveSuperTypeKey(
+                        superTypeConfig.getFormat()))) {
+            return true;
+        }
+
+        IdConfig idConfig = config.resolveIdConfig(eClass);
+        if (idConfig != null) {
+            // Match on the name alone: a model feature of that name would have an entry and
+            // never reach this point, so anything left here is the codec's own separator
+            String separatorKey = idConfig.getSeparatorKey();
+            // PLAIN prefixes the key with an underscore, STRUCTURED writes it as configured
+            boolean prefixed = separatorKey.startsWith("_") || separatorKey.startsWith("@");
+            if (propertyName.equals(separatorKey)
+                    || (!prefixed && propertyName.equals("_" + separatorKey))) {
+                return true;
+            }
+        }
+
+        for (EStructuralFeature feature : eClass.getEAllStructuralFeatures()) {
+            FeatureConfig featureConfig = config.resolveFeatureConfig(feature);
+            if (featureConfig != null && !featureConfig.shouldDeserialize()
+                    && propertyName.equals(featureConfig.getKey())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Checks if the property name is a schema key (for PLAIN SCHEMA_AND_TYPE format).
      */
     private boolean isSchemaKey(String propertyName) {
@@ -746,6 +787,10 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             DeserializationEntry deserEntry = entries.get(propertyName);
             if (deserEntry != null && value != null) {
                 replayDeferredValue(state, deserEntry, value, ctxt);
+            } else if (deserEntry == null && isDeliberatelyNotRead(propertyName, eClass)) {
+                // Written by the codec itself, or excluded from reading - not unknown.
+                // Deferred properties need the same treatment as direct ones (issue #131)
+                LOGGER.fine("Skipping deliberately unread deferred property: " + propertyName);
             } else if (deserEntry == null) {
                 // Unknown property in deferred list - check strictOnUnknown config
                 ClassConfig classConfig = config.resolveClassConfig(eClass);
@@ -870,6 +915,11 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         DeserializationEntry entry = entries.get(propertyName);
         if (entry != null) {
             entry.deserialize(state, parser, ctxt);
+        } else if (isDeliberatelyNotRead(propertyName, eClass)) {
+            // The codec wrote this itself, or was told not to read it. Reporting it as
+            // unknown means the codec cannot read its own output without complaining, which
+            // makes the diagnostics useless as a signal (issue #131).
+            parser.skipChildren();
         } else {
             // Unknown property - check strictOnUnknown config
             ClassConfig classConfig = config.resolveClassConfig(eClass);
