@@ -59,6 +59,7 @@ import org.eclipse.fennec.codec.module.CodecModule;
 import org.eclipse.fennec.codec.util.CodecResourceHelper;
 import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
+import org.eclipse.fennec.codec.util.TokenLoops;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
@@ -440,7 +441,7 @@ public class CodecResource extends ResourceImpl {
             JsonToken firstToken = parser.nextToken();
 
             if (firstToken == JsonToken.START_ARRAY) {
-                while (parser.nextToken() != JsonToken.END_ARRAY) {
+                while (TokenLoops.hasNextElement(parser)) {
                     EObject result = reader.readValue(parser);
                     if (nonNull(result)) {
                         getContents().add(result);
@@ -659,7 +660,7 @@ public class CodecResource extends ResourceImpl {
             JsonToken firstToken = parser.nextToken();
 
             if (firstToken == JsonToken.START_ARRAY) {
-                while (parser.nextToken() != JsonToken.END_ARRAY) {
+                while (TokenLoops.hasNextElement(parser)) {
                     EObject result = reader.readValue(parser);
                     if (nonNull(result)) {
                         getContents().add(result);

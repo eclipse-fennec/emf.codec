@@ -34,6 +34,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
+import org.eclipse.fennec.codec.util.TokenLoops;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -260,7 +261,7 @@ public class IdDeserializationEntry implements DeserializationEntry {
         try (JsonParser bufferParser = buffer.asParser(readContext)) {
             bufferParser.nextToken(); // Move to START_OBJECT
 
-            while (bufferParser.nextToken() != JsonToken.END_OBJECT) {
+            while (TokenLoops.hasNextField(bufferParser)) {
                 String fieldName = bufferParser.currentName();
                 bufferParser.nextToken(); // Move to value
 

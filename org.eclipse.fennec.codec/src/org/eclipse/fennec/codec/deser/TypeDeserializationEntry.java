@@ -28,6 +28,7 @@ import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
+import org.eclipse.fennec.codec.util.TokenLoops;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -308,7 +309,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         String typeValue = null;
         Integer classifier = null;
 
-        while (parser.nextToken() != JsonToken.END_OBJECT) {
+        while (TokenLoops.hasNextField(parser)) {
             String fieldName = parser.currentName();
             parser.nextToken(); // Move to value
 
@@ -383,7 +384,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         if (token == JsonToken.START_ARRAY) {
             // ARRAY presentation
             JsonToken arrayToken;
-            while ((arrayToken = parser.nextToken()) != JsonToken.END_ARRAY) {
+            while ((arrayToken = parser.nextToken()) != null && arrayToken != JsonToken.END_ARRAY) {
                 if (arrayToken == JsonToken.VALUE_STRING) {
                     superTypes.add(parser.getString());
                 }

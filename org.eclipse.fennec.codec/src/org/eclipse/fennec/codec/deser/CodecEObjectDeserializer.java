@@ -39,6 +39,7 @@ import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
+import org.eclipse.fennec.codec.util.TokenLoops;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -221,7 +222,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         String streamFingerprint = null;
 
         // Read properties
-        while (parser.nextToken() != JsonToken.END_OBJECT) {
+        while (TokenLoops.hasNextField(parser)) {
             String propertyName = parser.currentName();
             parser.nextToken(); // Move to value
 
@@ -458,7 +459,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         String classifierValue = null;
         String fingerprint = null;
 
-        while (parser.nextToken() != JsonToken.END_OBJECT) {
+        while (TokenLoops.hasNextField(parser)) {
             String fieldName = parser.currentName();
             parser.nextToken(); // move to value
 
@@ -670,7 +671,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         Map<String, Object> result = new LinkedHashMap<>();
         boolean limitExceeded = false;
 
-        while (parser.nextToken() != JsonToken.END_OBJECT) {
+        while (TokenLoops.hasNextField(parser)) {
             if (!limitExceeded && result.size() >= MAX_COLLECTION_SIZE) {
                 String msg = "Object exceeds maximum size: " + MAX_COLLECTION_SIZE;
                 LOGGER.warning(msg);
@@ -703,7 +704,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         List<Object> result = new ArrayList<>();
         boolean limitExceeded = false;
 
-        while (parser.nextToken() != JsonToken.END_ARRAY) {
+        while (TokenLoops.hasNextElement(parser)) {
             if (!limitExceeded && result.size() >= MAX_COLLECTION_SIZE) {
                 String msg = "Array exceeds maximum size: " + MAX_COLLECTION_SIZE;
                 LOGGER.warning(msg);

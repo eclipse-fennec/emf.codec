@@ -117,7 +117,7 @@ public class SuperTypeDeserializationEntry implements DeserializationEntry {
         if (token == JsonToken.START_ARRAY) {
             // ARRAY presentation
             JsonToken arrayToken;
-            while ((arrayToken = parser.nextToken()) != JsonToken.END_ARRAY) {
+            while ((arrayToken = parser.nextToken()) != null && arrayToken != JsonToken.END_ARRAY) {
                 if (arrayToken == JsonToken.VALUE_STRING) {
                     superTypes.add(parser.getString());
                 }
