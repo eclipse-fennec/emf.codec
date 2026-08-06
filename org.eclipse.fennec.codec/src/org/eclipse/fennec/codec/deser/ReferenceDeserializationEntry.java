@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
@@ -196,11 +197,124 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      *
      * @see <a href="docs/codec-v2-spec/10-reference.md#11-plain-strategy">Spec: PLAIN Strategy</a>
      */
+    /**
+     * Tells whether the reference key is a real feature of the referenced type.
+     * <p>
+     * Some models use the very name the codec uses as its reference key — OpenAPI declares
+     * {@code $ref} as an attribute holding a JSON Schema pointer. There the key is payload,
+     * not a cross-document marker, and the model has to win.
+     * </p>
+     */
+    private boolean modelOwnsRefKey() {
+        EClass declaredType = reference.getEReferenceType();
+        if (declaredType == null) {
+            return false;
+        }
+        if (declaredType.getEStructuralFeature(refKey) != null) {
+            return true;
+        }
+        // The key may be configured on a feature rather than being its name - OpenAPI names
+        // the attribute "ref" and annotates it with key="$ref"
+        return declaredType.getEAllStructuralFeatures().stream()
+                .map(feature -> feature.getEAnnotation(AnnotationSources.CODEC))
+                .filter(Objects::nonNull)
+                .map(annotation -> annotation.getDetails().get("key"))
+                .anyMatch(refKey::equals);
+    }
+
+    /**
+     * Deserializes a containment object that may in fact be a cross-document reference.
+     * <p>
+     * A contained object living in another resource is written as a reference object
+     * (see {@code ReferenceSerializationEntry}, issue #113). On the way back it must become
+     * a proxy, mirroring EMF's {@code XMLHandler.handleProxy}: the object is created through
+     * the package's EFactory, so generated and reflective models behave identically, and the
+     * proxy is <b>not</b> resolved here — whether it resolves on access is EMF's decision
+     * ({@code resolveProxies}, and for generated code the "Containment Proxies" option).
+     * </p>
+     */
+    private void deserializeContainment(DeserializationState state, JsonParser parser,
+            DeserializationContext ctxt, EObject eObject) {
+        if (modelOwnsRefKey()) {
+            // The model declares a feature under the reference key (e.g. OpenAPI's "$ref"),
+            // so the key carries data, not a reference marker. The model wins.
+            EObject child = deserializeContainedObject(state, parser, ctxt);
+            if (child != null && reference.isChangeable()) {
+                eObject.eSet(reference, child);
+            }
+            return;
+        }
+
+        TokenBuffer buffer = null;
+        JsonParser bufferParser = null;
+        JsonParser replayParser = null;
+        try {
+            buffer = ctxt.bufferForInputBuffering(parser);
+            buffer.copyCurrentStructure(parser);
+
+            bufferParser = buffer.asParser(ctxt, parser);
+            bufferParser.nextToken(); // START_OBJECT
+
+            String refUri = null;
+            String rawTypeValue = null;
+            String entryFingerprint = null;
+
+            while (bufferParser.nextToken() != JsonToken.END_OBJECT) {
+                String fieldName = bufferParser.currentName();
+                bufferParser.nextToken();
+
+                if (refKey.equals(fieldName)) {
+                    refUri = readReferenceValue(bufferParser, ctxt);
+                } else if ("_type".equals(fieldName)) {
+                    rawTypeValue = bufferParser.getString();
+                } else if (ContextHelper.isFingerprintKey(ctxt, fieldName)) {
+                    entryFingerprint = bufferParser.getString();
+                } else {
+                    bufferParser.skipChildren();
+                }
+            }
+            bufferParser.close();
+            bufferParser = null;
+
+            if (refUri != null) {
+                EClass typeFromContent = resolveTypeFromValue(rawTypeValue, ctxt, entryFingerprint);
+                state.addUnresolvedReference(
+                        new UnresolvedReference(eObject, reference, refUri, -1, typeFromContent));
+                return;
+            }
+
+            // No reference key: an ordinary inline contained object
+            replayParser = buffer.asParser(ctxt, parser);
+            replayParser.nextToken(); // START_OBJECT
+            EObject child = deserializeContainedObject(state, replayParser, ctxt);
+            replayParser.close();
+            replayParser = null;
+
+            if (child != null && reference.isChangeable()) {
+                eObject.eSet(reference, child);
+            }
+        } catch (Exception e) {
+            String msg = "Error deserializing containment reference '" + reference.getName()
+                    + "': " + e.getMessage();
+            LOGGER.severe(msg);
+            ContextHelper.addError(ctxt, msg, parser, "ReferenceDeserializationEntry");
+        } finally {
+            closeQuietly(replayParser);
+            closeQuietly(bufferParser);
+            closeQuietly(buffer);
+        }
+    }
+
     private void deserializeSingleValued(DeserializationState state, JsonParser parser,
             DeserializationContext ctxt, EObject eObject) {
         JsonToken token = parser.currentToken();
 
         if (token == JsonToken.START_OBJECT) {
+            if (reference.isContainment() && !hasCustomReferenceReader(ctxt) && ctxt != null) {
+                // Containment may still be a cross-document reference (issue #123)
+                deserializeContainment(state, parser, ctxt, eObject);
+                return;
+            }
             if (reference.isContainment() || hasCustomReferenceReader(ctxt)) {
                 // Containment, or non-containment with explicit ReferenceValueReader:
                 // deserialize inline object using the custom reader if available
