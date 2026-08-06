@@ -45,19 +45,24 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import tools.jackson.core.json.JsonFactory;
+
+import org.eclipse.fennec.codec.format.impl.JacksonFormatProvider;
+
 /**
- * Cross-resource reference tests on the plain JSON path (no format provider), issue #113.
+ * Cross-resource reference round trips (issues #113, #123, #124).
  * <p>
- * These tests write and read <b>real files</b> and use a <b>separate ResourceSet</b> for
- * saving and loading, so nothing is pre-populated: the target document is only found if
- * the written URI actually names it, and resolving really goes to disk. Proxies are
- * deliberately not resolved by the codec — the caller resolves them, here via
- * {@link EcoreUtil#resolve(EObject, ResourceSet)}.
+ * Every case runs against <b>both write paths</b> — plain JSON and the FormatDelegate path —
+ * because they resolve the source resource differently. The tests write and read <b>real
+ * files</b> and use a <b>separate ResourceSet</b> for saving and loading, so nothing is
+ * pre-populated: the target document is only found if the written URI actually names it, and
+ * resolving really goes to disk. Proxies are deliberately not resolved by the codec — the
+ * caller resolves them, here via {@link EcoreUtil#resolve(EObject, ResourceSet)}.
  * </p>
  *
  * @see <a href="docs/codec-v2-spec/10-reference.md">Spec: Reference Serialization</a>
  */
-@DisplayName("Cross-resource references (plain JSON path, real files)")
+@DisplayName("Cross-resource references (real files, both write paths)")
 class CrossResourceReferenceTest {
 
     private static final String TEST_ECORE = "/org/eclipse/fennec/codec/ser/test-roundtrip.ecore";
@@ -78,6 +83,7 @@ class CrossResourceReferenceTest {
     private EReference managerRef;
     private EReference addressRef;
     private EReference employeesRef;
+    private EReference friendsRef;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -97,6 +103,7 @@ class CrossResourceReferenceTest {
         managerRef = (EReference) EcoreHelper.getFeature(personClass, "manager");
         addressRef = (EReference) EcoreHelper.getFeature(personClass, "address");
         employeesRef = (EReference) EcoreHelper.getFeature(companyClass, "employees");
+        friendsRef = (EReference) EcoreHelper.getFeature(personClass, "friends");
     }
 
     @AfterEach
@@ -106,9 +113,19 @@ class CrossResourceReferenceTest {
     }
 
     @Test
-    @DisplayName("non-containment reference names the target file and resolves from a fresh set")
-    void nonContainmentReferenceResolvesAcrossFiles() throws IOException {
-        ResourceSet writeSet = newResourceSet();
+    @DisplayName("non-containment reference names the target file and resolves from a fresh set [plain JSON]")
+    void plainNonContainmentReferenceResolvesAcrossFiles() throws IOException {
+        nonContainmentReferenceResolvesAcrossFiles(false);
+    }
+
+    @Test
+    @DisplayName("non-containment reference names the target file and resolves from a fresh set [format delegate]")
+    void delegateNonContainmentReferenceResolvesAcrossFiles() throws IOException {
+        nonContainmentReferenceResolvesAcrossFiles(true);
+    }
+
+    private void nonContainmentReferenceResolvesAcrossFiles(boolean withFormatProvider) throws IOException {
+        ResourceSet writeSet = newResourceSet(withFormatProvider);
         Resource personRes = writeSet.createResource(fileUri("person.json"));
         Resource managerRes = writeSet.createResource(fileUri("manager.json"));
 
@@ -126,7 +143,7 @@ class CrossResourceReferenceTest {
                 "cross-resource reference must name the target file, was: " + json);
 
         // Fresh set: nothing is pre-populated, manager.json has to be found via the URI
-        ResourceSet readSet = newResourceSet();
+        ResourceSet readSet = newResourceSet(withFormatProvider);
         Resource loadedPersonRes = readSet.getResource(fileUri("person.json"), true);
 
         EObject loadedAlice = loadedPersonRes.getContents().get(0);
@@ -143,9 +160,19 @@ class CrossResourceReferenceTest {
     }
 
     @Test
-    @DisplayName("cross-document containment is referenced, not inlined")
-    void crossDocumentContainmentIsReferencedNotInlined() throws IOException {
-        ResourceSet writeSet = newResourceSet();
+    @DisplayName("cross-document containment is referenced, not inlined [plain JSON]")
+    void plainCrossDocumentContainmentIsReferencedNotInlined() throws IOException {
+        crossDocumentContainmentIsReferencedNotInlined(false);
+    }
+
+    @Test
+    @DisplayName("cross-document containment is referenced, not inlined [format delegate]")
+    void delegateCrossDocumentContainmentIsReferencedNotInlined() throws IOException {
+        crossDocumentContainmentIsReferencedNotInlined(true);
+    }
+
+    private void crossDocumentContainmentIsReferencedNotInlined(boolean withFormatProvider) throws IOException {
+        ResourceSet writeSet = newResourceSet(withFormatProvider);
         Resource personRes = writeSet.createResource(fileUri("person.json"));
         Resource addressRes = writeSet.createResource(fileUri("address.json"));
 
@@ -172,9 +199,19 @@ class CrossResourceReferenceTest {
     }
 
     @Test
-    @DisplayName("cross-document containment resolves from a fresh set")
-    void crossDocumentContainmentResolvesAcrossFiles() throws IOException {
-        ResourceSet writeSet = newResourceSet();
+    @DisplayName("cross-document containment resolves from a fresh set [plain JSON]")
+    void plainCrossDocumentContainmentResolvesAcrossFiles() throws IOException {
+        crossDocumentContainmentResolvesAcrossFiles(false);
+    }
+
+    @Test
+    @DisplayName("cross-document containment resolves from a fresh set [format delegate]")
+    void delegateCrossDocumentContainmentResolvesAcrossFiles() throws IOException {
+        crossDocumentContainmentResolvesAcrossFiles(true);
+    }
+
+    private void crossDocumentContainmentResolvesAcrossFiles(boolean withFormatProvider) throws IOException {
+        ResourceSet writeSet = newResourceSet(withFormatProvider);
         Resource personRes = writeSet.createResource(fileUri("person.json"));
         Resource addressRes = writeSet.createResource(fileUri("address.json"));
 
@@ -199,7 +236,7 @@ class CrossResourceReferenceTest {
         assertFalse(json.contains("Main Street 1"),
                 "cross-document containment must not be inlined, was: " + json);
 
-        ResourceSet readSet = newResourceSet();
+        ResourceSet readSet = newResourceSet(withFormatProvider);
         Resource loadedPersonRes = readSet.getResource(fileUri("person.json"), true);
 
         EObject person = loadedPersonRes.getContents().get(0);
@@ -213,9 +250,19 @@ class CrossResourceReferenceTest {
     }
 
     @Test
-    @DisplayName("reference into a hierarchy in another file resolves to the very object")
-    void referenceIntoHierarchyResolvesToTheRightObject() throws IOException {
-        ResourceSet writeSet = newResourceSet();
+    @DisplayName("reference into a hierarchy in another file resolves to the very object [plain JSON]")
+    void plainReferenceIntoHierarchyResolvesToTheRightObject() throws IOException {
+        referenceIntoHierarchyResolvesToTheRightObject(false);
+    }
+
+    @Test
+    @DisplayName("reference into a hierarchy in another file resolves to the very object [format delegate]")
+    void delegateReferenceIntoHierarchyResolvesToTheRightObject() throws IOException {
+        referenceIntoHierarchyResolvesToTheRightObject(true);
+    }
+
+    private void referenceIntoHierarchyResolvesToTheRightObject(boolean withFormatProvider) throws IOException {
+        ResourceSet writeSet = newResourceSet(withFormatProvider);
         Resource companyRes = writeSet.createResource(fileUri("company.json"));
         Resource personRes = writeSet.createResource(fileUri("person.json"));
 
@@ -235,7 +282,7 @@ class CrossResourceReferenceTest {
         assertTrue(json.contains("company.json"),
                 "reference must name the target file, was: " + json);
 
-        ResourceSet readSet = newResourceSet();
+        ResourceSet readSet = newResourceSet(withFormatProvider);
         Resource loadedPersonRes = readSet.getResource(fileUri("person.json"), true);
 
         EObject loadedAlice = loadedPersonRes.getContents().get(0);
@@ -248,9 +295,19 @@ class CrossResourceReferenceTest {
     }
 
     @Test
-    @DisplayName("same-document reference stays document-internal and resolves locally")
-    void sameDocumentReferenceResolvesLocally() throws IOException {
-        ResourceSet writeSet = newResourceSet();
+    @DisplayName("same-document reference stays document-internal and resolves locally [plain JSON]")
+    void plainSameDocumentReferenceResolvesLocally() throws IOException {
+        sameDocumentReferenceResolvesLocally(false);
+    }
+
+    @Test
+    @DisplayName("same-document reference stays document-internal and resolves locally [format delegate]")
+    void delegateSameDocumentReferenceResolvesLocally() throws IOException {
+        sameDocumentReferenceResolvesLocally(true);
+    }
+
+    private void sameDocumentReferenceResolvesLocally(boolean withFormatProvider) throws IOException {
+        ResourceSet writeSet = newResourceSet(withFormatProvider);
         Resource personRes = writeSet.createResource(fileUri("person.json"));
 
         EObject boss = createPerson("Boss");
@@ -265,7 +322,7 @@ class CrossResourceReferenceTest {
         assertFalse(json.contains("person.json"),
                 "a same-document reference must not name its own file, was: " + json);
 
-        ResourceSet readSet = newResourceSet();
+        ResourceSet readSet = newResourceSet(withFormatProvider);
         Resource loaded = readSet.getResource(fileUri("person.json"), true);
 
         EObject loadedAlice = loaded.getContents().get(0);
@@ -277,9 +334,19 @@ class CrossResourceReferenceTest {
     }
 
     @Test
-    @DisplayName("same-document reference into a hierarchy resolves to the very object")
-    void sameDocumentReferenceIntoHierarchyResolvesToTheRightObject() throws IOException {
-        ResourceSet writeSet = newResourceSet();
+    @DisplayName("same-document reference into a hierarchy resolves to the very object [plain JSON]")
+    void plainSameDocumentReferenceIntoHierarchyResolvesToTheRightObject() throws IOException {
+        sameDocumentReferenceIntoHierarchyResolvesToTheRightObject(false);
+    }
+
+    @Test
+    @DisplayName("same-document reference into a hierarchy resolves to the very object [format delegate]")
+    void delegateSameDocumentReferenceIntoHierarchyResolvesToTheRightObject() throws IOException {
+        sameDocumentReferenceIntoHierarchyResolvesToTheRightObject(true);
+    }
+
+    private void sameDocumentReferenceIntoHierarchyResolvesToTheRightObject(boolean withFormatProvider) throws IOException {
+        ResourceSet writeSet = newResourceSet(withFormatProvider);
         Resource res = writeSet.createResource(fileUri("company.json"));
 
         EObject company = buildCompany();
@@ -297,7 +364,7 @@ class CrossResourceReferenceTest {
         assertFalse(json.contains("company.json"),
                 "a same-document reference must not name its own file, was: " + json);
 
-        ResourceSet readSet = newResourceSet();
+        ResourceSet readSet = newResourceSet(withFormatProvider);
         Resource loaded = readSet.getResource(fileUri("company.json"), true);
 
         EObject loadedAlice = loaded.getContents().get(1);
@@ -310,14 +377,62 @@ class CrossResourceReferenceTest {
                 "must resolve to the very object in this resource, not a copy");
     }
 
+    @Test
+    @DisplayName("multi-valued references across files keep order and resolve individually [plain JSON]")
+    void plainMultiValuedCrossResourceReferencesKeepOrderAndResolve() throws IOException {
+        multiValuedCrossResourceReferencesKeepOrderAndResolve(false);
+    }
+
+    @Test
+    @DisplayName("multi-valued references across files keep order and resolve individually [format delegate]")
+    void delegateMultiValuedCrossResourceReferencesKeepOrderAndResolve() throws IOException {
+        multiValuedCrossResourceReferencesKeepOrderAndResolve(true);
+    }
+
+    private void multiValuedCrossResourceReferencesKeepOrderAndResolve(boolean withFormatProvider) throws IOException {
+        ResourceSet writeSet = newResourceSet(withFormatProvider);
+        Resource personRes = writeSet.createResource(fileUri("person.json"));
+        Resource companyRes = writeSet.createResource(fileUri("company.json"));
+
+        EObject company = buildCompany();
+        companyRes.getContents().add(company);
+
+        // point into the other file, deliberately out of natural order
+        EObject alice = createPerson("Alice");
+        List<EObject> friends = friendsOf(alice);
+        friends.add(employeesOf(company).get(2));
+        friends.add(employeesOf(company).get(0));
+        friends.add(employeesOf(company).get(1));
+        personRes.getContents().add(alice);
+
+        companyRes.save(Collections.emptyMap());
+        personRes.save(Collections.emptyMap());
+
+        ResourceSet readSet = newResourceSet(withFormatProvider);
+        Resource loaded = readSet.getResource(fileUri("person.json"), true);
+        List<EObject> loadedFriends = friendsOf(loaded.getContents().get(0));
+
+        assertEquals(3, loadedFriends.size(), "every element must survive the round trip");
+        assertEquals(List.of("Employee-2", "Employee-0", "Employee-1"),
+                loadedFriends.stream()
+                        .map(f -> EcoreUtil.resolve(f, readSet).eGet(nameAttribute))
+                        .toList(),
+                "order and identity of each element must be preserved");
+    }
+
     // ========================================================================
     // Helpers
     // ========================================================================
 
-    private ResourceSet newResourceSet() {
+    /** Both write paths: plain JSON (no provider) and the FormatDelegate path. */
+    private ResourceSet newResourceSet(boolean withFormatProvider) {
         ResourceSet rs = new ResourceSetImpl();
-        rs.getResourceFactoryRegistry().getExtensionToFactoryMap()
-                .put("json", new CodecResourceFactory(metadataService, ConfigurationResolver.defaults()));
+        Resource.Factory factory = withFormatProvider
+                ? new CodecFormatResourceFactory(metadataService,
+                        new JacksonFormatProvider("json", new JsonFactory()),
+                        ConfigurationResolver.defaults())
+                : new CodecResourceFactory(metadataService, ConfigurationResolver.defaults());
+        rs.getResourceFactoryRegistry().getExtensionToFactoryMap().put("json", factory);
         return rs;
     }
 
@@ -329,6 +444,11 @@ class CrossResourceReferenceTest {
         EObject person = testPackage.getEFactoryInstance().create(personClass);
         person.eSet(nameAttribute, name);
         return person;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<EObject> friendsOf(EObject person) {
+        return (List<EObject>) person.eGet(friendsRef);
     }
 
     @SuppressWarnings("unchecked")
