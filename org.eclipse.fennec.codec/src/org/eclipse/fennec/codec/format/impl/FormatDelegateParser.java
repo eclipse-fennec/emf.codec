@@ -58,6 +58,12 @@ public class FormatDelegateParser<S> extends ParserBase {
 
     private final FormatReaderDelegate<S> delegate;
     private SimpleStreamReadContext _readContext;
+    /**
+     * Value of the current numeric token. A delegate read consumes - a stream-backed format
+     * hands a value out once, unlike a Jackson parser that can re-read its current token - so
+     * every numeric accessor fills this at most once per token (issue #129).
+     */
+    private Number _numberValue;
 
     // ========================================================================
     // Construction
@@ -143,6 +149,7 @@ public class FormatDelegateParser<S> extends ParserBase {
 
     @Override
     public JsonToken nextToken() throws JacksonException {
+        _numberValue = null;
         try {
             TokenType tokenType = delegate.nextToken();
             if (tokenType == null) {
@@ -228,6 +235,12 @@ public class FormatDelegateParser<S> extends ParserBase {
         if (_currToken == JsonToken.VALUE_TRUE) return "true";
         if (_currToken == JsonToken.VALUE_FALSE) return "false";
         if (_currToken == JsonToken.VALUE_NULL) return "null";
+        // A number has no string in the delegate - a binary format holds it as bytes, and
+        // asking for a string there yields nothing usable (issue #129)
+        if (_currToken == JsonToken.VALUE_NUMBER_INT || _currToken == JsonToken.VALUE_NUMBER_FLOAT) {
+            Number value = getNumberValue();
+            return value != null ? value.toString() : null;
+        }
         try {
             return delegate.readString();
         } catch (IOException e) {
@@ -258,6 +271,9 @@ public class FormatDelegateParser<S> extends ParserBase {
 
     @Override
     public Number getNumberValue() throws JacksonException {
+        if (_numberValue != null) {
+            return _numberValue;
+        }
         if (_currToken == JsonToken.VALUE_NUMBER_INT) {
             return getLongValue();
         }
@@ -265,6 +281,20 @@ public class FormatDelegateParser<S> extends ParserBase {
             return getDoubleValue();
         }
         return null;
+    }
+
+    /**
+     * Returns the number eagerly instead of deferring it to a textual form.
+     * <p>
+     * Jackson's {@code TokenBuffer} takes numbers deferred, and the default route goes
+     * through the text representation. For a delegate over a binary format there is none, so
+     * buffering kept the token and lost the value: a decimal read from a buffered replay came
+     * back unset, and the failure surfaced far from its cause (issue #128).
+     * </p>
+     */
+    @Override
+    public Object getNumberValueDeferred() throws JacksonException {
+        return getNumberValue();
     }
 
     @Override
@@ -280,8 +310,13 @@ public class FormatDelegateParser<S> extends ParserBase {
 
     @Override
     public int getIntValue() throws JacksonException {
+        if (_numberValue != null) {
+            return _numberValue.intValue();
+        }
         try {
-            return delegate.readInt();
+            int value = delegate.readInt();
+            _numberValue = value;
+            return value;
         } catch (IOException e) {
             throw _wrapIOFailure(e);
         }
@@ -289,8 +324,13 @@ public class FormatDelegateParser<S> extends ParserBase {
 
     @Override
     public long getLongValue() throws JacksonException {
+        if (_numberValue != null) {
+            return _numberValue.longValue();
+        }
         try {
-            return delegate.readLong();
+            long value = delegate.readLong();
+            _numberValue = value;
+            return value;
         } catch (IOException e) {
             throw _wrapIOFailure(e);
         }
@@ -298,8 +338,13 @@ public class FormatDelegateParser<S> extends ParserBase {
 
     @Override
     public BigInteger getBigIntegerValue() throws JacksonException {
+        if (_numberValue instanceof BigInteger cached) {
+            return cached;
+        }
         try {
-            return delegate.readBigInteger();
+            BigInteger value = delegate.readBigInteger();
+            _numberValue = value;
+            return value;
         } catch (IOException e) {
             throw _wrapIOFailure(e);
         }
@@ -307,8 +352,13 @@ public class FormatDelegateParser<S> extends ParserBase {
 
     @Override
     public float getFloatValue() throws JacksonException {
+        if (_numberValue != null) {
+            return _numberValue.floatValue();
+        }
         try {
-            return delegate.readFloat();
+            float value = delegate.readFloat();
+            _numberValue = value;
+            return value;
         } catch (IOException e) {
             throw _wrapIOFailure(e);
         }
@@ -316,8 +366,13 @@ public class FormatDelegateParser<S> extends ParserBase {
 
     @Override
     public double getDoubleValue() throws JacksonException {
+        if (_numberValue != null) {
+            return _numberValue.doubleValue();
+        }
         try {
-            return delegate.readDouble();
+            double value = delegate.readDouble();
+            _numberValue = value;
+            return value;
         } catch (IOException e) {
             throw _wrapIOFailure(e);
         }
@@ -325,8 +380,13 @@ public class FormatDelegateParser<S> extends ParserBase {
 
     @Override
     public BigDecimal getDecimalValue() throws JacksonException {
+        if (_numberValue instanceof BigDecimal cached) {
+            return cached;
+        }
         try {
-            return delegate.readBigDecimal();
+            BigDecimal value = delegate.readBigDecimal();
+            _numberValue = value;
+            return value;
         } catch (IOException e) {
             throw _wrapIOFailure(e);
         }
