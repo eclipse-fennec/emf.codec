@@ -200,9 +200,16 @@ public class IdSerializationEntry implements SerializationEntry {
             gen.writeStringProperty(config.getSeparatorKey(), config.getSeparator());
         }
 
-        // Write each ID feature
-        for (Map.Entry<String, Object> entry : idValues.entrySet()) {
-            writeValue(gen, entry.getKey(), entry.getValue());
+        if (idValues.size() == 1) {
+            // One id value has one inner key, and its name comes from idValueKey - the
+            // counterpart of typeNameKey for the type container (spec 03 §naming, issue #119)
+            Object onlyValue = idValues.values().iterator().next();
+            writeValue(gen, config.getValueKey(), onlyValue);
+        } else {
+            // Several components need their own names to stay distinguishable
+            for (Map.Entry<String, Object> entry : idValues.entrySet()) {
+                writeValue(gen, entry.getKey(), entry.getValue());
+            }
         }
 
         gen.writeEndObject();

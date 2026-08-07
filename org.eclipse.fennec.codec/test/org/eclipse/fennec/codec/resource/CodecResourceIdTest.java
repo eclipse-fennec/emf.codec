@@ -224,7 +224,9 @@ class CodecResourceIdTest {
             String json = serialize(person, resolver);
 
             assertTrue(json.contains("\"_id\":{"), "Should have _id as object");
-            assertTrue(json.contains("\"personId\":\"john-123\""), "Should have personId inside _id");
+            // A single id value sits under the inner key from idValueKey (default "id"),
+            // not under the feature name - see spec 09-id.md §3.3 (issue #119)
+            assertTrue(json.contains("\"id\":\"john-123\""), "Should have the id under the inner key");
             assertFalse(json.contains("\"separator\""), "Should not have separator for single ID");
         }
 
@@ -561,8 +563,10 @@ class CodecResourceIdTest {
     class StructuredDeserializationTests {
 
         @Test
-        @DisplayName("single ID feature - STRUCTURED format")
+        @DisplayName("single ID feature - STRUCTURED format, feature name still accepted")
         void deserializeSingleIdStructuredFormat() throws IOException {
+            // The reader takes the feature name as well, so documents written before the
+            // inner key was honoured keep loading (issue #119)
             String json = "{\"_id\":{\"personId\":\"john-123\"},\"name\":\"John Doe\"}";
 
             ConfigurationResolver resolver = idResolver(Map.of(

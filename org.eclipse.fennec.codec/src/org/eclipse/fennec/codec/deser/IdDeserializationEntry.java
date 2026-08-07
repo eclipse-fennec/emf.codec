@@ -285,6 +285,19 @@ public class IdDeserializationEntry implements DeserializationEntry {
                     continue; // Don't add separator to idValues
                 }
 
+                // A single id value is written under the inner key, not under the feature
+                // name (spec 03 §naming, issue #119) - map it back to the one id feature
+                if (fieldName.equals(config.getValueKey()) && featuresToRead.size() == 1) {
+                    EAttribute idFeature = idFeatureAttribute(featuresToRead.get(0));
+                    if (idFeature != null) {
+                        Object value = readIdValue(bufferParser, idFeature);
+                        if (value != null) {
+                            idValues.put(idFeature.getName(), value);
+                        }
+                        continue;
+                    }
+                }
+
                 EStructuralFeature feature = eClass.getEStructuralFeature(fieldName);
                 if (feature instanceof EAttribute attr && featuresToRead.contains(fieldName)) {
                     Object value = readIdValue(bufferParser, attr);
