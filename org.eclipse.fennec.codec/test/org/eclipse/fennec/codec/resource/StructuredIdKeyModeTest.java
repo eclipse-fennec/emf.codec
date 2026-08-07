@@ -161,6 +161,24 @@ class StructuredIdKeyModeTest {
     }
 
     @Test
+    @DisplayName("BOTH with a renamed inner key: container and body use different names")
+    void bothWithRenamedInnerKey() throws IOException {
+        // The two levels are named independently: idValueKey inside the container, the
+        // feature name in the body
+        ConfigurationResolver config = personResolver(null, "xyz", "BOTH");
+        String json = serialize(person(), config);
+
+        assertTrue(idSection(json).contains("\"xyz\":\"maho\""),
+                "the container uses the inner key, was: " + json);
+        assertTrue(body(json).contains("\"personId\":\"maho\""),
+                "the body uses the feature name, was: " + json);
+
+        EObject loaded = deserializePerson(json, config);
+        assertEquals("maho", loaded.eGet(personIdAttribute),
+                "both spellings describe the same identity and must load");
+    }
+
+    @Test
     @DisplayName("multiple id components round-trip under their feature names")
     void idOnlyRoundTrips() throws IOException {
         ConfigurationResolver config = resolver("ID_ONLY", null);
@@ -209,7 +227,14 @@ class StructuredIdKeyModeTest {
     }
 
     private ConfigurationResolver personResolver(String idKey, String valueKey) {
+        return personResolver(idKey, valueKey, null);
+    }
+
+    private ConfigurationResolver personResolver(String idKey, String valueKey, String keyMode) {
         Map<String, Object> props = new HashMap<>(Map.of("idFormat", "STRUCTURED"));
+        if (keyMode != null) {
+            props.put("idKeyMode", keyMode);
+        }
         if (idKey != null) {
             props.put("idKey", idKey);
         }
