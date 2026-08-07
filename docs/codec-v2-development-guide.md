@@ -2,7 +2,22 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-08-05
+**Last Updated:** 2026-08-07
+
+**Session Summary (2026-08-06/07) — the #110 campaign worked off end to end (#112-#121, #124, #129, #131, #132, #134):**
+
+All eleven asymmetry tickets are merged and closed, plus the three defects the work itself uncovered. **Read `docs/codec-v2-ser-deser-asymmetry-review.md` first** — it still carries the per-finding evidence; this entry records what changed and, more usefully, *why the shape of the bugs repeated*.
+
+- **The two root causes held up.** Root cause 1 (write side resolves an effective/scoped value, read side reads it raw or global) produced #112, #116, #119 and #120. Root cause 2 (permissive writer, closed-allowlist reader) produced #115, #117 and #118. A **third** emerged late and was not in the original review: diagnostics that never reach the resource, so nobody can act on them (#131, #134).
+- **The hang was three bugs stacked.** A `FormatDelegateParser` numeric token lost its value through Jackson's `TokenBuffer` deferred numbers (#129) → the conversion failed two levels from the cause and was **swallowed** → the parser stayed mid-object → an unguarded `while (parser.nextToken() != END_ARRAY)` waited for a token that could never come and the whole suite hung with no output. Fixed in three layers: the parser caches per-token values with type-exact first reads (#129), nothing is swallowed without resynchronising (#131), and all 27 token loops go through the new `util/TokenLoops` which terminates on stream end (#132). **If a test run ever hangs again, look for a swallowed exception before looking at the loop.**
+- **Strictness is now a hierarchy (decision by Mark, #134).** `DeserializationMode.STRICT` is the umbrella: **any** error fails the load with an `IOException` carrying a `CodecDiagnosticException`; `strictOnUnknown` and `strictOnConversion` are subsets that fail for one kind of problem each. The diagnostics stay on the resource *as well* — reporting and failing, not one instead of the other. The spec had contradicted itself (07-supertype.md §9.3 said "fail" and the code threw; 06-type.md §6.5.2 said "→ ERROR" and the code carried on); §6.5.2 is now explicit. Breaking, deliberately — `STRICT` had no users.
+- **Second standing rule from the same decision: a diagnostic that only reaches the JUL logger does not exist.** `TypeResolutionHelper`'s ten "could not resolve" messages were logger-only, so a caller saw the generic `Type resolved via fallback` — *that* resolution fell back, never *why*. It now takes an optional `DiagnosticCollector`; old signatures delegate. Same treatment for the type-as-attribute failure path. `ContextHelper.getDiagnosticCollector` gained the null guard its callers were working around — that guard's absence caused 22 test failures when the wiring landed.
+- **Instrument, don't sprinkle.** For #131's "assert diagnostics everywhere", patching the load path to print every diagnostic and running the full suite found **50 dirty loads across 27 test classes** in one pass. Most were deliberate negative tests; the sweep isolated one real defect (a non-changeable feature reported as `Unknown feature`, which `strictOnUnknown` escalated into a failed load for a field the model declares) and three expectations that were described in comments rather than checked. Recommended technique for the next coverage question.
+- **Not every finding is a defect.** The same-nsURI fallback warning looked like a test gap and is correct behaviour: two versions sharing an nsURI cannot be told apart from the document alone, so resolving through the caller's hint deserves the warning — telling them apart from the data is what fingerprinting is for. It is asserted now rather than tolerated. Blind-fixing it would have removed a real signal.
+- **#120 decision (Mark):** an object reached through its container's `idFeatures` writes its features, **not** a second `_id` — it *is* the parent's identity, and `ID_ONLY` would have hidden the components that are its only source. Effectively `FEATURE_ONLY` for that position only; the same class elsewhere keeps its configured key mode. Spec 09-id.md §4 gained §4.1-§4.5 (separator belongs to the contained type, the STRUCTURED form, the ban on id config at the reference, the empty-reference case).
+- **#110 separator precedence (Mark):** a separator present in the document overrides the configured one, because the configured value is the more likely injection point.
+- **#124 closed the coverage gap that let #113 hide.** `FileRoundTripTest` writes to a `@TempDir` and loads through a **fresh** `ResourceSet`, on both write paths: polymorphic containment, same-document references asserted by identity, reference-based and multi-part ids, multi-valued attributes, `EJavaObject` map/list. All 11 green on the first run — no defects, the proof was what was missing. Before this, 1 test class of 138 wrote a real file.
+- **State:** 1497 tests, 0 failures. #110 itself is still open as the campaign bracket; everything under it is done.
 
 **Session Summary (2026-08-05) — ser/deser asymmetry review (#110) + crash fix #111:**
 
@@ -988,6 +1003,13 @@ MAIN TASK: [description] - [status: ACTIVE/PAUSED/✅]
 
 ```
 
+COMPLETED: ser/deser asymmetry campaign #110 - ✅ (2026-08-07, PRs #125-#141)
+│  - #112-#121 all merged and closed; #129/#131/#132 (hang: parser, swallow, loop guards)
+│  - #134 STRICT is the umbrella that fails the load; strictOn* are subsets
+│  - #124 file round trips through a fresh ResourceSet, both write paths
+│  - Diagnostics must reach the resource, never the logger alone
+│  - #110 kept open as the bracket; open follow-ups: #83, code-quality block
+
 COMPLETED: Issue #73 Phase B — in-band EPackage fingerprint - ✅ (2026-07-25, PR #77)
 │  - Self-describing multi-version documents: the version comes from the data, not the caller
 │  - Model: FingerprintMode (NONE|FIRST_TOUCH) + fingerprintKey on TypeSerializationConfig
@@ -1225,6 +1247,12 @@ See `docs/codec-v2-spec/02-config-resolution.md` for details.
 
 ### 3.2 Test Status
 
+> **2026-08-07:** `org.eclipse.fennec.codec` alone now runs **1,497** tests in 138 classes
+> (0 failures, 2 skips) after the #110 campaign — the table below is the 2026-03-02 snapshot
+> and is stale for that row. Coverage shape worth knowing: 5 test classes use a `ResourceSet`
+> and 2 write real files (`CrossResourceReferenceTest`, `FileRoundTripTest`); everything else
+> drives both directions in memory, which is precisely what hid #113.
+
 **Current Counts (2026-03-02, after custom properties + JSON Schema enhancements):**
 
 | Project | Tests | Suites | Notes |
@@ -1266,6 +1294,15 @@ All tests pass with 0 failures, 0 errors, 0 skipped.
    - P1 Features: 7 strategy suites
    - P2 Advanced: 10 advanced feature suites
    - Bug fixes: array root serialization, `supportsArrayRoot()` capability, BSON reader `valueConsumed` fix
+
+**OPEN (as of 2026-08-07):**
+1. **#110** — the asymmetry campaign bracket. Every ticket under it is done; it stays open only
+   until someone decides the bracket has served its purpose.
+2. **#83** — `XMLURIHandler.resolve()` crashes with `ArrayIndexOutOfBoundsException`. Untouched.
+3. **Code-quality block** (#58-#81) — a batch of its own, unrelated to the hardening work.
+4. **Cross-repo** — emf.persistence-jpa#116 (Mongo) and emf.search#33 (Lucene) ask the two
+   downstream consumers to verify the id-plane behaviour through their own stacks;
+   eclipse-fennec/.github#20 documents the three CI gates.
 
 **DEFERRED:**
 1. Plan B remaining: GAP-004 (Diagnostic Options), GAP-013 (Enum annotations), GAP-014 (inherit enum)
@@ -1433,6 +1470,26 @@ String discriminatorValue = typeDiscriminatorService.getDiscriminatorValue(mapId
 - Check force flags (forceWrite, forceRead for volatile/transient)
 - Check value gates (serializeNull, serializeEmpty, serializeDefault)
 
+**Issue: the test run hangs with no output**
+- Look for a **swallowed exception first**, not at the loop. The sequence that cost a full
+  session: a value was lost → the conversion threw two levels from the cause → the catch
+  logged and continued → the parser stayed mid-object → the enclosing loop waited for an
+  `END_ARRAY` that could never arrive. See #129/#131/#132.
+- All token loops must go through `util/TokenLoops`, which terminates on stream end. A raw
+  `while (parser.nextToken() != END_ARRAY)` is the bug, not the symptom.
+- To find the culprit fast: run with `--tests` narrowed, or patch `CodecResource`'s load path
+  to print diagnostics and run the suite once (see below).
+
+**Issue: something is wrong but nothing is reported**
+- A diagnostic that reaches only the JUL logger is invisible to a caller — every component
+  must report through `DiagnosticCollector`/`ContextHelper.addWarning`, and static utilities
+  take it as a parameter (`TypeResolutionHelper`).
+- To sweep the whole suite: temporarily print `getErrors()`/`getWarnings()` after
+  `diagnosticCollector.addToResource(this)` in both load paths, run the full suite, and group
+  the output by test class. One pass surfaced 50 dirty loads across 27 test classes.
+- A load that reports and still returns normally is only visible to callers who check.
+  `DeserializationMode.STRICT` turns any error into a failed load.
+
 **Issue: Discriminator mapping not working**
 - Check mapId extraction: is discriminatorMapId set on DiscriminatorConfig?
 - Check fallback strategy: ERROR vs FALLBACK behavior
@@ -1454,7 +1511,11 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 
 ### 7.1 Current Limitations
 
-1. **Cross-document containment references** — not yet supported (deser only)
+1. ~~**Cross-document containment references** — not yet supported (deser only)~~ — closed by
+   #113/#114: a containment in another resource is written as a reference rather than inlined,
+   and resolves on read. Pinned by `resource/CrossResourceReferenceTest` (real files, fresh
+   resource set) on both write paths. Non-containments still come back as **proxies** by
+   design — EMF resolves them on access or via `EcoreUtil.resolve`.
 2. **Custom Jackson modules** — limited integration
 3. **Streaming mode** — not optimized for large documents
 
@@ -1462,9 +1523,32 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 
 1. Entry-build pattern not documented in spec §1.2
 2. Deserialization gate shouldDeserialize() usage not explicit
-3. isChangeable() pre-check not documented
+3. isChangeable() pre-check not documented — the runtime behaviour is settled (a
+   non-changeable feature present in the document is reported as *not changeable, value
+   dropped*, never as an unknown feature, so `strictOnUnknown` does not fail on it — #131);
+   the spec has yet to say so
 
 ### 7.3 Fixed Bugs
+
+**2026-08-06/07 — the #110 batch (compact; per-defect evidence is in the review doc):**
+
+| # | Defect | Where it lived |
+|---|---|---|
+| #112 | PLAIN id decode ignored a single-entry `idFeatures` list | `IdDeserializationEntry` |
+| #113 | Cross-resource references written as same-document fragments on the plain save path | `ReferenceSerializationEntry` — the source resource was only looked up in the context, never via `source.eResource()` |
+| #114 | Mixed multi-valued references lost elements | `ReferenceDeserializationEntry` |
+| #115 | `EJavaObject` `Map`/`List` written as `toString()`, read back as String | both attribute entries |
+| #116 | Class/reference-scoped `typeKey`/`typeStrategy` ignored on read | `CodecEObjectDeserializer.isTypeKey` checked the global key first |
+| #117 | Array component types the writer emits were not read back | `AttributeDeserializationEntry` — short/byte/char/boxed readers were missing |
+| #118 | `EDate` unreadable in formats without native date-time | now `EcoreUtil.convertToString(EDATE, …)` both ways |
+| #119 | `idKeyMode`/`idValueKey` inside the STRUCTURED `_id` object | a single id value goes under the inner key, several under their feature names |
+| #120 | `idFeatures` on an EReference stringified the reference | the contained object's own id config builds it; that object then writes features, not a second `_id` |
+| #121 | `codec.flatten` — documented as write-only, read side stopped warning | spec 10-reference.md §8.1 |
+| #123 | OpenAPI `$ref` misread as a cross-document marker | `modelOwnsRefKey()` checks name *and* codec annotation key |
+| #129 | Buffered numeric lost its value through Jackson's deferred numbers | `FormatDelegateParser` caches per token, type-exact first reads |
+| #131 | Conversion failures swallowed; no way to escalate | `util/ConversionFailures` + `strictOnConversion`; a non-changeable feature is no longer "unknown" |
+| #132 | Unguarded token loops spun forever after a swallowed error | `util/TokenLoops` terminates on stream end |
+| #134 | Type resolution had no escalation path, reasons logger-only | STRICT fails the load; `TypeResolutionHelper` reports into the resource |
 
 **2026-08-05 (b):**
 ✅ **`typeFormat=STRUCTURED` + `superTypeSerialize=true` threw an NPE on save** (`TypeSerializationEntry`, issue #111)
