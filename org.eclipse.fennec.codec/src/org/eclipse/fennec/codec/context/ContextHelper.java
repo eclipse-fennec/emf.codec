@@ -723,10 +723,13 @@ public final class ContextHelper {
     /**
      * Gets the diagnostic collector from the deserialization context.
      *
-     * @param ctxt the deserialization context
+     * @param ctxt the deserialization context, may be null where no context is in play
      * @return the diagnostic collector, or null if not set
      */
     public static DiagnosticCollector getDiagnosticCollector(DeserializationContext ctxt) {
+        if (ctxt == null) {
+            return null;
+        }
         Object value = ctxt.getAttribute(DIAGNOSTIC_COLLECTOR);
         return value instanceof DiagnosticCollector ? (DiagnosticCollector) value : null;
     }
@@ -738,6 +741,9 @@ public final class ContextHelper {
      * @return the diagnostic collector, or null if not set
      */
     public static DiagnosticCollector getDiagnosticCollector(SerializationContext ctxt) {
+        if (ctxt == null) {
+            return null;
+        }
         Object value = ctxt.getAttribute(DIAGNOSTIC_COLLECTOR);
         return value instanceof DiagnosticCollector ? (DiagnosticCollector) value : null;
     }

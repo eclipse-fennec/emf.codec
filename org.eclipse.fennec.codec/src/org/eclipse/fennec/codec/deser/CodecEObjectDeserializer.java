@@ -264,7 +264,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 if (resolvedEClass != null) {
                     eObject = state.createEObject();
                     processDeferredProperties(state, deferredProperties, ctxt);
-                    setTypeAsAttributeIfExists(eObject, pendingTypeProperty, pendingTypeValue);
+                    setTypeAsAttributeIfExists(eObject, pendingTypeProperty, pendingTypeValue, ctxt);
                 }
                 typeContextSeen = false;
                 pendingTypeValue = null;
@@ -295,7 +295,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             if (resolvedEClass != null) {
                 eObject = state.createEObject();
                 processDeferredProperties(state, deferredProperties, ctxt);
-                setTypeAsAttributeIfExists(eObject, pendingTypeProperty, pendingTypeValue);
+                setTypeAsAttributeIfExists(eObject, pendingTypeProperty, pendingTypeValue, ctxt);
             }
         }
 
@@ -572,7 +572,8 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             if (classifierValue != null) {
                 // NUMERIC STRUCTURED: resolve classifier ID within the embedded schema package.
                 // Look up the EClass directly and return its full URI for downstream resolution.
-                EClass resolved = TypeResolutionHelper.resolveFromNumeric(classifierValue, null, schemaValue);
+                EClass resolved = TypeResolutionHelper.resolveFromNumeric(classifierValue, null, schemaValue,
+                        ContextHelper.getDiagnosticCollector(ctxt));
                 if (resolved != null && resolved.getEPackage() != null) {
                     return new TypeContext(
                             resolved.getEPackage().getNsURI() + "#//" + resolved.getName(), fingerprint);
@@ -672,7 +673,8 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     /**
      * Sets the type value as an attribute if a matching feature exists.
      */
-    private void setTypeAsAttributeIfExists(EObject eObject, String propertyName, String typeValue) {
+    private void setTypeAsAttributeIfExists(EObject eObject, String propertyName,
+            String typeValue, DeserializationContext ctxt) {
         if (eObject == null || propertyName == null || typeValue == null) {
             return;
         }
@@ -687,7 +689,13 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                     eObject.eSet(feature, typeValue);
                     LOGGER.fine(() -> "Set type key '" + propertyName + "' as attribute with value: " + typeValue);
                 } catch (Exception e) {
-                    LOGGER.warning("Failed to set type as attribute: " + e.getMessage());
+                    // The model declares this feature (GeoJSON's "type", spec 06-type.md
+                    // §6.1) and we could not fill it - a caller inspecting diagnostics has
+                    // to see that, not only the log (issue #134)
+                    String msg = "Could not store the type value in feature '" + propertyName
+                            + "' of " + eClass.getName() + ": " + e.getMessage();
+                    LOGGER.warning(msg);
+                    ContextHelper.addWarning(ctxt, msg, null, "CodecEObjectDeserializer");
                 }
             }
         }
