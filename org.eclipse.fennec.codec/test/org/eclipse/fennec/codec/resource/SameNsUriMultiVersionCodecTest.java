@@ -143,10 +143,33 @@ class SameNsUriMultiVersionCodecTest {
     }
 
     private EObject deserialize(String json, EClass rootType) throws IOException {
+        CodecResource resource = load(json, rootType);
+        return resource.getContents().isEmpty() ? null : resource.getContents().get(0);
+    }
+
+    private CodecResource load(String json, EClass rootType) throws IOException {
         CodecResource resource = newResource();
         ByteArrayInputStream in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
         resource.load(in, Map.of(CodecResource.CODEC_ROOT_TYPE, rootType));
-        return resource.getContents().isEmpty() ? null : resource.getContents().get(0);
+        return resource;
+    }
+
+    @Test
+    @DisplayName("an ambiguous type resolves via the hint, and says so (issue #131)")
+    void ambiguousTypeWarnsWithoutFingerprint() throws IOException {
+        // Two versions share an nsURI, so the written type names both of them. Nothing in
+        // the document tells them apart - only the caller's hint does. Resolving that
+        // silently would hide a genuine ambiguity, so it is a warning rather than a fact.
+        // Telling the versions apart from the data alone is what fingerprinting is for.
+        CodecResource resource = load(serialize(createEntity(packageA, entityA, valueA, "X")),
+                entityA);
+
+        assertTrue(resource.getWarnings().stream()
+                        .anyMatch(w -> w.getMessage().contains("Type resolved via fallback")),
+                "an ambiguous type must not resolve without a word, was: "
+                        + resource.getWarnings());
+        assertTrue(resource.getErrors().isEmpty(),
+                "but it stays readable, was: " + resource.getErrors());
     }
 
     @Test
