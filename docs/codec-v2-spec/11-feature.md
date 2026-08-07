@@ -629,6 +629,19 @@ EAttributes can have array data types (EDataTypes with array instance classes). 
 | `String[]` | `["a", "b", "c"]` | String lists |
 | `Date[]` | `["2025-01-14", "2024-12-25"]` | Date sequences |
 | `BigDecimal[]` | `["123.456", "789.012"]` | Precise decimal sequences |
+| `short[]`, `byte[]` | `[1, 2, 3]` | Compact integer sequences, e.g. `EByteArray` |
+| `char[]`, `Character[]` | `["a", "b"]` | Characters, written as one-character strings |
+| `Integer[]`, `Long[]`, `Double[]`, `Float[]`, `Short[]`, `Byte[]` | `[1, null, 3]` | Boxed numbers — unlike the primitive forms these may contain `null` |
+| `Boolean[]` | `[true, null, false]` | Boxed booleans, `null` allowed |
+
+> The boxed forms keep `null` elements: a primitive array cannot hold them, a boxed one can,
+> and the writer emits them as JSON `null`.
+
+> **`Date` without a configured `dateFormat`** is written in EMF's canonical form
+> (`EcoreUtil.convertToString`), which carries the zone offset and reads back unchanged. It
+> used to be `Date.toString()` — a form neither EMF nor this codec can parse, so such a value
+> was silently lost on read. A configured `dateFormat` still wins, and formats with a native
+> date-time type (BSON) keep using it.
 
 ### 7.2 Defining Array Data Types in Ecore
 

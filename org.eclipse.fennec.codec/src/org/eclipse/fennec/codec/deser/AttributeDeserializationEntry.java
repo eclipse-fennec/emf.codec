@@ -34,6 +34,7 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EEnumLiteral;
@@ -426,6 +427,19 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         if (componentType == String.class) {
             return readStringArray(parser);
         }
+        // The writer emits these too, so the reader has to take them back (issue #117)
+        if (componentType == short.class) {
+            return readShortArray(parser);
+        }
+        if (componentType == byte.class) {
+            return readByteArray(parser);
+        }
+        if (componentType == char.class) {
+            return readCharArray(parser);
+        }
+        if (isBoxedNumberOrBoolean(componentType)) {
+            return readBoxedArray(parser, componentType);
+        }
 
         // Handle object arrays (Date[], BigDecimal[], UUID[], etc.) via EMF string conversion
         return readObjectArray(parser, ctxt, componentType);
@@ -457,6 +471,94 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     /**
      * Reads a double[] from the parser.
      */
+    /** Tells whether a component type is a boxed primitive the writer emits as a JSON scalar. */
+    private static boolean isBoxedNumberOrBoolean(Class<?> componentType) {
+        return componentType == Integer.class || componentType == Long.class
+                || componentType == Double.class || componentType == Float.class
+                || componentType == Short.class || componentType == Byte.class
+                || componentType == Boolean.class || componentType == Character.class;
+    }
+
+    /** Reads a char array; the writer emits each element as a one-character string. */
+    private char[] readCharArray(JsonParser parser) {
+        StringBuilder chars = new StringBuilder();
+        while (TokenLoops.hasNextElement(parser)) {
+            if (parser.currentToken() == JsonToken.VALUE_STRING) {
+                String text = parser.getString();
+                if (!text.isEmpty()) {
+                    chars.append(text.charAt(0));
+                }
+            }
+        }
+        char[] result = new char[chars.length()];
+        chars.getChars(0, chars.length(), result, 0);
+        return result;
+    }
+
+    /**
+     * Reads an array of boxed primitives, keeping nulls: unlike a primitive array, a boxed
+     * one can hold them, and the writer emits them as JSON null.
+     */
+    private Object readBoxedArray(JsonParser parser, Class<?> componentType) {
+        List<Object> values = new ArrayList<>();
+        while (TokenLoops.hasNextElement(parser)) {
+            JsonToken token = parser.currentToken();
+            if (token == JsonToken.VALUE_NULL) {
+                values.add(null);
+            } else if (componentType == Boolean.class) {
+                values.add(parser.getBooleanValue());
+            } else if (componentType == Integer.class) {
+                values.add(parser.getIntValue());
+            } else if (componentType == Long.class) {
+                values.add(parser.getLongValue());
+            } else if (componentType == Double.class) {
+                values.add(parser.getDoubleValue());
+            } else if (componentType == Float.class) {
+                values.add(parser.getFloatValue());
+            } else if (componentType == Short.class) {
+                values.add((short) parser.getIntValue());
+            } else if (componentType == Byte.class) {
+                values.add((byte) parser.getIntValue());
+            } else if (componentType == Character.class) {
+                String text = parser.getString();
+                values.add(text.isEmpty() ? null : text.charAt(0));
+            }
+        }
+        Object result = java.lang.reflect.Array.newInstance(componentType, values.size());
+        for (int i = 0; i < values.size(); i++) {
+            java.lang.reflect.Array.set(result, i, values.get(i));
+        }
+        return result;
+    }
+
+    private short[] readShortArray(JsonParser parser) {
+        List<Short> values = new ArrayList<>();
+        while (TokenLoops.hasNextElement(parser)) {
+            if (parser.currentToken() == JsonToken.VALUE_NUMBER_INT) {
+                values.add((short) parser.getIntValue());
+            }
+        }
+        short[] result = new short[values.size()];
+        for (int i = 0; i < values.size(); i++) {
+            result[i] = values.get(i);
+        }
+        return result;
+    }
+
+    private byte[] readByteArray(JsonParser parser) {
+        List<Byte> values = new ArrayList<>();
+        while (TokenLoops.hasNextElement(parser)) {
+            if (parser.currentToken() == JsonToken.VALUE_NUMBER_INT) {
+                values.add((byte) parser.getIntValue());
+            }
+        }
+        byte[] result = new byte[values.size()];
+        for (int i = 0; i < values.size(); i++) {
+            result[i] = values.get(i);
+        }
+        return result;
+    }
+
     private double[] readDoubleArray(JsonParser parser) {
         List<Double> values = new ArrayList<>();
 
@@ -643,12 +745,17 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
             if (dateFormat != null) {
                 return new SimpleDateFormat(dateFormat).parse(stringValue);
             }
-            // No configured format: try ISO date format first (yyyy-MM-dd)
+            // No configured format: EMF's canonical form first - that is what the writer
+            // produces, and it carries the zone offset, which the patterns below drop
+            // (issue #118)
             try {
-                return new SimpleDateFormat("yyyy-MM-dd").parse(stringValue);
-            } catch (ParseException e) {
-                // Try ISO datetime format
-                return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(stringValue);
+                return (Date) EcoreUtil.createFromString(EcorePackage.Literals.EDATE, stringValue);
+            } catch (Exception emfFailure) {
+                try {
+                    return new SimpleDateFormat("yyyy-MM-dd").parse(stringValue);
+                } catch (ParseException e) {
+                    return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(stringValue);
+                }
             }
         }
         if (targetType == UUID.class) {
