@@ -27,6 +27,8 @@ import java.util.logging.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.Enumerator;
 import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
@@ -253,7 +255,10 @@ public class AttributeSerializationEntry implements SerializationEntry {
         } else if (gen instanceof FormatDelegateGenerator<?> delegating && delegating.supportsNativeDateTime()) {
             delegating.writeDateTime(date.getTime());
         } else {
-            gen.writeString(date.toString());
+            // Date.toString() is not machine readable - neither EMF nor this codec can parse
+            // it back, so a date written that way was silently lost on read (issue #118).
+            // The EMF canonical form round-trips and is what spec 11-feature.md documents.
+            gen.writeString(EcoreUtil.convertToString(EcorePackage.Literals.EDATE, date));
         }
     }
 
@@ -308,6 +313,9 @@ public class AttributeSerializationEntry implements SerializationEntry {
             for (short v : (short[]) array) gen.writeNumber(v);
         } else if (componentType == byte.class) {
             for (byte v : (byte[]) array) gen.writeNumber(v);
+        } else if (componentType == char.class) {
+            // A char[] is not an Object[] - without its own branch the cast below throws
+            for (char v : (char[]) array) gen.writeString(String.valueOf(v));
         } else {
             Object[] arr = (Object[]) array;
             for (Object element : arr) {
