@@ -31,6 +31,7 @@ import org.eclipse.fennec.codec.config.IdConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
@@ -437,8 +438,11 @@ public class IdDeserializationEntry implements DeserializationEntry {
         try {
             return EcoreUtil.createFromString(attribute.getEAttributeType(), stringValue);
         } catch (Exception e) {
-            LOGGER.warning("Error converting value '" + stringValue + "' for attribute "
-                    + attribute.getName() + ": " + e.getMessage());
+            // An id that cannot be converted is worse than an ordinary value: identity is
+            // lost, not just one field (issue #131)
+            ConversionFailures.report(entryContext, eClass, null, null, "IdDeserializationEntry",
+                    "Error converting value '" + stringValue + "' for attribute "
+                            + attribute.getName() + ": " + e.getMessage());
             return null;
         }
     }
@@ -473,11 +477,15 @@ public class IdDeserializationEntry implements DeserializationEntry {
                 return EcoreUtil.createFromString(attribute.getEAttributeType(),
                         String.valueOf(parser.getDoubleValue()));
             } else {
-                LOGGER.warning("Unexpected token type for ID: " + token);
+                ConversionFailures.report(entryContext, eClass, null, parser,
+                        "IdDeserializationEntry", "Unexpected token type for ID: " + token);
                 return null;
             }
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
-            LOGGER.warning("Error converting ID value: " + e.getMessage());
+            ConversionFailures.report(entryContext, eClass, null, parser,
+                    "IdDeserializationEntry", "Error converting ID value: " + e.getMessage());
             return null;
         }
     }
