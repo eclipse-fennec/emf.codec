@@ -61,12 +61,32 @@ public class XMLURIHandler implements XMLResource.URIHandler{
 			result = result.appendQuery(uri.query());
 			return result;
 		}
+		if(!canResolveAgainstBase()) {
+			// The reader creates its resource with a relative URI ("temp/id"), and
+			// URI.resolve against a relative or missing base throws - the same crash as
+			// the .ecore branch above, one branch over. Nothing can be resolved against
+			// such a base, so the URI is left as it is (see issue #83)
+			return uri;
+		}
 		return uri.resolve(resourceURI);
+	}
+
+	/**
+	 * Tells whether {@link #resourceURI} can serve as a base for {@link URI#resolve(URI)},
+	 * which requires a hierarchical, absolute URI.
+	 *
+	 * @return true if resolving against the base is possible
+	 */
+	private boolean canResolveAgainstBase() {
+		return resourceURI != null && resourceURI.isHierarchical() && !resourceURI.isRelative();
 	}
 
 	@Override
 	public URI deresolve(URI uri) {
 		if("platform".equals(uri.scheme())){
+			return uri;
+		}
+		if(resourceURI == null){
 			return uri;
 		}
 		if(uri.trimFragment().toString().startsWith(resourceURI.toString())){

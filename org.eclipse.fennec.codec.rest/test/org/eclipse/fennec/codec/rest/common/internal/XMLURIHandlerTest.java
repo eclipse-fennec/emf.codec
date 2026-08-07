@@ -27,6 +27,29 @@ import org.junit.jupiter.api.Test;
 class XMLURIHandlerTest {
 
 	@Nested
+	@DisplayName("deresolve")
+	class Deresolve {
+
+		@Test
+		@DisplayName("no base at all does not fail (issue #83)")
+		void deresolveWithoutBase() {
+			XMLURIHandler handler = new XMLURIHandler();
+
+			assertEquals(URI.createURI("other.xmi"),
+					handler.deresolve(URI.createURI("other.xmi")));
+		}
+
+		@Test
+		@DisplayName("a platform URI stays as it is")
+		void deresolvePlatformUri() {
+			XMLURIHandler handler = new XMLURIHandler(URI.createURI("temp/id"));
+			URI uri = URI.createPlatformPluginURI("bundle/model/x.ecore", false);
+
+			assertEquals(uri, handler.deresolve(uri));
+		}
+	}
+
+	@Nested
 	@DisplayName("resolve")
 	class Resolve {
 
@@ -62,6 +85,36 @@ class XMLURIHandlerTest {
 		void resolvesAbsolutePathUri() {
 			XMLURIHandler handler = new XMLURIHandler();
 			URI uri = URI.createURI("/absolute/example.ecore");
+			assertEquals(uri, handler.resolve(uri));
+		}
+
+		@Test
+		@DisplayName("a relative base leaves the URI untouched instead of throwing (issue #83)")
+		void resolvesAgainstRelativeBaseWithoutThrowing() {
+			// The reader creates its resource with the relative URI "temp/id", and
+			// URI.resolve against a relative base throws - the same crash as the .ecore
+			// branch, one branch over. Nothing can be resolved here, so nothing is.
+			XMLURIHandler handler = new XMLURIHandler(URI.createURI("temp/id"));
+			URI uri = URI.createURI("other.xmi");
+
+			assertEquals(uri, handler.resolve(uri));
+		}
+
+		@Test
+		@DisplayName("no base at all leaves the URI untouched (issue #83)")
+		void resolvesWithoutBaseWithoutThrowing() {
+			XMLURIHandler handler = new XMLURIHandler();
+			URI uri = URI.createURI("other.xmi");
+
+			assertEquals(uri, handler.resolve(uri));
+		}
+
+		@Test
+		@DisplayName("a fragment-only reference stays as it is")
+		void resolvesFragmentOnlyReference() {
+			XMLURIHandler handler = new XMLURIHandler(URI.createURI("temp/id"));
+			URI uri = URI.createURI("#//Foo");
+
 			assertEquals(uri, handler.resolve(uri));
 		}
 
