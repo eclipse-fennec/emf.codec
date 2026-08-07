@@ -20,4 +20,23 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="sequence" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
   </eClassifiers>
 
+  <!-- IdHolder / ContainedId - id via a containment EReference (spec §4, issue #120).
+       The contained class carries the id definition; the holder points at the reference. -->
+  <eClassifiers xsi:type="ecore:EClass" name="ContainedId">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idFeatures" value="userGroup, userId"/>
+      <details key="idSeparator" value="_"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="userGroup" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="userId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"/>
+  </eClassifiers>
+
+  <eClassifiers xsi:type="ecore:EClass" name="IdHolder">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="idFeatures" value="myId"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="myId" eType="#//ContainedId" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
 </ecore:EPackage>
