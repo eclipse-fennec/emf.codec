@@ -377,6 +377,43 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
      * warnings and no one can use the diagnostics to spot a real problem (issue #131).
      * </p>
      */
+    /**
+     * Finds a feature that carries this key but cannot be set, so the value has to be dropped
+     * (issue #131).
+     * <p>
+     * EMF refuses {@code eSet} on a feature that is not changeable, which a caller may well
+     * have asked to read via {@code forceRead}. Reporting it as an <i>unknown</i> feature is
+     * wrong on both counts - the feature exists, and the reason it was skipped is not that
+     * nobody knows it - and under {@code strictOnUnknown} it would fail the load for a field
+     * the model itself declares.
+     * </p>
+     *
+     * @param propertyName the key found in the document
+     * @param eClass the class being read
+     * @return the feature that key belongs to, or null if none matches
+     */
+    private EStructuralFeature unsettableFeature(String propertyName, EClass eClass) {
+        for (EStructuralFeature feature : eClass.getEAllStructuralFeatures()) {
+            if (feature.isChangeable()) {
+                continue;
+            }
+            FeatureConfig featureConfig = config.resolveFeatureConfig(feature);
+            String key = featureConfig != null && featureConfig.getKey() != null
+                    ? featureConfig.getKey()
+                    : feature.getName();
+            if (propertyName.equals(key)) {
+                return feature;
+            }
+        }
+        return null;
+    }
+
+    /** The diagnostic for a value that names a real feature EMF cannot set. */
+    private String unsettableMessage(String propertyName, EClass eClass) {
+        return "Feature '" + propertyName + "' of EClass " + eClass.getName()
+                + " is not changeable, its value was dropped";
+    }
+
     private boolean isDeliberatelyNotRead(String propertyName, EClass eClass) {
         SuperTypeConfig superTypeConfig = config.resolveSuperTypeConfig(eClass);
         if (superTypeConfig != null && superTypeConfig.isSerialize()
@@ -802,6 +839,9 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 // Written by the codec itself, or excluded from reading - not unknown.
                 // Deferred properties need the same treatment as direct ones (issue #131)
                 LOGGER.fine("Skipping deliberately unread deferred property: " + propertyName);
+            } else if (deserEntry == null && unsettableFeature(propertyName, eClass) != null) {
+                ContextHelper.addWarning(ctxt, unsettableMessage(propertyName, eClass), null,
+                        "CodecEObjectDeserializer");
             } else if (deserEntry == null) {
                 // Unknown property in deferred list - check strictOnUnknown config
                 ClassConfig classConfig = config.resolveClassConfig(eClass);
@@ -936,6 +976,10 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             // The codec wrote this itself, or was told not to read it. Reporting it as
             // unknown means the codec cannot read its own output without complaining, which
             // makes the diagnostics useless as a signal (issue #131).
+            parser.skipChildren();
+        } else if (unsettableFeature(propertyName, eClass) != null) {
+            ContextHelper.addWarning(ctxt, unsettableMessage(propertyName, eClass), parser,
+                    "CodecEObjectDeserializer");
             parser.skipChildren();
         } else {
             // Unknown property - check strictOnUnknown config

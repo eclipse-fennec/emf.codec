@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
@@ -143,6 +144,10 @@ class ArrayAttributeSerializationTest {
         bigDecimalArrayAttr.setName("bigDecimalArray");
         bigDecimalArrayAttr.setEType(createArrayDataType("BigDecimalArray", BigDecimal[].class));
         arrayHolderClass.getEStructuralFeatures().add(bigDecimalArrayAttr);
+
+        // A package outside a resource has no base URI, so its classes serialize as bare
+        // fragments ("#//ArrayHolder") that only resolve through a root-type hint
+        new ResourceImpl(URI.createURI(TEST_NS_URI)).getContents().add(testPackage);
 
         // Register package
         EPackage.Registry.INSTANCE.put(TEST_NS_URI, testPackage);

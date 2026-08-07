@@ -285,6 +285,59 @@ class ForceReadWriteTest {
         }
 
         @Test
+        @DisplayName("a skipped volatile feature is not reported as unknown")
+        void skippedVolatileFeatureIsNotUnknown() throws IOException {
+            // fullName is a feature of Person - it is deliberately not read, which is
+            // something else than a field nobody knows (issue #131)
+            String json = "{\"id\":\"p1\",\"name\":\"John\",\"fullName\":\"John Doe\"}";
+
+            CodecResource resource = load(json, ConfigurationResolver.defaults());
+
+            assertTrue(resource.getWarnings().stream()
+                            .noneMatch(w -> w.getMessage().contains("Unknown feature 'fullName'")),
+                    "a known feature must not be reported as unknown, was: "
+                            + resource.getWarnings());
+        }
+
+        @Test
+        @DisplayName("what forceWrite writes can be read back under strictOnUnknown")
+        void forceWrittenFeatureSurvivesStrictRead() throws IOException {
+            // The codec wrote this field itself; refusing to read its own output would make
+            // forceWrite unusable for anyone who loads strictly (issue #131)
+            String json = "{\"id\":\"p1\",\"name\":\"John\",\"fullName\":\"John Doe\"}";
+
+            ConfigurationResolver strict = ConfigurationResolver.builder()
+                    .resourceProperties(Map.of("strictOnUnknown", Boolean.TRUE))
+                    .build();
+
+            CodecResource resource = load(json, strict);
+
+            assertTrue(resource.getErrors().isEmpty(),
+                    "a deliberately skipped feature is not an unknown field, was: "
+                            + resource.getErrors());
+            assertEquals("John", resource.getContents().get(0).eGet(nameAttribute));
+        }
+
+        @Test
+        @DisplayName("forceRead on a non-changeable feature does not report it as unknown")
+        void forceReadOnNonChangeableIsNotUnknown() throws IOException {
+            // The caller asked for this feature by name, so calling it unknown is wrong twice
+            // over: it exists, and the reason it is skipped is that EMF cannot set it
+            String json = "{\"id\":\"p1\",\"name\":\"John\",\"fullName\":\"John Doe\"}";
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .forceRead(fullNameAttribute)
+                    .build();
+
+            CodecResource resource = load(json, resolver);
+
+            assertTrue(resource.getWarnings().stream()
+                            .noneMatch(w -> w.getMessage().contains("Unknown feature 'fullName'")),
+                    "a non-changeable feature is known, not unknown, was: "
+                            + resource.getWarnings());
+        }
+
+        @Test
         @DisplayName("forceRead on non-changeable feature is skipped")
         void forceReadOnNonChangeableFeatureIsSkipped() throws IOException {
             // JSON with fullName value
@@ -446,6 +499,18 @@ class ForceReadWriteTest {
         resource.save(out, Collections.emptyMap());
 
         return out.toString(StandardCharsets.UTF_8);
+    }
+
+    private CodecResource load(String json, ConfigurationResolver resolver) throws IOException {
+        CodecResource resource = new CodecResource(
+                URI.createURI("test://forceread.json"),
+                metadataService,
+                resolver,
+                null);
+
+        ByteArrayInputStream in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+        resource.load(in, Map.of(CodecResource.CODEC_ROOT_TYPE, personClass));
+        return resource;
     }
 
     private EObject deserialize(String json, ConfigurationResolver resolver) throws IOException {

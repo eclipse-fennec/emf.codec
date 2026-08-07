@@ -322,9 +322,16 @@ class BikeSitesArrayLoadTest {
         assertTrue(resource.getErrors().isEmpty(),
                 "Should have no errors: " + resource.getErrors());
 
-        // Note: There are warnings because the JSON has travelModes as strings ["bike"]
-        // but the model expects TravelModeLabel objects. This is expected behavior
-        // when the JSON doesn't fully match the model structure.
-        // The codec correctly warns about this mismatch.
+        // The data does not fully match the model: travelModes holds strings ("bike") while
+        // the model declares TravelModeLabel, an EClass without a single feature - there is
+        // nowhere to put the value. The codec drops it and says so, once per site. Asserting
+        // that keeps the expectation checked instead of merely described (issue #131)
+        assertEquals(6, resource.getWarnings().stream()
+                        .filter(w -> w.getMessage().contains("Expected START_OBJECT"))
+                        .count(),
+                "one dropped travelModes entry per site: " + resource.getWarnings());
+        assertTrue(resource.getWarnings().stream()
+                        .allMatch(w -> w.getMessage().contains("Expected START_OBJECT")),
+                "and nothing else may go wrong: " + resource.getWarnings());
     }
 }
