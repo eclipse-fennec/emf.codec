@@ -979,11 +979,13 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         // ref-read time or the proxy cannot be built correctly at all.
         PackageResolver resolver = ContextHelper.getPackageResolver(ctxt);
         if (resolver == null) {
-            return TypeResolutionHelper.resolveFromUri(typeValue);
+            return TypeResolutionHelper.resolveFromUri(typeValue,
+                    ContextHelper.getDiagnosticCollector(ctxt));
         }
         try {
             EClass resolved = resolver.resolveEClassFromTypeUri(typeValue, entryFingerprint);
-            return resolved != null ? resolved : TypeResolutionHelper.resolveFromUri(typeValue);
+            return resolved != null ? resolved : TypeResolutionHelper.resolveFromUri(typeValue,
+                    ContextHelper.getDiagnosticCollector(ctxt));
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

@@ -18,6 +18,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 
 /**
  * Helper class for resolving EMF EClasses from various type representations.
@@ -37,6 +38,25 @@ import org.eclipse.emf.ecore.EPackage;
 public final class TypeResolutionHelper {
 
     private static final Logger LOGGER = Logger.getLogger(TypeResolutionHelper.class.getName());
+
+    /**
+     * Reports why a type could not be resolved (issue #134).
+     * <p>
+     * The caller adds a generic "resolved via fallback" warning, which says <i>that</i>
+     * resolution fell back but never <i>why</i>. An unregistered package and a misspelled
+     * class name are different problems with different fixes, so the reason has to reach the
+     * resource rather than the logger alone.
+     * </p>
+     *
+     * @param diagnostics the collector, null when the caller has no context to report into
+     * @param message the reason
+     */
+    private static void warn(DiagnosticCollector diagnostics, String message) {
+        LOGGER.warning(message);
+        if (diagnostics != null) {
+            diagnostics.addWarning(message, "TypeResolutionHelper");
+        }
+    }
 
     private TypeResolutionHelper() {
         // Utility class, not instantiable
@@ -60,6 +80,19 @@ public final class TypeResolutionHelper {
      * @return the resolved EClass, or null if not found
      */
     public static EClass resolveFromSimpleName(String className, EPackage contextPackage) {
+        return resolveFromSimpleName(className, contextPackage, null);
+    }
+
+    /**
+     * Same, reporting the reason a resolution failed to the given collector (issue #134).
+     *
+     * @param className the simple class name (e.g. "Person")
+     * @param contextPackage the EPackage to scope resolution to (may be null)
+     * @param diagnostics receives the reason, may be null when nobody is listening
+     * @return the resolved EClass, or null if not found
+     */
+    public static EClass resolveFromSimpleName(String className, EPackage contextPackage,
+            DiagnosticCollector diagnostics) {
         if (className == null || className.isEmpty()) {
             return null;
         }
@@ -69,12 +102,12 @@ public final class TypeResolutionHelper {
             if (classifier instanceof EClass) {
                 return (EClass) classifier;
             }
-            LOGGER.warning("Could not resolve EClass '" + className
+            warn(diagnostics, "Could not resolve EClass '" + className
                     + "' in context package: " + contextPackage.getNsURI());
             return null;
         }
         // S-4: No global scan — NAME strategy requires a schema hint.
-        LOGGER.warning("Could not resolve EClass '" + className
+        warn(diagnostics, "Could not resolve EClass '" + className
                 + "' — no context package provided. "
                 + "NAME strategy requires CODEC_ROOT_SCHEMA or CODEC_ROOT_TYPE.");
         return null;
@@ -93,6 +126,19 @@ public final class TypeResolutionHelper {
      * @return the resolved EClass, or null if not found
      */
     public static EClass resolveFromSimpleName(String className) {
+        return resolveFromSimpleNameGlobally(className, null);
+    }
+
+    /**
+     * The global-scan variant, kept private: it is the S-4 discouraged path, so nobody should
+     * reach for it deliberately. Reports the reason it failed (issue #134).
+     *
+     * @param className the simple class name (e.g. "Person")
+     * @param diagnostics receives the reason, may be null when nobody is listening
+     * @return the resolved EClass, or null if not found
+     */
+    private static EClass resolveFromSimpleNameGlobally(String className,
+            DiagnosticCollector diagnostics) {
         if (className == null || className.isEmpty()) {
             return null;
         }
@@ -105,7 +151,7 @@ public final class TypeResolutionHelper {
                 }
             }
         }
-        LOGGER.warning("Could not resolve EClass from simple name: " + className);
+        warn(diagnostics, "Could not resolve EClass from simple name: " + className);
         return null;
     }
 
@@ -127,6 +173,19 @@ public final class TypeResolutionHelper {
      * @return the resolved EClass, or null if not found
      */
     public static EClass resolveFromClassName(String className, EPackage contextPackage) {
+        return resolveFromClassName(className, contextPackage, null);
+    }
+
+    /**
+     * Same, reporting the reason a resolution failed to the given collector (issue #134).
+     *
+     * @param className the fully qualified Java class name
+     * @param contextPackage the EPackage to scope resolution to (may be null)
+     * @param diagnostics receives the reason, may be null when nobody is listening
+     * @return the resolved EClass, or null if not found
+     */
+    public static EClass resolveFromClassName(String className, EPackage contextPackage,
+            DiagnosticCollector diagnostics) {
         if (className == null || className.isEmpty()) {
             return null;
         }
@@ -146,7 +205,7 @@ public final class TypeResolutionHelper {
             return resolveFromSimpleName(simpleName, contextPackage);
         }
         // S-4: No global scan — CLASS strategy requires a schema hint.
-        LOGGER.warning("Could not resolve EClass from class name '" + className
+        warn(diagnostics, "Could not resolve EClass from class name '" + className
                 + "' — no context package provided. "
                 + "CLASS strategy requires CODEC_ROOT_SCHEMA or CODEC_ROOT_TYPE.");
         return null;
@@ -221,7 +280,22 @@ public final class TypeResolutionHelper {
      * @param contextSchemaUri optional context schema URI for package lookup (may be null)
      * @return the resolved EClass, or null if not found or not a valid number
      */
-    public static EClass resolveFromNumeric(String numericValue, EClass hintEClass, String contextSchemaUri) {
+    public static EClass resolveFromNumeric(String numericValue, EClass hintEClass,
+            String contextSchemaUri) {
+        return resolveFromNumeric(numericValue, hintEClass, contextSchemaUri, null);
+    }
+
+    /**
+     * Same, reporting the reason a resolution failed to the given collector (issue #134).
+     *
+     * @param numericValue the classifier ID as string
+     * @param hintEClass optional hint EClass for package context (may be null)
+     * @param contextSchemaUri optional context schema URI for package lookup (may be null)
+     * @param diagnostics receives the reason, may be null when nobody is listening
+     * @return the resolved EClass, or null if not found or not a valid number
+     */
+    public static EClass resolveFromNumeric(String numericValue, EClass hintEClass,
+            String contextSchemaUri, DiagnosticCollector diagnostics) {
         if (numericValue == null || numericValue.isEmpty()) {
             return null;
         }
@@ -249,11 +323,11 @@ public final class TypeResolutionHelper {
 
             // S-4: No global scan fallback — NUMERIC requires a schema hint.
             // Classifier IDs are package-specific and non-deterministic without context.
-            LOGGER.warning("Could not resolve numeric classifier ID " + numericValue
+            warn(diagnostics, "Could not resolve numeric classifier ID " + numericValue
                     + " — no schema hint or context package provided. "
                     + "NUMERIC strategy requires CODEC_ROOT_SCHEMA or CODEC_ROOT_TYPE.");
         } catch (NumberFormatException e) {
-            LOGGER.warning("Invalid numeric classifier ID: " + numericValue);
+            warn(diagnostics, "Invalid numeric classifier ID: " + numericValue);
         }
         return null;
     }
@@ -288,6 +362,17 @@ public final class TypeResolutionHelper {
      * @return the resolved EClass, or null if not found or URI is invalid
      */
     public static EClass resolveFromUri(String uri) {
+        return resolveFromUri(uri, null);
+    }
+
+    /**
+     * Same, reporting the reason a resolution failed to the given collector (issue #134).
+     *
+     * @param uri the EClass URI
+     * @param diagnostics receives the reason, may be null when nobody is listening
+     * @return the resolved EClass, or null if not found
+     */
+    public static EClass resolveFromUri(String uri, DiagnosticCollector diagnostics) {
         if (uri == null || uri.isEmpty()) {
             return null;
         }
@@ -297,7 +382,7 @@ public final class TypeResolutionHelper {
             String fragment = emfUri.fragment();
 
             if (fragment == null || !fragment.startsWith("//")) {
-                LOGGER.warning("Invalid EClass URI fragment: " + uri);
+                warn(diagnostics, "Invalid EClass URI fragment: " + uri);
                 return null;
             }
 
@@ -305,7 +390,7 @@ public final class TypeResolutionHelper {
 
             EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(nsUri);
             if (ePackage == null) {
-                LOGGER.warning("EPackage not found for URI: " + nsUri);
+                warn(diagnostics, "EPackage not found for URI: " + nsUri);
                 return null;
             }
 
@@ -313,11 +398,11 @@ public final class TypeResolutionHelper {
             if (classifier instanceof EClass) {
                 return (EClass) classifier;
             } else {
-                LOGGER.warning("Classifier is not an EClass: " + className);
+                warn(diagnostics, "Classifier is not an EClass: " + className);
                 return null;
             }
         } catch (Exception e) {
-            LOGGER.warning("Error resolving EClass from URI: " + uri + " - " + e.getMessage());
+            warn(diagnostics, "Error resolving EClass from URI: " + uri + " - " + e.getMessage());
             return null;
         }
     }

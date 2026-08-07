@@ -16,6 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -33,6 +35,8 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
+import org.eclipse.fennec.codec.diagnostic.CodecDiagnostic;
+import org.eclipse.fennec.codec.diagnostic.CodecDiagnosticException;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,12 +102,21 @@ class DeserializationModeTest {
      * Loads JSON into an EObject using the given mode.
      */
     private CodecResource loadWithMode(String json, String deserializationMode) throws IOException {
-        CodecResource resource = new CodecResource(
+        CodecResource resource = newResource();
+        loadInto(resource, json, deserializationMode);
+        return resource;
+    }
+
+    private CodecResource newResource() {
+        return new CodecResource(
                 URI.createURI("test://deserialization-mode.json"),
                 metadataService,
                 ConfigurationResolver.defaults(),
                 null);
+    }
 
+    private void loadInto(CodecResource resource, String json, String deserializationMode)
+            throws IOException {
         Map<String, Object> options = new HashMap<>();
         options.put(CodecResource.CODEC_ROOT_TYPE, personClass);
         if (deserializationMode != null) {
@@ -111,8 +124,6 @@ class DeserializationModeTest {
         }
 
         resource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), options);
-
-        return resource;
     }
 
     // ========================================================================
@@ -218,8 +229,8 @@ class DeserializationModeTest {
         }
 
         @Test
-        @DisplayName("Unknown type value produces ERROR")
-        void strict_unknownType_error() throws IOException {
+        @DisplayName("Unknown type value fails the load (issue #134)")
+        void strict_unknownType_fails() {
             String json = """
                     {
                       "_type": "NonExistentClass",
@@ -228,16 +239,42 @@ class DeserializationModeTest {
                     }
                     """;
 
-            CodecResource resource = loadWithMode(json, "STRICT");
+            CodecResource resource = newResource();
 
-            // In STRICT mode, unknown type should produce an ERROR
-            assertFalse(resource.getErrors().isEmpty(), "Should have errors for unknown type in STRICT mode");
+            // STRICT is the umbrella the two strictOn* options are subsets of: an error means
+            // the load failed, and an IOException is the only way load() can say so
+            IOException failure = assertThrows(IOException.class,
+                    () -> loadInto(resource, json, "STRICT"));
 
-            // Check the error message mentions type resolution
-            boolean hasTypeError = resource.getErrors().stream()
-                    .map(Diagnostic::getMessage)
-                    .anyMatch(msg -> msg.contains("Could not resolve") || msg.contains("type"));
-            assertTrue(hasTypeError, "Error should mention type resolution failure");
+            CodecDiagnosticException diagnostics = assertInstanceOf(CodecDiagnosticException.class,
+                    failure.getCause(), "the failure carries what went wrong: " + failure);
+            assertTrue(diagnostics.getDiagnostics().stream()
+                            .map(CodecDiagnostic::getMessage)
+                            .anyMatch(msg -> msg.contains("Could not resolve") || msg.contains("type")),
+                    "and names the type resolution failure: " + diagnostics.getDiagnostics());
+        }
+
+        @Test
+        @DisplayName("the failure does not replace the diagnostics on the resource")
+        void strict_failure_keepsDiagnostics() {
+            String json = """
+                    {
+                      "_type": "NonExistentClass",
+                      "name": "Bob",
+                      "age": 25
+                    }
+                    """;
+
+            CodecResource resource = newResource();
+            assertThrows(IOException.class, () -> loadInto(resource, json, "STRICT"));
+
+            // Throwing is in addition to reporting, not instead of it
+            assertFalse(resource.getErrors().isEmpty(),
+                    "the resource still carries the ERROR diagnostics");
+            assertTrue(resource.getErrors().stream()
+                            .map(Diagnostic::getMessage)
+                            .anyMatch(msg -> msg.contains("Could not resolve") || msg.contains("type")),
+                    "was: " + resource.getErrors());
         }
 
         @Test
@@ -260,8 +297,8 @@ class DeserializationModeTest {
         }
 
         @Test
-        @DisplayName("Unexpected token for type produces ERROR")
-        void strict_unexpectedToken_error() throws IOException {
+        @DisplayName("Unexpected token for type fails the load (issue #134)")
+        void strict_unexpectedToken_fails() {
             String json = """
                     {
                       "_type": 123,
@@ -270,10 +307,11 @@ class DeserializationModeTest {
                     }
                     """;
 
-            CodecResource resource = loadWithMode(json, "STRICT");
+            CodecResource resource = newResource();
 
-            // In STRICT mode, unexpected token (number instead of string) should produce an ERROR
-            assertFalse(resource.getErrors().isEmpty(), "Should have errors for unexpected token in STRICT mode");
+            assertThrows(IOException.class, () -> loadInto(resource, json, "STRICT"),
+                    "a type that is not even a string is an error, not a hint");
+            assertFalse(resource.getErrors().isEmpty(), "and it is reported as one");
         }
     }
 

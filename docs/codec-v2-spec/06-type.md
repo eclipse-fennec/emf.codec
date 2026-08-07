@@ -1330,7 +1330,7 @@ The `DeserializationMode` controls how strictly the deserializer follows the con
 
 | Mode | Behavior | Use Case |
 |------|----------|----------|
-| `STRICT` | Type field MUST match configured strategy exactly; missing/malformed → ERROR | Guaranteed format compliance |
+| `STRICT` | Type field MUST match configured strategy exactly; missing/malformed → **fails the load** | Guaranteed format compliance |
 | `LENIENT` **(default)** | Try configured strategy first, then fallback resolution | Maximum interoperability |
 | `AUTO_DETECT` | Ignore configured strategy; probe JSON structure to determine format | Unknown/mixed formats |
 
@@ -1339,6 +1339,17 @@ The `DeserializationMode` controls how strictly the deserializer follows the con
 - Real-world JSON often has minor variations
 - STRICT is available for those who need format guarantees
 - LENIENT + warnings provides best of both worlds
+
+**What "STRICT" means:** an ERROR diagnostic **and** a failed load. `load()` throws an
+`IOException` carrying a `CodecDiagnosticException` as its cause, which holds the diagnostics;
+the same diagnostics also stay on the resource. Reporting an error and returning normally
+would leave a caller unable to tell a clean load from a broken one without inspecting
+`getErrors()` — and a caller that has to remember to check has not been told anything.
+
+`STRICT` is the umbrella that [`strictOnUnknown` and `strictOnConversion`](11-feature.md#7-feature-strictness)
+are subsets of: those fail the load for one kind of problem each, `STRICT` fails for any error
+raised while reading — type resolution included, and supertype validation as
+[07-supertype.md §9.3](07-supertype.md#93-configuration) already prescribed.
 
 **STRICT Mode:**
 ```java
@@ -1380,9 +1391,14 @@ CodecConfiguration config = CodecConfiguration.builder()
 
 | Scenario | STRICT | LENIENT | AUTO_DETECT |
 |----------|--------|---------|-------------|
-| Missing type field | ERROR | Use hints | Use hints |
-| Wrong format | ERROR | Try fallbacks | Probe format |
-| Unknown type value | ERROR | WARNING + fallback | WARNING + fallback |
+| Missing type field | ERROR + load fails | Use hints | Use hints |
+| Wrong format | ERROR + load fails | Try fallbacks | Probe format |
+| Unknown type value | ERROR + load fails | WARNING + fallback | WARNING + fallback |
+
+Whatever the mode, the **reason** a type could not be resolved reaches the resource, not just
+the log: an unregistered package, a classifier the package does not have and a malformed
+fragment are different problems with different fixes. The generic "resolved via fallback"
+warning says *that* resolution fell back; the accompanying diagnostic says *why*.
 
 **Warning Messages (LENIENT mode):**
 ```

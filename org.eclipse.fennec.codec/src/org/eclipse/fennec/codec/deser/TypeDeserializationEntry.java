@@ -24,6 +24,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.config.SuperTypeConfig;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.context.ContextHelper;
+import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
@@ -513,7 +514,8 @@ public class TypeDeserializationEntry implements DeserializationEntry {
 
         // First: check if it's a full URI (always highest priority)
         if (typeValue.contains("#//")) {
-            EClass resolved = resolveUriVia(packageResolver, typeValue, effectiveFingerprint);
+            EClass resolved = resolveUriVia(packageResolver, typeValue, effectiveFingerprint,
+                    ContextHelper.getDiagnosticCollector(ctxt));
             if (resolved != null) {
                 // Establish context schema for smart compression (root object)
                 initializeContextSchemaIfNeeded(typeValue, ctxt);
@@ -527,7 +529,8 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             if (contextSchema != null) {
                 // Try to resolve using context schema first
                 String composedUri = contextSchema + "#//" + typeValue;
-                EClass resolved = resolveUriVia(packageResolver, composedUri, effectiveFingerprint);
+                EClass resolved = resolveUriVia(packageResolver, composedUri, effectiveFingerprint,
+                        ContextHelper.getDiagnosticCollector(ctxt));
                 if (resolved != null) {
                     LOGGER.fine("Resolved type via smart compression: " + typeValue + " -> " + resolved.getName());
                     return resolved;
@@ -595,23 +598,28 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         EClass resolved;
         switch (strategy) {
             case NAME:
-                resolved = TypeResolutionHelper.resolveFromSimpleName(typeValue, contextPackage);
+                resolved = TypeResolutionHelper.resolveFromSimpleName(typeValue, contextPackage,
+                        ContextHelper.getDiagnosticCollector(ctxt));
                 break;
             case CLASS:
-                resolved = TypeResolutionHelper.resolveFromClassName(typeValue, contextPackage);
+                resolved = TypeResolutionHelper.resolveFromClassName(typeValue, contextPackage,
+                        ContextHelper.getDiagnosticCollector(ctxt));
                 break;
             case NUMERIC:
                 String numericContextSchema = ctxt != null ? ContextHelper.getContextSchemaUri(ctxt) : null;
-                resolved = TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass, numericContextSchema);
+                resolved = TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass, numericContextSchema,
+                        ContextHelper.getDiagnosticCollector(ctxt));
                 break;
             case SCHEMA_AND_TYPE:
                 // TODO: Implement SCHEMA_AND_TYPE resolution
-                resolved = TypeResolutionHelper.resolveFromSimpleName(typeValue, contextPackage);
+                resolved = TypeResolutionHelper.resolveFromSimpleName(typeValue, contextPackage,
+                        ContextHelper.getDiagnosticCollector(ctxt));
                 break;
             case URI:
             default:
                 // Fallback to simple name resolution (scoped if context available)
-                resolved = TypeResolutionHelper.resolveFromSimpleName(typeValue, contextPackage);
+                resolved = TypeResolutionHelper.resolveFromSimpleName(typeValue, contextPackage,
+                        ContextHelper.getDiagnosticCollector(ctxt));
                 break;
         }
 
@@ -620,7 +628,8 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         // a classifier id, try NUMERIC before giving up (issue #116).
         if (resolved == null && strategy != TypeStrategy.NUMERIC && isClassifierId(typeValue)) {
             String numericContextSchema = ctxt != null ? ContextHelper.getContextSchemaUri(ctxt) : null;
-            resolved = TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass, numericContextSchema);
+            resolved = TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass, numericContextSchema,
+                        ContextHelper.getDiagnosticCollector(ctxt));
         }
 
         // S-4: Add resource diagnostic when resolution fails due to missing context
@@ -746,9 +755,9 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      * nsURI (&gt; 1 candidate, no pin/fingerprint) surfaces as a hard error in every mode.
      */
     private static EClass resolveUriVia(PackageResolver resolver, String typeUri,
-            String streamFingerprint) {
+            String streamFingerprint, DiagnosticCollector diagnostics) {
         if (resolver == null) {
-            return TypeResolutionHelper.resolveFromUri(typeUri);
+            return TypeResolutionHelper.resolveFromUri(typeUri, diagnostics);
         }
         try {
             return resolver.resolveEClassFromTypeUri(typeUri, streamFingerprint);

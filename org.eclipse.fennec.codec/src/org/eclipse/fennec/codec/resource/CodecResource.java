@@ -52,6 +52,8 @@ import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.deser.DeserializationState.UnresolvedReference;
+import org.eclipse.fennec.codec.diagnostic.CodecDiagnostic;
+import org.eclipse.fennec.codec.diagnostic.CodecDiagnosticException;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.jackson.CodecJsonFactory;
 import org.eclipse.fennec.codec.jackson.CodecJsonReadContext;
@@ -462,6 +464,7 @@ public class CodecResource extends ResourceImpl {
         }
 
         diagnosticCollector.addToResource(this);
+        failIfStrict(diagnosticCollector, mergedOptions);
 
         LOGGER.fine(() -> String.format("Loaded %d objects from %s (errors=%d, warnings=%d)",
             getContents().size(), getURI(),
@@ -681,10 +684,44 @@ public class CodecResource extends ResourceImpl {
         }
 
         diagnosticCollector.addToResource(this);
+        failIfStrict(diagnosticCollector, mergedOptions);
 
         LOGGER.fine(() -> String.format("Loaded %d objects from %s (format: %s, errors=%d, warnings=%d)",
             getContents().size(), getURI(), formatProvider.getFormatId(),
             getErrors().size(), getWarnings().size()));
+    }
+
+    /**
+     * Fails the load when STRICT mode saw an error (issue #134).
+     * <p>
+     * STRICT is the umbrella the {@code strictOn*} options are subsets of: they fail the load
+     * for one kind of problem each, STRICT for any. Reporting an error and returning normally
+     * leaves a caller unable to tell a clean load from a broken one unless it inspects
+     * {@link #getErrors()} - which is exactly the gap issue #131 described.
+     * </p>
+     * <p>
+     * The diagnostics stay on the resource; the exception carries them as well, so a caller
+     * that failed to load need not consult the resource to learn why.
+     * </p>
+     *
+     * @param diagnosticCollector the diagnostics gathered during this load
+     * @param mergedOptions the effective load options, holding the mode
+     * @throws IOException when STRICT mode is active and at least one error was reported
+     */
+    private void failIfStrict(DiagnosticCollector diagnosticCollector,
+            Map<String, Object> mergedOptions) throws IOException {
+        if (!diagnosticCollector.hasErrors()) {
+            return;
+        }
+        Object mode = mergedOptions.get(CodecOptions.CODEC_DESERIALIZATION_MODE);
+        if (mode == null || !"STRICT".equals(mode.toString())) {
+            return;
+        }
+
+        List<CodecDiagnostic> errors = diagnosticCollector.getErrors();
+        String message = String.format("Load of %s failed in STRICT mode with %d error(s): %s",
+                getURI(), errors.size(), errors.get(0).getMessage());
+        throw new IOException(message, new CodecDiagnosticException(message, errors));
     }
 
     // ========================================================================
