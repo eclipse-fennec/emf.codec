@@ -127,7 +127,7 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
         TypeConfig typeConfig = currentRef != null
                 ? config.resolveTypeConfig(eClass, currentRef)
                 : config.resolveTypeConfig(eClass);
-        IdConfig idConfig = config.resolveIdConfig(eClass);
+        IdConfig idConfig = idConfigForIdSource(value, currentRef, config.resolveIdConfig(eClass));
         SuperTypeConfig superTypeConfig = config.resolveSuperTypeConfig(eClass);
 
         // Build ordered serialization entries
@@ -149,6 +149,33 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
             }
         }
         gen.writeEndObject();
+    }
+
+    /**
+     * Suppresses the id section of an object that <b>is</b> its container's identity
+     * (issue #120, spec 09-id.md §4).
+     * <p>
+     * When the container reaches this object through {@code idFeatures}, the identity is
+     * already written above, in the container's own id. A second id here would repeat it and
+     * hide the components that are the only source of the data, so the object writes its
+     * features plainly - which is what {@code FEATURE_ONLY} means.
+     * </p>
+     *
+     * @param value the object being written
+     * @param currentRef the reference it is written through, null for a root
+     * @param idConfig its own resolved id configuration
+     * @return the configuration to use, FEATURE_ONLY where the object is an id source
+     */
+    private IdConfig idConfigForIdSource(EObject value, EReference currentRef, IdConfig idConfig) {
+        if (currentRef == null || idConfig == null || value.eContainer() == null) {
+            return idConfig;
+        }
+        IdConfig containerIdConfig = config.resolveIdConfig(value.eContainer().eClass());
+        if (containerIdConfig == null || containerIdConfig.getIdFeatures() == null
+                || !containerIdConfig.getIdFeatures().contains(currentRef.getName())) {
+            return idConfig;
+        }
+        return idConfig.toBuilder().keyMode(IdKeyMode.FEATURE_ONLY).build();
     }
 
     /**

@@ -143,6 +143,70 @@ class ReferenceBasedIdTest {
                 "without a contained object there is no identity, was: " + json);
     }
 
+    @Test
+    @DisplayName("the contained object writes its components, not a second id")
+    void containedObjectWritesComponents() throws IOException {
+        String json = serialize(holder("sales", 42L));
+
+        assertTrue(json.contains("\"userGroup\":\"sales\""),
+                "the components are the only source of the data, was: " + json);
+        assertTrue(json.contains("\"userId\":42"), "was: " + json);
+        assertEquals(1, countOccurrences(json, "\"_id\""),
+                "the identity is written once, at the holder, was: " + json);
+    }
+
+    @Test
+    @DisplayName("the contained type's separator is the one that joins the components")
+    void containedSeparatorJoinsComponents() throws IOException {
+        // The separator belongs to the type that defines the identity, not to the holder
+        String json = serialize(holder("sales", 42L), separatorResolver("-"));
+
+        assertTrue(json.contains("\"_id\":\"sales-42\""),
+                "a changed separator must reach the joined value, was: " + json);
+    }
+
+    @Test
+    @DisplayName("a changed separator round-trips")
+    void changedSeparatorRoundTrips() throws IOException {
+        ConfigurationResolver config = separatorResolver("-");
+        String json = serialize(holder("sales", 42L), config);
+
+        EObject contained = (EObject) deserialize(json, config).eGet(myIdReference);
+        assertEquals("sales", contained.eGet(userGroupAttribute));
+        assertEquals(42L, contained.eGet(userIdAttribute));
+    }
+
+    @Test
+    @DisplayName("STRUCTURED writes the joined value under the inner key")
+    void structuredUsesInnerKey() throws IOException {
+        // One reference is one id feature, so the holder has a single value - which per
+        // issue #119 goes under the inner key rather than a feature name
+        String json = serialize(holder("sales", 42L), structuredResolver(null));
+
+        assertTrue(json.contains("\"_id\":{\"id\":\"sales_42\"}"),
+                "default inner key is 'id', was: " + json);
+    }
+
+    @Test
+    @DisplayName("STRUCTURED honours a renamed inner key")
+    void structuredHonoursRenamedInnerKey() throws IOException {
+        String json = serialize(holder("sales", 42L), structuredResolver("xyz"));
+
+        assertTrue(json.contains("\"_id\":{\"xyz\":\"sales_42\"}"),
+                "idValueKey must rename the inner key here too, was: " + json);
+    }
+
+    @Test
+    @DisplayName("STRUCTURED round-trips")
+    void structuredRoundTrips() throws IOException {
+        ConfigurationResolver config = structuredResolver(null);
+        String json = serialize(holder("sales", 42L), config);
+
+        EObject contained = (EObject) deserialize(json, config).eGet(myIdReference);
+        assertEquals("sales", contained.eGet(userGroupAttribute));
+        assertEquals(42L, contained.eGet(userIdAttribute));
+    }
+
     // ========================================================================
     // Helpers
     // ========================================================================
@@ -158,9 +222,50 @@ class ReferenceBasedIdTest {
         return holder;
     }
 
+    private ConfigurationResolver separatorResolver(String separator) {
+        return ConfigurationResolver.builder()
+                .resourceProperties(Map.of("codec.eClassConfig",
+                        Map.of(containedClass, Map.of("idSeparator", separator))))
+                .build();
+    }
+
+    private ConfigurationResolver structuredResolver(String valueKey) {
+        Map<String, Object> props = new HashMap<>(Map.of("idFormat", "STRUCTURED"));
+        if (valueKey != null) {
+            props.put("idValueKey", valueKey);
+        }
+        return ConfigurationResolver.builder().resourceProperties(props).build();
+    }
+
+    private int countOccurrences(String haystack, String needle) {
+        int count = 0;
+        for (int i = haystack.indexOf(needle); i >= 0; i = haystack.indexOf(needle, i + 1)) {
+            count++;
+        }
+        return count;
+    }
+
+    private EObject deserialize(String json, ConfigurationResolver resolver) throws IOException {
+        CodecResource resource = new CodecResource(URI.createURI("test://reference-id.json"),
+                metadataService, resolver, null);
+        Map<String, Object> options = new HashMap<>();
+        options.put(CodecResource.CODEC_ROOT_TYPE, holderClass);
+        resource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), options);
+        return resource.getContents().get(0);
+    }
+
     private CodecResource resource() {
         return new CodecResource(URI.createURI("test://reference-id.json"),
                 metadataService, ConfigurationResolver.defaults(), null);
+    }
+
+    private String serialize(EObject object, ConfigurationResolver resolver) throws IOException {
+        CodecResource resource = new CodecResource(URI.createURI("test://reference-id.json"),
+                metadataService, resolver, null);
+        resource.getContents().add(object);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        resource.save(out, Collections.emptyMap());
+        return out.toString(StandardCharsets.UTF_8);
     }
 
     private String serialize(EObject object) throws IOException {
