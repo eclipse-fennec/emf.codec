@@ -12,7 +12,7 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.cbor;
 
-import org.eclipse.fennec.codec.format.impl.JacksonFormatProvider;
+import org.eclipse.fennec.codec.format.jackson.JacksonFormatProvider;
 
 import tools.jackson.dataformat.cbor.CBORFactory;
 

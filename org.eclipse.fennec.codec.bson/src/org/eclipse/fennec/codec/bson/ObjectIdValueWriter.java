@@ -16,7 +16,7 @@ import java.io.IOException;
 
 import org.bson.types.ObjectId;
 import org.eclipse.emf.ecore.EAttribute;
-import org.eclipse.fennec.codec.format.impl.FormatDelegateGenerator;
+import org.eclipse.fennec.codec.format.jackson.FormatDelegateGenerator;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 

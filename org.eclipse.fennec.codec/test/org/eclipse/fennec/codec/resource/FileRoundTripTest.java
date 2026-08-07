@@ -35,7 +35,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
-import org.eclipse.fennec.codec.format.impl.JacksonFormatProvider;
+import org.eclipse.fennec.codec.format.jackson.JacksonFormatProvider;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;

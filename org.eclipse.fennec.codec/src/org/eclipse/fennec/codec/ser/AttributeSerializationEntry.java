@@ -32,7 +32,7 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
-import org.eclipse.fennec.codec.format.impl.FormatDelegateGenerator;
+import org.eclipse.fennec.codec.format.jackson.FormatDelegateGenerator;
 import org.eclipse.fennec.codec.value.AttributeValueWriter;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;

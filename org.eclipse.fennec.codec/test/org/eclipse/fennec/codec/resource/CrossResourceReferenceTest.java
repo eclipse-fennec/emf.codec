@@ -47,7 +47,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import tools.jackson.core.json.JsonFactory;
 
-import org.eclipse.fennec.codec.format.impl.JacksonFormatProvider;
+import org.eclipse.fennec.codec.format.jackson.JacksonFormatProvider;
 
 /**
  * Cross-resource reference round trips (issues #113, #123, #124).

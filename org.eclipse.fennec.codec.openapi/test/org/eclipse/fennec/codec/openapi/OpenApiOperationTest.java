@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.openapi;
 
+import org.eclipse.fennec.codec.openapi.internal.OpenApiResourceFactoryImpl;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
