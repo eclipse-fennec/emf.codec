@@ -40,6 +40,7 @@ import org.eclipse.fennec.codec.context.EMFCodecReadContext;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 import org.eclipse.fennec.codec.util.ConversionFailures;
+import org.eclipse.fennec.codec.util.EMapHelper;
 import org.eclipse.fennec.codec.util.TokenLoops;
 
 import tools.jackson.core.JsonParser;
@@ -399,8 +400,17 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 
         for (EStructuralFeature feature : eClass.getEAllStructuralFeatures()) {
             FeatureConfig featureConfig = config.resolveFeatureConfig(feature);
-            if (featureConfig != null && !featureConfig.shouldDeserialize()
-                    && propertyName.equals(featureConfig.getKey())) {
+            if (featureConfig == null) {
+                continue;
+            }
+            if (!featureConfig.shouldDeserialize() && propertyName.equals(featureConfig.getKey())) {
+                return true;
+            }
+            // A flattened EMap writes its entries directly into this object, so its keys are
+            // arbitrary and cannot be recognised individually. Since flatten is a write-only
+            // export feature (issue #121), any unknown key here is expected rather than wrong
+            if (featureConfig.isFlatten() && feature instanceof EReference mapRef
+                    && EMapHelper.isMapEntryReference(mapRef)) {
                 return true;
             }
         }
