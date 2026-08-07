@@ -729,6 +729,38 @@ CodecConfiguration.builder()
 
 ---
 
+## 8.1 Flattened EMaps (`codec.flatten`) — write only
+
+An EMap reference marked `codec.flatten=true` writes its entries **directly into the parent
+object** instead of nesting them under the reference key:
+
+```json
+{ "_type": "…#//Container", "name": "cfg", "alpha": "one", "beta": "two" }
+```
+
+instead of
+
+```json
+{ "_type": "…#//Container", "name": "cfg", "metadata": { "alpha": "one", "beta": "two" } }
+```
+
+**This is a one-directional export feature.** The map is not restored on read, and that is a
+deliberate limitation rather than a gap: once the entries sit at the same level as the
+object's own fields, there is no way to tell which key belonged to the map. Any rule would be
+a guess as soon as the document carries a field the model does not declare — and documents
+from other producers regularly do.
+
+The reader therefore **skips** those keys silently. It must not report them as unknown
+features: that would fill the diagnostics of a clean round trip with noise and, under
+`strictOnUnknown`, turn the codec's own output into a load failure.
+
+Use it where the document is consumed by something other than this codec — a flat
+configuration view, a report, an export for a system that expects plain key-value objects.
+Where the map has to survive a round trip, leave `flatten` off.
+
+> Same class as the tabular exports (CSV, ODS, R-Lang): the output is a projection, not a
+> serialization that can be read back.
+
 ## 9. Deserialization
 
 ### 9.1 Reference Resolution Phases
