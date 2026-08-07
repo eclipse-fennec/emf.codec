@@ -12,7 +12,7 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.format;
 
-import org.eclipse.fennec.codec.format.impl.JacksonFormatProvider;
+import org.eclipse.fennec.codec.format.jackson.JacksonFormatProvider;
 import org.junit.jupiter.api.DisplayName;
 
 import tools.jackson.core.json.JsonFactory;

@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.openapi;
 
+import org.eclipse.fennec.codec.openapi.internal.OpenApiResourceFactoryImpl;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

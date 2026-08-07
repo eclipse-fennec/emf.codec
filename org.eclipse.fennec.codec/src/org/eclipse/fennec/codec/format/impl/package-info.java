@@ -11,6 +11,13 @@
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
 
-@org.osgi.annotation.bundle.Export
-@org.osgi.annotation.versioning.Version("1.0.0")
+/**
+ * Implementation detail of the Jackson stream path - deliberately <b>not</b> exported
+ * (issue #58/#59).
+ * <p>
+ * What other bundles extend lives in {@code org.eclipse.fennec.codec.format.jackson}. Nothing
+ * here is referenced outside this package, and keeping it private means changing it is not a
+ * breaking API change.
+ * </p>
+ */
 package org.eclipse.fennec.codec.format.impl;
