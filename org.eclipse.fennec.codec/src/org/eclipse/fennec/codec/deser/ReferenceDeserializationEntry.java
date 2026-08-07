@@ -33,6 +33,7 @@ import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
 import org.eclipse.fennec.codec.deser.DeserializationState.UnresolvedReference;
 import org.eclipse.fennec.codec.jackson.CodecJsonReadContext;
+import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.util.EMapHelper;
 import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
@@ -755,10 +756,14 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                     eObject.eSet(reference, orphan);
                 }
             }
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
-            String msg = "Error deserializing non-containment reference '" + reference.getName() + "': " + e.getMessage();
-            LOGGER.severe(msg);
-            ContextHelper.addError(ctxt, msg, parser, "ReferenceDeserializationEntry");
+            // A dropped reference loses a relation, not just a value (issue #131)
+            ConversionFailures.report(entryContext, reference.getEContainingClass(), ctxt, parser,
+                    "ReferenceDeserializationEntry",
+                    "Error deserializing non-containment reference '" + reference.getName()
+                            + "': " + e.getMessage());
         } finally {
             // Ensure all resources are closed even on exception
             closeQuietly(replayParser);

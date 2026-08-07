@@ -47,6 +47,7 @@ import org.eclipse.fennec.codec.value.AttributeValueReader;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
+import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.util.TokenLoops;
 
 import tools.jackson.core.JsonParser;
@@ -356,21 +357,8 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
      */
     private void reportConversionFailure(JsonParser parser, DeserializationContext ctxt,
             String msg) {
-        LOGGER.warning(msg);
-        if (isStrictOnConversion()) {
-            ContextHelper.addError(ctxt, msg, parser, "AttributeDeserializationEntry");
-            throw new IllegalStateException(msg);
-        }
-        ContextHelper.addWarning(ctxt, msg, parser, "AttributeDeserializationEntry");
-    }
-
-    private boolean isStrictOnConversion() {
-        if (entryContext == null || entryContext.getEffectiveConfig() == null) {
-            return false;
-        }
-        ClassConfig classConfig = entryContext.getEffectiveConfig()
-                .resolveClassConfig(attribute.getEContainingClass());
-        return classConfig != null && classConfig.isStrictOnConversion();
+        ConversionFailures.report(entryContext, attribute.getEContainingClass(), ctxt, parser,
+                "AttributeDeserializationEntry", msg);
     }
 
     /**

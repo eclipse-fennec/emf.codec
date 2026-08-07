@@ -39,6 +39,7 @@ import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
+import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.util.TokenLoops;
 
 import tools.jackson.core.JsonParser;
@@ -858,7 +859,13 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             // Propagate IllegalStateException (e.g., from discriminator ERROR strategy)
             throw e;
         } catch (Exception e) {
-            LOGGER.fine("Could not replay deferred value for " + entry.getKey() + ": " + e.getMessage());
+            // A deferred value that cannot be replayed is simply gone. Reporting it at FINE
+            // level made it invisible even to a caller who inspects the diagnostics - the
+            // quietest variant of the problem in issue #131
+            ConversionFailures.report(entryContext, state.getResolvedEClass(), ctxt, null,
+                    "CodecEObjectDeserializer",
+                    "Could not replay deferred value for '" + entry.getKey() + "': "
+                            + e.getMessage());
         }
     }
 

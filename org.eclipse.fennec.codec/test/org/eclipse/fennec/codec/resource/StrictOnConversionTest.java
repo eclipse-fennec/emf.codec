@@ -13,6 +13,8 @@
 package org.eclipse.fennec.codec.resource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -139,5 +141,40 @@ class StrictOnConversionTest {
         options.put(CodecResource.CODEC_ROOT_TYPE, personClass);
         resource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), options);
         return resource;
+    }
+
+    @Test
+    @DisplayName("an id that cannot be converted is escalated too")
+    void strictCoversTheIdPath() {
+        ConfigurationResolver strict = ConfigurationResolver.builder()
+                .resourceProperties(Map.of("strictOnConversion", true))
+                .build();
+
+        // Person.id is an EString, so use a class whose id is numeric: the age attribute
+        // stands in as a compound id feature that cannot take a non-numeric value
+        String json = """
+                {
+                  "_type": "%s#//Person",
+                  "_id": "not-a-number",
+                  "name": "Alice"
+                }
+                """.formatted(testPackage.getNsURI());
+
+        ConfigurationResolver numericId = ConfigurationResolver.builder()
+                .resourceProperties(Map.of(
+                        "strictOnConversion", true,
+                        "idFeatures", java.util.List.of("age")))
+                .build();
+
+        assertThrows(Exception.class, () -> load(json, numericId),
+                "a failed id conversion loses identity and must be escalatable");
+
+        // and without strictness the same document still loads
+        ConfigurationResolver lenientNumericId = ConfigurationResolver.builder()
+                .resourceProperties(Map.of("idFeatures", java.util.List.of("age")))
+                .build();
+        assertDoesNotThrow(() -> load(json, lenientNumericId),
+                "the default stays lenient");
+        assertNotNull(strict, "resolver built");
     }
 }
