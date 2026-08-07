@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.config.IdConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
@@ -237,6 +238,35 @@ public class IdSerializationEntry implements SerializationEntry {
     }
 
     /**
+     * Builds the id of an object referenced by an id feature, using <b>that object's</b> id
+     * configuration - its features and its separator (spec 09-id.md §4).
+     *
+     * @param reference the id reference
+     * @param contained the referenced object
+     * @return the id string, or null when the contained type defines no id
+     */
+    private String idOfContainedObject(EReference reference, EObject contained) {
+        EClass containedClass = contained.eClass();
+        IdConfig containedConfig = entryContext != null && entryContext.getEffectiveConfig() != null
+                ? entryContext.getEffectiveConfig().resolveIdConfig(containedClass)
+                : null;
+        if (containedConfig == null) {
+            LOGGER.warning("No id configuration for '" + containedClass.getName()
+                    + "' referenced by id feature '" + reference.getName()
+                    + "' - writing no id rather than a guessed one");
+            return null;
+        }
+
+        IdSerializationEntry containedEntry =
+                new IdSerializationEntry(containedConfig, containedClass, entryContext);
+        Map<String, Object> containedValues = containedEntry.resolveIdValues(contained);
+        if (containedValues.isEmpty()) {
+            return null;
+        }
+        return containedEntry.combineValues(containedValues);
+    }
+
+    /**
      * Combines multiple ID values into a single string with separator.
      */
     private String combineValues(Map<String, Object> idValues) {
@@ -284,12 +314,24 @@ public class IdSerializationEntry implements SerializationEntry {
         if (configuredFeatures != null && !configuredFeatures.isEmpty()) {
             for (String featureName : configuredFeatures) {
                 EStructuralFeature feature = eClass.getEStructuralFeature(featureName);
-                if (feature != null) {
-                    Object value = eObject.eGet(feature);
-                    if (value != null) {
-                        result.put(featureName, value);
-                    }
+                if (feature == null) {
+                    continue;
                 }
+                Object value = eObject.eGet(feature);
+                if (value == null) {
+                    continue;
+                }
+                if (feature instanceof EReference reference && value instanceof EObject contained) {
+                    // The identity lives in the contained object and is built from its own id
+                    // configuration (spec §4, issue #120). Taking the reference value as-is
+                    // put the object's toString() - identity hash included - into the id.
+                    String containedId = idOfContainedObject(reference, contained);
+                    if (containedId != null) {
+                        result.put(featureName, containedId);
+                    }
+                    continue;
+                }
+                result.put(featureName, value);
             }
             if (!result.isEmpty()) {
                 return result;
