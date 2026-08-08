@@ -2,7 +2,45 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-08-07
+**Last Updated:** 2026-08-08
+
+**Session Summary (2026-08-08) — the code-quality block worked off (#80 with nine sub-issues):**
+
+Hardening is done; the tracker holds only #46 and its sub-issue #145. The lesson worth carrying
+forward is about **triage**, not any single fix.
+
+- **The severity labels only partly held.** #81 was correctly `major` and a genuine leak: the
+  static `PER_PACKAGE_VIEW` in `TypeDiscriminatorService` held every `PackageMetadata` — and
+  through it the `EPackage` and all its `EClass`es — for the lifetime of the JVM, because
+  `unregisterPackage` cleaned the instance registries and nothing else. A re-registered package
+  was served its predecessor's view. But #67 was filed as `info` and carried the highest cost if
+  missed (Maven Central artifacts are immutable), while #62 was `minor` and would have demanded
+  the most work — splitting two working converters, ~4500 lines, with no defects pointing at
+  them. **Read the issue, not the label.**
+- **Surveying usage before acting contradicted the issue twice.** #58 lists the
+  `jsonschema.v2.value` handlers and the JAX-RS feature classes as components to hide; the
+  openapi bundle uses the first group in *production* code, so hiding them would have broken it.
+  Of the six classes in `format.impl` (#59), only three are used outside the package — those
+  moved to the exported `format.jackson`, the rest stayed and the package lost its `@Export`.
+  **Verified in the built manifest, not just at the compiler.**
+- **Release exclusion has a convention, in a repo nobody thought to check.** `-releaserepo:
+  Sonatype` is workspace-wide from the bnd library; the per-project opt-out is
+  `-maven-release: local`, as used by **`/opt/git/fennec-model.atlas`** — not by
+  emf.persistence-jpa, emf.osgi or fennec-odata, which is why the first search came up empty.
+- **The trap next to it:** `workspace.library/required.bndrun` resolves to the list that becomes
+  the library's `-buildpath` and from there its maven dependencies. `examples` and the TCK are
+  in it, so marking either `local` would leave the published library pointing at an artifact
+  that is not on Central. **Check that file before excluding anything.** It also settles a
+  question that looked open: the TCK is a declared dependency of the published library, so it is
+  already published API. Its package name keeps the reserved `tests` qualifier by decision.
+- **Three issues were closed without code**, each with the condition that would justify
+  reopening: #62 (converters — reopen when they appear in bug reports), #66 and #68 (both
+  conclude "observation only" / "None required now" themselves).
+- **Also done:** 134 date-based `@since` tags became `1.0` (#65) — verified first that all 54
+  exported packages really are at 1.0 and nothing is released. And #83, which turned out to be
+  fixed since a6e6ebc but had left standing exactly the fallback its own *Suggested fix* warned
+  about: `uri.resolve(resourceURI)` against the reader's relative base `temp/id` throws
+  `IllegalArgumentException`. The existing test passed only because it used an absolute base.
 
 **Session Summary (2026-08-06/07) — the #110 campaign worked off end to end (#112-#121, #124, #129, #131, #132, #134):**
 
@@ -1002,6 +1040,13 @@ MAIN TASK: [description] - [status: ACTIVE/PAUSED/✅]
 ### 0.2 Current Task Hierarchy
 
 ```
+
+COMPLETED: code-quality block #80 - ✅ (2026-08-08, PRs #143, #144, #146)
+│  - #58/#59 api-export: 21 components to .internal, format.impl split into format.jackson
+│  - #81 per-package view leak; #65 @since dates -> 1.0
+│  - #67 -maven-release: local (convention from fennec-model.atlas)
+│  - #62/#66/#68 closed with rationale, no code change
+│  - Open: #46 release preparation + #145
 
 COMPLETED: ser/deser asymmetry campaign #110 - ✅ (2026-08-07, PRs #125-#141)
 │  - #112-#121 all merged and closed; #129/#131/#132 (hang: parser, swallow, loop guards)
