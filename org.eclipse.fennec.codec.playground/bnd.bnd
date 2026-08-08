@@ -29,3 +29,6 @@ Bundle-Description: Playground project for experimenting with the Fennec EMF Cod
 Require-Capability: \
 	osgi.extender;filter:='(osgi.extender=osgi.configurator)',\
 	osgi.implementation;filter:='(&(osgi.implementation=osgi.cm)(version>=1.6.0)(!(version>=2.0.0)))'
+
+# Scratch project for experiments - do not publish this bundle to Maven Central; local install only (issue #67)
+-maven-release: local
