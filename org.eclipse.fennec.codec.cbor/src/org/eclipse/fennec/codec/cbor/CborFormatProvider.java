@@ -35,7 +35,7 @@ import tools.jackson.dataformat.cbor.CBORFactory;
  * </pre>
  *
  * @see JacksonFormatProvider
- * @since 2026-02-16
+ * @since 1.0
  */
 public class CborFormatProvider extends JacksonFormatProvider {
 

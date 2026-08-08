@@ -33,7 +33,7 @@ import tools.jackson.databind.deser.Deserializers;
  * @see CodecEObjectDeserializer
  * @see EffectiveCodecConfig
  * @author Mark Hoffmann
- * @since 2026-02-01
+ * @since 1.0
  */
 public class CodecDeserializers extends Deserializers.Base {
 

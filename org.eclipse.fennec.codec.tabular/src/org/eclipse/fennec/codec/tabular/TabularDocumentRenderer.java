@@ -46,7 +46,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.TabularDocument;
  *
  * @param <T> the format-specific output target type
  *            (e.g. {@code OutputStream} for CSV / ODS / XLSX)
- * @since 2026-05
+ * @since 1.0
  */
 public interface TabularDocumentRenderer<T> {
 

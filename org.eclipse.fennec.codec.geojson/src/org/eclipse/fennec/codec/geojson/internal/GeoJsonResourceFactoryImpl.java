@@ -41,7 +41,7 @@ import org.osgi.service.component.annotations.Reference;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025
+ * @since 1.0
  */
 @Component(service = Resource.Factory.class, 
 	property = {

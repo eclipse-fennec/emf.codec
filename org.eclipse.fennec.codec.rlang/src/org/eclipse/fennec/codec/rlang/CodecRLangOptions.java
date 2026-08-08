@@ -20,7 +20,7 @@ package org.eclipse.fennec.codec.rlang;
  * live in {@link org.eclipse.fennec.codec.tabular.CodecTabularOptions} — the
  * R-Language provider reads them from there.
  *
- * @since 2026-06
+ * @since 1.0
  */
 public interface CodecRLangOptions {
 

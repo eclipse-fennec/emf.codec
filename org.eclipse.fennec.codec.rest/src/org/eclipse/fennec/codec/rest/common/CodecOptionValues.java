@@ -23,7 +23,7 @@ import java.text.SimpleDateFormat;
  * values are handled separately by callers that have a {@code ResourceSet} (they need URI
  * resolution); this helper covers the scalar types.
  *
- * @since 2026-06
+ * @since 1.0
  */
 public final class CodecOptionValues {
 

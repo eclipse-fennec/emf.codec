@@ -37,7 +37,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.FallbackStrategy;
  *
  * @see TypeDiscriminatorService
  * @author Mark Hoffmann
- * @since 2025-12-17
+ * @since 1.0
  */
 public class TypeDiscriminatorRegistry {
 

@@ -42,7 +42,7 @@ import tools.jackson.databind.SerializationContext;
  *
  * @see <a href="docs/codec-v2-serialization-spec.md#3-type-serialization">Spec 3: Type Serialization</a>
  * @author Mark Hoffmann
- * @since 2025-12-16
+ * @since 1.0
  */
 public class TypeSerializationEntry implements SerializationEntry {
 

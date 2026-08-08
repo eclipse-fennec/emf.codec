@@ -74,7 +74,7 @@ import java.util.Set;
  * </ul>
  *
  * @author Mark Hoffmann
- * @since 2025-12-04
+ * @since 1.0
  */
 public final class CodecAnnotationConstants {
 

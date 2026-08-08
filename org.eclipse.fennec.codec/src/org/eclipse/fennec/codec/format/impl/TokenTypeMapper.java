@@ -30,7 +30,7 @@ import tools.jackson.core.JsonToken;
  * </ul>
  *
  * @see TokenType
- * @since 2026-02-16
+ * @since 1.0
  */
 public final class TokenTypeMapper {
 

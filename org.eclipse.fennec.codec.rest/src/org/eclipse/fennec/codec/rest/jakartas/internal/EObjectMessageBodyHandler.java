@@ -54,7 +54,7 @@ import jakarta.ws.rs.ext.Provider;
  * @author Mark Hoffmann
  * @param <R> the reader type, must be an {@link EObject}
  * @param <W> the writer type, must be an {@link EObject}
- * @since 30.05.2012
+ * @since 1.0
  */
 @Component(
 		service = {MessageBodyReader.class, MessageBodyWriter.class},

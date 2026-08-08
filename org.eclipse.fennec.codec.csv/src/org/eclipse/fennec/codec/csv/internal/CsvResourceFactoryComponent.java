@@ -54,7 +54,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
  * construct the resource manually with a {@link CsvFormatProvider} pre-configured
  * for SQL_TABLES) if you need a different file name.
  *
- * @since 2026-05
+ * @since 1.0
  */
 @Component(
         name = "CsvResourceFactory",

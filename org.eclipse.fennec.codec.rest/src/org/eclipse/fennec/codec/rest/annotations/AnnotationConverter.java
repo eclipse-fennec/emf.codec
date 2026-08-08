@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * 
  * @author ilenia
- * @since Mar 18, 2026
+ * @since 1.0
  */
 public interface AnnotationConverter {
 

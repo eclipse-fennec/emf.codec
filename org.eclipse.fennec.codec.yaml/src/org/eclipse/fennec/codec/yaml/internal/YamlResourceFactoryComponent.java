@@ -33,7 +33,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
  * {@code .yaml} and {@code .yml} file extensions, backed by
  * {@link YamlFormatProvider}.
  *
- * @since 2026-06
+ * @since 1.0
  */
 @Component(
         name = "YamlResourceFactory",

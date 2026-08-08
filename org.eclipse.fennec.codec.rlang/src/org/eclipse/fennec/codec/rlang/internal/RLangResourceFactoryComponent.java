@@ -41,7 +41,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
  *       {@code true}).</li>
  * </ul>
  *
- * @since 2026-06
+ * @since 1.0
  */
 @Component(
         name = "RLangResourceFactory",

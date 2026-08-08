@@ -46,7 +46,7 @@ import tools.jackson.databind.json.JsonMapper;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025
+ * @since 1.0
  * @see <a href="https://geojson.org/">GeoJSON Specification</a>
  */
 public class GeoJsonResourceImpl extends CodecResource {

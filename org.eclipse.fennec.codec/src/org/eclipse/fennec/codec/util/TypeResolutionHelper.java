@@ -33,7 +33,7 @@ import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2026-02-05
+ * @since 1.0
  */
 public final class TypeResolutionHelper {
 

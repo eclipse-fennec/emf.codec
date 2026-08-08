@@ -33,7 +33,7 @@ import java.util.Map;
  * <em>what</em> or <em>how much</em>. Keep options with a real blast radius (e.g. reference
  * expansion, type strategy, custom value reader/writer names) out of the contributed set.
  *
- * @since 2026-06
+ * @since 1.0
  */
 public interface RestOverridableCodecOptions {
 

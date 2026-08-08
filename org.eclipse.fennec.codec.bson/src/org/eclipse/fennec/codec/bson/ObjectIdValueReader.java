@@ -31,7 +31,7 @@ import org.eclipse.fennec.codec.value.CodecValueReader;
  *
  * @see ObjectIdValueWriter
  * @author Mark Hoffmann
- * @since 2026-08-05
+ * @since 1.0
  */
 public class ObjectIdValueReader implements CodecValueReader<Object, EAttribute> {
 

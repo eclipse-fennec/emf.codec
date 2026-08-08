@@ -23,7 +23,7 @@ import org.osgi.service.component.annotations.Component;
  * are written (null/default/empty), enum serialization strategy, field ordering, and id-on-top.
  * These apply across all formats (JSON and the tabular exporters).
  *
- * @since 2026-06
+ * @since 1.0
  */
 @Component
 public class CoreOverridableCodecOptions implements RestOverridableCodecOptions {

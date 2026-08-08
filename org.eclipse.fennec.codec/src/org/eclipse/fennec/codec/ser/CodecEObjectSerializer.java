@@ -71,7 +71,7 @@ import tools.jackson.databind.ValueSerializer;
  * @see <a href="docs/codec-v2-spec/06-eobject-serialization.md">Spec 6: EObject Serialization</a>
  * @see <a href="docs/codec-v2-spec/16-annotation-reference.md#field-ordering">Spec 16: Field Ordering</a>
  * @author Mark Hoffmann
- * @since 2026-02-01
+ * @since 1.0
  */
 public class CodecEObjectSerializer extends ValueSerializer<EObject> {
 

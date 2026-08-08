@@ -635,7 +635,7 @@ public final class CodecOptions {
      * Value: {@code Boolean} or {@code "true"}/{@code "false"}. Default:
      * {@code false}.
      *
-     * @since 2026-06
+     * @since 1.0
      */
     public static final String CODEC_THROW_ON_VALIDATION_WARNINGS =
             "codec.throwOnValidationWarnings";

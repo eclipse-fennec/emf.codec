@@ -60,7 +60,7 @@ import tools.jackson.databind.JsonNode;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025
+ * @since 1.0
  * @see EPackageValueWriter
  */
 @Component(service = CodecValueReader.class)

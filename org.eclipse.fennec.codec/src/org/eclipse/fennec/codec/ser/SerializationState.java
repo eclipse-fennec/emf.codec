@@ -38,7 +38,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
  *
  * @see <a href="docs/codec-v2-serialization-spec.md#6-eobject-serialization">Spec 6: EObject Serialization</a>
  * @author Mark Hoffmann
- * @since 2025-12-16
+ * @since 1.0
  */
 public class SerializationState {
 

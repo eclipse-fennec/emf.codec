@@ -68,7 +68,7 @@ import com.github.miachm.sods.Style;
  * link is attached, a linked FK carries its id as the link's display text and is
  * therefore a string rather than a numeric cell.
  *
- * @since 2026-06
+ * @since 1.0
  */
 public class OdsRenderer implements TabularDocumentRenderer<OutputStream> {
 

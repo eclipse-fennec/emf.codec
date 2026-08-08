@@ -41,7 +41,7 @@ import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
  * @see DeserializationEntry
  * @see <a href="docs/codec-v2-serialization-spec.md#15-deserialization-requirements">Spec 15: Deserialization</a>
  * @author Mark Hoffmann
- * @since 2025-12-16
+ * @since 1.0
  */
 public class DeserializationState {
 

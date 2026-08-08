@@ -31,7 +31,7 @@ import org.eclipse.fennec.codec.constants.CodecOptions;
  * </p>
  *
  * @author ilenia
- * @since Mar 18, 2026
+ * @since 1.0
  */
 @Documented
 @Target({METHOD, PARAMETER})

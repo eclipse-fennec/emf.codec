@@ -45,7 +45,7 @@ import tools.jackson.core.JsonToken;
  * </p>
  *
  * @author Data In Motion
- * @since 2026
+ * @since 1.0
  */
 @Component(service = CodecValueReader.class)
 public class SecurityRequirementValueReader implements ReferenceValueReader<SecurityRequirement> {

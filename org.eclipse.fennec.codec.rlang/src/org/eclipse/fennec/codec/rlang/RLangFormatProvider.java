@@ -36,7 +36,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
  * {@link UnsupportedOperationException}. All {@link ReferenceMode}s flow
  * through {@link TabularDocumentDelegate} + {@link RLangRenderer}.
  *
- * @since 2026-06
+ * @since 1.0
  */
 public class RLangFormatProvider implements CodecFormatProvider<InputStream, OutputStream> {
 

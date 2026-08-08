@@ -38,7 +38,7 @@ import tools.jackson.databind.util.TokenBuffer;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025-12-28
+ * @since 1.0
  */
 public class CodecTokenBuffer extends TokenBuffer {
 

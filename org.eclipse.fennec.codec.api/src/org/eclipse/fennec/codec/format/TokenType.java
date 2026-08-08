@@ -22,7 +22,7 @@ package org.eclipse.fennec.codec.format;
  *
  * @see FormatDelegate
  * @see FormatReaderDelegate
- * @since 2026-02-16
+ * @since 1.0
  */
 public enum TokenType {
 

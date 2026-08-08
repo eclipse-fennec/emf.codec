@@ -51,7 +51,7 @@ import jakarta.ws.rs.ext.Provider;
  * @author Juergen Albert
  * @param <R> the reader type, must be an {@link Resource}
  * @param <W> the writer type, must be an {@link Resource}}
- * @since 30.05.2012
+ * @since 1.0
  */
 @Component(
 		service = {MessageBodyReader.class, MessageBodyWriter.class},

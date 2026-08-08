@@ -20,7 +20,7 @@ package org.eclipse.fennec.codec.ods;
  * in {@link org.eclipse.fennec.codec.tabular.CodecTabularOptions} — the ODS
  * provider reads them from there.
  *
- * @since 2026-06
+ * @since 1.0
  */
 public interface CodecOdsOptions {
 

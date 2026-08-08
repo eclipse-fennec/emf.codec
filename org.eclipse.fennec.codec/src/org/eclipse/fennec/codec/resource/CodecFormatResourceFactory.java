@@ -40,7 +40,7 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * @see CodecResource
  * @see CodecFormatProvider
- * @since 2026-02-16
+ * @since 1.0
  */
 public class CodecFormatResourceFactory extends ResourceFactoryImpl {
 

@@ -38,7 +38,7 @@ import tools.jackson.databind.SerializationContext;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025-12-29
+ * @since 1.0
  */
 public final class ContextHelper {
 

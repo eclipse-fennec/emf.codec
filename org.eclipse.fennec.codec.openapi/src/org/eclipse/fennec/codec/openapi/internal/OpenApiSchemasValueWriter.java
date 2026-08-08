@@ -31,7 +31,7 @@ import org.osgi.service.component.annotations.Component;
  * </p>
  *
  * @author Data In Motion
- * @since 2025
+ * @since 1.0
  */
 @Component(service = CodecValueWriter.class)
 public class OpenApiSchemasValueWriter implements ReferenceValueWriter<EPackage> {

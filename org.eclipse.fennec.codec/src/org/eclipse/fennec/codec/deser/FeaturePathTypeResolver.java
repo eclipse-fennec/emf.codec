@@ -51,7 +51,7 @@ import tools.jackson.core.ObjectReadContext;
  *
  * @see TypeDiscriminatorReader
  * @author Mark Hoffmann
- * @since 2025-12-28
+ * @since 1.0
  */
 public class FeaturePathTypeResolver {
 

@@ -80,7 +80,7 @@ import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
  * @see TypeDiscriminatorRegistry
  * @see ClassCodecAspect#getDiscriminatorValue()
  * @author Mark Hoffmann
- * @since 2025-12-17
+ * @since 1.0
  */
 public class TypeDiscriminatorService implements MetadataHandler, TypeDiscriminatorReader {
 
@@ -1001,6 +1001,11 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
         if (packageMetadata == null) {
             return;
         }
+        // The cached view holds the PackageMetadata, and with it the EPackage and every
+        // EClass in it. Without this the map grows for the lifetime of the JVM in a dynamic
+        // deployment, and a re-registered package is served the view of its predecessor
+        // (issue #81)
+        PER_PACKAGE_VIEW.remove(packageMetadata);
         for (ClassMetadata classMetadata : packageMetadata.getClasses()) {
             unregisterClass(classMetadata);
         }

@@ -72,7 +72,7 @@ import de.siegmar.fastcsv.writer.QuoteStrategy;
  * {@link CodecCsvOptions}: delimiter, quote mode, line ending, charset, and the
  * SQL-type-row toggle.
  *
- * @since 2026-05
+ * @since 1.0
  */
 public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
 

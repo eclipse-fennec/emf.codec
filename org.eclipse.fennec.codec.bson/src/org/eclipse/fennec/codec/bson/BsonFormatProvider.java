@@ -57,7 +57,7 @@ import org.eclipse.fennec.codec.format.TokenType;
  * @see BsonFormatDelegate
  * @see BsonFormatReaderDelegate
  * @see CodecOptions#CODEC_MAX_PAYLOAD_SIZE
- * @since 2026-02-16
+ * @since 1.0
  */
 public class BsonFormatProvider implements CodecFormatProvider<InputStream, OutputStream> {
 

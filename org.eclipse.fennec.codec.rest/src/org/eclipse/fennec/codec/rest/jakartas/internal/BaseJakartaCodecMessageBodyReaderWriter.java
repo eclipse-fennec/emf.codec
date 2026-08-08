@@ -64,7 +64,7 @@ import jakarta.ws.rs.ext.MessageBodyWriter;
  * {@code ContainerRequestContext} override it.
  *
  * @author ilenia
- * @since Mar 18, 2026
+ * @since 1.0
  */
 public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends AbstractJakartaCodecAnnotationHandler
 		implements MessageBodyReader<R>, MessageBodyWriter<W> {

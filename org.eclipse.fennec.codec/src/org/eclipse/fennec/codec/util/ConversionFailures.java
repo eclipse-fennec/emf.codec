@@ -36,7 +36,7 @@ import tools.jackson.databind.DeserializationContext;
  * same way, and a caller who asks for strictness means all of them.
  * </p>
  *
- * @since 2026-08-07
+ * @since 1.0
  */
 public final class ConversionFailures {
 

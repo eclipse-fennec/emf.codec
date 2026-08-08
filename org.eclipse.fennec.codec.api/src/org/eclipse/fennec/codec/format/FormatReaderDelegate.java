@@ -55,7 +55,7 @@ import java.math.BigInteger;
  * @see FormatDelegate
  * @see CodecFormatProvider
  * @see TokenType
- * @since 2026-02-16
+ * @since 1.0
  */
 public interface FormatReaderDelegate<S> {
 

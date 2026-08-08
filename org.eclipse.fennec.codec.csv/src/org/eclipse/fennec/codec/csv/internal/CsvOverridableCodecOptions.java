@@ -23,7 +23,7 @@ import org.osgi.service.component.annotations.Component;
 /**
  * Exposes the CSV dialect knobs (and the shared reference mode) for REST client override.
  *
- * @since 2026-06
+ * @since 1.0
  */
 @Component
 public class CsvOverridableCodecOptions implements RestOverridableCodecOptions {

@@ -64,7 +64,7 @@ import tools.jackson.databind.json.JsonMapper;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025
+ * @since 1.0
  * @see EPackageValueReader
  */
 @Component(service = CodecValueWriter.class)

@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2026-01-24
+ * @since 1.0
  */
 public final class AnnotationParseHelper {
 

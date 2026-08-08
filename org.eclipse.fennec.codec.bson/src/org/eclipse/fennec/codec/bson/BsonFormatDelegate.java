@@ -40,7 +40,7 @@ import org.eclipse.fennec.codec.format.FormatDelegate;
  *
  * @see BsonFormatReaderDelegate
  * @see BsonFormatProvider
- * @since 2026-02-16
+ * @since 1.0
  */
 public class BsonFormatDelegate implements FormatDelegate<BsonDocument> {
 

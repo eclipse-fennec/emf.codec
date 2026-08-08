@@ -27,7 +27,7 @@ import org.eclipse.emf.ecore.EReference;
  *
  * @see TypeDiscriminatorService
  * @author Mark Hoffmann
- * @since 2026-02-17
+ * @since 1.0
  */
 public interface TypeDiscriminatorReader {
 

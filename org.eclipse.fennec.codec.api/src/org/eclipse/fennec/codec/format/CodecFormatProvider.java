@@ -44,7 +44,7 @@ import java.io.IOException;
  * @param <T> the output target type for writing
  * @see FormatDelegate
  * @see FormatReaderDelegate
- * @since 2026-02-16
+ * @since 1.0
  */
 public interface CodecFormatProvider<S, T> {
 
@@ -82,7 +82,7 @@ public interface CodecFormatProvider<S, T> {
      * @param saveOptions the save-time option map, never {@code null} (may be empty)
      * @return a new writer delegate, never null
      * @throws IOException if the delegate cannot be created
-     * @since 2026-05
+     * @since 1.0
      */
     default FormatDelegate<T> createWriter(T target,
             org.eclipse.emf.ecore.EObject rootObject,
@@ -107,7 +107,7 @@ public interface CodecFormatProvider<S, T> {
      * @param saveOptions the save-time option map, never {@code null} (may be empty)
      * @return a new writer delegate, never null
      * @throws IOException if the delegate cannot be created
-     * @since 2026-05
+     * @since 1.0
      */
     default FormatDelegate<T> createWriter(T target,
             java.util.List<? extends org.eclipse.emf.ecore.EObject> rootObjects,
@@ -139,7 +139,7 @@ public interface CodecFormatProvider<S, T> {
      * @param resolver the operation configuration resolver (already enriched with save options); may be {@code null}
      * @return a new writer delegate, never null
      * @throws IOException if the delegate cannot be created
-     * @since 2026-05
+     * @since 1.0
      */
     default FormatDelegate<T> createWriter(T target,
             java.util.List<? extends org.eclipse.emf.ecore.EObject> rootObjects,
@@ -238,7 +238,7 @@ public interface CodecFormatProvider<S, T> {
      * @param options the effective save-time option map (already merged with
      *            any provider-level defaults), never {@code null} (may be empty)
      * @return a list of warning messages; never {@code null}, possibly empty
-     * @since 2026-06
+     * @since 1.0
      */
     default java.util.List<String> validateSaveOptions(
             org.eclipse.emf.common.util.URI uri,

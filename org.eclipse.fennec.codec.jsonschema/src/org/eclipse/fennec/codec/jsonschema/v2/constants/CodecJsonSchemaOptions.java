@@ -16,7 +16,7 @@ package org.eclipse.fennec.codec.jsonschema.v2.constants;
 /**
  * 
  * @author ilenia
- * @since Mar 2, 2026
+ * @since 1.0
  */
 public interface CodecJsonSchemaOptions {
 	

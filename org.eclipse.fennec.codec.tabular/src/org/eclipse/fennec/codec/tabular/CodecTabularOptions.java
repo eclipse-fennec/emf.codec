@@ -29,7 +29,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
  * here for ergonomic option typing — callers can pass either the enum constant
  * or its {@code String} name.
  *
- * @since 2026-05
+ * @since 1.0
  */
 public interface CodecTabularOptions {
 

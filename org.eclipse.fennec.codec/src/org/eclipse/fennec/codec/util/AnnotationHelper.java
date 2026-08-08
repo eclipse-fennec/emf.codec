@@ -25,7 +25,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025-01-08
+ * @since 1.0
  */
 public final class AnnotationHelper {
 
