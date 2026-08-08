@@ -16,3 +16,6 @@ Test-Cases: ${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons.
 Private-Package: org.eclipse.fennec.codec.rest.tests
 
 Bundle-Version: 1.0.0.SNAPSHOT
+
+# Integration tests - do not publish this bundle to Maven Central; local install only (issue #67)
+-maven-release: local
