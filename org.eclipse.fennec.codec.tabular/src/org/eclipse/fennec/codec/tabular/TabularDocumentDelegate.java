@@ -39,7 +39,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.TabularDocument;
  * The {@code target} is never closed — stream ownership stays with the caller.
  *
  * @param <T> the format-specific output target type
- * @since 2026-05
+ * @since 1.0
  */
 public class TabularDocumentDelegate<T> implements FormatDelegate<T> {
 

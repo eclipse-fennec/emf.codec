@@ -49,7 +49,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
  *       FK columns and optional join tables.</li>
  * </ul>
  *
- * @since 2026-05
+ * @since 1.0
  */
 public class CsvFormatProvider implements CodecFormatProvider<InputStream, OutputStream> {
 

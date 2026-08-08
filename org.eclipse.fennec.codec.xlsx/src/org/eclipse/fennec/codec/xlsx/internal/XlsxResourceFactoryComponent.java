@@ -32,7 +32,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
  * OSGi DS component that registers a {@link Resource.Factory} for the
  * {@code .xlsx} file extension, backed by {@link XlsxFormatProvider}.
  *
- * @since 2026-06
+ * @since 1.0
  */
 @Component(
         name = "XlsxResourceFactory",

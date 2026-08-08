@@ -29,7 +29,7 @@ import tools.jackson.core.JsonToken;
  * problem instead of spinning.
  * </p>
  *
- * @since 2026-08-06
+ * @since 1.0
  */
 public final class TokenLoops {
 

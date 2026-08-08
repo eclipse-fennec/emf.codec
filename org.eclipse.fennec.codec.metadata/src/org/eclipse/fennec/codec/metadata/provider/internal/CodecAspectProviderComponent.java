@@ -45,7 +45,7 @@ import org.osgi.service.component.annotations.Component;
  * </ol>
  *
  * @author Data In Motion Consulting
- * @since 2026
+ * @since 1.0
  * @see CodecAspectProvider
  * @see MetadataHandler
  */

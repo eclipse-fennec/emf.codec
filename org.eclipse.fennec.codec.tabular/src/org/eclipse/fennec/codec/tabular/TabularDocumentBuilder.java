@@ -97,7 +97,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.TabularFactory;
  * ignore/forceWrite gating, and {@code dateFormat} application. Renderers receive
  * already-resolved column names and typed {@link Cell}s.
  *
- * @since 2026-05
+ * @since 1.0
  */
 public final class TabularDocumentBuilder {
 

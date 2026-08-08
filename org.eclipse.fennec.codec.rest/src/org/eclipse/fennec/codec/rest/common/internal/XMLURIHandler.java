@@ -22,7 +22,7 @@ import org.eclipse.emf.ecore.xmi.XMLResource;
 /**
  * 
  * @author ilenia
- * @since Mar 18, 2026
+ * @since 1.0
  */
 public class XMLURIHandler implements XMLResource.URIHandler{
 

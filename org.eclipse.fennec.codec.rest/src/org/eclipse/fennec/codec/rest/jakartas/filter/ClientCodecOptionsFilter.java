@@ -41,7 +41,7 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
  * Secure by default: with no {@link RestOverridableCodecOptions} services (empty whitelist) the
  * header is ignored entirely.
  *
- * @since 2026-06
+ * @since 1.0
  */
 @Component
 @JakartarsExtension

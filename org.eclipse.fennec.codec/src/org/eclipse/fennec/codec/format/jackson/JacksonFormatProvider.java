@@ -53,7 +53,7 @@ import tools.jackson.core.TokenStreamFactory;
  * @see CodecFormatProvider
  * @see JacksonStreamFormatDelegate
  * @see JacksonStreamFormatReaderDelegate
- * @since 2026-02-16
+ * @since 1.0
  */
 public class JacksonFormatProvider implements CodecFormatProvider<InputStream, OutputStream> {
 

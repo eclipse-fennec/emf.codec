@@ -69,7 +69,7 @@ import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
  * @see ConfigurationResolver
  * @see <a href="docs/codec-v2-spec/02-config-resolution.md">Spec: Configuration Resolution</a>
  * @author Mark Hoffmann
- * @since 2026-02-01
+ * @since 1.0
  */
 public final class EffectiveCodecConfig
         implements org.eclipse.fennec.codec.value.EffectiveCodecConfig {

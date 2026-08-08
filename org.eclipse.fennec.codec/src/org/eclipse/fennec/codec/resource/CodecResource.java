@@ -99,7 +99,7 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * @see <a href="docs/codec-v2-spec/13-resource.md">Spec 13: Resource</a>
  * @author Mark Hoffmann
- * @since 2026-02-01
+ * @since 1.0
  */
 public class CodecResource extends ResourceImpl {
 

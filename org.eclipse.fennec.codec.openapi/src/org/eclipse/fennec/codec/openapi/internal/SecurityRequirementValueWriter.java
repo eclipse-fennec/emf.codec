@@ -40,7 +40,7 @@ import tools.jackson.core.JsonGenerator;
  * </p>
  *
  * @author Data In Motion
- * @since 2026
+ * @since 1.0
  */
 @Component(service = CodecValueWriter.class)
 public class SecurityRequirementValueWriter implements ReferenceValueWriter<SecurityRequirement> {

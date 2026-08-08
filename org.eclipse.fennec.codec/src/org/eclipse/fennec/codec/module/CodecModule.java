@@ -49,7 +49,7 @@ import tools.jackson.databind.module.SimpleModule;
  *
  * @see <a href="docs/codec-v2-spec/09-jackson-module.md">Spec 9: Jackson Module Integration</a>
  * @author Mark Hoffmann
- * @since 2026-02-01
+ * @since 1.0
  */
 public class CodecModule extends SimpleModule {
 

@@ -79,7 +79,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.TabularDocument;
  * and IEEE-754 doubles, and the R serialization tag bits described in
  * {@code src/main/R/src/main/serialize.c}.
  *
- * @since 2026-06
+ * @since 1.0
  */
 public class RLangRenderer implements TabularDocumentRenderer<OutputStream> {
 

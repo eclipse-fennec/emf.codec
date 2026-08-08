@@ -71,7 +71,7 @@ import tools.jackson.databind.ValueDeserializer;
  * @see DeserializationEntry
  * @see <a href="docs/codec-v2-spec/15-deserialization.md">Spec 15: Deserialization</a>
  * @author Mark Hoffmann
- * @since 2026-02-01
+ * @since 1.0
  */
 public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 

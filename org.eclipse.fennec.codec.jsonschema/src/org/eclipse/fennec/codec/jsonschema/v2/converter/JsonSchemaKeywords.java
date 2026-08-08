@@ -31,7 +31,7 @@ import tools.jackson.databind.JsonNode;
  * </p>
  *
  * @author Data In Motion
- * @since 2025
+ * @since 1.0
  */
 public final class JsonSchemaKeywords {
 

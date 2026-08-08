@@ -38,7 +38,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
  * ({@link TabularDocumentDelegate} + {@link XlsxRenderer}) — XLSX cells carry
  * their type natively, so no Jackson-pipeline detour is needed.
  *
- * @since 2026-06
+ * @since 1.0
  */
 public class XlsxFormatProvider implements CodecFormatProvider<InputStream, OutputStream> {
 

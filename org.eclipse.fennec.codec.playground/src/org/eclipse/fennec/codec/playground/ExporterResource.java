@@ -39,7 +39,7 @@ import jakarta.ws.rs.core.Response;
 /**
  * 
  * @author ilenia
- * @since Jun 3, 2026
+ * @since 1.0
  */
 @RequireCodecJson
 @RequireCodecCsv

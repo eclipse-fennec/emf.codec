@@ -53,7 +53,7 @@ import tools.jackson.databind.ValueDeserializer;
  * </p>
  *
  * @author Data In Motion
- * @since 2025
+ * @since 1.0
  */
 @Component(service = CodecValueReader.class)
 public class OperationValueReader implements ReferenceValueReader<Operation> {

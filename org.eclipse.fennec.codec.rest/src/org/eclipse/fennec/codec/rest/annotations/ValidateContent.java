@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
 /**
  * Triggers EMF Validation of the Resource
  * @author ilenia
- * @since Mar 18, 2026
+ * @since 1.0
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)

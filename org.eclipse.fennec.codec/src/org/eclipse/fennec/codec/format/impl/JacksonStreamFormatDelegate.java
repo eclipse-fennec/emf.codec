@@ -46,7 +46,7 @@ import tools.jackson.core.TokenStreamFactory;
  * </pre>
  *
  * @see FormatDelegate
- * @since 2026-02-16
+ * @since 1.0
  */
 public class JacksonStreamFormatDelegate implements FormatDelegate<OutputStream> {
 

@@ -34,7 +34,7 @@ import tools.jackson.databind.DeserializationContext;
  * </p>
  *
  * @see IdDeserializationEntry
- * @since 2026-08-06
+ * @since 1.0
  */
 public class IdSeparatorDeserializationEntry implements DeserializationEntry {
 

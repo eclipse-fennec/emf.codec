@@ -42,7 +42,7 @@ import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025-12-17
+ * @since 1.0
  */
 public final class MetadataServiceFactory {
 

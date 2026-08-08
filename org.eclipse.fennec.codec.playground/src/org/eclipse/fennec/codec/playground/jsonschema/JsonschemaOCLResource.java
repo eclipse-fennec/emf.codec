@@ -65,7 +65,7 @@ import tools.jackson.databind.node.ObjectNode;
  * </p>
  *
  * @author ilenia
- * @since Jul 2, 2026
+ * @since 1.0
  */
 @RequireCodecJsonSchema
 @RequireCodecMessageBodyReaderWriter

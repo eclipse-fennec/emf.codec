@@ -33,7 +33,7 @@ import jakarta.ws.rs.core.Variant;
 /**
  * Base class to handle Codec resource annotation and turn them into Codec load or save options
  * @author ilenia
- * @since Mar 18, 2026
+ * @since 1.0
  */
 public class AbstractJakartaCodecAnnotationHandler extends AbstractCodecAnnotationHandler {
 

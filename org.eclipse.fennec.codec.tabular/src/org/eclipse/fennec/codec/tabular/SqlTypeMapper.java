@@ -27,7 +27,7 @@ import org.eclipse.emf.ecore.EcorePackage;
  * intentionally conservative and dialect-portable; users can override per
  * feature via {@link CodecTabularOptions#OPTION_COLUMN_TYPES}.
  *
- * @since 2026-05
+ * @since 1.0
  */
 public final class SqlTypeMapper {
 

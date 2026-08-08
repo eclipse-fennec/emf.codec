@@ -38,7 +38,7 @@ import tools.jackson.core.JsonGenerator;
  *
  * @see ObjectIdValueReader
  * @author Mark Hoffmann
- * @since 2026-08-05
+ * @since 1.0
  */
 public class ObjectIdValueWriter implements CodecValueWriter<Object, EAttribute> {
 

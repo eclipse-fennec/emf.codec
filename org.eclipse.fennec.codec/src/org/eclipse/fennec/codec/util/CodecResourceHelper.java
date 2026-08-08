@@ -37,7 +37,7 @@ import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025-12-11
+ * @since 1.0
  */
 public class CodecResourceHelper {
 

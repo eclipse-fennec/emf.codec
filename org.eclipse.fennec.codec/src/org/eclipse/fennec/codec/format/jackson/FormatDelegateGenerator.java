@@ -63,7 +63,7 @@ import tools.jackson.core.util.SimpleStreamWriteContext;
  * @param <T> the output target type of the wrapped delegate
  * @see FormatDelegate
  * @see TokenTypeMapper
- * @since 2026-02-16
+ * @since 1.0
  */
 public class FormatDelegateGenerator<T> extends GeneratorBase {
 

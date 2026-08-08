@@ -35,7 +35,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 /**
  * 
  * @author ilenia
- * @since Feb 27, 2026
+ * @since 1.0
  */
 @Component(
 		name = "CborResourceFactory",

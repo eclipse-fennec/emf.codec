@@ -29,7 +29,7 @@ import org.eclipse.fennec.codec.resource.CodecResource;
 /**
  * 
  * @author ilenia
- * @since Mar 18, 2026
+ * @since 1.0
  */
 @Component
 public class CodecAnnotationConverter implements AnnotationConverter {

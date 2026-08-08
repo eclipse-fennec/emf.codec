@@ -34,7 +34,7 @@ import org.eclipse.fennec.codec.rest.annotations.json.RootElement;
 /**
  * 
  * @author ilenia
- * @since Mar 18, 2026
+ * @since 1.0
  */
 public abstract class AbstractCodecAnnotationHandler {
 

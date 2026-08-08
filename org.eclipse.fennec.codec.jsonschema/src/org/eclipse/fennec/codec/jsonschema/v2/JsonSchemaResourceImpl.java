@@ -68,7 +68,7 @@ import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025
+ * @since 1.0
  * @see <a href="https://json-schema.org/">JSON Schema Specification</a>
  */
 public class JsonSchemaResourceImpl extends CodecResource {

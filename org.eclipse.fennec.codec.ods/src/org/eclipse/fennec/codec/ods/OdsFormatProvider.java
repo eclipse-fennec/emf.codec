@@ -39,7 +39,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.ReferenceMode;
  * mode, ODS has no need to preserve a Jackson-stream path for custom value
  * writers, because spreadsheet cells carry their type natively.
  *
- * @since 2026-06
+ * @since 1.0
  */
 public class OdsFormatProvider implements CodecFormatProvider<InputStream, OutputStream> {
 

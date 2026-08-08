@@ -33,7 +33,7 @@ import tools.jackson.core.JsonToken;
  *
  * @see FormatReaderDelegate
  * @see TokenTypeMapper
- * @since 2026-02-16
+ * @since 1.0
  */
 public class JacksonStreamFormatReaderDelegate implements FormatReaderDelegate<InputStream> {
 

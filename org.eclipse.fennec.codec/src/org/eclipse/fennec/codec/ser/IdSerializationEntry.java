@@ -51,7 +51,7 @@ import tools.jackson.databind.SerializationContext;
  *
  * @see <a href="docs/codec-v2-spec/06-id.md">Spec: ID Serialization</a>
  * @author Mark Hoffmann
- * @since 2025-12-16
+ * @since 1.0
  */
 public class IdSerializationEntry implements SerializationEntry {
 

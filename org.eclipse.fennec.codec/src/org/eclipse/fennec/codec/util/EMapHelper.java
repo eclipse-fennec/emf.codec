@@ -26,7 +26,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2026-02-05
+ * @since 1.0
  */
 public final class EMapHelper {
 

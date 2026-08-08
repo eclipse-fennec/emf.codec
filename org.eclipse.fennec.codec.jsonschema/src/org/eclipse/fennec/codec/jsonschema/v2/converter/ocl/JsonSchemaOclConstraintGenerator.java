@@ -69,7 +69,7 @@ import tools.jackson.databind.json.JsonMapper;
  * retain a literal discriminator field to assert against.
  * </p>
  *
- * @since 2026
+ * @since 1.0
  */
 public class JsonSchemaOclConstraintGenerator {
 

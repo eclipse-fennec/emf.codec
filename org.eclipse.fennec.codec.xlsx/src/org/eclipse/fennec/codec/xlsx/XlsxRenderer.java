@@ -68,7 +68,7 @@ import org.eclipse.fennec.codec.tabular.model.tabular.TabularDocument;
  * {@code CellStyle}s are created once at the workbook level and reused — XLSX
  * caps the per-workbook style table at 64K entries, so caching matters.
  *
- * @since 2026-06
+ * @since 1.0
  */
 public class XlsxRenderer implements TabularDocumentRenderer<OutputStream> {
 

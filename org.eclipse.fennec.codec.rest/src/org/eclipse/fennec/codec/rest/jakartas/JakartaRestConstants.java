@@ -17,7 +17,7 @@ package org.eclipse.fennec.codec.rest.jakartas;
  * Request-context property keys and header names shared between the codec's JAX-RS extensions.
  *
  * @author ilenia
- * @since May 19, 2026
+ * @since 1.0
  */
 public interface JakartaRestConstants {
 

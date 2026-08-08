@@ -29,7 +29,7 @@ import java.util.List;
  * kind of problem each, where {@code STRICT} fails for any.
  * </p>
  *
- * @since 2026-08-07
+ * @since 1.0
  */
 public class CodecDiagnosticException extends Exception {
 

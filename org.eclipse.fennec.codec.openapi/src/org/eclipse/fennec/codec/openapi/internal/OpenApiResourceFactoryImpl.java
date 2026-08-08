@@ -36,7 +36,7 @@ import org.osgi.service.component.annotations.ServiceScope;
  * </p>
  *
  * @author Data In Motion
- * @since 2025
+ * @since 1.0
  */
 @Component(
 		name = "OpenApiResourceFactory",

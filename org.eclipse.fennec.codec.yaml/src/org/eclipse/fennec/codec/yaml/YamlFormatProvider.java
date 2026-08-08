@@ -32,7 +32,7 @@ import tools.jackson.dataformat.yaml.YAMLFactory;
  * </pre>
  *
  * @see JacksonFormatProvider
- * @since 2026-02-16
+ * @since 1.0
  */
 public class YamlFormatProvider extends JacksonFormatProvider {
 

@@ -43,7 +43,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
  * </p>
  *
  * @author Mark Hoffmann
- * @since 2025
+ * @since 1.0
  */
 @Component(
 		name = "JsonSchemaResourceFactory",
