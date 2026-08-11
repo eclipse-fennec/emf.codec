@@ -13,9 +13,6 @@
  */
 package org.eclipse.fennec.codec.resource.internal;
 
-import org.eclipse.fennec.codec.resource.CodecResource;
-import org.eclipse.fennec.codec.resource.CodecResourceFactory;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +20,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;

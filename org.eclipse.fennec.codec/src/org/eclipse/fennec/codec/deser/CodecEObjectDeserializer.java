@@ -38,10 +38,10 @@ import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
-import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.util.EMapHelper;
 import org.eclipse.fennec.codec.util.TokenLoops;
+import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;

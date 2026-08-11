@@ -25,11 +25,11 @@ import org.eclipse.fennec.codec.config.SuperTypeConfig;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.PackageResolver;
-import org.eclipse.fennec.codec.util.TypeResolutionHelper;
-import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.codec.util.TokenLoops;
+import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
