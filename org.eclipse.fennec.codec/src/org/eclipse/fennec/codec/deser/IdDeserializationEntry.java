@@ -32,10 +32,10 @@ import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.eclipse.fennec.codec.util.ConversionFailures;
+import org.eclipse.fennec.codec.util.TokenLoops;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
-import org.eclipse.fennec.codec.util.TokenLoops;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;

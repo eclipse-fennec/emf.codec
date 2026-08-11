@@ -12,12 +12,9 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.deser;
 
-import tools.jackson.databind.DeserializationContext;
-import org.eclipse.fennec.codec.util.PackageResolver;
-import org.eclipse.fennec.codec.context.ContextHelper;
-import java.util.function.Function;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.common.util.URI;
@@ -25,11 +22,14 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.buffer.CodecTokenBuffer;
+import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
+import org.eclipse.fennec.codec.util.PackageResolver;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
 import tools.jackson.core.ObjectReadContext;
+import tools.jackson.databind.DeserializationContext;
 
 /**
  * Resolves EClass from a discriminator value located at a feature path in JSON content.
