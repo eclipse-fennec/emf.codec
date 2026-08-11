@@ -26,8 +26,8 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.config.FeatureConfig;
+import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
@@ -36,12 +36,12 @@ import org.eclipse.fennec.codec.jackson.CodecJsonReadContext;
 import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.util.EMapHelper;
 import org.eclipse.fennec.codec.util.PackageResolver;
+import org.eclipse.fennec.codec.util.TokenLoops;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.ReferenceValueReader;
-import org.eclipse.fennec.codec.util.TokenLoops;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -243,21 +243,6 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         return placeholder;
     }
 
-    /**
-     * Moves the parser to the end of the structure it currently sits in, so a failed element
-     * cannot desynchronize the enclosing array or object.
-     */
-    private void skipToEndOfCurrentStructure(JsonParser parser) {
-        try {
-            JsonToken current = parser.currentToken();
-            if (current == JsonToken.START_OBJECT || current == JsonToken.START_ARRAY) {
-                parser.skipChildren();
-            }
-        } catch (Exception e) {
-            LOGGER.fine("Could not resynchronize parser after a failed element: " + e.getMessage());
-        }
-    }
-
     /** Sets a contained child, either into the list being built or on the reference itself. */
     private void addContained(EObject eObject, List<EObject> values, EObject child) {
         if (values != null) {
@@ -308,7 +293,6 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         deserializeContainment(state, parser, ctxt, eObject, null, -1);
     }
 
-    @SuppressWarnings("unchecked")
     private void deserializeContainment(DeserializationState state, JsonParser parser,
             DeserializationContext ctxt, EObject eObject, List<EObject> values, int index) {
         if (modelOwnsRefKey()) {
@@ -378,8 +362,12 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             if (child != null) {
                 addContained(eObject, values, child);
             }
+        } catch (IllegalStateException e) {
+            // Propagate IllegalStateException (e.g., from discriminator ERROR strategy) — the
+            // nested call rethrew it deliberately, collecting it as a diagnostic here would
+            // undo that and let a load that MUST fail succeed (spec 08 §fallbackStrategy).
+            throw e;
         } catch (Exception e) {
-            if (true) throw new IllegalStateException("TEMP-PROOF swallowed: " + e, e);
             String msg = "Error deserializing containment reference '" + reference.getName()
                     + "': " + e.getMessage();
             LOGGER.severe(msg);
@@ -893,6 +881,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                     values.add(orphan);
                 }
             }
+        } catch (IllegalStateException e) {
+            // Propagate IllegalStateException (e.g., from discriminator ERROR strategy)
+            throw e;
         } catch (Exception e) {
             String msg = "Error deserializing non-containment reference element '" + reference.getName() + "': " + e.getMessage();
             LOGGER.severe(msg);
@@ -953,6 +944,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                     ContextHelper.clearExpectedType(ctxt);
                 }
             }
+        } catch (IllegalStateException e) {
+            // Propagate IllegalStateException (e.g., from discriminator ERROR strategy)
+            throw e;
         } catch (Exception e) {
             String msg = "Error deserializing object for " + reference.getName() + ": " + e.getMessage();
             LOGGER.severe(msg);
@@ -1302,6 +1296,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
 
                 entries.add(entry);
             }
+        } catch (IllegalStateException e) {
+            // Propagate IllegalStateException (e.g., from discriminator ERROR strategy)
+            throw e;
         } catch (Exception e) {
             String msg = "Error deserializing EMap for '" + reference.getName() + "': " + e.getMessage();
             LOGGER.severe(msg);
@@ -1355,6 +1352,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                     return null;
                 }
             }
+        } catch (IllegalStateException e) {
+            // Propagate IllegalStateException (e.g., from discriminator ERROR strategy)
+            throw e;
         } catch (Exception e) {
             LOGGER.warning("Error deserializing map entry value: " + e.getMessage());
         }
