@@ -14,6 +14,8 @@ package org.eclipse.fennec.codec.openapi;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.openapi.value.OpenApiSchemasValueWriter;
+import org.eclipse.fennec.codec.openapi.value.OperationValueReader;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;

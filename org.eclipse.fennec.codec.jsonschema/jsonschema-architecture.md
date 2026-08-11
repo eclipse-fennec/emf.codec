@@ -28,7 +28,21 @@ out.getContents().add(ePackage);
 out.save(Map.of(CodecJsonSchemaOptions.OPTION_PRETTY_PRINT, Boolean.TRUE));
 ```
 
-In OSGi, `JsonSchemaResourceFactoryImpl` is registered automatically as a DS component (`@Component`) for the `"jsonschema"` extension and `"application/schema+json"` content type. It receives a `MetadataService` via `@Reference` injection. Outside OSGi, the no-arg constructor uses `MetadataServiceFactory.create()` to obtain a `MetadataWhiteboard` instance; register the factory manually as shown above.
+In OSGi, the internal `JsonSchemaResourceFactoryComponent` extends `JsonSchemaResourceFactoryImpl` and registers it as `Resource.Factory` service for the `"jsonschema"` extension and `"application/schema+json"` content type; it receives `MetadataService` and the shared `CodecValueRegistry` via `@Reference` injection. Outside OSGi, the no-arg constructor uses `MetadataServiceFactory.create()` to obtain a `MetadataWhiteboard` instance; register the factory manually as shown above.
+
+The factory is exported and extensible on purpose (issue #147): `JsonSchemaResourceFactoryImpl` is plain Java, only the component carries the DS annotations. Both constructors fill the registry via `initializeValueRegistry(CodecValueRegistry)` with the value handlers from `…v2.value` (`EPackageValueReader`/`Writer`, `EClassValueReader`/`Writer`) — these are plain objects, not services. Handlers already present under the same name are kept, so overriding `initializeValueRegistry`, registering your own handler and then calling `super` replaces exactly that one:
+
+```java
+public class MyJsonSchemaResourceFactory extends JsonSchemaResourceFactoryImpl {
+	@Override
+	protected void initializeValueRegistry(CodecValueRegistry registry) {
+		registry.register(new MyEPackageValueReader());  // wins
+		super.initializeValueRegistry(registry);        // fills the rest
+	}
+}
+```
+
+To wire a `JsonSchemaResourceImpl` without the factory, use `JsonSchemaResourceFactoryImpl.registerDefaultValueHandlers(registry)`.
 
 If you want to work with `.json` files (a common convention for JSON Schema), register the same factory under `"json"` as well — but be aware that EMF uses the same `"json"` extension by default for `XMIResourceFactoryImpl`, so prefer using `"jsonschema"` or the content-type registry.
 
@@ -512,7 +526,7 @@ Unresolvable `$ref` links, unsupported `allOf`/`anyOf` constructs, or missing ty
 
 ### RI-2: OSGi DS support for `MetadataService`
 
-`JsonSchemaResourceFactoryImpl` is now a Declarative Services `@Component` that receives a `MetadataService` via `@Reference` injection. In a non-OSGi environment, the no-arg constructor uses `MetadataServiceFactory.create()` to obtain a `MetadataWhiteboard` instance.
+`JsonSchemaResourceFactoryImpl` is provided as a Declarative Services component by `…v2.internal.JsonSchemaResourceFactoryComponent`, which extends it and receives `MetadataService` plus the shared `CodecValueRegistry` via `@Reference` injection (the factory itself stays free of DS annotations, issue #147). In a non-OSGi environment, the no-arg constructor uses `MetadataServiceFactory.create()` to obtain a `MetadataWhiteboard` instance.
 
 ### RI-3: `$schema` declaration via options
 

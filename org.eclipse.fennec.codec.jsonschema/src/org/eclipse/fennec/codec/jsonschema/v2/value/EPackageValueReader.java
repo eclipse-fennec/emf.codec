@@ -19,9 +19,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaToEPackageConverter;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
-import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.ReferenceValueReader;
-import org.osgi.service.component.annotations.Component;
 
 import tools.jackson.core.TreeNode;
 import tools.jackson.databind.JsonNode;
@@ -63,7 +61,6 @@ import tools.jackson.databind.JsonNode;
  * @since 1.0
  * @see EPackageValueWriter
  */
-@Component(service = CodecValueReader.class)
 public class EPackageValueReader implements ReferenceValueReader<EPackage> {
 
 	private final JsonSchemaToEPackageConverter converter;

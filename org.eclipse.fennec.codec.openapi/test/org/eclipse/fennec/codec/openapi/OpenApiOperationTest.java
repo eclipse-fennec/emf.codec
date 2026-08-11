@@ -12,8 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.openapi;
 
-import org.eclipse.fennec.codec.openapi.internal.OpenApiResourceFactoryImpl;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,6 +26,7 @@ import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.model.openapi.HttpMethod;
 import org.eclipse.fennec.model.openapi.OpenAPI;
@@ -507,7 +506,7 @@ class OpenApiOperationTest {
 	}
 
 	private OpenApiResourceImpl createResource() {
-		OpenApiResourceFactoryImpl factory = new OpenApiResourceFactoryImpl();
+		Resource.Factory factory = new OpenApiResourceFactoryImpl();
 		return (OpenApiResourceImpl) factory.createResource(URI.createURI("test://openapi.json"));
 	}
 

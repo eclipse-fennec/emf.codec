@@ -12,8 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.openapi;
 
-import org.eclipse.fennec.codec.openapi.internal.OpenApiResourceFactoryImpl;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,6 +25,7 @@ import java.util.Set;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.model.openapi.OpenAPI;
 import org.eclipse.fennec.model.openapi.OpenApiPackage;
@@ -357,7 +356,7 @@ class OpenApiRoundtripAnalysisTest {
 	// ========================================================================
 
 	private OpenApiResourceImpl createResource() {
-		OpenApiResourceFactoryImpl factory = new OpenApiResourceFactoryImpl();
+		Resource.Factory factory = new OpenApiResourceFactoryImpl();
 		return (OpenApiResourceImpl) factory.createResource(URI.createURI("test://openapi.json"));
 	}
 

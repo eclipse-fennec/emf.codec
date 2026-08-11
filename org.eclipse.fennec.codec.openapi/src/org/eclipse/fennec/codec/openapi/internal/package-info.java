@@ -11,7 +11,6 @@
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
 /**
-/**
  * DS components and implementation classes - deliberately <b>not</b> exported (issue #58).
  * <p>
  * Components are wiring, not API: they are obtained from the service registry, never
