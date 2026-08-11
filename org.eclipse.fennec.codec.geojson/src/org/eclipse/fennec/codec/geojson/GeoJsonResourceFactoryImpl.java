@@ -10,9 +10,7 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.codec.geojson.internal;
-
-import org.eclipse.fennec.codec.geojson.GeoJsonResourceImpl;
+package org.eclipse.fennec.codec.geojson;
 
 import static java.util.Objects.requireNonNull;
 
@@ -22,12 +20,11 @@ import java.util.Map;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
+import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.geojson.GeoJsonPackage;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * Resource factory for GeoJSON resources.
@@ -36,35 +33,34 @@ import org.osgi.service.component.annotations.Reference;
  * GeoJSON serialization/deserialization.
  * </p>
  * <p>
- * In OSGi environments, the {@link MetadataService} is injected via DS.
- * For non-OSGi usage, use {@link #GeoJsonResourceFactoryImpl(MetadataService)}.
+ * Usable as plain Java: the no-arg constructor brings its own metadata whiteboard with the
+ * GeoJSON model registered (issue #147). Inside OSGi the factory is provided as
+ * {@code Resource.Factory} service by a DS component that extends this class.
  * </p>
  *
  * @author Mark Hoffmann
  * @since 1.0
  */
-@Component(service = Resource.Factory.class, 
-	property = {
-		EMFNamespaces.EMF_CONFIGURATOR_NAME + "=" + GeoJsonPackage.eNAME,
-		EMFNamespaces.EMF_MODEL_FILE_EXT + "=" + "geojson",
-		EMFNamespaces.EMF_MODEL_VERSION + "=" + "1.0"
-	}, 
-	reference = {
-		@Reference(name = "geojsonPackage", service = GeoJsonPackage.class)
-	}
-)
 public class GeoJsonResourceFactoryImpl extends ResourceFactoryImpl {
 
 	private final MetadataService metadataService;
 
 	/**
-	 * OSGi DS constructor - MetadataService is injected.
+	 * Creates a factory on a given metadata service, which has to know the GeoJSON model.
 	 *
 	 * @param metadataService the metadata service
 	 */
-	@Activate
-	public GeoJsonResourceFactoryImpl(@Reference MetadataService metadataService) {
+	public GeoJsonResourceFactoryImpl(MetadataService metadataService) {
 		this.metadataService = requireNonNull(metadataService, "metadataService must not be null");
+	}
+
+	/**
+	 * Non-OSGi constructor for standalone usage.
+	 */
+	public GeoJsonResourceFactoryImpl() {
+		MetadataWhiteboard whiteboard = MetadataServiceFactory.create();
+		whiteboard.registerPackage(GeoJsonPackage.eINSTANCE);
+		this.metadataService = whiteboard;
 	}
 
 	/**

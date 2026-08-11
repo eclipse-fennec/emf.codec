@@ -24,10 +24,19 @@ The standard EMF pattern — `resourceSet.createResource(URI)` — does not work
 
 ### 2.1 Domain-Specific Factories (GeoJSON, OpenAPI, JSON Schema)
 
-These bundles already register `Resource.Factory` as DS components with `@Reference MetadataService`:
+These bundles register `Resource.Factory` as DS components with `@Reference MetadataService`. The
+factory itself is plain Java in the exported package, the DS annotations sit on a `*Component`
+subclass in the non-exported `internal` package (issues #58, #147) — so the factory stays usable
+outside OSGi and the wiring stays out of the API:
 
 ```java
-// GeoJsonResourceFactoryImpl.java
+// org.eclipse.fennec.codec.geojson.GeoJsonResourceFactoryImpl (exported)
+public class GeoJsonResourceFactoryImpl extends ResourceFactoryImpl {
+    public GeoJsonResourceFactoryImpl(MetadataService metadataService) { ... }
+    public GeoJsonResourceFactoryImpl() { ... }   // standalone: own whiteboard
+}
+
+// org.eclipse.fennec.codec.geojson.internal.GeoJsonResourceFactoryComponent (private)
 @Component(service = Resource.Factory.class,
     property = {
         EMFNamespaces.EMF_CONFIGURATOR_NAME + "=" + GeoJsonPackage.eNAME,
@@ -37,9 +46,11 @@ These bundles already register `Resource.Factory` as DS components with `@Refere
     reference = {
         @Reference(name = "geojsonPackage", service = GeoJsonPackage.class)
     })
-public class GeoJsonResourceFactoryImpl extends ResourceFactoryImpl {
+public class GeoJsonResourceFactoryComponent extends GeoJsonResourceFactoryImpl {
     @Activate
-    public GeoJsonResourceFactoryImpl(@Reference MetadataService metadataService) { ... }
+    public GeoJsonResourceFactoryComponent(@Reference MetadataService metadataService) {
+        super(metadataService);
+    }
 }
 ```
 
@@ -214,7 +225,7 @@ public class CborResourceFactoryComponent extends ResourceFactoryImpl {
 }
 ```
 
-This follows the same pattern as `GeoJsonResourceFactoryImpl` — simple, explicit, one component per format. Each format bundle owns its factory.
+This follows the same pattern as `GeoJsonResourceFactoryImpl` / `GeoJsonResourceFactoryComponent` — simple, explicit, one component per format. Each format bundle owns its factory.
 
 **Option B — Central factory with dynamic format discovery (alternative):**
 
