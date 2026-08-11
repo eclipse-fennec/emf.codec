@@ -10,7 +10,6 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-@org.osgi.annotation.bundle.Export
 /**
  * DS components and implementation classes - deliberately <b>not</b> exported (issue #58).
  * <p>
