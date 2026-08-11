@@ -2,7 +2,84 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-08-08
+**Last Updated:** 2026-08-11
+
+**Session Summary (2026-08-11) — issue #147, a public non-OSGi entry point for openapi and jsonschema:**
+
+`OpenApiResourceFactoryImpl` had moved into the non-exported `…openapi.internal` package, which left no
+supported way to load an OpenAPI document outside OSGi (emf.util's plain-Java `openapi.ecore` importer
+broke on it and worked around it with a copied security-requirement reader). Resolution, applied to both
+format bundles symmetrically:
+
+- **`*Impl` public and plain, `*Component` internal and wiring** (continues #58): `OpenApiResourceFactoryImpl`
+  (`…codec.openapi`) and `JsonSchemaResourceFactoryImpl` (`…jsonschema.v2`) carry no DS annotations;
+  `OpenApiResourceFactoryComponent` and `JsonSchemaResourceFactoryComponent` in the respective `internal`
+  packages extend them and hold `@Component`/`@Activate`/`@Reference`.
+- **Value handlers are plain objects, not services.** The `@Component(service = CodecValueReader/Writer.class)`
+  annotations came off the four OpenAPI handlers (moved to the exported `…codec.openapi.value`) and the four
+  jsonschema handlers in `…v2.value`. Both factories fill their registry themselves via
+  `initializeValueRegistry(CodecValueRegistry)` (protected, the extension point) resp. the public static
+  `registerDefaultValueHandlers(CodecValueRegistry)` — the latter for consumers who wire an
+  `OpenApiResourceImpl`/`JsonSchemaResourceImpl` without the factory, which is the second half of #147.
+  Note the whiteboard did work before: a delayed `@Component` providing a service is activated when
+  `CodecValueRegistryComponent` binds it — `immediate=true` is only needed for components without a service.
+- **The DS components copy the shared registry** (`super(ms, registry.copy())`). Registering plain objects
+  into the shared `CodecValueRegistryComponent` singleton would outlive the providing bundle (nothing
+  unbinds them) and would pin its classloader. Handlers coming from the shared registry are taken over and
+  **win** over the defaults, because `registerDefaultValueHandlers` only registers names that are absent
+  (`hasReader`/`hasWriter`) — that is also what makes `super.initializeValueRegistry(registry)` usable as the
+  last statement of an override.
+- **Regression caught on the way:** the jsonschema no-arg constructor briefly handed an *empty* registry to
+  `JsonSchemaResourceImpl`, whose `registry != null` fallback then no longer fired — the four EPackage/EClass
+  handlers were silently missing standalone. The fallback now delegates to `registerDefaultValueHandlers`,
+  so the list exists once.
+- **Packaging fixed:** `…jsonschema.v2.internal/package-info.java` still had `@org.osgi.annotation.bundle.Export`
+  while its own javadoc said "deliberately not exported" — the package is private now. Verified in the built
+  manifests: exported are `…jsonschema.v2` + `.v2.value` and `…codec.openapi` + `.openapi.value`, private are
+  both `internal` packages, and neither bundle provides `CodecValueReader/Writer` services any more.
+  The same `@Export`-vs-javadoc contradiction sat in nine more packages and is fixed too, see #149 below.
+**Fixed — issue #149, nine internal packages were exported against their own javadoc:**
+
+`@org.osgi.annotation.bundle.Export` sat above a javadoc reading "deliberately **not** exported (issue #58)"
+in bson, cbor, csv, geojson, ods, rlang, xlsx, yaml and metadata.provider — and without a `@Version`, so the
+packages shipped with the bundle version (`0.1.0`), which is no importable contract. Checked first that no
+consumer outside the owning bundle exists; the supported non-OSGi entry points of those bundles are the
+exported `*FormatProvider` classes, and every `internal` package holds only `*ResourceFactoryComponent`,
+`CodecAspectProviderComponent` or `*OverridableCodecOptions`.
+
+**geojson was the exception**, and the lesson worth keeping: a mechanical export removal would have
+reproduced #147 there. `GeoJsonResourceFactoryImpl` was DS component *and* documented non-OSGi entry point in
+one class ("For non-OSGi usage, use `GeoJsonResourceFactoryImpl(MetadataService)`") and it sat in the
+`internal` package — an `*Impl`, not a `*Component`. It got the #147 treatment instead: public in
+`…codec.geojson` with an added standalone no-arg constructor, DS annotations moved to
+`GeoJsonResourceFactoryComponent` (including the static `geojsonPackage` reference that keeps it unsatisfied
+without the model). The generated component XML is identical apart from the component name — worth knowing if
+anyone ever configures it by PID. `docs/osgi-resource-factory-architecture.md` used this class as its worked
+example and was updated with it.
+
+**When adding a format bundle, the rule is now:** `*Impl` public and free of DS annotations, `*Component`
+internal and carrying them, value handlers registered by the factory rather than as services, and the
+`internal` package-info without `@Export`.
+
+**Fixed in passing — issue #148, `fallbackStrategy=ERROR` did not fail the load inside containment:**
+
+Removing a debug leftover uncovered a spec violation, so the two belong together. The leftover
+(`if (true) throw new IllegalStateException("TEMP-PROOF swallowed: …")` in `ReferenceDeserializationEntry`,
+committed in f0cd400 / #128 on 2026-08-06 and published on `snapshot` for five days) turned **every**
+containment-deserialization error into a throw instead of a collected diagnostic. It also kept
+`CodecResourceInlineMappingTest.throwsOnUnknownDiscriminator` green for the wrong reason: with the leftover
+gone, `TypeDiscriminatorRegistry.resolve`'s `IllegalStateException` for an unmapped discriminator under
+`fallbackStrategy=ERROR` (spec `08-discriminator-mapping.md:337` — "Fail immediately, throw exception") was
+caught by the broad `catch (Exception e)` and downgraded to a diagnostic, so a load that must fail
+succeeded with a partial model.
+
+The fix needed **no new exception type**: `deserializeContainedObject`, `deserializeReferenceElement` and
+`CodecEObjectDeserializer` already carried `catch (IllegalStateException e) { throw e; }` with exactly that
+rationale — the convention existed, the callers one level up undid it. The clause is now applied at the five
+remaining sites that wrap a nested deserialization or type resolution (containment element, non-containment
+element, `deserializeFullObject`, EMap, EMap value). The same broad catch in `AttributeDeserializationEntry`,
+`IdDeserializationEntry` and `FeaturePathTypeResolver` was left alone on purpose — no fatal condition
+originates there today. Full `./gradlew build` green afterwards, so nothing relied on the swallowing.
 
 **Session Summary (2026-08-08) — the code-quality block worked off (#80 with nine sub-issues):**
 
