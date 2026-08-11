@@ -10,7 +10,7 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.codec.openapi.internal;
+package org.eclipse.fennec.codec.openapi.value;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -20,12 +20,10 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
-import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.ReferenceValueReader;
 import org.eclipse.fennec.model.openapi.HttpMethod;
 import org.eclipse.fennec.model.openapi.OpenApiPackage;
 import org.eclipse.fennec.model.openapi.Operation;
-import org.osgi.service.component.annotations.Component;
 
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.ValueDeserializer;
@@ -55,7 +53,6 @@ import tools.jackson.databind.ValueDeserializer;
  * @author Data In Motion
  * @since 1.0
  */
-@Component(service = CodecValueReader.class)
 public class OperationValueReader implements ReferenceValueReader<Operation> {
 
 	@Override

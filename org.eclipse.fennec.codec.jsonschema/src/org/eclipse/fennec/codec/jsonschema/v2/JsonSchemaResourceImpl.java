@@ -30,8 +30,6 @@ import org.eclipse.fennec.codec.jsonschema.v2.converter.EPackageToJsonSchemaConv
 import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaConversionDiagnostic;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaToEPackageConverter;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.ocl.JsonSchemaOclConstraintGenerator;
-import org.eclipse.fennec.codec.jsonschema.v2.value.EClassValueReader;
-import org.eclipse.fennec.codec.jsonschema.v2.value.EClassValueWriter;
 import org.eclipse.fennec.codec.jsonschema.v2.value.EPackageValueReader;
 import org.eclipse.fennec.codec.jsonschema.v2.value.EPackageValueWriter;
 import org.eclipse.fennec.codec.resource.CodecResource;
@@ -103,10 +101,7 @@ public class JsonSchemaResourceImpl extends CodecResource {
 
 	private static CodecValueRegistry createFallbackValueRegistry() {
 		CodecValueRegistry registry = new CodecValueRegistry();
-		registry.register(new EPackageValueReader());
-		registry.register(new EPackageValueWriter());
-		registry.register(new EClassValueReader());
-		registry.register(new EClassValueWriter());
+		JsonSchemaResourceFactoryImpl.registerDefaultValueHandlers(registry);
 		return registry;
 	}
 

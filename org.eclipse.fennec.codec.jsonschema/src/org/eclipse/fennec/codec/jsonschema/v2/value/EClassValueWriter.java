@@ -21,10 +21,8 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.EClassToJsonSchemaConverter;
-import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.codec.value.ReferenceValueWriter;
-import org.osgi.service.component.annotations.Component;
 
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -38,7 +36,6 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * @see EClassValueReader
  */
-@Component(service = CodecValueWriter.class)
 public class EClassValueWriter implements ReferenceValueWriter<EClass> {
 
 	private final EClassToJsonSchemaConverter converter = new EClassToJsonSchemaConverter();

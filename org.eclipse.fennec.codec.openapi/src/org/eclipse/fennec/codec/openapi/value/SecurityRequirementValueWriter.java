@@ -10,19 +10,17 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.codec.openapi.internal;
+package org.eclipse.fennec.codec.openapi.value;
 
 import java.io.IOException;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.codec.value.ReferenceValueWriter;
 import org.eclipse.fennec.model.openapi.OpenApiPackage;
 import org.eclipse.fennec.model.openapi.SecurityRequirement;
-import org.osgi.service.component.annotations.Component;
 
 import tools.jackson.core.JsonGenerator;
 
@@ -42,7 +40,6 @@ import tools.jackson.core.JsonGenerator;
  * @author Data In Motion
  * @since 1.0
  */
-@Component(service = CodecValueWriter.class)
 public class SecurityRequirementValueWriter implements ReferenceValueWriter<SecurityRequirement> {
 
 	@Override

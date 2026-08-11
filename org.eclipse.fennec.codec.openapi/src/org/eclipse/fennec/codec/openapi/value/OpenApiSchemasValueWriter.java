@@ -10,17 +10,15 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.codec.openapi.internal;
+package org.eclipse.fennec.codec.openapi.value;
 
 import java.io.IOException;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.jsonschema.v2.value.EPackageValueWriter;
-import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.codec.value.ReferenceValueWriter;
-import org.osgi.service.component.annotations.Component;
 
 /**
  * Value writer for OpenAPI {@code components/schemas}.
@@ -33,7 +31,6 @@ import org.osgi.service.component.annotations.Component;
  * @author Data In Motion
  * @since 1.0
  */
-@Component(service = CodecValueWriter.class)
 public class OpenApiSchemasValueWriter implements ReferenceValueWriter<EPackage> {
 
 	private final EPackageValueWriter delegate = new EPackageValueWriter("definitions", true);

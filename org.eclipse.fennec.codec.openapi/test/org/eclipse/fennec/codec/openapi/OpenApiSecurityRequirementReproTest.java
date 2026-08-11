@@ -12,12 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.openapi;
 
-import org.eclipse.fennec.codec.openapi.internal.SecurityRequirementValueWriter;
-
-import org.eclipse.fennec.codec.openapi.internal.SecurityRequirementValueReader;
-
-import org.eclipse.fennec.codec.openapi.internal.OpenApiResourceFactoryImpl;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -30,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.fennec.codec.openapi.value.SecurityRequirementValueReader;
+import org.eclipse.fennec.codec.openapi.value.SecurityRequirementValueWriter;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.model.openapi.OpenAPI;
 import org.eclipse.fennec.model.openapi.OpenApiPackage;
@@ -132,7 +129,7 @@ class OpenApiSecurityRequirementReproTest {
 	}
 
 	private CodecResource loadResource() throws IOException {
-		OpenApiResourceFactoryImpl factory = new OpenApiResourceFactoryImpl();
+		Resource.Factory factory = new OpenApiResourceFactoryImpl();
 		CodecResource resource = (CodecResource) factory.createResource(URI.createURI("test://security.json"));
 		Map<String, Object> options = new HashMap<>();
 		options.put(CodecResource.CODEC_ROOT_TYPE, OpenApiPackage.Literals.OPEN_API);
