@@ -399,12 +399,22 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             return sourceResource != internalEObject.eDirectResource();
         }
 
+        Resource targetResource = target.eResource();
+        if (targetResource == null) {
+            // No resource of its own, so nothing to reference: the object is part of the
+            // document being written. Models generated with suppressNotification="true" end
+            // up here for every contained child - their containment features are backed by a
+            // BasicInternalEList, which never sets the child's container, so the child reports
+            // neither container nor resource (issue #94's lists, seen via the Model Atlas
+            // Scope.registries).
+            return false;
+        }
+
         Resource sourceResource = resolveSourceResource(gen, ctxt, source);
         if (sourceResource == null) {
             return false;
         }
 
-        Resource targetResource = target.eResource();
         return sourceResource != targetResource;
     }
 
