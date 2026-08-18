@@ -12,6 +12,7 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.ser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,6 +34,7 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.InternalEList;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
@@ -123,6 +125,43 @@ class SubtypeContainmentSerializationTest {
     @DisplayName("containment child without a container is inlined [format delegate]")
     void delegateChildWithoutContainerIsInlined() throws IOException {
         assertItemWithoutContainerInlined(true);
+    }
+
+    @Test
+    @DisplayName("containment child without a container survives a round trip [plain JSON]")
+    void plainChildWithoutContainerSurvivesRoundTrip() throws IOException {
+        assertChildWithoutContainerSurvivesRoundTrip(false);
+    }
+
+    @Test
+    @DisplayName("containment child without a container survives a round trip [format delegate]")
+    void delegateChildWithoutContainerSurvivesRoundTrip() throws IOException {
+        assertChildWithoutContainerSurvivesRoundTrip(true);
+    }
+
+    /**
+     * The inlined child must come back with its data - this is the actual data-loss guarantee
+     * behind the Model Atlas symptom (RegistryInfo stubs with null name/type on the client).
+     */
+    @SuppressWarnings("unchecked")
+    private void assertChildWithoutContainerSurvivesRoundTrip(boolean withFormatProvider) throws IOException {
+        EObject root = basePackage.getEFactoryInstance().create(rootClass());
+        EObject item = newItem(samePackageSubtypeClass(), "kept-round-trip");
+        ((InternalEList<EObject>) root.eGet(itemsReference())).basicAdd(item, null);
+
+        writeJson(root, withFormatProvider);
+
+        ResourceSet readSet = newResourceSet(withFormatProvider);
+        Resource loaded = readSet.getResource(
+                URI.createFileURI(tempDir.resolve("root.json").toAbsolutePath().toString()), true);
+        EObject loadedRoot = loaded.getContents().get(0);
+        List<EObject> items = (List<EObject>) loadedRoot.eGet(itemsReference());
+        assertEquals(1, items.size(), "the contained child must be read back as a real object");
+        EObject loadedItem = items.get(0);
+        assertEquals(samePackageSubtypeClass().getName(), loadedItem.eClass().getName(),
+                "the child must keep its concrete type");
+        assertEquals("kept-round-trip", loadedItem.eGet(nameAttributeOf(loadedItem)),
+                "the child's data must survive the round trip");
     }
 
     /**
@@ -220,6 +259,9 @@ class SubtypeContainmentSerializationTest {
     }
 
     private void register(EPackage pkg) {
+        // Give the package a resource, otherwise the written type URI has no schema part
+        // and the reader cannot resolve the EClass on load
+        new ResourceImpl(URI.createURI(pkg.getNsURI())).getContents().add(pkg);
         EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
         metadataService.registerPackage(pkg);
         registeredPackages.add(pkg);
