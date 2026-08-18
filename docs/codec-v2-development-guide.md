@@ -2,7 +2,37 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-08-11
+**Last Updated:** 2026-08-18
+
+**Session Summary (2026-08-18) — issue #152, contained children without a resource were written as `$ref: "#//"`:**
+
+`ReferenceSerializationEntry.isCrossDocument` fell through to comparing the write context's resource
+against `target.eResource()`, so a containment child reporting no resource of its own was classified
+cross-document and written as `{"_type": …, "$ref": "#//"}` instead of being inlined. Models generated
+with `suppressNotification="true"` hit this for **every** contained child: their containment features are
+backed by a `BasicInternalEList`, which never sets the child's container, so the child reports neither
+container nor resource. Surfaced in the Model Atlas (`scope-api`/`workflow-api` set the flag):
+`GET /scopes/{scope}` registries arrived as empty stubs on the REST client, breaking
+`ValidationServiceImpl.resolveConstraintSet` (`No COCL registry found in scope: jena`). The XML writers
+never consult the child's resource, so the same graph was lossless in XMI and lossy in JSON.
+
+- **Fix (Guido Grune, branch `fix/subtype_containment_serialization`):** a target that owns no resource
+  cannot be referenced, so it is part of the document being written — `isCrossDocument` now short-circuits
+  on `target.eResource() == null` before consulting the context. Genuine cross-document containment is
+  unaffected: those children own a direct resource and are caught by the preceding `eDirectResource()`
+  branch (existing `CrossDocumentContainmentTest` stays green).
+- **Tests:** `SubtypeContainmentSerializationTest` covers both write paths (plain `CodecResourceFactory`
+  and the `CodecFormatResourceFactory` delegate) for container-less children (red before the fix, verified),
+  subtype instances in same/foreign packages (regression, already worked), and — added this session —
+  a full round trip proving the child's data and concrete type survive. Test-infra reminder confirmed again:
+  dynamic test packages must be resource-backed (`new ResourceImpl(URI.createURI(nsURI)).getContents().add(pkg)`),
+  otherwise the written `_type` has no schema part and the reader cannot resolve the root class.
+- **Spec sharpened** (spec follows the output): `10-reference.md` §5.1.1 and §7.2 now state the exact
+  detection rule — cross-document containment means `eDirectResource() != null` (or a proxy), matching
+  EMF's `XMLSaveImpl.saveElement`; a resource-less child is always inlined. §9.3.1 already had it right.
+- **Not touched:** the deeper `suppressNotification` root (children never get a container) still affects
+  `EcoreUtil.copy` (#94); the Model Atlas end-to-end check via `RemoteValidationIT` (needs the rebuilt
+  `jena-snapshot` image with this codec) is still open.
 
 **Session Summary (2026-08-11) — issue #147, a public non-OSGi entry point for openapi and jsonschema:**
 
