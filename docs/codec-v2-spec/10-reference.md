@@ -316,6 +316,13 @@ serializeReference(target):
   6. DEFAULT: Serialize as proxy reference
 ```
 
+> **"Same resource" for containment (steps 3/4):** a containment target that owns no resource
+> of its own is part of the document being written and is always inlined — only a child owning
+> a direct resource (`eDirectResource() != null`), or a proxy, is a cross-document containment.
+> This holds even when the child also reports no container: models generated with
+> `suppressNotification="true"` back containment features with a `BasicInternalEList`, which
+> never sets the child's container. See [§9.3.1](#931-supported-behavior) for the exact rule.
+
 #### 5.1.2 Reference Serialization Flow
 
 This is the detailed flow expanding the decision tree above. It covers null handling, ValueWriter delegation, containment/expand dispatch, URI determination, and format output.
@@ -683,7 +690,13 @@ Cross-document containments use the same configuration as non-containment refere
 
 **Detection:** The serializer detects cross-document containment when:
 - The EReference is containment (`isContainment() == true`)
-- The contained object's resource differs from the container's resource
+- The contained object owns a **direct resource** of its own (`eDirectResource() != null`) that
+  differs from the source resource, or is a proxy — the same rule EMF applies in
+  `XMLSaveImpl.saveElement` (see [§9.3.1](#931-supported-behavior))
+
+A contained object that reports **no resource of its own** is part of the document being written
+and is always inlined, even when it also reports no container (models generated with
+`suppressNotification="true"` leave containment children container-less).
 
 > **Implementation Status:** Cross-document containment **resolution during deserialization** is not yet implemented. Serialization of cross-document containments works correctly (serialized as `_ref`), but deserialization will create proxy objects that require manual resolution via the ResourceSet.
 
