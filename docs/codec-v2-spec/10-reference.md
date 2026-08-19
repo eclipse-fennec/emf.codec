@@ -759,6 +759,10 @@ enums, and anything a custom factory handles:
 { "counts": { "1": "one", "2": "two" }, "levels": { "LOW": "quiet", "HIGH": "loud" } }
 ```
 
+The two directions compose: a document read and written again carries the same field names.
+They are **normalised**, not preserved verbatim — a key spelled `"007"` in the incoming document
+comes back as `"7"`, because the round trip goes through the data type, not through the text.
+
 **A field name the data type cannot parse costs that one entry, not the map.** The entry is
 dropped, the remaining entries are read as usual, and the failure is reported through the same
 path as any other dropped value (`strictOnConversion`, see
