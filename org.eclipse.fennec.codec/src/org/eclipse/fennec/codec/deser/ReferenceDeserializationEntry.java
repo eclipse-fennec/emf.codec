@@ -20,10 +20,12 @@ import java.util.Objects;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.config.FeatureConfig;
@@ -1254,6 +1256,12 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      * Where each JSON field name becomes the map entry key, and the field value
      * becomes the map entry value.
      * </p>
+     * <p>
+     * A field name is always a string, so a key feature that is not an {@code EString} needs
+     * the name converted through its data type (issue #154). A name the data type cannot parse
+     * costs that one entry and is reported; it used to abort the whole map, which handed the
+     * caller a successfully loaded object with an empty map.
+     * </p>
      *
      * @param state the deserialization state
      * @param parser the JSON parser at START_OBJECT
@@ -1264,8 +1272,8 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     private void deserializeEMap(DeserializationState state, JsonParser parser,
             DeserializationContext ctxt, EObject eObject) {
         EClass entryClass = reference.getEReferenceType();
-        org.eclipse.emf.ecore.EStructuralFeature keyFeature = EMapHelper.getKeyFeature(entryClass);
-        org.eclipse.emf.ecore.EStructuralFeature valueFeature = EMapHelper.getValueFeature(entryClass);
+        EStructuralFeature keyFeature = EMapHelper.getKeyFeature(entryClass);
+        EStructuralFeature valueFeature = EMapHelper.getValueFeature(entryClass);
 
         if (keyFeature == null || valueFeature == null) {
             String msg = "EMap entry class '" + entryClass.getName() + "' missing key or value feature";
@@ -1282,11 +1290,22 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                 String key = parser.currentName();
                 parser.nextToken(); // Move to value
 
+                Object keyValue;
+                try {
+                    keyValue = convertMapKey(key, keyFeature);
+                } catch (IllegalStateException e) {
+                    throw e;
+                } catch (RuntimeException e) {
+                    reportKeyFailure(entryClass, ctxt, parser, key, keyFeature, e);
+                    parser.skipChildren(); // stay in sync, the value belongs to a dropped entry
+                    continue;
+                }
+
                 // Create a new map entry
                 EObject entry = entryClass.getEPackage().getEFactoryInstance().create(entryClass);
 
                 // Set the key
-                entry.eSet(keyFeature, key);
+                entry.eSet(keyFeature, keyValue);
 
                 // Deserialize the value based on value feature type
                 Object value = deserializeMapEntryValue(state, parser, ctxt, valueFeature);
@@ -1307,6 +1326,42 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     }
 
     /**
+     * Turns a map entry's field name into a value the key feature accepts.
+     * <p>
+     * The name is rendered on the way out with {@code toString()}, which for an
+     * {@code EDataType} is what {@code createFromString} reads back - the two cover the same
+     * set of key types, {@code EInt}, {@code ELong}, enums and whatever a custom factory
+     * handles among them.
+     * </p>
+     *
+     * @param key the field name read from the document
+     * @param keyFeature the entry class' key feature
+     * @return the converted key, the raw name if the feature is not an attribute
+     * @throws RuntimeException if the data type's factory cannot parse the name
+     */
+    private Object convertMapKey(String key, EStructuralFeature keyFeature) {
+        if (keyFeature instanceof EAttribute keyAttribute) {
+            return EcoreUtil.createFromString(keyAttribute.getEAttributeType(), key);
+        }
+        return key;
+    }
+
+    /**
+     * Reports a field name that could not be turned into a key.
+     * <p>
+     * The entry is dropped, which shortens the map - so with {@code strictOnConversion} the
+     * load fails instead, the same choice every other dropped value follows.
+     * </p>
+     */
+    private void reportKeyFailure(EClass entryClass, DeserializationContext ctxt, JsonParser parser,
+            String key, EStructuralFeature keyFeature, RuntimeException cause) {
+        String msg = "EMap key '" + key + "' of '" + reference.getName() + "' is no valid "
+                + keyFeature.getEType().getName() + ", the entry is dropped: " + cause.getMessage();
+        ConversionFailures.report(entryContext, entryClass, ctxt, parser,
+                "ReferenceDeserializationEntry", msg);
+    }
+
+    /**
      * Deserializes the value part of a map entry.
      * <p>
      * The value can be:
@@ -1323,11 +1378,11 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      * @return the deserialized value
      */
     private Object deserializeMapEntryValue(DeserializationState state, JsonParser parser,
-            DeserializationContext ctxt, org.eclipse.emf.ecore.EStructuralFeature valueFeature) {
+            DeserializationContext ctxt, EStructuralFeature valueFeature) {
         try {
-            if (valueFeature instanceof org.eclipse.emf.ecore.EAttribute) {
+            if (valueFeature instanceof EAttribute) {
                 // Simple value - let Jackson deserialize it
-                return deserializeAttributeValue(parser, (org.eclipse.emf.ecore.EAttribute) valueFeature);
+                return deserializeAttributeValue(parser, (EAttribute) valueFeature);
             } else if (valueFeature instanceof EReference valueRef) {
                 // Reference value - deserialize as EObject
                 if (parser.currentToken() == JsonToken.START_OBJECT) {
@@ -1368,7 +1423,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      * @param attribute the EAttribute to deserialize to
      * @return the deserialized value
      */
-    private Object deserializeAttributeValue(JsonParser parser, org.eclipse.emf.ecore.EAttribute attribute) {
+    private Object deserializeAttributeValue(JsonParser parser, EAttribute attribute) {
         JsonToken token = parser.currentToken();
 
         if (token == JsonToken.VALUE_NULL) {

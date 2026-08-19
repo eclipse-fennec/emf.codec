@@ -1695,7 +1695,7 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 | #118 | `EDate` unreadable in formats without native date-time | now `EcoreUtil.convertToString(EDATE, …)` both ways |
 | #119 | `idKeyMode`/`idValueKey` inside the STRUCTURED `_id` object | a single id value goes under the inner key, several under their feature names |
 | #120 | `idFeatures` on an EReference stringified the reference | the contained object's own id config builds it; that object then writes features, not a second `_id` |
-| #121 | `codec.flatten` — documented as write-only, read side stopped warning | spec 10-reference.md §8.1 |
+| #121 | `codec.flatten` — documented as write-only, read side stopped warning | spec 10-reference.md §8.2 |
 | #123 | OpenAPI `$ref` misread as a cross-document marker | `modelOwnsRefKey()` checks name *and* codec annotation key |
 | #129 | Buffered numeric lost its value through Jackson's deferred numbers | `FormatDelegateParser` caches per token, type-exact first reads |
 | #131 | Conversion failures swallowed; no way to escalate | `util/ConversionFailures` + `strictOnConversion`; a non-changeable feature is no longer "unknown" |

@@ -742,7 +742,34 @@ CodecConfiguration.builder()
 
 ---
 
-## 8.1 Flattened EMaps (`codec.flatten`) — write only
+## 8.1 EMap keys
+
+An EMap is written as a JSON object whose **field names are the entry keys**. A field name is
+a string, so a key feature that is not an `EString` is converted in both directions:
+
+| Direction | Conversion |
+|---|---|
+| write | `toString()` on the key value — for an `EDataType` this is what `EcoreUtil.convertToString` yields |
+| read | `EcoreUtil.createFromString(keyAttribute.getEAttributeType(), fieldName)` |
+
+That covers every `EDataType` whose factory implements `createFromString` — `EInt`, `ELong`,
+enums, and anything a custom factory handles:
+
+```json
+{ "counts": { "1": "one", "2": "two" }, "levels": { "LOW": "quiet", "HIGH": "loud" } }
+```
+
+**A field name the data type cannot parse costs that one entry, not the map.** The entry is
+dropped, the remaining entries are read as usual, and the failure is reported through the same
+path as any other dropped value (`strictOnConversion`, see
+[11-feature.md §11.1](11-feature.md#111-strictness-configuration)): a warning by default, a load failure under
+`strictOnConversion`.
+
+Dropping the whole map is explicitly not allowed. A caller who receives a successful load with
+an empty map cannot tell it apart from a document that carried no entries — a plausible-looking
+wrong answer, which is the one failure mode a persistence path must not have (issue #154).
+
+## 8.2 Flattened EMaps (`codec.flatten`) — write only
 
 An EMap reference marked `codec.flatten=true` writes its entries **directly into the parent
 object** instead of nesting them under the reference key:
