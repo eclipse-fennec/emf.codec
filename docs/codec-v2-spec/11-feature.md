@@ -1057,6 +1057,10 @@ for (Diagnostic warning : resource.getWarnings()) {
   default, which a caller **cannot distinguish from the value being absent** — `0` and `0.0`
   are values a model may legitimately hold. The diagnostic is the only trace, and it is easy
   to miss because the load itself reports success.
+  It also covers **EMap keys**, where the fallback is not a default but a dropped entry: a field
+  name the key data type cannot parse costs its entry and shortens the map
+  ([10-reference.md §8.1](10-reference.md#81-emap-keys)). Same reasoning, same flag — a caller who
+  asks for strictness means every place a value silently goes missing.
 - `strictOnUnknown=true` at Global: Fail-fast for any unexpected JSON field (strict schema validation)
 - `strictOnMissing=true` on EAttribute: Ensure this specific required field is always present
 - `strictOnUnknown=false` on EReference: Allow extension fields in objects accessed via this reference (forward compatibility)

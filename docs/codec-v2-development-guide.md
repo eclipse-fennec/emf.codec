@@ -39,6 +39,15 @@ indistinguishable from a document that carried no entries. Measured in
   `writeBackNormalisesTheKey` pins the boundary of that claim: a key spelled `"007"` comes back as
   `"7"`, because the round trip goes through the data type and not through the text. That is correct
   normalisation, and it is now written down so nobody "fixes" it later. Spec §8.1 says the same.
+- **Docs completed (2026-08-19):** the new diagnostic was missing from the error catalog.
+  `15-error-handling.md` §6.3 now lists both EMap rows — the entry class without key/value feature
+  (ERROR, map skipped) and the unparseable key (ERROR under `strictOnConversion`, else WARNING,
+  **that entry** dropped) — and §5.1 names `ReferenceDeserializationEntry` as their source.
+  `11-feature.md` §11.5 was incomplete too: it described `strictOnConversion` purely in terms of a
+  feature keeping its default, which is not what happens for a map key. Checked that the docs-site
+  picks this up automatically — `docs/codec-v2-spec/` is on the `guides.mjs` allowlist,
+  `node sync-guides.mjs` runs clean and rewrites the cross-links to sibling routes;
+  `docs-site/docs/guides/` is gitignored and built by CI, so nothing is committed there.
 - **Not touched:** an EMap key feature that is an `EReference` still round-trips through
   `toString()`/raw name — nonsense on both sides, but out of scope here and not observed in the wild.
 
