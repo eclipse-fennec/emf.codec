@@ -805,7 +805,7 @@ Main codec implementation with comprehensive entry-level and integration tests.
 | **SuperType** | SuperTypeSerializationEntryTest, SuperTypeDeserializationEntryTest | Hierarchy serialization, validation |
 | **References** | ReferenceSerializationEntry*Test (4), ReferenceDeserializationEntry*Test (4), PlainReferenceFormatTest, ExpandReferenceTest | PLAIN/STRUCTURED formats, expand, proxies |
 | **Attributes** | AttributeSerializationEntry*Test (3), AttributeDeserializationEntry*Test (3), ArrayAttributeSerializationTest, ArrayAttributeDeserializationTest | All data types, arrays, enums |
-| **EMap** | EMapSerializationTest, EMapDeserializationTest, EMapRoundtripTest, EMapHelperTest | Map-as-object, map-as-array |
+| **EMap** | EMapSerializationTest, EMapDeserializationTest, EMapRoundtripTest, EMapHelperTest, EMapNonStringKeyTest | Map-as-object, map-as-array, non-String keys (#154) |
 | **Context** | CodecReadContext*Test (12), CodecWriteContext*Test (10), ContextHelperTest, EMFContextHolderTest | Jackson context integration, EMF state |
 | **Resource** | CodecResource*Test (15+) | End-to-end roundtrip, cross-package, custom values |
 | **Discriminator** | CodecResourceInlineMappingTest, CodecResourceMappedTypeTest, DeserializationModeTest | Inline mapping, type mapping registry, fallback |
