@@ -2,7 +2,38 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-08-18
+**Last Updated:** 2026-08-19
+
+**Session Summary (2026-08-19) — issue #154, an EMap with a non-String key read back empty:**
+
+`ReferenceDeserializationEntry.deserializeEMap` assigned the JSON field name straight onto the key
+feature (`entry.eSet(keyFeature, key)`). For `EMap<EInt, EString>` that is a `String` on an `EInt`
+feature, so it threw — and because the `catch` sat around the **whole** `while` loop, the first bad
+key aborted the entire map. The caller got a successful load with an empty map, which is
+indistinguishable from a document that carried no entries. Measured in
+`eclipse-fennec/emf.persistence-jpa` (`MongoEMapRoundTripTest`): the write was already correct
+(`counts: {"1": "one"}`), only the read lost everything.
+
+- **Fix:** keys go through `EcoreUtil.createFromString(keyAttribute.getEAttributeType(), name)` —
+  the exact inverse of the `toString()` the writer uses, covering `EInt`, `ELong`, enums and any
+  custom factory. Verified against EMF's `EFactoryImpl`/`EEnumLiteralImpl`: for a dynamic enum,
+  `toString()` is the literal and `createFromString` throws `IllegalArgumentException` on an unknown
+  one, so the two sides line up.
+- **The try/catch is now per entry.** An unparseable name costs its own entry, the rest of the map is
+  read, and `parser.skipChildren()` keeps the stream in sync. The failure is reported through
+  `ConversionFailures.report` (owner = the entry class), so it follows the existing strictness
+  hierarchy: a warning by default, an `IllegalStateException` under `strictOnConversion`. No new
+  strictness flag was introduced.
+- **Tests:** `EMapNonStringKeyTest` (+ `test-emap-keys.ecore`, a separate model so the shared
+  `test-emap.ecore` assertions keep their exact JSON) — int-key and enum-key round trips, a foreign
+  document, a broken key in lenient and strict mode, and an unknown enum literal. All six red before
+  the fix.
+- **Test trap worth remembering:** `EMap<Integer, V>.get(1)` binds to `List.get(int index)`, not
+  `Map.get(Object)`. Use `get(Integer.valueOf(1))` or the assertion compares against the entry object.
+- **Spec:** `10-reference.md` gained §8.1 "EMap keys" (the flatten section moved to §8.2) stating the
+  conversion in both directions and that dropping the whole map is not allowed.
+- **Not touched:** an EMap key feature that is an `EReference` still round-trips through
+  `toString()`/raw name — nonsense on both sides, but out of scope here and not observed in the wild.
 
 **Session Summary (2026-08-18) — issue #152, contained children without a resource were written as `$ref: "#//"`:**
 
