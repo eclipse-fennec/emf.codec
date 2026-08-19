@@ -174,7 +174,7 @@ Each diagnostic includes a source identifier for programmatic handling.
 | `CodecEObjectDeserializer` | Root deserializer | No type info and no hint, failed EObject creation | Unexpected token |
 | `TypeDeserializationEntry` | Type resolution | — | Could not resolve EClass, unexpected token |
 | `IdDeserializationEntry` | ID parsing | EObject not yet created | STRUCTURED ID format mismatch, parse errors |
-| `ReferenceDeserializationEntry` | Reference handling | EObject not yet created, no deserializer found | Unexpected token |
+| `ReferenceDeserializationEntry` | Reference handling | EObject not yet created, no deserializer found, EMap entry class without key/value feature | Unexpected token, EMap key not parseable by its data type |
 | `AttributeDeserializationEntry` | Attribute parsing | EObject not yet created | Value conversion failure, unexpected token |
 | `CodecValueReader` (custom) | Custom value reading | Invalid value format, parse failure | Deprecated format, data migration hints |
 
@@ -253,6 +253,15 @@ for (Diagnostic error : resource.getErrors()) {
 | Unresolved proxy URI | WARNING | `Cannot resolve proxy URI: {uri}` | Proxy created |
 | Invalid reference format | WARNING | `Expected {expected} reference format but found {actual}` | Best-effort parse |
 | Missing ref key | WARNING | `Reference object missing '_ref' key` | Reference skipped |
+| EMap entry class without key or value feature | ERROR | `EMap entry class '{class}' missing key or value feature` | Map skipped |
+| EMap key not parseable by its data type | ERROR under `strictOnConversion`, else WARNING | `EMap key '{key}' of '{reference}' is no valid {type}, the entry is dropped: {cause}` | **That entry** dropped, the rest of the map is read |
+
+The last row is the one to read carefully: a field name that the key data type cannot parse costs
+**its own entry only**. Dropping the whole map would hand the caller a successful load with an empty
+map, which is indistinguishable from a document that carried no entries (issue #154). Callers who
+would rather fail than receive a shortened map set `strictOnConversion` — the key conversion joins
+the same escalation path as every other dropped value, it has no flag of its own. See
+[10-reference.md §8.1](10-reference.md#81-emap-keys).
 
 ### 6.4 Feature Errors (Deserialization)
 
