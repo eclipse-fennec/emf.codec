@@ -32,6 +32,13 @@ indistinguishable from a document that carried no entries. Measured in
   `Map.get(Object)`. Use `get(Integer.valueOf(1))` or the assertion compares against the entry object.
 - **Spec:** `10-reference.md` gained §8.1 "EMap keys" (the flatten section moved to §8.2) stating the
   conversion in both directions and that dropping the whole map is not allowed.
+- **Follow-up (2026-08-19, same day):** the two missing write-back tests were added to
+  `EMapNonStringKeyTest`. `keysSurviveTheWriteBack` reads a document with int and enum keys, writes
+  it again and compares the parsed trees (field order and whitespace must not decide) — verified by
+  dumping the output, `{"counts":{"1":"one","2":"two"},"levels":{"LOW":"quiet","HIGH":"loud"}}`.
+  `writeBackNormalisesTheKey` pins the boundary of that claim: a key spelled `"007"` comes back as
+  `"7"`, because the round trip goes through the data type and not through the text. That is correct
+  normalisation, and it is now written down so nobody "fixes" it later. Spec §8.1 says the same.
 - **Not touched:** an EMap key feature that is an `EReference` still round-trips through
   `toString()`/raw name — nonsense on both sides, but out of scope here and not observed in the wild.
 

@@ -41,6 +41,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+
 /**
  * An EMap whose key feature is not an EString (issue #154).
  * <p>
@@ -54,6 +57,7 @@ import org.junit.jupiter.api.Test;
 class EMapNonStringKeyTest {
 
     private static final String TEST_ECORE = "/org/eclipse/fennec/codec/resource/test-emap-keys.ecore";
+    private static final JsonMapper MAPPER = JsonMapper.builder().build();
 
     private EcoreHelper ecoreHelper;
     private EPackage testPackage;
@@ -155,6 +159,41 @@ class EMapNonStringKeyTest {
         assertEquals("one", counts.get(Integer.valueOf(1)));
     }
 
+    @Test
+    @DisplayName("a document read and written again comes out unchanged")
+    void keysSurviveTheWriteBack() throws IOException {
+        String json = """
+                {
+                  "_type": "%s#//Container",
+                  "name": "Counts",
+                  "counts": { "1": "one", "2": "two" },
+                  "levels": { "LOW": "quiet", "HIGH": "loud" }
+                }
+                """.formatted(testPackage.getNsURI());
+
+        String written = serialize(deserialize(json));
+
+        assertEquals(tree(json), tree(written),
+                "the converted keys render back to the field names they came from");
+    }
+
+    @Test
+    @DisplayName("the write back normalises a key that was not written canonically")
+    void writeBackNormalisesTheKey() throws IOException {
+        String json = """
+                {
+                  "_type": "%s#//Container",
+                  "name": "Counts",
+                  "counts": { "007": "bond" }
+                }
+                """.formatted(testPackage.getNsURI());
+
+        String written = serialize(deserialize(json));
+
+        assertTrue(written.contains("\"7\""), "the key comes back in the data type's own form: " + written);
+        assertFalse(written.contains("\"007\""), "the document's spelling is not preserved: " + written);
+    }
+
     // ========================================================================
     // A key the data type cannot parse
     // ========================================================================
@@ -250,5 +289,10 @@ class EMapNonStringKeyTest {
         options.put(CodecResource.CODEC_ROOT_TYPE, containerClass);
         resource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), options);
         return resource;
+    }
+
+    /** Compares documents, not formatting - field order and whitespace must not decide. */
+    private JsonNode tree(String json) {
+        return MAPPER.readTree(json);
     }
 }
