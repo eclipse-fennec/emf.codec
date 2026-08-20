@@ -526,8 +526,16 @@ For any property lookup:
 | `expandDepth` | G, C, F | RW | `1` | 10-reference.md |
 | `expandIgnoreBidirectional` | G, C, F | (R)W | `true` | 10-reference.md |
 | `serializeInstanceType` | G, F | W | `true` | 12-polymorphism.md |
+| `loadReferencedResources` | G | R | `false` | 10-reference.md |
+| `refUriSchemes` | G | R | `[]` | 10-reference.md |
 
 > **Note:** `serializeInstanceType=false` is write-only and may cause deserialization failures if reference type is abstract/interface.
+>
+> **`loadReferencedResources` / `refUriSchemes`:** a reference URI is data from the document, so
+> resolution stays inside what is already in memory unless `loadReferencedResources=true` says
+> otherwise, and `refUriSchemes` names the schemes a document may use at all (empty = every
+> scheme, with a warning for the ones that leave the process). Both are global only and are not
+> REST client-overridable - a request must not be able to widen them.
 >
 > **`expand` vs `expandGlobal`:**
 > - `expand` at F level: `true`/`false` - expand this specific reference

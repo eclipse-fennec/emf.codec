@@ -101,6 +101,8 @@ These options apply to every format. Java constants are in
 | `codec.expand` | `CODEC_EXPAND` | Boolean | `false` | Inline (expand) non-containment referenced objects instead of emitting a `$ref`. |
 | `codec.expandDepth` | `CODEC_EXPAND_DEPTH` | Integer | `1` | Maximum depth for recursive expansion. |
 | `codec.expandIgnoreBidirectional` | `CODEC_EXPAND_IGNORE_BIDIRECTIONAL` | Boolean | `true` | Skip the back-pointer side of bidirectional references during expansion. |
+| `codec.loadReferencedResources` | `CODEC_LOAD_REFERENCED_RESOURCES` | Boolean | `false` | Let resolution load the resource a cross-document reference names. Off means resolution uses what the ResourceSet already holds and leaves a proxy otherwise. |
+| `codec.refUriSchemes` | `CODEC_REF_URI_SCHEMES` | List\<String\> | — | URI schemes a reference in the document may name. Empty is unrestricted, with a warning for schemes that leave the process; naming schemes makes it an allowlist and refuses the rest. |
 
 ### Feature & visibility
 

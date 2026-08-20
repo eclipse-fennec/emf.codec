@@ -141,6 +141,8 @@ The configuration defines **keys and format**, not actual values.
 | `refKey` | `codec.refKey` | ✅ | ✅ | `_ref` | Reference value key |
 | `refTypeKey` | `codec.refTypeKey` | ✅ | ✅ | `_type` | Type key in STRUCTURED |
 | `expand` | `codec.expand` | ✅ | ✅ | `false` | Inline full object vs proxy |
+| `loadReferencedResources` | `codec.loadReferencedResources` | ✅ | ❌ | `false` | Let resolution load the resource a reference names |
+| `refUriSchemes` | `codec.refUriSchemes` | ✅ | ❌ | `[]` | URI schemes a reference may name (empty = unrestricted) |
 
 **Note:** Reference configuration is NOT supported on EClass (different references on the same class may need different formats).
 
@@ -1096,7 +1098,8 @@ INPUT: JsonParser positioned at value token, EReference, effective ReferenceConf
 - The proxy object is created through the **EFactory of its package**, so a generated model
   yields generated instances and a reflective model dynamic ones — **the codec behaves
   identically for generated and reflective use**
-- The proxy is **not resolved by the codec**
+- The proxy is **not resolved by the codec** — resolution stays inside what is already in
+  memory unless the embedder opts into loading, see [§9.3.5](#935-what-resolution-is-allowed-to-do)
 
 #### 9.3.3 Who resolves a proxy
 
@@ -1177,20 +1180,38 @@ if (employerProxy.eIsProxy()) {
 }
 ```
 
-#### 9.3.3 Expected Future Behavior
+#### 9.3.5 What resolution is allowed to do
 
-Full cross-resource resolution will:
-1. Check if resource is already loaded in ResourceSet
-2. If not loaded, attempt to load (based on ResourceSet configuration)
-3. Resolve proxy to loaded object
-4. Fall back to proxy if load fails or is deferred
+A reference URI is **data the document supplied**. Resolution therefore reads the model that is
+already in memory, and reading a document never makes the codec open a location that document
+named — the embedder decides which locations the process talks to, not the document.
 
-**Configuration (planned):**
+Resolution proceeds in this order:
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `RESOLVE_CROSS_RESOURCE` | boolean | Auto-resolve cross-resource references during load |
-| `LOAD_REFERENCED_RESOURCES` | boolean | Auto-load referenced resources into ResourceSet |
+1. Apply `refUriSchemes`. A URI without a scheme is relative or a bare fragment and always
+   passes. Otherwise, if schemes are listed, the URI's scheme must be among them; if it is not,
+   the reference is **refused** — no resolution, no proxy, an error diagnostic. With no schemes
+   listed nothing is refused, and a URI whose scheme could leave the process (`http`, `https`,
+   `ftp`, `ftps`, `sftp`, `file`, `jar`, `archive`, `zip`) is reported as a warning so the
+   embedder can see it.
+2. Look the target up: the local document for a fragment, otherwise the ResourceSet. With
+   `loadReferencedResources=false` (the default) the lookup sees the resources the set already
+   holds; with `true` the ResourceSet may load the named one.
+3. Whatever is not resolved becomes a proxy carrying the URI — §9.3.1.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `codec.loadReferencedResources` | boolean | `false` | Let resolution load the resource a reference names |
+| `codec.refUriSchemes` | list of strings | `[]` | Schemes a reference URI may use; empty is unrestricted |
+
+Both are **global only** and deliberately not REST client-overridable: a request body must not be
+able to widen the policy that is there to contain it.
+
+> **The embedder owns the second half.** A proxy keeps the URI by contract — that is what makes
+> §9.3.2 work. So `EcoreUtil.resolveAll(resourceSet)`, or reading a proxied feature on a
+> resolving reference, opens whatever the document named, now on the embedder's own decision. For
+> untrusted input: do not resolve proxies, or give that ResourceSet a `URIConverter` that refuses
+> the schemes the deployment has no business opening.
 
 ### 9.4 Deserialization Options
 
