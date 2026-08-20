@@ -243,6 +243,37 @@ public enum ConfigProperty {
     SERIALIZE_INSTANCE_TYPE("serializeInstanceType", Boolean.class, true,
         levels(GLOBAL, FEATURE), directions(WRITE)),
 
+    /**
+     * Opt-in for loading the resource a cross-document reference names.
+     * <p>
+     * Off by default: a reference URI is data, so reading a document must not make the codec
+     * open the location that document chose. What resolution finds is what is already in
+     * memory; the rest stays a proxy the embedder resolves deliberately - which is the
+     * reference contract anyway. Turn this on only where the input is trusted, and prefer
+     * narrowing it with {@link #REF_URI_SCHEMES}.
+     * </p>
+     *
+     * @see <a href="docs/codec-v2-spec/10-reference.md#93-cross-resource-references">Spec 10 §9.3</a>
+     */
+    LOAD_REFERENCED_RESOURCES("loadReferencedResources", Boolean.class, false,
+        levels(GLOBAL), directions(READ)),
+
+    /**
+     * URI schemes a reference in the document may name.
+     * <p>
+     * Empty by default, which means "unrestricted": every URI is accepted, and one carrying a
+     * scheme that can reach out of the process ({@code http}, {@code file}, {@code jar}, ...)
+     * is reported as a warning so it is visible rather than silent. Listing schemes turns that
+     * into enforcement - a reference URI with any other scheme is refused, and no proxy is
+     * created for it. Relative and fragment-only URIs carry no scheme and are always allowed.
+     * </p>
+     *
+     * @see <a href="docs/codec-v2-spec/10-reference.md#93-cross-resource-references">Spec 10 §9.3</a>
+     */
+    @SuppressWarnings("unchecked")
+    REF_URI_SCHEMES("refUriSchemes", (Class<List<String>>) (Class<?>) List.class, List.of(),
+        levels(GLOBAL), directions(READ)),
+
     // ========================================================================
     // Discriminator Mapping Properties (11.8)
     // ========================================================================

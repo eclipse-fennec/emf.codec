@@ -450,6 +450,24 @@ public final class CodecOptions {
      */
     public static final String CODEC_EXPAND = "codec.expand";
 
+    /**
+     * Load the resource a cross-document reference names.
+     * <p>Default: false — resolution uses what is already in memory and leaves a proxy
+     * otherwise, so a document cannot make the codec open a location it names.</p>
+     *
+     * @see org.eclipse.fennec.codec.config.ConfigProperty#LOAD_REFERENCED_RESOURCES
+     */
+    public static final String CODEC_LOAD_REFERENCED_RESOURCES = "codec.loadReferencedResources";
+
+    /**
+     * URI schemes a reference in the document may name, as a list of scheme names.
+     * <p>Default: empty — unrestricted, with a warning for schemes that can reach out of the
+     * process. Listing schemes turns it into enforcement.</p>
+     *
+     * @see org.eclipse.fennec.codec.config.ConfigProperty#REF_URI_SCHEMES
+     */
+    public static final String CODEC_REF_URI_SCHEMES = "codec.refUriSchemes";
+
     // ========================================================================
     // FEATURE CONFIGURATION
     // ========================================================================

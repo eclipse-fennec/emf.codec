@@ -32,6 +32,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.fennec.codec.deser.DeserializationState.UnresolvedReference;
+import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
@@ -351,10 +352,16 @@ class ProxyCreationTest {
      */
     private void invokeResolveReferences(CodecResource resource, List<UnresolvedReference> unresolvedRefs) {
         try {
+            Class<?> policyClass = Class.forName(
+                    "org.eclipse.fennec.codec.resource.ReferenceUriPolicy");
+            Method from = policyClass.getDeclaredMethod("from", ConfigurationResolver.class);
+            from.setAccessible(true);
+            Object defaultPolicy = from.invoke(null, ConfigurationResolver.defaults());
+
             Method method = CodecResource.class.getDeclaredMethod(
-                    "resolveReferences", List.class, DiagnosticCollector.class);
+                    "resolveReferences", List.class, DiagnosticCollector.class, policyClass);
             method.setAccessible(true);
-            method.invoke(resource, unresolvedRefs, new DiagnosticCollector());
+            method.invoke(resource, unresolvedRefs, new DiagnosticCollector(), defaultPolicy);
         } catch (Exception e) {
             throw new RuntimeException("Failed to invoke resolveReferences", e);
         }

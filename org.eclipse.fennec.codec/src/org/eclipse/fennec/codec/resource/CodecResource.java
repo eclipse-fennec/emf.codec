@@ -460,7 +460,8 @@ public class CodecResource extends ResourceImpl {
         }
 
         if (!unresolvedReferences.isEmpty()) {
-            resolveReferences(unresolvedReferences, diagnosticCollector);
+            resolveReferences(unresolvedReferences, diagnosticCollector,
+                    ReferenceUriPolicy.from(operationResolver));
         }
 
         diagnosticCollector.addToResource(this);
@@ -680,7 +681,8 @@ public class CodecResource extends ResourceImpl {
         }
 
         if (!unresolvedReferences.isEmpty()) {
-            resolveReferences(unresolvedReferences, diagnosticCollector);
+            resolveReferences(unresolvedReferences, diagnosticCollector,
+                    ReferenceUriPolicy.from(operationResolver));
         }
 
         diagnosticCollector.addToResource(this);
@@ -939,14 +941,27 @@ public class CodecResource extends ResourceImpl {
                 .build();
     }
 
+    /**
+     * Turns the reference URIs collected while parsing into targets — resolved where the target
+     * is already in memory, a proxy otherwise.
+     *
+     * @param unresolvedReferences the references collected during parsing
+     * @param diagnosticCollector where refusals and warnings are reported
+     * @param policy what may be done with a URI the document supplied
+     */
     @SuppressWarnings("unchecked")
     private void resolveReferences(List<UnresolvedReference> unresolvedReferences,
-            DiagnosticCollector diagnosticCollector) {
+            DiagnosticCollector diagnosticCollector, ReferenceUriPolicy policy) {
         Map<String, EObject> proxyCache = new HashMap<>();
 
         for (UnresolvedReference unresolved : unresolvedReferences) {
             String targetUri = unresolved.getTargetUri();
-            EObject target = resolveReference(targetUri);
+
+            if (!checkUriPolicy(unresolved, targetUri, policy, diagnosticCollector)) {
+                continue;
+            }
+
+            EObject target = resolveReference(targetUri, policy);
 
             if (isNull(target)) {
                 target = proxyCache.computeIfAbsent(targetUri, uri -> createProxy(unresolved, diagnosticCollector));
@@ -975,6 +990,70 @@ public class CodecResource extends ResourceImpl {
             } else {
                 source.eSet(reference, target);
             }
+        }
+    }
+
+    /**
+     * Applies {@link ReferenceUriPolicy} to one reference URI.
+     * <p>
+     * Two outcomes are worth telling apart. With an allowlist configured, a URI outside it is
+     * <b>refused</b>: no resolution, no proxy, and an error — the embedder said which schemes a
+     * document may name, so a document naming another one is a broken document, not a target
+     * that happens to be missing. Without an allowlist nothing is refused, but a URI whose
+     * scheme could leave the process is <b>reported</b>, because that is the case an embedder
+     * wants to know about before deciding to resolve proxies.
+     * </p>
+     *
+     * @param unresolved the reference being resolved
+     * @param targetUri the URI as it stands in the document
+     * @param policy the policy for this load
+     * @param diagnosticCollector where the refusal or the warning is reported
+     * @return {@code true} when resolution may proceed
+     */
+    private boolean checkUriPolicy(UnresolvedReference unresolved, String targetUri,
+            ReferenceUriPolicy policy, DiagnosticCollector diagnosticCollector) {
+        String scheme = schemeOf(targetUri);
+
+        if (!policy.allows(scheme)) {
+            String msg = String.format(
+                    "Refused reference %s -> %s: scheme '%s' is not among the allowed reference URI schemes %s",
+                    unresolved.getReference().getName(), targetUri, scheme, policy.allowedSchemes());
+            LOGGER.warning(msg);
+            diagnosticCollector.addError(msg, "CodecResource");
+            return false;
+        }
+
+        if (!policy.isEnforcing() && policy.reachesOutOfProcess(scheme)) {
+            String msg = String.format(
+                    "Reference %s names a location outside this process: %s. %s"
+                            + " Restrict this with the '%s' option, and resolve proxies from untrusted"
+                            + " input only deliberately.",
+                    unresolved.getReference().getName(), targetUri,
+                    policy.loadsReferencedResources()
+                            ? "It is opened during load because '" + CodecOptions.CODEC_LOAD_REFERENCED_RESOURCES
+                                    + "' is enabled."
+                            : "Resolution does not open it; the reference becomes a proxy.",
+                    CodecOptions.CODEC_REF_URI_SCHEMES);
+            LOGGER.warning(msg);
+            diagnosticCollector.addWarning(msg, "CodecResource");
+        }
+
+        return true;
+    }
+
+    /**
+     * @param uri a reference URI as it stands in the document
+     * @return its scheme, {@code null} for a relative URI, a bare fragment or an unparseable one
+     */
+    private static String schemeOf(String uri) {
+        if (isNull(uri) || uri.isEmpty() || uri.startsWith("#") || uri.startsWith("//")) {
+            return null;
+        }
+        try {
+            return URI.createURI(uri).scheme();
+        } catch (IllegalArgumentException e) {
+            // Unparseable URIs are left to resolveReference, which reports them
+            return null;
         }
     }
 
@@ -1073,7 +1152,25 @@ public class CodecResource extends ResourceImpl {
         return custom.isEmpty() ? Map.of() : Map.copyOf(custom);
     }
 
-    private EObject resolveReference(String uri) {
+    /**
+     * Looks up a reference target — the local document or, for a cross-document URI, a resource
+     * the ResourceSet holds.
+     * <p>
+     * By default nothing is loaded on the way: a target that is not in memory yet stays
+     * unresolved and the caller gets a proxy carrying the URI ({@link #createProxy}). That is
+     * the reference contract — the codec produces proxies and stops there, resolving them is
+     * EMF's and the embedder's decision. It is also what keeps a document from steering the
+     * codec's I/O: the URI in the payload is data, and reading it must not make the codec open a
+     * location the payload names. An embedder whose input is trusted can opt into loading with
+     * {@link ConfigProperty#LOAD_REFERENCED_RESOURCES}.
+     * </p>
+     *
+     * @param uri the reference URI as it stands in the document
+     * @param policy whether the named resource may be loaded
+     * @return the target if it can be resolved under the policy, {@code null} otherwise
+     * @see <a href="docs/codec-v2-spec/10-reference.md#93-cross-resource-references">Spec 10 §9.3</a>
+     */
+    private EObject resolveReference(String uri, ReferenceUriPolicy policy) {
         if (isNull(uri) || uri.isEmpty()) {
             return null;
         }
@@ -1087,7 +1184,9 @@ public class CodecResource extends ResourceImpl {
             } else if (uri.contains("#")) {
                 URI emfUri = URI.createURI(uri);
                 if (nonNull(getResourceSet())) {
-                    return getResourceSet().getEObject(emfUri, true);
+                    // loadOnDemand only where the embedder asked for it - otherwise this lookup
+                    // sees the resources the set already holds and nothing else
+                    return getResourceSet().getEObject(emfUri, policy.loadsReferencedResources());
                 } else {
                     String fragment = emfUri.fragment();
                     if (nonNull(fragment)) {
