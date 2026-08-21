@@ -694,6 +694,24 @@ Deserializers detect the format from the JSON structure:
 
 The deserializer resolves the EClass based on a **priority chain**: discriminator mappings first, then type strategy, then fallback hints.
 
+#### Where packages are looked up
+
+Resolution goes through the **`MetadataService` the codec was configured with** — that is the
+contract, and it holds no matter how the codec is embedded. A component that publishes its model
+the Fennec way, through a whiteboard, and hands that service to the codec, has done everything
+required for its documents to read back.
+
+The binding order behind it (B.5) is: an established version pin, then the ResourceSet's package
+registry, then the `MetadataService`'s versions for the nsURI, and only for an nsURI the service
+does not know at all, the global `EPackage.Registry`. The global registry is therefore a last
+resort for foreign packages, never the primary source.
+
+> This applies to mapper-level embedding as well. A caller that drives the `ObjectMapper` itself
+> instead of `Resource.load` gets the same resolution: the deserializer seeds the resolution
+> context from its own configuration when nothing else did (issue #163). Before that, such a
+> caller silently got global-registry-only resolution, so a package published only to the
+> service was not found.
+
 #### 6.3.0 Type Resolution Flow
 
 ```
