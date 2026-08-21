@@ -958,6 +958,14 @@ If a `CODEC_ROOT_TYPE` hint is provided (or the reference type is concrete), the
 | Unknown type value, hint available | Use hint, continue | WARNING |
 | Unknown type value, no hint | Fail | ERROR |
 
+The two failing cases are reported apart, because they send a reader in different directions —
+one is a document without a discriminator, the other a discriminator that does not resolve here:
+
+| Scenario | Message |
+|----------|---------|
+| No type value in the document, no hint | `Cannot deserialize: no type information found and no CODEC_ROOT_TYPE hint` |
+| Type value present but unresolvable, no hint | `Cannot deserialize: type value '<value>' could not be resolved and no CODEC_ROOT_TYPE hint was given` |
+
 **Example - Unknown type with hint (succeeds):**
 ```java
 Map<String, Object> options = Map.of(

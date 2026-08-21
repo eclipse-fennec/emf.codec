@@ -630,6 +630,7 @@ Map<String, Object> options = CodecOptionsBuilder.create()
 | Scenario | Severity | Behavior |
 |----------|----------|----------|
 | No `_type` and no `CODEC_ROOT_TYPE` | ERROR | "Cannot deserialize: no type information found and no CODEC_ROOT_TYPE hint" |
+| Unresolvable `_type` and no `CODEC_ROOT_TYPE` | ERROR | "Cannot deserialize: type value '<value>' could not be resolved and no CODEC_ROOT_TYPE hint was given" |
 | Invalid `CODEC_ROOT_TYPE` (not a resolvable EClass or String type identifier) | ERROR | Type hint must be an EClass or a resolvable type URI / qualified name |
 | Unknown `CODEC_ROOT_FINGERPRINT` (no package for fingerprint) | ERROR | "Unknown root fingerprint: `<fp>`" |
 | `CODEC_ROOT_FINGERPRINT` conflicts with an instance root option's package fingerprint | ERROR | "Root fingerprint `<fp>` does not match `<option>` package `<nsURI>` (`<fp2>`)" |
