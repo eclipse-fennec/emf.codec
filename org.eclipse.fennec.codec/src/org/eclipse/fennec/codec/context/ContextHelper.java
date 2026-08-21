@@ -493,6 +493,29 @@ public final class ContextHelper {
         return fieldName != null && getFingerprintReadKeys(ctxt).contains(fieldName);
     }
 
+    /**
+     * Puts a {@link PackageResolver} into the context, unless one is already there.
+     * <p>
+     * {@code CodecResource} seeds the resolver for a load it drives itself. A caller that
+     * drives the mapper directly cannot, and without one the type plane resolves against the
+     * global {@code EPackage.Registry} instead of the {@link
+     * org.eclipse.fennec.emf.osgi.metadata.MetadataService} it was handed — so the
+     * deserializer seeds it from its own configuration (issue #163). First one wins, because
+     * the resolver pins package versions and a second one would start over.
+     * </p>
+     *
+     * @param ctxt the deserialization context, may be {@code null}
+     * @param resolver the resolver to install
+     * @return {@code true} when this call installed it
+     */
+    public static boolean setPackageResolverIfAbsent(DeserializationContext ctxt, PackageResolver resolver) {
+        if (ctxt == null || resolver == null || getPackageResolver(ctxt) != null) {
+            return false;
+        }
+        ctxt.setAttribute(PACKAGE_RESOLVER, resolver);
+        return true;
+    }
+
     public static PackageResolver getPackageResolver(DeserializationContext ctxt) {
         if (ctxt == null) {
             return null;
