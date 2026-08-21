@@ -220,6 +220,9 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         // no holding back - there the fingerprint is inside the type object.
         boolean typeContextSeen = false;
         String pendingTypeValue = null;
+        // Kept beyond resolution, unlike pendingTypeValue: it is what tells "the document said
+        // nothing about its type" apart from "the document said something unresolvable".
+        String seenTypeValue = null;
         String pendingTypeProperty = null;
         String streamFingerprint = null;
 
@@ -245,6 +248,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 // Read the raw type value; resolution waits until the type context is complete
                 TypeContext typeContext = readTypeContext(parser, ctxt);
                 pendingTypeValue = typeContext.typeValue;
+                seenTypeValue = typeContext.typeValue;
                 pendingTypeProperty = propertyName;
                 typeContextSeen = true;
                 if (typeContext.fingerprint != null) {
@@ -312,7 +316,16 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         }
 
         if (eObject == null) {
-            String msg = "Cannot deserialize: no type information found and no CODEC_ROOT_TYPE hint";
+            // Two different failures used to share one message, and the shared wording described
+            // only the first: a document that carried a type value which could not be resolved
+            // was reported as carrying none. That sends a reader looking for a missing
+            // discriminator instead of an unresolvable one - spec 06 §6.3.2 keeps them apart.
+            String msg = seenTypeValue != null
+                    ? String.format(
+                            "Cannot deserialize: type value '%s' could not be resolved and no"
+                                    + " CODEC_ROOT_TYPE hint was given",
+                            seenTypeValue)
+                    : "Cannot deserialize: no type information found and no CODEC_ROOT_TYPE hint";
             LOGGER.severe(msg);
             ContextHelper.addError(ctxt, msg, parser, "CodecEObjectDeserializer");
         }
