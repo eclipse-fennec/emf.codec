@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -41,7 +42,9 @@ import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.util.EMapHelper;
 import org.eclipse.fennec.codec.util.TokenLoops;
+import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -162,6 +165,13 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             resource = ContextHelper.getResource(ctxt);
         }
         DeserializationState state = new DeserializationState(resource);
+
+        // The type plane resolves through the PackageResolver, which carries the
+        // MetadataService this codec was configured with. CodecResource seeds one per load; a
+        // caller driving the mapper itself has no way to, and the resolver-less fallback path
+        // reads the global EPackage.Registry instead - so a package published only to the
+        // MetadataService would not be found (issue #163). Seed it from the configuration.
+        ensurePackageResolver(ctxt, resource);
 
         // Get or create shared unresolved references list from context
         @SuppressWarnings("unchecked")
@@ -336,6 +346,34 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         }
 
         return eObject;
+    }
+
+    /**
+     * Makes sure the context carries a {@link PackageResolver} built from the configured
+     * {@link MetadataService}, so type resolution consults the service the caller supplied
+     * rather than the global registry (issue #163).
+     * <p>
+     * Does nothing when a resolver is already there — {@code CodecResource} seeds one for the
+     * whole load and its version pins must not be reset mid-document — and nothing when no
+     * MetadataService is configured, which is the only case where the global registry stays
+     * the last resort.
+     * </p>
+     *
+     * @param ctxt the deserialization context
+     * @param resource the resource being read, may be {@code null}
+     */
+    private void ensurePackageResolver(DeserializationContext ctxt, Resource resource) {
+        if (ctxt == null || ContextHelper.getPackageResolver(ctxt) != null) {
+            return;
+        }
+        MetadataService metadataService = config.getMetadataService();
+        if (metadataService == null) {
+            return;
+        }
+        EPackage.Registry registry = resource != null && resource.getResourceSet() != null
+                ? resource.getResourceSet().getPackageRegistry()
+                : null;
+        ContextHelper.setPackageResolverIfAbsent(ctxt, new PackageResolver(metadataService, registry));
     }
 
     /**

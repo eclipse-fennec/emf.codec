@@ -760,7 +760,16 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             return TypeResolutionHelper.resolveFromUri(typeUri, diagnostics);
         }
         try {
-            return resolver.resolveEClassFromTypeUri(typeUri, streamFingerprint);
+            EClass resolved = resolver.resolveEClassFromTypeUri(typeUri, streamFingerprint);
+            if (resolved == null && diagnostics != null) {
+                // Name where it looked. "not found" alone sends the reader to the writing side,
+                // when the answer is which registry the package was published to (issue #163).
+                diagnostics.addWarning(String.format(
+                        "Could not resolve type '%s' - searched the supplied MetadataService,"
+                                + " the ResourceSet package registry and the global EPackage.Registry",
+                        typeUri), "TypeDeserializationEntry");
+            }
+            return resolved;
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
