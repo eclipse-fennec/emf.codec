@@ -20,7 +20,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Map;
 
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -106,7 +105,7 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 			// option — copying fails for models generated with suppressed notifications,
 			// whose many-features are not Setting-implementing lists (issue #94).
 			ResourceFactoryImpl factory = (ResourceFactoryImpl) resourceSet.getResourceFactoryRegistry().getContentTypeToFactoryMap().get(mediaType.getType() + "/" + mediaType.getSubtype());
-			resource = factory.createResource(URI.createURI("http://test.test"));
+			resource = factory.createResource(createTempWriteURI());
 			resourceSet.getResources().add(resource);
 			resource.getContents().add(t);
 			try {

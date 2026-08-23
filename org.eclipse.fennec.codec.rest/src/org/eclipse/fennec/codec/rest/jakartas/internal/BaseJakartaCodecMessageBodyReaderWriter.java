@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -102,7 +103,7 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 			ResourceSet resourceSet = getResourceSet();
 			ResourceFactoryImpl factory = (ResourceFactoryImpl) resourceSet.getResourceFactoryRegistry()
 					.getContentTypeToFactoryMap().get(contentType);
-			Resource referenceResource = factory.createResource(URI.createURI("http://test.test"));
+			Resource referenceResource = factory.createResource(createTempWriteURI());
 			boolean removeFromResourceSet = true;
 			if (t.getClass().equals(referenceResource.getClass())) {
 				referenceResource = t;
@@ -245,6 +246,18 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 			return String.valueOf(classMetadata.getTypeURI());
 		}
 		return packageMetadata.getNsURI() + "@" + packageMetadata.getModelFingerprint();
+	}
+
+	/**
+	 * Creates a unique URI for a temporary write resource. The fixed
+	 * {@code http://test.test} used before could collide with another temporary
+	 * resource in the same request {@link ResourceSet}, e.g. from the reader
+	 * side of the same request (issue #166).
+	 *
+	 * @return a URI no other resource in the set can carry
+	 */
+	static URI createTempWriteURI() {
+		return URI.createURI("http://codec.temp/" + UUID.randomUUID());
 	}
 
 	/**
