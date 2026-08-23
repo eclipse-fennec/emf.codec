@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.URI;
@@ -68,6 +70,8 @@ import jakarta.ws.rs.ext.MessageBodyWriter;
  */
 public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends AbstractJakartaCodecAnnotationHandler
 		implements MessageBodyReader<R>, MessageBodyWriter<W> {
+
+	private static final Logger LOGGER = Logger.getLogger(BaseJakartaCodecMessageBodyReaderWriter.class.getName());
 
 	@Reference(cardinality = ReferenceCardinality.MANDATORY)
 	MetadataService metadataService;
@@ -128,7 +132,12 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 		} catch (WebApplicationException wae) {
 			throw wae;
 		} catch (Exception e) {
-			String errorText = String.format("[%s] Error serializing outgoing object. Cause is [%s]", genericType.getTypeName(), e.getCause() != null ? e.getCause().getMessage() : "UNKNOWN");
+			// The Jakarta REST runtime treats a WAE with a prepared response as handled and
+			// logs nothing, so this is the only place the real cause can surface (issue #165).
+			LOGGER.log(Level.SEVERE, String.format("[%s] Error serializing outgoing object as [%s]",
+					genericType.getTypeName(), determinContentType(mediaType, annotations)), e);
+			// The body stays generic: exception details in the response would leak internals.
+			String errorText = String.format("[%s] Error serializing outgoing object", genericType.getTypeName());
 			Response r = Response.serverError().entity(errorText).type(MediaType.TEXT_PLAIN).build();
 			throw new WebApplicationException(e, r);
 		}
@@ -175,7 +184,11 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 		} catch (WebApplicationException wae) {
 			throw wae;
 		} catch (Exception e) {
-			String errorText = String.format("[%s] Error de-serializing incoming data. Cause is [%s]", genericType.getTypeName(), e.getCause() != null ? e.getCause().getMessage() : "UNKNOWN");
+			// Same reasoning as in writeResourceTo: log the cause here, keep the body generic
+			// (issue #165).
+			LOGGER.log(Level.SEVERE, String.format("[%s] Error de-serializing incoming data as [%s]",
+					genericType.getTypeName(), determinContentType(mediaType, annotations)), e);
+			String errorText = String.format("[%s] Error de-serializing incoming data", genericType.getTypeName());
 			Response r = Response.serverError().entity(errorText).type(MediaType.TEXT_PLAIN).build();
 			throw new WebApplicationException(e, r);
 		}
