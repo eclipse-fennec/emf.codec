@@ -112,7 +112,7 @@ Test coverage matrix mapping spec sections to test files. Use this to find tests
 
 Java code conventions, patterns, and helper classes for the codec implementation. Covers Java 17+ idioms, null safety with `java.util.Objects`, EMF-specific patterns, and the catalog of existing and planned helper classes. This is a living document updated through code review feedback.
 
-### [99 - Open Questions](99-open-questions.md)
+### 99 - Open Questions
 
 Unresolved design questions and future considerations. Check here before proposing changes - your question may already be captured.
 
