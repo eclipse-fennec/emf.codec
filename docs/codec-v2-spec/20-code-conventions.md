@@ -1,6 +1,6 @@
 # Code Conventions & Patterns
 
-[← Test Coverage](19-test-coverage.md) | [Next: Open Questions →](99-open-questions.md)
+[← Test Coverage](19-test-coverage.md) | Next: Open Questions →
 
 ---
 
@@ -423,4 +423,4 @@ This document evolves based on code review findings:
 
 ---
 
-[Next: Open Questions →](99-open-questions.md)
+Next: Open Questions →

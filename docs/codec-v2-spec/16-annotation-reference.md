@@ -460,7 +460,7 @@ CodecConfiguration.builder()
 
 > **Detailed examples:** See [18-scenarios.md](18-scenarios.md) for comprehensive configuration examples.
 
-**Note:** StrategyScope is **runtime-only** (🔧) - no EAnnotation equivalent: a scope says *where* in an object graph a setting applies, which is a property of the operation rather than of the model. See [Type Configuration](#type-configuration) below for the full reasoning, and [99-open-questions.md Q1](99-open-questions.md#q1-epackage-scope-level) for the related package-level question.
+**Note:** StrategyScope is **runtime-only** (🔧) - no EAnnotation equivalent: a scope says *where* in an object graph a setting applies, which is a property of the operation rather than of the model. See [Type Configuration](#type-configuration) below for the full reasoning, and 99-open-questions.md Q1 for the related package-level question.
 
 ---
 
@@ -534,7 +534,7 @@ Type configuration describes how type information is serialized/deserialized.
 
 > **Why `typeScope`/`typeFormatScope` are runtime-only:** these properties control *where* a strategy applies (`ROOT_ONLY`, `ROOT_CONTAINMENT`, …), which is a property of the *operation*, not of the model. A model cannot know whether one of its classes will be somebody's root or somebody else's nested content — the same class is both, in different documents.
 >
-> Cross-package references make that decisive rather than merely untidy: "root" and "containment" are positions in a document, and a document assembled from several packages has exactly one root, which at most one of those packages owns. A package-level scope would therefore have to state something about positions outside its own model. That is why scopes are also answered with "no" for a future package level — see [99-open-questions.md Q1](99-open-questions.md#q1-epackage-scope-level).
+> Cross-package references make that decisive rather than merely untidy: "root" and "containment" are positions in a document, and a document assembled from several packages has exactly one root, which at most one of those packages owns. A package-level scope would therefore have to state something about positions outside its own model. That is why scopes are also answered with "no" for a future package level — see 99-open-questions.md Q1.
 
 > **Recommendation:** Use keys that start with `_` or `@` (like `_type`, `@type`) for `typeKey`, `typeSchemaKey`, and `typeNameKey`. This helps distinguish metadata from data fields and prevents collision with ordinary data keys during deserialization.
 
@@ -1960,9 +1960,9 @@ This section tracks the implementation status of features documented in this ref
 - [ ] **Scope Implementation**: Wire scope configuration in runtime config resolution
   - `typeScope`, `typeFormatScope`, `idScope`, `idFormatScope` exist in model but not fully used
 
-- [ ] **EPackage Scope Level**: see [99-open-questions.md Q1](99-open-questions.md#q1-epackage-scope-level) (design questions resolved, scope decision open — issue #75)
+- [ ] **EPackage Scope Level**: see 99-open-questions.md Q1 (design questions resolved, scope decision open — issue #75)
 
-- [ ] **EMF Configuration Model**: see [99-open-questions.md Q2](99-open-questions.md#q2-emf-configuration-model)
+- [ ] **EMF Configuration Model**: see 99-open-questions.md Q2
 
 - [ ] Update spec `11-feature.md` to align with new `ignore*` / `force*` naming
 
@@ -1975,7 +1975,7 @@ This section tracks the implementation status of features documented in this ref
 | Date | Changes |
 |------|---------|
 | 2026-07-25 | Added `fingerprintMode` / `fingerprintKey` to Type Configuration (in-band EPackage fingerprint, issue #73) |
-| 2026-07-25 | Resolved the dead links to `codec-v2-spec-working/`: those working documents were lost in the spec rewrite. The reasoning they held is now inline here (why scopes are runtime-only) or consolidated in [99-open-questions.md](99-open-questions.md) Q1/Q2, so it cannot go missing with a file again (issue #75) |
+| 2026-07-25 | Resolved the dead links to `codec-v2-spec-working/`: those working documents were lost in the spec rewrite. The reasoning they held is now inline here (why scopes are runtime-only) or consolidated in 99-open-questions.md Q1/Q2, so it cannot go missing with a file again (issue #75) |
 | 2026-01-23 | Added Diagnostic Options subsection with cross-reference to 15-error-handling.md |
 | 2026-01-23 | Added cross-references for diagnostic and custom value options in Load/Save Options table |
 | 2026-01-23 | Refactored Feature Configuration: replaced `transient`/`serialize` with directional `ignore*`/`force*` naming |

@@ -104,7 +104,7 @@ the codec resolves through `EClass.getEPackage()` everywhere and never walks
 **Scopes do not participate** (`typeScope`, `typeFormatScope`, `idScope`, `idFormatScope`). A
 scope says *where in a document* a setting applies, which is a property of the operation, not of
 a model — see [16-annotation-reference.md](16-annotation-reference.md) and
-[99-open-questions.md Q1](99-open-questions.md#q1-epackage-scope-level).
+99-open-questions.md Q1.
 
 ---
 
@@ -257,7 +257,7 @@ FeatureConfig featureConfig = effectiveConfig.resolveFeatureConfig(firstNameFeat
 `EStructuralFeature` instance** (`computeIfAbsent`), never by class name or type URI. The annotation layer is
 sourced from `MetadataService.getClassMetadata(EClass)` / `getClassProfile(EClass, "codec")` — the
 fingerprinted `PackageMetadata` is the entry point (see
-[fingerprinting workdoc](../codec-v2-fingerprinting-workdoc.md), F5) — and the **derived** config is
+fingerprinting workdoc, F5) — and the **derived** config is
 memoized in that same instance cache, so the MetadataService is not re-queried on every call. No bare-name
 map sits between the metadata and the resolved config; two same-named `EClass`es from two package versions of
 one nsURI are distinct instances and resolve to their own config.
@@ -271,7 +271,7 @@ This ensures:
 
 > **Version selection / pinning — forward reference, `[not yet implemented]`.** *Which* package version an
 > nsURI resolves to (when several coexist under one nsURI) is decided by the per-load **pin** — see the
-> [fingerprinting workdoc](../codec-v2-fingerprinting-workdoc.md) §2b `[DECIDED]`. A.1 delivers the
+> fingerprinting workdoc §2b `[DECIDED]`. A.1 delivers the
 > instance-**identity** part above (the caller already holds the concrete instance); the pin/selection layer
 > lands in Phase A.3 / Phase B.
 

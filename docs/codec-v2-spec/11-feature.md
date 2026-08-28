@@ -1084,7 +1084,7 @@ These are **orthogonal** — they can be combined independently:
 
 > **Common confusion:** `DeserializationMode.STRICT` does NOT imply `strictOnUnknown=true`. `DeserializationMode` controls **type resolution** strategy (how `_type` values are parsed). `strictOnUnknown`/`strictOnMissing` controls **feature handling** (unknown/missing JSON fields). `failFast` controls **error reporting** (throw immediately vs collect). Each can be configured independently.
 
-**Implementation status:** `strictOnUnknown` and `strictOnMissing` are specified and have `ConfigProperty` entries but are not yet wired in the runtime deserialization pipeline. See [99-open-questions.md](99-open-questions.md) for tracking.
+**Implementation status:** `strictOnUnknown` and `strictOnMissing` are specified and have `ConfigProperty` entries but are not yet wired in the runtime deserialization pipeline. See 99-open-questions.md for tracking.
 
 ---
 

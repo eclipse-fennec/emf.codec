@@ -591,7 +591,7 @@ The `URI` strategy (default) is not affected — full URIs are always unambiguou
 | **Scope** | BSON format provider |
 | **Recovery** | `IOException` thrown before decoding |
 
-See the [Security Analysis](../codec-security-analysis.md) for details.
+See the Security Analysis for details.
 
 ### 9.5 Reflection Allowlist for Type Conversion
 
