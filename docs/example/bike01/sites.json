@@ -1,0 +1,106 @@
+[
+    {
+        "id": 100046725,
+        "name": "Jena-Goldbergrampe",
+        "description": "",
+        "location": {
+            "lat": 50.88864952669239,
+            "lon": 11.61251798272133
+        },
+        "firstData": "2018-08-03T00:00:00+02:00",
+        "lastData": "2026-01-12T01:00:00+01:00",
+        "granularity": "PT15M",
+        "travelModes": [
+            "bike"
+        ],
+        "directional": true,
+        "hasTimestampedData": false,
+        "hasWeather": true
+    },
+    {
+        "id": 100046726,
+        "name": "Jena-Oberaue",
+        "description": "",
+        "location": {
+            "lat": 50.923831870038974,
+            "lon": 11.589585095643999
+        },
+        "firstData": "2018-08-03T00:00:00+02:00",
+        "lastData": "2026-01-12T04:45:00+01:00",
+        "granularity": "PT15M",
+        "travelModes": [
+            "bike"
+        ],
+        "directional": true,
+        "hasTimestampedData": false,
+        "hasWeather": true
+    },
+    {
+        "id": 300031319,
+        "name": "Bibliotheksplatz",
+        "location": {
+            "lat": 50.931030477118995,
+            "lon": 11.587231457233429
+        },
+        "firstData": "2023-04-05T00:00:00+02:00",
+        "lastData": "2026-01-12T01:45:00+01:00",
+        "granularity": "PT15M",
+        "travelModes": [
+            "bike"
+        ],
+        "directional": true,
+        "hasTimestampedData": false,
+        "hasWeather": true
+    },
+    {
+        "id": 300034768,
+        "name": "Burgauer Weg",
+        "location": {
+            "lat": 50.91171276985897,
+            "lon": 11.575888395309448
+        },
+        "firstData": "2023-08-01T00:00:00+02:00",
+        "lastData": "2026-01-12T04:15:00+01:00",
+        "granularity": "PT15M",
+        "travelModes": [
+            "bike"
+        ],
+        "directional": true,
+        "hasTimestampedData": false,
+        "hasWeather": true
+    },
+    {
+        "id": 300044830,
+        "name": "Jena-Griesbrücke",
+        "location": {
+            "lat": 50.93429551839433,
+            "lon": 11.593971848487856
+        },
+        "firstData": "2024-08-13T00:00:00+02:00",
+        "lastData": "2026-01-12T02:15:00+01:00",
+        "granularity": "PT15M",
+        "travelModes": [
+            "bike"
+        ],
+        "directional": true,
+        "hasTimestampedData": false,
+        "hasWeather": true
+    },
+    {
+        "id": 300047555,
+        "name": "Jena-Erfurter Straße",
+        "location": {
+            "lat": 50.93663745057116,
+            "lon": 11.55916213989258
+        },
+        "firstData": "2024-11-15T00:00:00+01:00",
+        "lastData": "2026-01-12T12:45:00+01:00",
+        "granularity": "PT15M",
+        "travelModes": [
+            "bike"
+        ],
+        "directional": true,
+        "hasTimestampedData": false,
+        "hasWeather": true
+    }
+]
