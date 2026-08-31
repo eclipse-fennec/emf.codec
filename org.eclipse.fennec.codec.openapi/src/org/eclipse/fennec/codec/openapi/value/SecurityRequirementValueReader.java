@@ -18,10 +18,12 @@ import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
+import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.ReferenceValueReader;
 import org.eclipse.fennec.model.openapi.OpenApiFactory;
 import org.eclipse.fennec.model.openapi.OpenApiPackage;
 import org.eclipse.fennec.model.openapi.SecurityRequirement;
+import org.osgi.service.component.annotations.Component;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -45,6 +47,7 @@ import tools.jackson.core.JsonToken;
  * @author Data In Motion
  * @since 1.0
  */
+@Component(service = CodecValueReader.class)
 public class SecurityRequirementValueReader implements ReferenceValueReader<SecurityRequirement> {
 
 	@Override
