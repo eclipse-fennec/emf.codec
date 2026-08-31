@@ -386,14 +386,16 @@ class ConfigMergeHelperTest {
         }
 
         @Test
-        @DisplayName("returns parsed false for invalid string (parseBoolean behavior)")
-        void returnsParsedFalseForInvalidString() {
+        @DisplayName("keeps the fallback for an unparseable string")
+        void keepsFallbackForInvalidString() {
             Map<String, Object> source = Map.of("idOnTop", "not_a_boolean");
 
-            // Boolean.parseBoolean returns false for any string that is not "true"
             boolean result = ConfigMergeHelper.getBoolean(source, ConfigProperty.ID_ON_TOP, true);
 
-            assertFalse(result);
+            // Boolean.parseBoolean answered false to everything that is not "true", turning an
+            // unparseable value into an explicit opt-out rather than into no value at all
+            // (issue #174). ConfigValueValidator reports it; the fallback stands.
+            assertTrue(result);
         }
     }
 
