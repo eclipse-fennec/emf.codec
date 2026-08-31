@@ -168,6 +168,13 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      */
     public void deserializeWithSchemaHint(DeserializationState state, JsonParser parser,
             DeserializationContext ctxt, EClass hintEClass, String schemaValue) {
+        // typeStrategy=NONE: the document transports no type, so the field is not consumed as
+        // one and the resolved class stays whatever the fallback chain decides (issue #171).
+        if (config.getStrategy() == TypeStrategy.NONE) {
+            LOGGER.fine("typeStrategy=NONE: type field processing skipped");
+            return;
+        }
+
         JsonToken token = parser.currentToken();
 
         String typeValue = null;
@@ -506,14 +513,22 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         // Per-load package resolver (B.5): binding version-resolution order + A.3 count rule.
         PackageResolver packageResolver = ContextHelper.getPackageResolver(ctxt);
 
+        // NONE is a statement about the document, not a resolution strategy that happens to
+        // find nothing: the caller declares that no type discriminator is transported, so the
+        // strategy-driven steps are skipped entirely and a value found under the type key is
+        // data, never a type - and never a diagnostic (issue #171, spec 06-type.md §1.4).
+        // The mapping steps below still run: they are steps 1 and 2 of the read flow and read
+        // their value from a discriminator path of their own, independent of the strategy.
+        boolean noTypeTransported = config.getStrategy() == TypeStrategy.NONE;
+
         // B.2: apply a fingerprint carried by the document before resolving, so version
         // selection happens by name instead of by counting candidates. An unresolvable or
         // overruled fingerprint may reduce this back to null - deliberately, and loudly.
-        String effectiveFingerprint = applyStreamFingerprint(
+        String effectiveFingerprint = noTypeTransported ? null : applyStreamFingerprint(
                 packageResolver, typeValue, streamFingerprint, ctxt);
 
         // First: check if it's a full URI (always highest priority)
-        if (typeValue.contains("#//")) {
+        if (!noTypeTransported && typeValue.contains("#//")) {
             EClass resolved = resolveUriVia(packageResolver, typeValue, effectiveFingerprint,
                     ContextHelper.getDiagnosticCollector(ctxt));
             if (resolved != null) {
@@ -524,7 +539,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         }
 
         // Second: try smart compression - resolve simple name using context schema
-        if (!typeValue.contains("#//") && ctxt != null) {
+        if (!noTypeTransported && !typeValue.contains("#//") && ctxt != null) {
             String contextSchema = ContextHelper.getContextSchemaUri(ctxt);
             if (contextSchema != null) {
                 // Try to resolve using context schema first
@@ -575,6 +590,14 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             }
         }
 
+        // Neither mapping step claimed the value, and NONE has no strategy resolution to
+        // offer. Returning null here hands the decision to the fallback chain - the declared
+        // root type or the reference type - which is the whole contract of NONE.
+        if (noTypeTransported) {
+            LOGGER.fine("typeStrategy=NONE: no type resolution attempted for '" + typeValue + "'");
+            return null;
+        }
+
         // Fourth: handle based on configured strategy
         TypeStrategy strategy = config.getStrategy();
         if (strategy == null) {
@@ -617,6 +640,8 @@ public class TypeDeserializationEntry implements DeserializationEntry {
                 break;
             case URI:
             default:
+                // NONE never arrives here - it returns above, before any name lookup, so the
+                // default branch cannot mistake a declared-absent type for a classifier name.
                 // Fallback to simple name resolution (scoped if context available)
                 resolved = TypeResolutionHelper.resolveFromSimpleName(typeValue, contextPackage,
                         ContextHelper.getDiagnosticCollector(ctxt));

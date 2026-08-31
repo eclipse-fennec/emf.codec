@@ -38,6 +38,7 @@ import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.util.EMapHelper;
@@ -330,12 +331,21 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             // only the first: a document that carried a type value which could not be resolved
             // was reported as carrying none. That sends a reader looking for a missing
             // discriminator instead of an unresolvable one - spec 06 §6.3.2 keeps them apart.
-            String msg = seenTypeValue != null
-                    ? String.format(
-                            "Cannot deserialize: type value '%s' could not be resolved and no"
-                                    + " CODEC_ROOT_TYPE hint was given",
-                            seenTypeValue)
-                    : "Cannot deserialize: no type information found and no CODEC_ROOT_TYPE hint";
+            // A third case joins them: under typeStrategy=NONE nothing was unresolvable and
+            // nothing was missing from the document - the configuration says the type is not
+            // transported, so the root hint is the only source there ever was (issue #171).
+            String msg;
+            if (isTypeStrategyNone()) {
+                msg = "Cannot deserialize: typeStrategy=NONE transports no type information,"
+                        + " so a CODEC_ROOT_TYPE hint is required for the root object";
+            } else if (seenTypeValue != null) {
+                msg = String.format(
+                        "Cannot deserialize: type value '%s' could not be resolved and no"
+                                + " CODEC_ROOT_TYPE hint was given",
+                        seenTypeValue);
+            } else {
+                msg = "Cannot deserialize: no type information found and no CODEC_ROOT_TYPE hint";
+            }
             LOGGER.severe(msg);
             ContextHelper.addError(ctxt, msg, parser, "CodecEObjectDeserializer");
         }
@@ -346,6 +356,19 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         }
 
         return eObject;
+    }
+
+    /**
+     * Tells whether the configuration declares that no type information is transported.
+     * <p>
+     * {@code typeStrategy=NONE} is a statement about the document (spec 06-type.md §1.4), so
+     * the read side must not treat a value sitting under the type key as a discriminator and
+     * must not report its own refusal to resolve one as a failure (issue #171).
+     * </p>
+     */
+    private boolean isTypeStrategyNone() {
+        TypeConfig globalTypeConfig = config.resolveGlobalTypeConfig();
+        return globalTypeConfig != null && globalTypeConfig.getStrategy() == TypeStrategy.NONE;
     }
 
     /**
@@ -698,6 +721,13 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         if (resolved != null) {
             state.setResolvedEClass(resolved);
             return resolved;
+        }
+
+        // Nothing failed when the strategy is NONE: the caller declared that the document
+        // carries no type, so falling back to the hint - the declared root type or the
+        // reference type - is the documented outcome, not a degradation (issue #171).
+        if (typeConfig.getStrategy() == TypeStrategy.NONE) {
+            return hintEClass;
         }
 
         // Type resolution failed - behavior depends on DeserializationMode
