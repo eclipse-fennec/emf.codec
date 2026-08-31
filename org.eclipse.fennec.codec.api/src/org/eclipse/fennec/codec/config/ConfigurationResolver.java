@@ -89,6 +89,13 @@ public final class ConfigurationResolver {
      */
     private final Set<DiagnosticCollector> reportedTo =
             Collections.newSetFromMap(new WeakHashMap<>());
+
+    /**
+     * Feature-plus-property signatures already reported as class-only (issue #176). Id config is
+     * resolved once per object on write and once per property on read, so an unguarded warning
+     * would repeat until it buried everything around it.
+     */
+    private final Set<String> reportedClassOnlyIdProperties = ConcurrentHashMap.newKeySet();
     // Level 6 (defaults) is built into config classes
 
     // Caches for resolved configurations
@@ -426,6 +433,97 @@ public final class ConfigurationResolver {
                     .mergeWith(extractClassProperties(optionsProperties, ec))
                     .validate(diagnostics);
         });
+    }
+
+    /**
+     * Resolves effective IdConfig for an EClass in the context of the feature it is reached
+     * through (issue #176).
+     * <p>
+     * Only {@code idKey} and {@code idFormat} are configurable at the feature level - the outer
+     * key the identity is written under, and whether it is written plainly or as an object.
+     * Everything else about an identity is class-intrinsic: which features form it
+     * ({@code idFeatures}), what appears in the output ({@code idKeyMode}), the inner key
+     * ({@code idValueKey}), the separator, the value handlers. The reference says <em>where</em>
+     * the identity lives; the class says <em>how</em> it is built (spec 09-id.md §4.4).
+     * </p>
+     * <p>
+     * A class-only id property found at the feature level is therefore dropped - and reported,
+     * once per feature and key. Ignoring it in silence is precisely the failure this issue was
+     * filed about.
+     * </p>
+     *
+     * @param eClass the EClass to resolve config for
+     * @param feature the feature it is reached through, {@code null} for a root object
+     * @param diagnostics collector for validation diagnostics
+     * @return the effective IdConfig with the feature-level overrides applied
+     */
+    public IdConfig resolveIdConfig(EClass eClass, EStructuralFeature feature,
+            DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
+        Objects.requireNonNull(eClass, "eClass must not be null");
+        Objects.requireNonNull(diagnostics, "diagnostics must not be null");
+
+        if (feature == null) {
+            return resolveIdConfig(eClass, diagnostics);
+        }
+
+        return resolveIdConfig(eClass, diagnostics)
+                .mergeWith(featureLevelIdProperties(annotationProperties, feature, diagnostics))
+                .mergeWith(featureLevelIdProperties(moduleProperties, feature, diagnostics))
+                .mergeWith(featureLevelIdProperties(factoryProperties, feature, diagnostics))
+                .mergeWith(featureLevelIdProperties(resourceProperties, feature, diagnostics))
+                .mergeWith(featureLevelIdProperties(optionsProperties, feature, diagnostics))
+                .validate(diagnostics);
+    }
+
+    /**
+     * Returns the feature-scoped properties of one source with the id properties that are not
+     * valid at the feature level removed (issue #176).
+     * <p>
+     * Non-id keys pass through untouched: this map is also the input for the type, feature and
+     * reference configs, and each of those reads only what belongs to it.
+     * </p>
+     */
+    private Map<String, Object> featureLevelIdProperties(Map<String, Object> source,
+            EStructuralFeature feature, DiagnosticCollector diagnostics) {
+        Map<String, Object> featureProperties = extractFeatureProperties(source, feature);
+        if (featureProperties == null || featureProperties.isEmpty()) {
+            return featureProperties;
+        }
+        Map<String, Object> allowed = null;
+        for (Map.Entry<String, Object> entry : featureProperties.entrySet()) {
+            ConfigProperty property = ConfigProperty.byKey(entry.getKey());
+            if (property == null || !isIdProperty(property)
+                    || property.isValidAt(ConfigLevel.FEATURE)) {
+                continue;
+            }
+            if (allowed == null) {
+                allowed = new HashMap<>(featureProperties);
+            }
+            allowed.remove(entry.getKey());
+            reportClassOnlyIdProperty(property, feature, diagnostics);
+        }
+        return allowed != null ? allowed : featureProperties;
+    }
+
+    /** Tells whether a property configures an identity rather than something else. */
+    private static boolean isIdProperty(ConfigProperty property) {
+        return property.getKey().startsWith("id");
+    }
+
+    private void reportClassOnlyIdProperty(ConfigProperty property, EStructuralFeature feature,
+            DiagnosticCollector diagnostics) {
+        String signature = feature.getEContainingClass().getName() + "." + feature.getName()
+                + "#" + property.getKey();
+        if (!reportedClassOnlyIdProperties.add(signature)) {
+            return;
+        }
+        diagnostics.addWarning(
+                "Config property '" + property.getKey() + "' is not valid on feature '"
+                        + signature.substring(0, signature.indexOf('#'))
+                        + "'; an identity is class-intrinsic and only idKey and idFormat may be"
+                        + " scoped to a reference (spec 09-id.md §4.4). The value is ignored.",
+                "ConfigurationResolver");
     }
 
     /**

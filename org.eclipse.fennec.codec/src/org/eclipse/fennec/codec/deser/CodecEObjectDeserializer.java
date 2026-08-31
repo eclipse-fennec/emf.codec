@@ -1004,7 +1004,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             return;
         }
 
-        Map<String, DeserializationEntry> entries = buildDeserializationEntries(eClass);
+        Map<String, DeserializationEntry> entries = buildDeserializationEntries(eClass, ctxt);
 
         for (Map.Entry<String, Object> entry : deferredProperties.entrySet()) {
             String propertyName = entry.getKey();
@@ -1145,7 +1145,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     private void deserializeProperty(DeserializationState state, String propertyName,
             JsonParser parser, DeserializationContext ctxt) {
         EClass eClass = state.getResolvedEClass();
-        Map<String, DeserializationEntry> entries = buildDeserializationEntries(eClass);
+        Map<String, DeserializationEntry> entries = buildDeserializationEntries(eClass, ctxt);
 
         DeserializationEntry entry = entries.get(propertyName);
         if (entry != null) {
@@ -1243,12 +1243,17 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
      * @param eClass the EClass to build entries for
      * @return map of property name to deserialization entry
      */
-    private Map<String, DeserializationEntry> buildDeserializationEntries(EClass eClass) {
+    private Map<String, DeserializationEntry> buildDeserializationEntries(EClass eClass,
+            DeserializationContext ctxt) {
         Map<String, DeserializationEntry> entries = new HashMap<>();
 
-        // Resolve configs for this EClass
+        // Resolve configs for this EClass. The id config takes the reference this object is
+        // read through, so a reference-scoped idKey registers the entry under the key the
+        // writer actually used - otherwise a renamed id is read as an unknown field and the
+        // identity is lost (issue #176).
         TypeConfig typeConfig = config.resolveTypeConfig(eClass);
-        IdConfig idConfig = config.resolveIdConfig(eClass);
+        IdConfig idConfig = config.resolveIdConfig(eClass,
+                ContextHelper.getCurrentDeserializationReference(ctxt));
         SuperTypeConfig superTypeConfig = config.resolveSuperTypeConfig(eClass);
 
         // Add type entry (with supertype config for STRUCTURED format validation)

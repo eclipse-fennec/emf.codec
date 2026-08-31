@@ -251,6 +251,18 @@ public final class ContextHelper {
      */
     private static final String EOBJECT_DEPTH = "CODEC_EOBJECT_DEPTH";
 
+    /**
+     * Context attribute key for the EReference whose value is currently being read (issue #176).
+     * <p>
+     * The read-side counterpart of {@link #CURRENT_SERIALIZATION_REFERENCE}. It lives on the
+     * deserialization context rather than on the stream context because the stream context is
+     * reused - and its current feature reset - for each element of an array, which would lose
+     * the reference for exactly the multi-valued containments that need it.
+     * </p>
+     */
+    public static final String CURRENT_DESERIALIZATION_REFERENCE =
+            "CODEC_CURRENT_DESERIALIZATION_REFERENCE";
+
     private ContextHelper() {
         // Static helper class
     }
@@ -1201,6 +1213,42 @@ public final class ContextHelper {
         if (ctxt != null && mode != null) {
             ctxt.setAttribute(TYPE_HINT_MODE, mode);
         }
+    }
+
+    /**
+     * Returns the EReference whose value is currently being read, or {@code null} at a root.
+     *
+     * @param ctxt the deserialization context
+     * @return the current reference, or null
+     */
+    public static EReference getCurrentDeserializationReference(DeserializationContext ctxt) {
+        if (ctxt == null) {
+            return null;
+        }
+        Object value = ctxt.getAttribute(CURRENT_DESERIALIZATION_REFERENCE);
+        return value instanceof EReference reference ? reference : null;
+    }
+
+    /**
+     * Sets the EReference whose value is being read, returning the one it replaces.
+     * <p>
+     * The previous value is returned rather than cleared so the caller can restore it: a
+     * containment inside a containment must not leave its parent's reference lost for the
+     * properties that follow it.
+     * </p>
+     *
+     * @param ctxt the deserialization context
+     * @param reference the reference now being read, may be null to clear
+     * @return the reference that was set before, to be restored by the caller
+     */
+    public static EReference setCurrentDeserializationReference(DeserializationContext ctxt,
+            EReference reference) {
+        if (ctxt == null) {
+            return null;
+        }
+        EReference previous = getCurrentDeserializationReference(ctxt);
+        ctxt.setAttribute(CURRENT_DESERIALIZATION_REFERENCE, reference);
+        return previous;
     }
 
     /**
