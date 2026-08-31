@@ -1948,6 +1948,20 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
       (`02-config-resolution.md:483,485`) but not parsed and not resolvable — no
       `resolveIdConfig(EClass, EStructuralFeature, …)` overload exists
 
+**Also completed this session (2026-08-31):**
+- [✅] Issue #176: reference-scoped `idKey`/`idFormat` — runtime sources and annotations, only
+      those two are feature-level (an identity is otherwise class-intrinsic and a class-only id
+      property at the feature level is dropped and reported)
+- [✅] Issue #182: config-resolution diagnostics reach the resource — `CodecModule` takes the
+      operation's collector; saving had no collector at all; `validateCrossConfig` had no caller
+      and now runs once per EClass in `EffectiveCodecConfig.resolveSuperTypeConfig`
+- [✅] Issue #183: a config's `validate()` is captured once and replayed per collector, so the
+      per-EClass cache no longer silences Layer 2 after the first operation (16 sites: 7 cached,
+      7 global, 2 uncached feature-scoped)
+- [✅] Issue #184: the write side reports what it worked around — 7 sites, all warnings, via the
+      `CodecEntryContext` collector; `15-error-handling.md` §5.2 trimmed from an aspirational
+      table to what the codec actually reports
+
 **Completed previous session (2026-03-02):**
 - [✅] Custom properties: generic `customProperties` map on `EffectiveCodecConfig` (replaces hard-coded format fields)
 - [✅] `CodecResource.extractCustomProperties()` — auto-collects `codec.*` options
