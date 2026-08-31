@@ -1,0 +1,27 @@
+Test-Cases: ${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons.annotation.Testable;CONCRETE}
+
+-library: \
+	enableOSGi-Test,\
+	enableEMF
+
+# sets the usually required buildpath using the bnd library, you can extend it with the normal -buildpath to your liking
+-buildpath: \
+	org.osgi.framework;version=latest,\
+	org.eclipse.fennec.codec;version=snapshot,\
+	org.eclipse.fennec.codec.api;version=snapshot,\
+	org.eclipse.fennec.codec.metadata;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.metadata;version=latest,\
+	org.eclipse.fennec.codec.jsonschema;version=snapshot,\
+	org.eclipse.fennec.codec.openapi;version=snapshot,\
+	org.eclipse.fennec.openapi.model;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.api,\
+	tools.jackson.core.jackson-core;version=latest,\
+	tools.jackson.core.jackson-databind;version=latest,\
+	com.fasterxml.jackson.core.jackson-annotations;version=latest
+
+Private-Package: org.eclipse.fennec.codec.openapi.tests
+
+Bundle-Version: 1.0.0.SNAPSHOT
+
+# Integration tests - do not publish this bundle to Maven Central; local install only (issue #67)
+-maven-release: local

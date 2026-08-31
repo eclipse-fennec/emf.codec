@@ -44,6 +44,18 @@ public class MyJsonSchemaResourceFactory extends JsonSchemaResourceFactoryImpl {
 
 To wire a `JsonSchemaResourceImpl` without the factory, use `JsonSchemaResourceFactoryImpl.registerDefaultValueHandlers(registry)`.
 
+**Two registration paths, and both matter (issue #186).** The four handlers are also
+`@Component(service = CodecValueWriter.class)` / `CodecValueReader.class`, so under OSGi they
+bind to `CodecValueRegistryComponent` — the *shared* registry. That is what makes
+`valueWriterName="eClassToJsonSchema"` resolvable from an ordinary `application/json` resource
+rather than only inside this factory, which is the whole point of naming a handler in a model
+annotation. Their lifecycle is handled by the reference being `DYNAMIC` with an `unbind`: a
+handler leaves the shared registry with the bundle that provided it.
+
+The static path above is the non-OSGi equivalent and is unaffected by the annotations, which are
+inert outside a framework. Issue #147 had removed the service registrations, which confined the
+handlers to their own factory's registry and silently broke annotation-named lookups elsewhere.
+
 If you want to work with `.json` files (a common convention for JSON Schema), register the same factory under `"json"` as well — but be aware that EMF uses the same `"json"` extension by default for `XMIResourceFactoryImpl`, so prefer using `"jsonschema"` or the content-type registry.
 
 **Load options:**
