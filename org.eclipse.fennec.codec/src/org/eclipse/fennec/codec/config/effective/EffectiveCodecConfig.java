@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EReference;
@@ -76,6 +77,12 @@ public final class EffectiveCodecConfig
 
     private final ConfigurationResolver resolver;
     private final DiagnosticCollector diagnostics;
+
+    /**
+     * EClasses whose type-plus-supertype pair has already been cross-validated for this
+     * operation (issue #182). This object is per operation, so the set is too.
+     */
+    private final Set<EClass> crossConfigValidated = ConcurrentHashMap.newKeySet();
     private final MetadataService metadataService;
     private final TypeDiscriminatorReader typeDiscriminatorService;
     private final CodecValueRegistry valueRegistry;
@@ -200,7 +207,35 @@ public final class EffectiveCodecConfig
      * @return the effective SuperTypeConfig (cached by resolver)
      */
     public SuperTypeConfig resolveSuperTypeConfig(EClass eClass) {
-        return resolver.resolveSuperTypeConfig(eClass, diagnostics);
+        SuperTypeConfig superTypeConfig = resolver.resolveSuperTypeConfig(eClass, diagnostics);
+        validateCrossConfigOnce(eClass, superTypeConfig);
+        return superTypeConfig;
+    }
+
+    /**
+     * Runs the type-plus-supertype cross-config validation, once per EClass (issue #182).
+     * <p>
+     * {@code ConfigurationResolver.validateCrossConfig} existed, and the constraints it checks
+     * are documented as Layer 3 of spec 15-error-handling.md, but nothing ever called it: its
+     * only caller was {@code resolveTypeAndSuperTypeConfig}, which the codec does not use. So a
+     * configuration the spec calls invalid - a supertype written inside a {@code _type} object
+     * that {@code typeStrategy=NONE} never writes - was saved and loaded without a word.
+     * </p>
+     * <p>
+     * Here rather than in the resolver, because it belongs to an operation: the pair is what is
+     * invalid, this is where both halves are resolved for the same collector, and the codec
+     * asks for a supertype config exactly where a type config is also in play. Once per EClass,
+     * because the deserializer rebuilds its entries for every property it reads.
+     * </p>
+     */
+    private void validateCrossConfigOnce(EClass eClass, SuperTypeConfig superTypeConfig) {
+        if (eClass == null || superTypeConfig == null || !crossConfigValidated.add(eClass)) {
+            return;
+        }
+        TypeConfig typeConfig = resolver.resolveTypeConfig(eClass, diagnostics);
+        if (typeConfig != null) {
+            resolver.validateCrossConfig(typeConfig, superTypeConfig, diagnostics);
+        }
     }
 
     /**
