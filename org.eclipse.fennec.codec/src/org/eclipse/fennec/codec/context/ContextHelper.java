@@ -228,6 +228,29 @@ public final class ContextHelper {
      */
     public static final String DESERIALIZATION_MODE = "CODEC_DESERIALIZATION_MODE";
 
+    /**
+     * Context attribute key for the type hint mode, i.e. how {@code CODEC_ROOT_TYPE} resolves a
+     * collision with the document's own type (issue #173).
+     * <ul>
+     *   <li>HINT (default): the document wins; the hint fills in where it says nothing</li>
+     *   <li>OVERRIDE: the hint wins for the root object; the document's type is discarded</li>
+     * </ul>
+     *
+     * @see <a href="docs/codec-v2-spec/06-type.md#651-type-hint-mode">Spec: Type Hint Mode</a>
+     */
+    public static final String TYPE_HINT_MODE = "CODEC_TYPE_HINT_MODE";
+
+    /**
+     * Context attribute key for how deeply nested the EObject currently being read is.
+     * <p>
+     * Maintained by the one entry point every EObject passes through, root and contained
+     * alike, so depth 1 means "top-level value of the document". The stream context cannot
+     * answer this: a contained object's current feature is reset when its context is reused
+     * for an array element, and the expected type is repurposed per nesting level.
+     * </p>
+     */
+    private static final String EOBJECT_DEPTH = "CODEC_EOBJECT_DEPTH";
+
     private ContextHelper() {
         // Static helper class
     }
@@ -1134,5 +1157,101 @@ public final class ContextHelper {
         if (ctxt != null && mode != null) {
             ctxt.setAttribute(DESERIALIZATION_MODE, mode);
         }
+    }
+
+    /**
+     * Returns the type hint mode (issue #173).
+     * <p>
+     * Reported as a String for the same reason as {@link #getDeserializationMode}: the context
+     * helper stays free of the generated {@code TypeHintMode} enum, and a caller may pass
+     * either the enum or its name.
+     * </p>
+     *
+     * @param ctxt the deserialization context
+     * @return "HINT" or "OVERRIDE", defaulting to "HINT"
+     */
+    public static String getTypeHintMode(DeserializationContext ctxt) {
+        if (ctxt == null) {
+            return "HINT";
+        }
+        Object value = ctxt.getAttribute(TYPE_HINT_MODE);
+        if (value == null) {
+            return "HINT";
+        }
+        return value.toString();
+    }
+
+    /**
+     * Tells whether the caller declared {@code CODEC_ROOT_TYPE} a directive rather than a hint.
+     *
+     * @param ctxt the deserialization context
+     * @return true if the type hint mode is OVERRIDE
+     */
+    public static boolean isTypeHintOverride(DeserializationContext ctxt) {
+        return "OVERRIDE".equals(getTypeHintMode(ctxt));
+    }
+
+    /**
+     * Sets the type hint mode in the deserialization context.
+     *
+     * @param ctxt the deserialization context
+     * @param mode the mode ("HINT" or "OVERRIDE")
+     */
+    public static void setTypeHintMode(DeserializationContext ctxt, String mode) {
+        if (ctxt != null && mode != null) {
+            ctxt.setAttribute(TYPE_HINT_MODE, mode);
+        }
+    }
+
+    /**
+     * Records that deserialization of an EObject has begun and returns its nesting depth.
+     * <p>
+     * Must be paired with {@link #exitEObject} in a {@code finally} block. A return value of
+     * {@code 1} identifies a top-level value of the document: the root object, or one element
+     * of a root array - a contained object is always read while its container's own call is
+     * still on the stack.
+     * </p>
+     *
+     * @param ctxt the deserialization context
+     * @return the depth of the object now being read, starting at 1
+     */
+    public static int enterEObject(DeserializationContext ctxt) {
+        if (ctxt == null) {
+            return 1;
+        }
+        int depth = currentEObjectDepth(ctxt) + 1;
+        ctxt.setAttribute(EOBJECT_DEPTH, depth);
+        return depth;
+    }
+
+    /**
+     * Records that deserialization of an EObject has finished.
+     *
+     * @param ctxt the deserialization context
+     */
+    public static void exitEObject(DeserializationContext ctxt) {
+        if (ctxt == null) {
+            return;
+        }
+        int depth = currentEObjectDepth(ctxt);
+        ctxt.setAttribute(EOBJECT_DEPTH, depth > 0 ? depth - 1 : 0);
+    }
+
+    /**
+     * Tells whether the EObject currently being read is a top-level value of the document.
+     * <p>
+     * Valid only between {@link #enterEObject} and {@link #exitEObject} for that object.
+     * </p>
+     *
+     * @param ctxt the deserialization context
+     * @return true for the root object or an element of a root array
+     */
+    public static boolean isRootEObject(DeserializationContext ctxt) {
+        return ctxt != null && currentEObjectDepth(ctxt) == 1;
+    }
+
+    private static int currentEObjectDepth(DeserializationContext ctxt) {
+        Object value = ctxt.getAttribute(EOBJECT_DEPTH);
+        return value instanceof Integer depth ? depth : 0;
     }
 }

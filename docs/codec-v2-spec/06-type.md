@@ -882,9 +882,12 @@ INPUT: JSON object, context (EReference if nested, load options)
 │    │ HINT MODE (default)                                                 │  │
 │    │ ───────────────────────────────────────────────────────────────────│  │
 │    │ Try in order:                                                       │  │
-│    │   1. EReference.getEReferenceType() (if concrete)                   │  │
-│    │   2. CODEC_FEATURE_TYPE_HINTS (per-feature runtime hint)            │  │
+│    │   1. CODEC_FEATURE_TYPE_HINTS (per-feature runtime hint)            │  │
+│    │   2. EReference.getEReferenceType() (if concrete)                   │  │
 │    │   3. CODEC_ROOT_TYPE (root type hint)                               │  │
+│    │                                                                     │  │
+│    │ A hint the caller passed for this very feature at load time beats   │  │
+│    │ the model's declared type - see 13 §6 for the full ranking.         │  │
 │    │                                                                     │  │
 │    │ If resolved → log WARNING, RESOLVED ✓                               │  │
 │    │ If reference type is abstract and no hints resolve → step 4c        │  │
@@ -893,12 +896,14 @@ INPUT: JSON object, context (EReference if nested, load options)
 │    ┌─────────────────────────────────────────────────────────────────────┐  │
 │    │ OVERRIDE MODE                                                       │  │
 │    │ ───────────────────────────────────────────────────────────────────│  │
-│    │ Try in order (reference type IGNORED):                              │  │
-│    │   1. CODEC_FEATURE_TYPE_HINTS (per-feature runtime hint)            │  │
-│    │   2. CODEC_ROOT_TYPE (root type hint)                               │  │
+│    │ Applies to the ROOT object only, and it does not wait for step 4:   │  │
+│    │ CODEC_ROOT_TYPE is used instead of the document's own type, which   │  │
+│    │ is never resolved. Contained objects are untouched and follow HINT  │  │
+│    │ mode above, so a container is not flattened to its own type.        │  │
 │    │                                                                     │  │
-│    │ If resolved → log WARNING, RESOLVED ✓                               │  │
-│    │ If neither hint is set → ERROR (fail, no implicit fallback)         │  │
+│    │ Root type set → RESOLVED ✓, WARNING naming the discarded type       │  │
+│    │                 (silent when the document named the same type)      │  │
+│    │ Root type NOT set → WARNING that the mode is inert, then HINT       │  │
 │    └─────────────────────────────────────────────────────────────────────┘  │
 │                                                                             │
 │    4c. FINAL FAILURE (no fallback resolved)                                 │
@@ -1301,7 +1306,7 @@ When both content type and hint are present but differ:
 - Continue with content type (content wins)
 - Example: Hint says `Person`, content says `Employee` → use `Employee`, log warning
 
-#### 6.5.1 Type Hint Mode (CODEC_TYPE_MODE)
+#### 6.5.1 Type Hint Mode (`codec.typeHintMode`)
 
 By default, `CODEC_ROOT_TYPE` and `CODEC_ROOT_SCHEMA` behave as **hints/fallbacks**, not as highest-priority overrides. This is an **intentional deviation** from the standard configuration hierarchy (where Load/Save options have highest priority).
 
@@ -1328,15 +1333,24 @@ Type Resolution Priority:
 ```
 Type Resolution Priority:
 1. CODEC_ROOT_TYPE - always wins for root object (follows strict config hierarchy)
-2. Content type information - ignored for root object
+2. Content type information - ignored for root object, and not even resolved
 3. Reference type - for nested objects (CODEC_ROOT_TYPE only affects root)
 ```
+
+The option is named `codec.typeHintMode` (`CodecOptions.CODEC_TYPE_HINT_MODE`) and accepts
+either a `TypeHintMode` literal or its name as a String.
+
+Overruling the document is legitimate but never silent (13 §2.11): discarding a type the
+document stated produces a WARNING naming both types. Naming the same type the document
+already carries changes nothing and is not reported. Setting `OVERRIDE` without a
+`CODEC_ROOT_TYPE` leaves nothing to override with; that is reported as a WARNING and the load
+proceeds as `HINT`, rather than pretending a directive is in force.
 
 **Configuration:**
 ```java
 Map<String, Object> options = new HashMap<>();
 options.put(CodecResource.CODEC_ROOT_TYPE, PersonPackage.Literals.PERSON);
-options.put(CodecResource.CODEC_TYPE_MODE, TypeHintMode.OVERRIDE);  // Force type
+options.put(CodecOptions.CODEC_TYPE_HINT_MODE, TypeHintMode.OVERRIDE);  // Force type
 resource.load(inputStream, options);
 ```
 
@@ -1361,8 +1375,9 @@ String json = """
     """;
 
 options.put(CODEC_ROOT_TYPE, PersonPackage.Literals.PERSON);
-options.put(CODEC_TYPE_MODE, TypeHintMode.OVERRIDE);
+options.put(CODEC_TYPE_HINT_MODE, TypeHintMode.OVERRIDE);
 // Result: Deserializes as Person (override mode, content type ignored)
+//         plus a WARNING naming the discarded 'OldType'
 ```
 
 > **Note:** This behavior deviates from the general configuration hierarchy principle where Load/Save options (Level 1) have highest priority. The deviation exists for practical usability reasons.
