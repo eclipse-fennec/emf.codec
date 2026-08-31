@@ -173,6 +173,41 @@ class ConfigValueValidationTest {
                         + " everything around it, was: " + messages());
     }
 
+    @Test
+    @DisplayName("a reused resolver reports again for a second collector")
+    void reportedAgainForASecondCollector() {
+        // A ConfigurationResolver is cached and shared across operations, while the collector
+        // belongs to one operation. Deduplicating per resolver would tell the first operation
+        // and silently leave every later one in the dark.
+        org.eclipse.emf.ecore.EReference friend = reference();
+        ConfigurationResolver resolver = ConfigurationResolver.builder()
+                .resourceProperties(Map.of("Person", Map.of("friend", Map.of("idOnTop", "false"))))
+                .build();
+
+        resolver.resolveIdConfig(personClass, friend, diagnostics);
+        DiagnosticCollector second = new DiagnosticCollector();
+        resolver.resolveIdConfig(personClass, friend, second);
+
+        assertEquals(1, messages().stream().filter(m -> m.contains("idOnTop")).count());
+        assertEquals(1, second.getWarnings().stream()
+                        .filter(w -> w.getMessage().contains("idOnTop")).count(),
+                "the second operation has to hear about it too, was: " + second.getWarnings());
+    }
+
+    @Test
+    @DisplayName("an unusable value is reported again for a second collector")
+    void unusableValueReportedAgainForASecondCollector() {
+        ConfigurationResolver resolver = resolverWith(Map.of("typeStrategy", "NOPE"));
+
+        resolver.resolveTypeConfig(personClass, diagnostics);
+        DiagnosticCollector second = new DiagnosticCollector();
+        resolver.resolveTypeConfig(personClass, second);
+
+        assertEquals(1, second.getWarnings().stream()
+                        .filter(w -> w.getMessage().contains("typeStrategy")).count(),
+                "was: " + second.getWarnings());
+    }
+
     // ========================================================================
     // Helpers
     // ========================================================================
