@@ -91,11 +91,17 @@ public final class ConfigurationResolver {
             Collections.newSetFromMap(new WeakHashMap<>());
 
     /**
-     * Feature-plus-property signatures already reported as class-only (issue #176). Id config is
-     * resolved once per object on write and once per property on read, so an unguarded warning
-     * would repeat until it buried everything around it.
+     * Feature-plus-property signatures already reported as class-only, per collector (#176).
+     * <p>
+     * Id config is resolved once per object on write and once per property on read, so an
+     * unguarded warning would repeat until it buried everything around it. Scoped to the
+     * collector for the same reason as {@link #reportedTo}: a resolver is cached and shared
+     * across operations while a collector belongs to one, so deduplicating per resolver would
+     * tell the first operation and leave every later one in the dark.
+     * </p>
      */
-    private final Set<String> reportedClassOnlyIdProperties = ConcurrentHashMap.newKeySet();
+    private final Map<DiagnosticCollector, Set<String>> reportedClassOnlyIdProperties =
+            Collections.synchronizedMap(new WeakHashMap<>());
     // Level 6 (defaults) is built into config classes
 
     // Caches for resolved configurations
@@ -515,7 +521,9 @@ public final class ConfigurationResolver {
             DiagnosticCollector diagnostics) {
         String signature = feature.getEContainingClass().getName() + "." + feature.getName()
                 + "#" + property.getKey();
-        if (!reportedClassOnlyIdProperties.add(signature)) {
+        Set<String> reported = reportedClassOnlyIdProperties.computeIfAbsent(diagnostics,
+                collector -> ConcurrentHashMap.newKeySet());
+        if (!reported.add(signature)) {
             return;
         }
         diagnostics.addWarning(
