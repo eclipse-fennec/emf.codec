@@ -91,6 +91,39 @@ public final class ConfigurationResolver {
             Collections.newSetFromMap(new WeakHashMap<>());
 
     /**
+     * What the one validation run of each config reported, keyed by config kind and scope
+     * (issue #183).
+     * <p>
+     * The configs are cached because resolving them is a hot path - id config alone is resolved
+     * once per object on write and once per property on read - and {@code validate} ran inside
+     * that cache, so it reported to whichever collector arrived first and never again. Running
+     * it once and keeping what it said lets every later collector be told without resolving or
+     * validating anything twice.
+     * </p>
+     */
+    private final Map<ValidationKey, DiagnosticCollector> capturedValidation =
+            new ConcurrentHashMap<>();
+
+    /** Which captured validations each collector has already been given (issue #183). */
+    private final Map<DiagnosticCollector, Set<ValidationKey>> replayedValidation =
+            Collections.synchronizedMap(new WeakHashMap<>());
+
+    /**
+     * Identifies one validated config: its kind, and the scope it was resolved for.
+     * <p>
+     * {@code scope} is the {@code EClass} or {@code EStructuralFeature} instance, or
+     * {@link #GLOBAL_SCOPE} for a global config. Equality is the scope's own, which for an
+     * EMF object is identity - so two same-named classes from different package versions keep
+     * their own entry, as everywhere else in this resolver.
+     * </p>
+     */
+    private record ValidationKey(String kind, Object scope) {
+    }
+
+    /** Stands in for the scope of a global config, which has none. */
+    private static final Object GLOBAL_SCOPE = new Object();
+
+    /**
      * Feature-plus-property signatures already reported as class-only, per collector (#176).
      * <p>
      * Id config is resolved once per object on write and once per property on read, so an
@@ -178,6 +211,51 @@ public final class ConfigurationResolver {
         }
     }
 
+    /**
+     * Returns the collector a config's validation should report into (issue #183).
+     * <p>
+     * The first run for a kind and scope gets a collector that is kept; any later run gets a
+     * throwaway, because it would only repeat what the first already said. What was kept is
+     * handed to each caller by {@link #replayValidation} - including the first caller, so there
+     * is one path and not two.
+     * </p>
+     *
+     * @param kind which config this is, to keep the kinds apart under one scope
+     * @param scope the EClass or feature the config is resolved for, or {@link #GLOBAL_SCOPE}
+     */
+    private DiagnosticCollector captureFor(String kind, Object scope) {
+        ValidationKey key = new ValidationKey(kind, scope);
+        if (capturedValidation.containsKey(key)) {
+            return new DiagnosticCollector();
+        }
+        DiagnosticCollector captured = new DiagnosticCollector();
+        capturedValidation.put(key, captured);
+        return captured;
+    }
+
+    /**
+     * Gives a collector the diagnostics of a validation that has already run, once (issue #183).
+     *
+     * @param kind which config this is
+     * @param scope the EClass or feature it was resolved for, or {@link #GLOBAL_SCOPE}
+     * @param diagnostics the caller's collector
+     */
+    private void replayValidation(String kind, Object scope, DiagnosticCollector diagnostics) {
+        if (diagnostics == null) {
+            return;
+        }
+        ValidationKey key = new ValidationKey(kind, scope);
+        DiagnosticCollector captured = capturedValidation.get(key);
+        if (captured == null) {
+            return;
+        }
+        Set<ValidationKey> alreadyGiven = replayedValidation.computeIfAbsent(diagnostics,
+                collector -> ConcurrentHashMap.newKeySet());
+        if (alreadyGiven.add(key)) {
+            diagnostics.merge(captured);
+        }
+    }
+
     // ========================================================================
     // Type Configuration Resolution
     // ========================================================================
@@ -204,7 +282,7 @@ public final class ConfigurationResolver {
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
-        return typeConfigCache.computeIfAbsent(eClass, ec -> {
+        TypeConfig resolvedConfig = typeConfigCache.computeIfAbsent(eClass, ec -> {
             // Start with defaults, merge in reverse priority order
             // Annotation layer: walk up the EClass hierarchy (parents first, then child overrides)
             TypeConfig resolved = TypeConfig.defaults()
@@ -222,8 +300,10 @@ public final class ConfigurationResolver {
                     .mergeWith(extractClassProperties(resourceProperties, ec))
                     .mergeWith(extractGlobalProperties(optionsProperties))
                     .mergeWith(extractClassProperties(optionsProperties, ec))
-                    .validate(diagnostics);
+                    .validate(captureFor("type", ec));
         });
+        replayValidation("type", eClass, diagnostics);
+        return resolvedConfig;
     }
 
     /**
@@ -250,13 +330,15 @@ public final class ConfigurationResolver {
 
         // Start from the EClass-level resolved config, then layer feature overrides on top.
         // Feature-level properties have highest priority within each source.
-        return resolveTypeConfig(eClass, diagnostics)
+        TypeConfig resolvedConfig = resolveTypeConfig(eClass, diagnostics)
                 .mergeWith(extractFeatureProperties(annotationProperties, feature))
                 .mergeWith(extractFeatureProperties(moduleProperties, feature))
                 .mergeWith(extractFeatureProperties(factoryProperties, feature))
                 .mergeWith(extractFeatureProperties(resourceProperties, feature))
                 .mergeWith(extractFeatureProperties(optionsProperties, feature))
-                .validate(diagnostics);
+                .validate(captureFor("type.feature", feature));
+        replayValidation("type.feature", feature, diagnostics);
+        return resolvedConfig;
     }
 
     /**
@@ -278,10 +360,11 @@ public final class ConfigurationResolver {
                             .mergeWith(extractGlobalProperties(factoryProperties))
                             .mergeWith(extractGlobalProperties(resourceProperties))
                             .mergeWith(extractGlobalProperties(optionsProperties))
-                            .validate(diagnostics);
+                            .validate(captureFor("globalType", GLOBAL_SCOPE));
                 }
             }
         }
+        replayValidation("globalType", GLOBAL_SCOPE, diagnostics);
         return globalTypeConfig;
     }
 
@@ -367,7 +450,7 @@ public final class ConfigurationResolver {
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
-        return superTypeConfigCache.computeIfAbsent(eClass, ec -> {
+        SuperTypeConfig resolvedConfig = superTypeConfigCache.computeIfAbsent(eClass, ec -> {
             return SuperTypeConfig.defaults()
                     .mergeWith(extractGlobalProperties(annotationProperties))
                     .mergeWith(extractClassProperties(annotationProperties, ec))
@@ -379,8 +462,10 @@ public final class ConfigurationResolver {
                     .mergeWith(extractClassProperties(resourceProperties, ec))
                     .mergeWith(extractGlobalProperties(optionsProperties))
                     .mergeWith(extractClassProperties(optionsProperties, ec))
-                    .validate(diagnostics);
+                    .validate(captureFor("superType", ec));
         });
+        replayValidation("superType", eClass, diagnostics);
+        return resolvedConfig;
     }
 
     /**
@@ -402,10 +487,11 @@ public final class ConfigurationResolver {
                             .mergeWith(extractGlobalProperties(factoryProperties))
                             .mergeWith(extractGlobalProperties(resourceProperties))
                             .mergeWith(extractGlobalProperties(optionsProperties))
-                            .validate(diagnostics);
+                            .validate(captureFor("globalSuperType", GLOBAL_SCOPE));
                 }
             }
         }
+        replayValidation("globalSuperType", GLOBAL_SCOPE, diagnostics);
         return globalSuperTypeConfig;
     }
 
@@ -425,7 +511,7 @@ public final class ConfigurationResolver {
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
-        return idConfigCache.computeIfAbsent(eClass, ec -> {
+        IdConfig resolvedConfig = idConfigCache.computeIfAbsent(eClass, ec -> {
             return IdConfig.defaults()
                     .mergeWith(extractGlobalProperties(annotationProperties))
                     .mergeWith(extractClassProperties(annotationProperties, ec))
@@ -437,8 +523,10 @@ public final class ConfigurationResolver {
                     .mergeWith(extractClassProperties(resourceProperties, ec))
                     .mergeWith(extractGlobalProperties(optionsProperties))
                     .mergeWith(extractClassProperties(optionsProperties, ec))
-                    .validate(diagnostics);
+                    .validate(captureFor("id", ec));
         });
+        replayValidation("id", eClass, diagnostics);
+        return resolvedConfig;
     }
 
     /**
@@ -473,13 +561,15 @@ public final class ConfigurationResolver {
             return resolveIdConfig(eClass, diagnostics);
         }
 
-        return resolveIdConfig(eClass, diagnostics)
+        IdConfig resolvedConfig = resolveIdConfig(eClass, diagnostics)
                 .mergeWith(featureLevelIdProperties(annotationProperties, feature, diagnostics))
                 .mergeWith(featureLevelIdProperties(moduleProperties, feature, diagnostics))
                 .mergeWith(featureLevelIdProperties(factoryProperties, feature, diagnostics))
                 .mergeWith(featureLevelIdProperties(resourceProperties, feature, diagnostics))
                 .mergeWith(featureLevelIdProperties(optionsProperties, feature, diagnostics))
-                .validate(diagnostics);
+                .validate(captureFor("id.feature", feature));
+        replayValidation("id.feature", feature, diagnostics);
+        return resolvedConfig;
     }
 
     /**
@@ -553,10 +643,11 @@ public final class ConfigurationResolver {
                             .mergeWith(extractGlobalProperties(factoryProperties))
                             .mergeWith(extractGlobalProperties(resourceProperties))
                             .mergeWith(extractGlobalProperties(optionsProperties))
-                            .validate(diagnostics);
+                            .validate(captureFor("globalId", GLOBAL_SCOPE));
                 }
             }
         }
+        replayValidation("globalId", GLOBAL_SCOPE, diagnostics);
         return globalIdConfig;
     }
 
@@ -576,7 +667,7 @@ public final class ConfigurationResolver {
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
-        return discriminatorConfigCache.computeIfAbsent(eClass, ec -> {
+        DiscriminatorConfig resolvedConfig = discriminatorConfigCache.computeIfAbsent(eClass, ec -> {
             return DiscriminatorConfig.defaults()
                     .mergeWith(extractGlobalProperties(annotationProperties))
                     .mergeWith(extractClassProperties(annotationProperties, ec))
@@ -588,8 +679,10 @@ public final class ConfigurationResolver {
                     .mergeWith(extractClassProperties(resourceProperties, ec))
                     .mergeWith(extractGlobalProperties(optionsProperties))
                     .mergeWith(extractClassProperties(optionsProperties, ec))
-                    .validate(diagnostics);
+                    .validate(captureFor("discriminator", ec));
         });
+        replayValidation("discriminator", eClass, diagnostics);
+        return resolvedConfig;
     }
 
     /**
@@ -611,10 +704,11 @@ public final class ConfigurationResolver {
                             .mergeWith(extractGlobalProperties(factoryProperties))
                             .mergeWith(extractGlobalProperties(resourceProperties))
                             .mergeWith(extractGlobalProperties(optionsProperties))
-                            .validate(diagnostics);
+                            .validate(captureFor("globalDiscriminator", GLOBAL_SCOPE));
                 }
             }
         }
+        replayValidation("globalDiscriminator", GLOBAL_SCOPE, diagnostics);
         return globalDiscriminatorConfig;
     }
 
@@ -640,7 +734,7 @@ public final class ConfigurationResolver {
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
-        return classConfigCache.computeIfAbsent(eClass, ec -> {
+        ClassConfig resolvedConfig = classConfigCache.computeIfAbsent(eClass, ec -> {
             return ClassConfig.defaults()
                     .mergeWith(extractGlobalProperties(annotationProperties))
                     .mergeWith(extractClassProperties(annotationProperties, ec))
@@ -652,8 +746,10 @@ public final class ConfigurationResolver {
                     .mergeWith(extractClassProperties(resourceProperties, ec))
                     .mergeWith(extractGlobalProperties(optionsProperties))
                     .mergeWith(extractClassProperties(optionsProperties, ec))
-                    .validate(diagnostics);
+                    .validate(captureFor("class", ec));
         });
+        replayValidation("class", eClass, diagnostics);
+        return resolvedConfig;
     }
 
     /**
@@ -675,10 +771,11 @@ public final class ConfigurationResolver {
                             .mergeWith(extractGlobalProperties(factoryProperties))
                             .mergeWith(extractGlobalProperties(resourceProperties))
                             .mergeWith(extractGlobalProperties(optionsProperties))
-                            .validate(diagnostics);
+                            .validate(captureFor("globalClass", GLOBAL_SCOPE));
                 }
             }
         }
+        replayValidation("globalClass", GLOBAL_SCOPE, diagnostics);
         return globalClassConfig;
     }
 
@@ -707,7 +804,7 @@ public final class ConfigurationResolver {
         Objects.requireNonNull(feature, "feature must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
-        return featureConfigCache.computeIfAbsent(feature, f -> {
+        FeatureConfig resolvedConfig = featureConfigCache.computeIfAbsent(feature, f -> {
             EClass eClass = f.getEContainingClass();
             FeatureConfig resolved = FeatureConfig.defaults()
                     .mergeWith(extractGlobalProperties(annotationProperties))
@@ -725,7 +822,7 @@ public final class ConfigurationResolver {
                     .mergeWith(extractGlobalProperties(optionsProperties))
                     .mergeWith(extractClassProperties(optionsProperties, eClass))
                     .mergeWith(extractFeatureProperties(optionsProperties, f))
-                    .validate(diagnostics);
+                    .validate(captureFor("feature", f));
 
             // Apply key when no explicit key was configured
             // (ConfigProperty.KEY default is null = "use feature name or ExtendedMetaData name")
@@ -763,6 +860,8 @@ public final class ConfigurationResolver {
 
             return resolved;
         });
+        replayValidation("feature", feature, diagnostics);
+        return resolvedConfig;
     }
 
     /**
@@ -826,10 +925,11 @@ public final class ConfigurationResolver {
                             .mergeWith(extractGlobalProperties(factoryProperties))
                             .mergeWith(extractGlobalProperties(resourceProperties))
                             .mergeWith(extractGlobalProperties(optionsProperties))
-                            .validate(diagnostics);
+                            .validate(captureFor("globalFeature", GLOBAL_SCOPE));
                 }
             }
         }
+        replayValidation("globalFeature", GLOBAL_SCOPE, diagnostics);
         return globalFeatureConfig;
     }
 
@@ -849,7 +949,7 @@ public final class ConfigurationResolver {
         Objects.requireNonNull(feature, "feature must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
-        return referenceConfigCache.computeIfAbsent(feature, f -> {
+        ReferenceConfig resolvedConfig = referenceConfigCache.computeIfAbsent(feature, f -> {
             EClass eClass = f.getEContainingClass();
             return ReferenceConfig.defaults()
                     .mergeWith(extractGlobalProperties(annotationProperties))
@@ -867,8 +967,10 @@ public final class ConfigurationResolver {
                     .mergeWith(extractGlobalProperties(optionsProperties))
                     .mergeWith(extractClassProperties(optionsProperties, eClass))
                     .mergeWith(extractFeatureProperties(optionsProperties, f))
-                    .validate(diagnostics);
+                    .validate(captureFor("reference", f));
         });
+        replayValidation("reference", feature, diagnostics);
+        return resolvedConfig;
     }
 
     /**
@@ -890,10 +992,11 @@ public final class ConfigurationResolver {
                             .mergeWith(extractGlobalProperties(factoryProperties))
                             .mergeWith(extractGlobalProperties(resourceProperties))
                             .mergeWith(extractGlobalProperties(optionsProperties))
-                            .validate(diagnostics);
+                            .validate(captureFor("globalReference", GLOBAL_SCOPE));
                 }
             }
         }
+        replayValidation("globalReference", GLOBAL_SCOPE, diagnostics);
         return globalReferenceConfig;
     }
 
