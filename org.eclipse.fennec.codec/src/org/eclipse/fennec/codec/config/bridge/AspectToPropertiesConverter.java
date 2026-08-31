@@ -26,8 +26,11 @@ import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
+import org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
 import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata;
@@ -293,10 +296,57 @@ public final class AspectToPropertiesConverter {
     // ReferenceCodecAspect extraction
     // ========================================================================
 
+    /**
+     * Extracts what only a reference annotation carries: its type config and its reference
+     * config (issue #175).
+     * <p>
+     * The feature properties of the same aspect are extracted by the caller, since
+     * {@code ReferenceCodecAspect} extends {@code FeatureCodecAspect}. What is left is the part
+     * that used to be dropped here: nine properties documented as feature-level in
+     * 02-config-resolution.md §11.2 and §11.6 were parsed onto the aspect by
+     * {@code CodecAspectProvider} and then never forwarded, so an {@code EReference} annotation
+     * configuring {@code refKey} or {@code typeStrategy} had no effect at all.
+     * </p>
+     * <p>
+     * Values equal to the model default are treated as "not set", the same proxy the class-level
+     * extraction uses. It is a proxy and not the real question: a primitive or defaulted EMF
+     * attribute cannot tell an explicit restatement of its default from silence, so an
+     * annotation saying {@code refFormat="PLAIN"} is indistinguishable from one that says
+     * nothing. That matters here because {@code BaseReferenceConfig}'s model defaults
+     * ({@code _ref}, {@code PLAIN}) are not the codec's defaults ({@code $ref},
+     * {@code STRUCTURED}). Closing that gap needs the attributes made unsettable in
+     * {@code codec.ecore} and the model regenerated, as issue #106 did for
+     * {@code superTypeFormat}.
+     * </p>
+     */
     private static void extractReferenceAspectProperties(ReferenceCodecAspect aspect, Map<String, Object> props) {
-        // ReferenceCodecAspect extends FeatureCodecAspect, so feature props already extracted
-        // Add reference-specific properties here if needed
-        // (refFormat, refKey, etc. would go here when those getters exist on the aspect)
+        TypeSerializationConfig typeConfig = aspect.getTypeConfig();
+        if (typeConfig != null) {
+            // References carry a subset of the type keys; the class-only ones (typeMapId,
+            // typeDiscriminatorPath) are deliberately not parsed for a reference, so there is
+            // nothing to forward for them either - see 08-discriminator-mapping.md §7.
+            putIfNotDefault(props, "typeStrategy", literal(typeConfig.getStrategy()),
+                    TypeStrategy.URI.name());
+            putIfNotDefault(props, "typeKey", typeConfig.getTypeKey(), "_type");
+            putIfNotDefault(props, "typeFormat", literal(typeConfig.getFormat()),
+                    SerializationFormat.PLAIN.name());
+            putIfNotDefault(props, "typeSchemaKey", typeConfig.getSchemaKey(), "schema");
+            putIfNotDefault(props, "typeNameKey", typeConfig.getNameKey(), "name");
+        }
+
+        ReferenceSerializationConfig referenceConfig = aspect.getReferenceConfig();
+        if (referenceConfig != null) {
+            putIfNotDefault(props, "refFormat", literal(referenceConfig.getFormat()),
+                    SerializationFormat.PLAIN.name());
+            putIfNotDefault(props, "refKey", referenceConfig.getRefKey(), "_ref");
+            putIfNotDefault(props, "refTypeKey", referenceConfig.getTypeKey(), "_type");
+        }
+
+        // The expand flag is parsed onto both the aspect and its reference config, so either
+        // one saying true is an opt-in. False is the default and carries no information.
+        if (aspect.isExpand() || (referenceConfig != null && referenceConfig.isExpand())) {
+            props.put("expand", true);
+        }
     }
 
     // ========================================================================
@@ -313,5 +363,10 @@ public final class AspectToPropertiesConverter {
         if (value != null && !value.equals(defaultValue)) {
             props.put(key, value);
         }
+    }
+
+    /** The literal name of an enum value, or {@code null} when there is none. */
+    private static String literal(Enum<?> value) {
+        return value != null ? value.name() : null;
     }
 }

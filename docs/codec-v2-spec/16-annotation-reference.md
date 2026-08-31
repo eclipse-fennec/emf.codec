@@ -1837,6 +1837,16 @@ This section tracks the implementation status of features documented in this ref
 
 **Note:** `serializeInstanceType` is specified but not yet implemented.
 
+**Note:** an annotation value that happens to equal the *model* default is indistinguishable
+from an unset one, because the aspect's EMF attribute cannot tell an explicit restatement from
+silence. This bites where the model default and the codec default differ:
+`ReferenceSerializationConfig` defaults to `_ref` / `PLAIN` while the codec defaults to `$ref` /
+`STRUCTURED`, so `refKey="_ref"` or `refFormat="PLAIN"` on an `EReference` is dropped and the
+codec default applies. Every other value is forwarded. Closing this needs the attributes made
+unsettable in `codec.ecore` and the model regenerated, as issue #106 did for `superTypeFormat`.
+The same limitation applies to the boolean feature flags (`ignore`, `serializeNull`, …), where
+an explicit `false` cannot be distinguished from an unset value.
+
 ### Feature Configuration
 
 | Property | Annotation Constant | EMF Model | AspectProvider | Codec v2 | Tests | Spec |
