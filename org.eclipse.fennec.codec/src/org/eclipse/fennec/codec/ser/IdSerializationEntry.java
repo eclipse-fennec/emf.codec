@@ -90,12 +90,28 @@ public class IdSerializationEntry implements SerializationEntry {
         if (writerName != null && !writerName.isEmpty() && valueRegistry != null) {
             CodecValueWriter<?, ?> writer = valueRegistry.getWriter(writerName).orElse(null);
             if (writer == null) {
-                LOGGER.warning("Id value writer '" + writerName + "' is not registered - "
+                report(entryContext, "Id value writer '" + writerName + "' is not registered - "
                         + "using default id serialization for " + eClass.getName());
             }
             this.customWriter = (CodecValueWriter<Object, EAttribute>) writer;
         } else {
             this.customWriter = null;
+        }
+    }
+
+    /**
+     * Reports something the codec had to work around while writing (issue #184).
+     * <p>
+     * A warning rather than an error in every case here: each one describes a fallback the
+     * codec could make, not a refusal to write, so a save that succeeded before still
+     * succeeds. It goes to the log as well, because a diagnostic on a resource is only read by
+     * whoever thought to look.
+     * </p>
+     */
+    private static void report(CodecEntryContext entryContext, String message) {
+        LOGGER.warning(message);
+        if (entryContext != null && entryContext.getDiagnostics() != null) {
+            entryContext.getDiagnostics().addWarning(message, "IdSerializationEntry");
         }
     }
 
@@ -251,7 +267,7 @@ public class IdSerializationEntry implements SerializationEntry {
                 ? entryContext.getEffectiveConfig().resolveIdConfig(containedClass)
                 : null;
         if (containedConfig == null) {
-            LOGGER.warning("No id configuration for '" + containedClass.getName()
+            report(entryContext, "No id configuration for '" + containedClass.getName()
                     + "' referenced by id feature '" + reference.getName()
                     + "' - writing no id rather than a guessed one");
             return null;
@@ -286,7 +302,7 @@ public class IdSerializationEntry implements SerializationEntry {
             // A component containing the separator makes the PLAIN combined id ambiguous on
             // deserialization — the split becomes the only source under keyMode=ID_ONLY (#101).
             if (value != null && value.toString().contains(separator)) {
-                LOGGER.warning("Id component '" + entry.getKey() + "' of " + eClass.getName()
+                report(entryContext, "Id component '" + entry.getKey() + "' of " + eClass.getName()
                         + " contains the id separator '" + separator
                         + "' — the combined id will not round-trip correctly. "
                         + "Use STRUCTURED idFormat or a different idSeparator.");

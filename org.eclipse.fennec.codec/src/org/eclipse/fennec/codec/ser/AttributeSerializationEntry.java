@@ -96,7 +96,7 @@ public class AttributeSerializationEntry implements SerializationEntry {
                 if (attributeWriter.canHandle(attribute)) {
                     this.customWriter = (CodecValueWriter<Object, EAttribute>) writer;
                 } else {
-                    LOGGER.warning("AttributeValueWriter '" + writerName
+                    report("AttributeValueWriter '" + writerName
                             + "' cannot handle attribute '" + attribute.getName()
                             + "' (canHandle returned false). Using default serialization.");
                     this.customWriter = null;
@@ -106,6 +106,20 @@ public class AttributeSerializationEntry implements SerializationEntry {
             }
         } else {
             this.customWriter = null;
+        }
+    }
+
+    /**
+     * Reports a fallback the codec had to make while writing this attribute (issue #184).
+     * <p>
+     * A warning: the value is still written, by the default path. See
+     * {@code IdSerializationEntry.report} for the same reasoning.
+     * </p>
+     */
+    private void report(String message) {
+        LOGGER.warning(message);
+        if (entryContext != null && entryContext.getDiagnostics() != null) {
+            entryContext.getDiagnostics().addWarning(message, "AttributeSerializationEntry");
         }
     }
 
