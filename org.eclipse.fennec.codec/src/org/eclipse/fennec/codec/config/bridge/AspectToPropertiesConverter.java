@@ -196,8 +196,14 @@ public final class AspectToPropertiesConverter {
             if (idConfig.getStrategy() != null) {
                 props.put("idStrategy", idConfig.getStrategy().name());
             }
-            putIfNotDefault(props, "idKey", idConfig.getIdKey(), "_id");
-            putIfNotDefault(props, "idFormat", idConfig.getFormat() != null ? idConfig.getFormat().name() : null, null);
+            // idKey and idFormat are unsettable in codec.ecore, so presence is exact here too -
+            // an explicit idKey="_id" used to look like silence (issues #175/#176).
+            if (idConfig.isSetIdKey()) {
+                putIfNotNull(props, "idKey", idConfig.getIdKey());
+            }
+            if (idConfig.isSetFormat()) {
+                putIfNotNull(props, "idFormat", literal(idConfig.getFormat()));
+            }
             putIfNotDefault(props, "idKeyMode", idConfig.getKeyMode() != null ? idConfig.getKeyMode().name() : null, null);
             putIfNotDefault(props, "idValueKey", idConfig.getValueKey(), "id");
             putIfNotDefault(props, "idSeparator", idConfig.getSeparator(), "-");
@@ -363,6 +369,19 @@ public final class AspectToPropertiesConverter {
             }
             if (referenceConfig.isSetExpand()) {
                 props.put("expand", referenceConfig.isExpand());
+            }
+        }
+
+        // The two id keys a reference may carry (issue #176). Only these two describe how an
+        // identity is written rather than how it is built, so only these two can belong to the
+        // place it is written in; the provider does not parse the others for a reference.
+        IdSerializationConfig idConfig = aspect.getIdConfig();
+        if (idConfig != null) {
+            if (idConfig.isSetIdKey()) {
+                putIfNotNull(props, "idKey", idConfig.getIdKey());
+            }
+            if (idConfig.isSetFormat()) {
+                putIfNotNull(props, "idFormat", literal(idConfig.getFormat()));
             }
         }
 

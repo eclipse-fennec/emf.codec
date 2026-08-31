@@ -1222,8 +1222,18 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 	 * @generated
 	 */
 	@Override
+	public EReference getReferenceCodecAspect_IdConfig() {
+		return (EReference)referenceCodecAspectEClass.getEStructuralFeatures().get(2);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EAttribute getReferenceCodecAspect_InheritTypeFromTarget() {
-		return (EAttribute)referenceCodecAspectEClass.getEStructuralFeatures().get(2);
+		return (EAttribute)referenceCodecAspectEClass.getEStructuralFeatures().get(3);
 	}
 
 	/**
@@ -1233,7 +1243,7 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 	 */
 	@Override
 	public EAttribute getReferenceCodecAspect_Expand() {
-		return (EAttribute)referenceCodecAspectEClass.getEStructuralFeatures().get(3);
+		return (EAttribute)referenceCodecAspectEClass.getEStructuralFeatures().get(4);
 	}
 
 	/**
@@ -1778,6 +1788,7 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		referenceCodecAspectEClass = createEClass(REFERENCE_CODEC_ASPECT);
 		createEReference(referenceCodecAspectEClass, REFERENCE_CODEC_ASPECT__REFERENCE_CONFIG);
 		createEReference(referenceCodecAspectEClass, REFERENCE_CODEC_ASPECT__TYPE_CONFIG);
+		createEReference(referenceCodecAspectEClass, REFERENCE_CODEC_ASPECT__ID_CONFIG);
 		createEAttribute(referenceCodecAspectEClass, REFERENCE_CODEC_ASPECT__INHERIT_TYPE_FROM_TARGET);
 		createEAttribute(referenceCodecAspectEClass, REFERENCE_CODEC_ASPECT__EXPAND);
 
@@ -1874,8 +1885,8 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		initEClass(baseIdConfigEClass, BaseIdConfig.class, "BaseIdConfig", IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getBaseIdConfig_Strategy(), this.getIdStrategy(), "strategy", "ID_FIELD", 0, 1, BaseIdConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getBaseIdConfig_KeyMode(), this.getIdKeyMode(), "keyMode", "ID_ONLY", 0, 1, BaseIdConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getBaseIdConfig_Format(), this.getSerializationFormat(), "format", "PLAIN", 0, 1, BaseIdConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getBaseIdConfig_IdKey(), ecorePackage.getEString(), "idKey", "_id", 0, 1, BaseIdConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getBaseIdConfig_Format(), this.getSerializationFormat(), "format", "PLAIN", 0, 1, BaseIdConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getBaseIdConfig_IdKey(), ecorePackage.getEString(), "idKey", "_id", 0, 1, BaseIdConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getBaseIdConfig_Separator(), ecorePackage.getEString(), "separator", "-", 0, 1, BaseIdConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getBaseIdConfig_OnTop(), ecorePackage.getEBoolean(), "onTop", "true", 0, 1, BaseIdConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getBaseIdConfig_SerializeSeparator(), ecorePackage.getEBoolean(), "serializeSeparator", "true", 0, 1, BaseIdConfig.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -1967,6 +1978,7 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		initEClass(referenceCodecAspectEClass, ReferenceCodecAspect.class, "ReferenceCodecAspect", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getReferenceCodecAspect_ReferenceConfig(), this.getReferenceSerializationConfig(), null, "referenceConfig", null, 0, 1, ReferenceCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getReferenceCodecAspect_TypeConfig(), this.getTypeSerializationConfig(), null, "typeConfig", null, 0, 1, ReferenceCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getReferenceCodecAspect_IdConfig(), this.getIdSerializationConfig(), null, "idConfig", null, 0, 1, ReferenceCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getReferenceCodecAspect_InheritTypeFromTarget(), ecorePackage.getEBoolean(), "inheritTypeFromTarget", "true", 0, 1, ReferenceCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getReferenceCodecAspect_Expand(), ecorePackage.getEBoolean(), "expand", "false", 0, 1, ReferenceCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 

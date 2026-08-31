@@ -37,7 +37,7 @@ public class CodecEPackageConfigurator implements EPackageConfigurator {
 	 * service property.
 	 * @generated
 	 */
-	public static final String FINGERPRINT = "fp1:0b9de76be976df8df617cf48a03107d37591210ec08f4150340bf1b7dc02daca";
+	public static final String FINGERPRINT = "fp1:3aee2d346dace5b3020dc9f0ec76252f01840ced8d0f0f27f168878aed656b1a";
 
 	private CodecPackage ePackage;
 

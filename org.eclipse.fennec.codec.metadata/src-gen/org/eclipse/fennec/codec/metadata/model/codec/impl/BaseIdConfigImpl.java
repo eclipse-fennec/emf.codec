@@ -108,6 +108,15 @@ public abstract class BaseIdConfigImpl extends MinimalEObjectImpl.Container impl
 	protected SerializationFormat format = FORMAT_EDEFAULT;
 
 	/**
+	 * This is true if the Format attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean formatESet;
+
+	/**
 	 * The default value of the '{@link #getIdKey() <em>Id Key</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -126,6 +135,15 @@ public abstract class BaseIdConfigImpl extends MinimalEObjectImpl.Container impl
 	 * @ordered
 	 */
 	protected String idKey = ID_KEY_EDEFAULT;
+
+	/**
+	 * This is true if the Id Key attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean idKeyESet;
 
 	/**
 	 * The default value of the '{@link #getSeparator() <em>Separator</em>}' attribute.
@@ -311,8 +329,35 @@ public abstract class BaseIdConfigImpl extends MinimalEObjectImpl.Container impl
 	public void setFormat(SerializationFormat newFormat) {
 		SerializationFormat oldFormat = format;
 		format = newFormat == null ? FORMAT_EDEFAULT : newFormat;
+		boolean oldFormatESet = formatESet;
+		formatESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_ID_CONFIG__FORMAT, oldFormat, format));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_ID_CONFIG__FORMAT, oldFormat, format, !oldFormatESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetFormat() {
+		SerializationFormat oldFormat = format;
+		boolean oldFormatESet = formatESet;
+		format = FORMAT_EDEFAULT;
+		formatESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_ID_CONFIG__FORMAT, oldFormat, FORMAT_EDEFAULT, oldFormatESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetFormat() {
+		return formatESet;
 	}
 
 	/**
@@ -334,8 +379,35 @@ public abstract class BaseIdConfigImpl extends MinimalEObjectImpl.Container impl
 	public void setIdKey(String newIdKey) {
 		String oldIdKey = idKey;
 		idKey = newIdKey;
+		boolean oldIdKeyESet = idKeyESet;
+		idKeyESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_ID_CONFIG__ID_KEY, oldIdKey, idKey));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_ID_CONFIG__ID_KEY, oldIdKey, idKey, !oldIdKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetIdKey() {
+		String oldIdKey = idKey;
+		boolean oldIdKeyESet = idKeyESet;
+		idKey = ID_KEY_EDEFAULT;
+		idKeyESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_ID_CONFIG__ID_KEY, oldIdKey, ID_KEY_EDEFAULT, oldIdKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetIdKey() {
+		return idKeyESet;
 	}
 
 	/**
@@ -537,10 +609,10 @@ public abstract class BaseIdConfigImpl extends MinimalEObjectImpl.Container impl
 				setKeyMode(KEY_MODE_EDEFAULT);
 				return;
 			case CodecPackage.BASE_ID_CONFIG__FORMAT:
-				setFormat(FORMAT_EDEFAULT);
+				unsetFormat();
 				return;
 			case CodecPackage.BASE_ID_CONFIG__ID_KEY:
-				setIdKey(ID_KEY_EDEFAULT);
+				unsetIdKey();
 				return;
 			case CodecPackage.BASE_ID_CONFIG__SEPARATOR:
 				setSeparator(SEPARATOR_EDEFAULT);
@@ -574,9 +646,9 @@ public abstract class BaseIdConfigImpl extends MinimalEObjectImpl.Container impl
 			case CodecPackage.BASE_ID_CONFIG__KEY_MODE:
 				return keyMode != KEY_MODE_EDEFAULT;
 			case CodecPackage.BASE_ID_CONFIG__FORMAT:
-				return format != FORMAT_EDEFAULT;
+				return isSetFormat();
 			case CodecPackage.BASE_ID_CONFIG__ID_KEY:
-				return ID_KEY_EDEFAULT == null ? idKey != null : !ID_KEY_EDEFAULT.equals(idKey);
+				return isSetIdKey();
 			case CodecPackage.BASE_ID_CONFIG__SEPARATOR:
 				return SEPARATOR_EDEFAULT == null ? separator != null : !SEPARATOR_EDEFAULT.equals(separator);
 			case CodecPackage.BASE_ID_CONFIG__ON_TOP:
@@ -606,9 +678,9 @@ public abstract class BaseIdConfigImpl extends MinimalEObjectImpl.Container impl
 		result.append(", keyMode: ");
 		result.append(keyMode);
 		result.append(", format: ");
-		result.append(format);
+		if (formatESet) result.append(format); else result.append("<unset>");
 		result.append(", idKey: ");
-		result.append(idKey);
+		if (idKeyESet) result.append(idKey); else result.append("<unset>");
 		result.append(", separator: ");
 		result.append(separator);
 		result.append(", onTop: ");

@@ -181,9 +181,47 @@ class ReferenceScopedIdConfigTest {
                 "writing itemId and reading _id would lose the identity, was: " + json);
     }
 
+    @Test
+    @DisplayName("an idKey annotation on the reference reaches the wire")
+    void idKeyFromAnnotation() throws IOException {
+        annotate(items, "idKey", "itemId");
+
+        String json = save(Map.of());
+
+        assertTrue(json.contains("\"itemId\":\"i1\""),
+                "the annotated reference renames the id, was: " + json);
+        assertTrue(json.contains("\"_id\":\"i2\""),
+                "the unannotated sibling keeps _id, was: " + json);
+    }
+
+    @Test
+    @DisplayName("an idKey annotation reads back")
+    @SuppressWarnings("unchecked")
+    void idKeyFromAnnotationRoundTrips() throws IOException {
+        annotate(items, "idKey", "itemId");
+
+        EObject loaded = load(save(Map.of()), Map.of());
+
+        List<EObject> loadedItems = (List<EObject>) loaded.eGet(items);
+        assertEquals(1, loadedItems.size());
+        assertEquals("i1", loadedItems.get(0).eGet(itemId));
+    }
+
     // ========================================================================
     // Helpers
     // ========================================================================
+
+    private void annotate(EReference reference, String... keyValuePairs) {
+        org.eclipse.emf.ecore.EAnnotation annotation =
+                EcoreFactory.eINSTANCE.createEAnnotation();
+        annotation.setSource("http://eclipse.org/fennec/codec");
+        for (int i = 0; i < keyValuePairs.length; i += 2) {
+            annotation.getDetails().put(keyValuePairs[i], keyValuePairs[i + 1]);
+        }
+        reference.getEAnnotations().add(annotation);
+        metadataService = MetadataServiceFactory.create();
+        metadataService.registerPackage(testPackage);
+    }
 
     private Map<String, Object> featureScoped(String featureName, Map<String, Object> props) {
         Map<String, Object> classScoped = new HashMap<>();

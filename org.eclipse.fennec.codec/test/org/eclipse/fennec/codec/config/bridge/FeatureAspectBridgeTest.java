@@ -196,6 +196,52 @@ class FeatureAspectBridgeTest {
     }
 
     @Test
+    @DisplayName("the id keys a reference may carry reach the bridge")
+    void referenceIdKeysReachTheBridge() {
+        annotate(customerRef, "idKey", "customerId", "idFormat", "STRUCTURED");
+
+        Map<String, Object> props = referenceProperties();
+
+        assertEquals("customerId", props.get("idKey"));
+        assertEquals("STRUCTURED", props.get("idFormat"));
+    }
+
+    @Test
+    @DisplayName("an id value equal to the model default is forwarded")
+    void idValueEqualToTheModelDefaultIsForwarded() {
+        annotate(customerRef, "idKey", "_id", "idFormat", "PLAIN");
+
+        Map<String, Object> props = referenceProperties();
+
+        assertEquals("_id", props.get("idKey"), "restating the default is still a statement");
+        assertEquals("PLAIN", props.get("idFormat"));
+    }
+
+    @Test
+    @DisplayName("a class-only id key on a reference is not forwarded")
+    void classOnlyIdKeyOnAReferenceIsNotForwarded() {
+        // The parser already reports these as errors on an EReference; the bridge must not
+        // undo that by forwarding them anyway.
+        annotate(customerRef, "idKey", "customerId", "idKeyMode", "BOTH");
+
+        Map<String, Object> props = referenceProperties();
+
+        assertEquals("customerId", props.get("idKey"));
+        assertNull(props.get("idKeyMode"), "an identity's mode is class-intrinsic");
+    }
+
+    @Test
+    @DisplayName("a class-level idKey equal to the default is forwarded")
+    void classLevelIdKeyEqualToTheDefaultIsForwarded() {
+        annotate(orderClass, "idKey", "_id");
+
+        Map<String, Object> props = classProperties();
+
+        assertEquals("_id", props.get("idKey"),
+                "the class level had the same compare-to-default flaw (issue #175/#176)");
+    }
+
+    @Test
     @DisplayName("every emitted feature-level key is canonical")
     void emittedKeysAreCanonical() {
         annotate(customerRef,
@@ -279,6 +325,15 @@ class FeatureAspectBridgeTest {
         Map<String, Object> props =
                 ((Map<EReference, Map<String, Object>>) config).get(customerRef);
         assertNotNull(props, "converter must emit properties for the annotated reference");
+        return props;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> classProperties() {
+        Object config = annotationProperties().get(ConfigProperty.ECLASS_CONFIG.getKey());
+        assertNotNull(config, "converter must emit an eClassConfig map");
+        Map<String, Object> props = ((Map<EClass, Map<String, Object>>) config).get(orderClass);
+        assertNotNull(props, "converter must emit properties for the annotated class");
         return props;
     }
 
