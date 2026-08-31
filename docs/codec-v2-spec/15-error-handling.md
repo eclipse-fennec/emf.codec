@@ -40,6 +40,38 @@ Occurs when configuration is first resolved for an EClass/EStructuralFeature. Ea
 - Properties that are ignored in certain modes (e.g., `typeNameKey` ignored when format is PLAIN)
 - Property dependencies within the same config
 
+#### Layer 2a: Unusable Values (issue #174)
+
+Occurs at the first resolution, once per diagnostic collector, and covers **every** source: load
+and save options, resource, factory and module properties, and annotations — including their
+class- and feature-scoped nested maps. `ConfigValueValidator` asks one question per configured
+key that names a `ConfigProperty`: would this value be dropped?
+
+A value that does not parse is replaced by a fallback, and a fallback is invisible — the codec
+then behaves exactly as if the setting had never been written, which cannot be told apart from a
+setting that is not implemented. So it is reported as a WARNING naming the property, the value,
+the legal values and what applies instead:
+
+```
+Invalid value 'NOPE' for config property 'typeStrategy' (resource properties);
+legal values are [URI, NAME, CLASS, NUMERIC, SCHEMA_AND_TYPE, NONE].
+The value is ignored, so a wider scope or the default (URI) applies.
+```
+
+Legal values are declared next to the property, not in the message: a `ConfigProperty` whose
+value names an enum literal records that enum, and everything a message says about legal values
+is derived from it.
+
+Judged: enum-named values, booleans, integers. `typeInclude="yes"` is a WARNING and keeps the
+fallback — it used to become an explicit `false`, since `Boolean.parseBoolean` answers false to
+everything that is not `"true"`, so an unparseable value inverted the caller's intent instead of
+being no value at all. Case is not judged: `typeStrategy="name"` resolves to `NAME` silently, as
+intended.
+
+Not judged: **unknown keys**. A property map legitimately carries runtime options that are not
+`ConfigProperty` keys, and separating those from typos is the caller's job (`CodecResource` does
+it for load and save options).
+
 ### Layer 3: Cross-Config Validation
 
 Occurs after config resolution when multiple configs interact. Examples:

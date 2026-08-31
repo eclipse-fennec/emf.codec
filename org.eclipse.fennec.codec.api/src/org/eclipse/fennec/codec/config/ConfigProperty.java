@@ -19,10 +19,23 @@ import static org.eclipse.fennec.codec.config.ConfigLevel.EPACKAGE;
 import static org.eclipse.fennec.codec.config.ConfigLevel.FEATURE;
 import static org.eclipse.fennec.codec.config.ConfigLevel.GLOBAL;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.eclipse.fennec.codec.metadata.model.codec.DeserializationMode;
+import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.FallbackStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
+import org.eclipse.fennec.codec.metadata.model.codec.IdStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.StrategyScope;
+import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeHintMode;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 
 /**
  * All codec configuration properties with their metadata.
@@ -56,13 +69,13 @@ public enum ConfigProperty {
     // Type Properties (11.3)
     // ========================================================================
 
-    TYPE_STRATEGY("typeStrategy", String.class, "URI",
+    TYPE_STRATEGY("typeStrategy", String.class, "URI", TypeStrategy.class,
         levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
     TYPE_KEY("typeKey", String.class, "_type",
         levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
-    TYPE_FORMAT("typeFormat", String.class, "PLAIN",
+    TYPE_FORMAT("typeFormat", String.class, "PLAIN", SerializationFormat.class,
         levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
     TYPE_INCLUDE("typeInclude", Boolean.class, true,
@@ -74,10 +87,10 @@ public enum ConfigProperty {
     TYPE_NAME_KEY("typeNameKey", String.class, "type",
         levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
-    TYPE_SCOPE("typeScope", String.class, "ALL",
+    TYPE_SCOPE("typeScope", String.class, "ALL", StrategyScope.class,
         levels(GLOBAL), directions(READ, WRITE)),
 
-    TYPE_FORMAT_SCOPE("typeFormatScope", String.class, "ALL",
+    TYPE_FORMAT_SCOPE("typeFormatScope", String.class, "ALL", StrategyScope.class,
         levels(GLOBAL), directions(READ, WRITE)),
 
     TYPE_VALUE_READER_NAME("typeValueReaderName", String.class, null,
@@ -96,7 +109,7 @@ public enum ConfigProperty {
      *
      * @see <a href="docs/codec-v2-spec/06-type.md#8-in-band-epackage-fingerprint">Spec 06 §8</a>
      */
-    FINGERPRINT_MODE("fingerprintMode", String.class, "NONE",
+    FINGERPRINT_MODE("fingerprintMode", String.class, "NONE", FingerprintMode.class,
         levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE)),
 
     /**
@@ -123,7 +136,7 @@ public enum ConfigProperty {
     // ID Properties (11.4)
     // ========================================================================
 
-    ID_STRATEGY("idStrategy", String.class, "ID_FIELD",
+    ID_STRATEGY("idStrategy", String.class, "ID_FIELD", IdStrategy.class,
         levels(GLOBAL, ECLASS, EPACKAGE), directions(READ, WRITE)),
 
     ID_KEY("idKey", String.class, "_id",
@@ -132,10 +145,10 @@ public enum ConfigProperty {
     ID_VALUE_KEY("idValueKey", String.class, "id",
         levels(GLOBAL, ECLASS, EPACKAGE), directions(READ, WRITE)),
 
-    ID_FORMAT("idFormat", String.class, "PLAIN",
+    ID_FORMAT("idFormat", String.class, "PLAIN", SerializationFormat.class,
         levels(GLOBAL, ECLASS, EPACKAGE, FEATURE), directions(READ, WRITE)),
 
-    ID_KEY_MODE("idKeyMode", String.class, "ID_ONLY",
+    ID_KEY_MODE("idKeyMode", String.class, "ID_ONLY", IdKeyMode.class,
         levels(GLOBAL, ECLASS, EPACKAGE), directions(READ, WRITE)),
 
     @SuppressWarnings("unchecked")
@@ -154,10 +167,10 @@ public enum ConfigProperty {
     ID_ON_TOP("idOnTop", Boolean.class, true,
         levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
-    ID_SCOPE("idScope", String.class, "ALL",
+    ID_SCOPE("idScope", String.class, "ALL", StrategyScope.class,
         levels(GLOBAL), directions(READ, WRITE)),
 
-    ID_FORMAT_SCOPE("idFormatScope", String.class, "ALL",
+    ID_FORMAT_SCOPE("idFormatScope", String.class, "ALL", StrategyScope.class,
         levels(GLOBAL), directions(READ, WRITE)),
 
     ID_VALUE_READER_NAME("idValueReaderName", String.class, null,
@@ -197,7 +210,7 @@ public enum ConfigProperty {
     SERIALIZE_DEFAULT("serializeDefault", Boolean.class, false,
         levels(GLOBAL, ECLASS, FEATURE), directions(WRITE), directions(READ)),  // (R)W
 
-    ENUM_SERIALIZATION("enumSerialization", String.class, "LITERAL",
+    ENUM_SERIALIZATION("enumSerialization", String.class, "LITERAL", EnumSerializationStrategy.class,
         levels(GLOBAL, FEATURE), directions(READ, WRITE)),
 
     DATE_FORMAT("dateFormat", String.class, null,
@@ -216,7 +229,7 @@ public enum ConfigProperty {
     // Reference Properties (11.6)
     // ========================================================================
 
-    REF_FORMAT("refFormat", String.class, "STRUCTURED",
+    REF_FORMAT("refFormat", String.class, "STRUCTURED", SerializationFormat.class,
         levels(GLOBAL, FEATURE), directions(READ, WRITE)),
 
     REF_KEY("refKey", String.class, "$ref",
@@ -301,7 +314,7 @@ public enum ConfigProperty {
     DISCRIMINATOR_VALUE("discriminatorValue", String.class, null,
         levels(FEATURE), directions(READ, WRITE)),
 
-    FALLBACK_STRATEGY("fallbackStrategy", String.class, "SKIP",  // Spec default: SKIP
+    FALLBACK_STRATEGY("fallbackStrategy", String.class, "SKIP", FallbackStrategy.class,  // Spec default: SKIP
         levels(GLOBAL, ECLASS, FEATURE), directions(READ), directions(WRITE)),  // R(W)
 
     FALLBACK_ECLASS("fallbackEClass", String.class, null,
@@ -319,7 +332,7 @@ public enum ConfigProperty {
     SUPERTYPE_KEY("superTypeKey", String.class, null,  // format-dependent default
         levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
-    SUPERTYPE_STRATEGY("superTypeStrategy", String.class, "ALL",
+    SUPERTYPE_STRATEGY("superTypeStrategy", String.class, "ALL", SuperTypeSelection.class,
         levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
     SUPERTYPE_AS_ARRAY("superTypeAsArray", Boolean.class, true,
@@ -328,7 +341,7 @@ public enum ConfigProperty {
     SUPERTYPE_SEPARATOR("superTypeSeparator", String.class, ",",
         levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
-    SUPERTYPE_FORMAT("superTypeFormat", String.class, null,  // inherits from typeFormat
+    SUPERTYPE_FORMAT("superTypeFormat", String.class, null, SerializationFormat.class,  // inherits from typeFormat
         levels(GLOBAL, ECLASS, EPACKAGE), directions(WRITE), directions(READ)),  // (R)W
 
     // Note: superTypeSchemaKey not needed - SuperTypeConfig inherits from TypeConfig
@@ -354,7 +367,7 @@ public enum ConfigProperty {
     STRICT_ON_CONVERSION("strictOnConversion", Boolean.class, false,
         levels(GLOBAL, ECLASS), directions(READ)),
 
-    DESERIALIZATION_MODE("deserializationMode", String.class, "LENIENT",
+    DESERIALIZATION_MODE("deserializationMode", String.class, "LENIENT", DeserializationMode.class,
         levels(GLOBAL, ECLASS), directions(READ)),
 
     // ========================================================================
@@ -400,7 +413,7 @@ public enum ConfigProperty {
     FEATURE_TYPE_HINTS("featureTypeHints", (Class<Map<?, ?>>) (Class<?>) Map.class, null,
         levels(GLOBAL), directions(READ)),
 
-    TYPE_HINT_MODE("typeHintMode", String.class, "HINT",
+    TYPE_HINT_MODE("typeHintMode", String.class, "HINT", TypeHintMode.class,
         levels(GLOBAL), directions(READ)),
 
     @SuppressWarnings("unchecked")
@@ -468,21 +481,45 @@ public enum ConfigProperty {
     private final String key;
     private final Class<?> type;
     private final Object defaultValue;
+    private final Class<? extends Enum<?>> enumType;
     private final Set<ConfigLevel> validLevels;
     private final Set<ConfigDirection> directions;
     private final Set<ConfigDirection> futureDirections;
 
     <T> ConfigProperty(String key, Class<T> type, T defaultValue,
                        Set<ConfigLevel> validLevels, Set<ConfigDirection> directions) {
-        this(key, type, defaultValue, validLevels, directions, EnumSet.noneOf(ConfigDirection.class));
+        this(key, type, defaultValue, null, validLevels, directions,
+                EnumSet.noneOf(ConfigDirection.class));
     }
 
     <T> ConfigProperty(String key, Class<T> type, T defaultValue,
                        Set<ConfigLevel> validLevels, Set<ConfigDirection> directions,
                        Set<ConfigDirection> futureDirections) {
+        this(key, type, defaultValue, null, validLevels, directions, futureDirections);
+    }
+
+    /**
+     * Declares a property whose String value is the name of an enum literal (issue #174).
+     * <p>
+     * The type stays {@code String.class} - that is what travels in a property map and in an
+     * annotation detail - while {@code enumType} records what those Strings have to name, so
+     * the legal values are stated once, here, and every message about them can be derived
+     * rather than written out again.
+     * </p>
+     */
+    <T> ConfigProperty(String key, Class<T> type, T defaultValue, Class<? extends Enum<?>> enumType,
+                       Set<ConfigLevel> validLevels, Set<ConfigDirection> directions) {
+        this(key, type, defaultValue, enumType, validLevels, directions,
+                EnumSet.noneOf(ConfigDirection.class));
+    }
+
+    <T> ConfigProperty(String key, Class<T> type, T defaultValue, Class<? extends Enum<?>> enumType,
+                       Set<ConfigLevel> validLevels, Set<ConfigDirection> directions,
+                       Set<ConfigDirection> futureDirections) {
         this.key = key;
         this.type = type;
         this.defaultValue = defaultValue;
+        this.enumType = enumType;
         this.validLevels = validLevels;
         this.directions = directions;
         this.futureDirections = futureDirections;
@@ -520,6 +557,70 @@ public enum ConfigProperty {
     @SuppressWarnings("unchecked")
     public <T> T getDefaultValue() {
         return (T) defaultValue;
+    }
+
+    /**
+     * Returns the enum whose literals this property's value must name, or {@code null} when the
+     * value is free-form.
+     */
+    public Class<? extends Enum<?>> getEnumType() {
+        return enumType;
+    }
+
+    /**
+     * Returns the values this property accepts, or an empty list when they cannot be enumerated
+     * (a free-form String, a number, a collection).
+     */
+    public List<String> getLegalValues() {
+        if (enumType != null) {
+            return Arrays.stream(enumType.getEnumConstants()).map(Enum::name).toList();
+        }
+        if (type == Boolean.class) {
+            return List.of("true", "false");
+        }
+        return List.of();
+    }
+
+    /**
+     * Tells whether a configured value can actually be consumed for this property (issue #174).
+     * <p>
+     * Only the cases the config layer converts are judged - an enum literal name, a boolean, an
+     * integer. Anything else is accepted: this asks whether a value will be silently dropped,
+     * not whether it is meaningful.
+     * </p>
+     *
+     * @param value the configured value, may be {@code null}
+     * @return true when the value is usable, or when this property cannot judge it
+     */
+    public boolean accepts(Object value) {
+        if (value == null) {
+            return true;
+        }
+        if (enumType != null) {
+            if (enumType.isInstance(value)) {
+                return true;
+            }
+            String name = value.toString();
+            return Arrays.stream(enumType.getEnumConstants())
+                    .anyMatch(constant -> constant.name().equalsIgnoreCase(name));
+        }
+        if (type == Boolean.class) {
+            return value instanceof Boolean
+                    || "true".equalsIgnoreCase(value.toString())
+                    || "false".equalsIgnoreCase(value.toString());
+        }
+        if (type == Integer.class) {
+            if (value instanceof Number) {
+                return true;
+            }
+            try {
+                Integer.parseInt(value.toString());
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

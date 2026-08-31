@@ -114,7 +114,7 @@ public final class ConfigMergeHelper {
      * @param source the source property map
      * @param property the property to look up
      * @param fallback the fallback value
-     * @return the Boolean value, or fallback if not present
+     * @return the Boolean value, or fallback if not present or unparseable
      */
     public static boolean getBoolean(Map<String, Object> source, ConfigProperty property, boolean fallback) {
         Object value = getValue(source, property);
@@ -124,7 +124,18 @@ public final class ConfigMergeHelper {
         if (value instanceof Boolean b) {
             return b;
         }
-        return Boolean.parseBoolean(value.toString());
+        // Boolean.parseBoolean answers "false" to everything that is not "true", so it turned
+        // typeInclude="yes" into an explicit opt-out - not a fallback, an inversion of the
+        // caller's intent (issue #174). Only the two words the property accepts are parsed;
+        // anything else keeps the fallback and is reported by ConfigValueValidator.
+        String text = value.toString();
+        if ("true".equalsIgnoreCase(text)) {
+            return true;
+        }
+        if ("false".equalsIgnoreCase(text)) {
+            return false;
+        }
+        return fallback;
     }
 
     /**

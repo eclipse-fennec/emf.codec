@@ -13,6 +13,7 @@
 package org.eclipse.fennec.codec.config;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.emf.ecore.EAnnotation;
@@ -70,6 +72,23 @@ public final class ConfigurationResolver {
     private final Map<String, Object> factoryProperties;      // Level 3
     private final Map<String, Object> moduleProperties;       // Level 4
     private final Map<String, Object> annotationProperties;   // Level 5
+
+    /**
+     * The configured values no conversion can consume, computed once (issue #174).
+     * <p>
+     * Lazily, because the source maps are fixed at build time but the collector to report into
+     * only arrives with a resolve call.
+     * </p>
+     */
+    private volatile List<String> unusableConfigValues;
+
+    /**
+     * The collectors already told about them. Identity-based and weak: reporting the same
+     * configuration mistake once per resolve call would bury the diagnostics it sits among,
+     * and holding a collector alive here would outlive the load it belongs to.
+     */
+    private final Set<DiagnosticCollector> reportedTo =
+            Collections.newSetFromMap(new WeakHashMap<>());
     // Level 6 (defaults) is built into config classes
 
     // Caches for resolved configurations
@@ -109,6 +128,43 @@ public final class ConfigurationResolver {
                 : Set.of();
     }
 
+    /**
+     * Reports every configured value that would be silently dropped, once per collector
+     * (issue #174).
+     * <p>
+     * A value that fails to parse is replaced by a fallback, and the fallback is invisible: the
+     * codec then behaves exactly as if the setting had never been written, which is impossible
+     * to tell from a setting that is not implemented. Saying so once, at the first resolution,
+     * puts it in the same diagnostics the caller already reads.
+     * </p>
+     */
+    private void reportUnusableConfigValues(DiagnosticCollector diagnostics) {
+        if (diagnostics == null) {
+            return;
+        }
+        List<String> problems = unusableConfigValues;
+        if (problems == null) {
+            problems = new ArrayList<>();
+            problems.addAll(ConfigValueValidator.findUnusableValues(optionsProperties, "load/save options"));
+            problems.addAll(ConfigValueValidator.findUnusableValues(resourceProperties, "resource properties"));
+            problems.addAll(ConfigValueValidator.findUnusableValues(factoryProperties, "factory properties"));
+            problems.addAll(ConfigValueValidator.findUnusableValues(moduleProperties, "module properties"));
+            problems.addAll(ConfigValueValidator.findUnusableValues(annotationProperties, "annotations"));
+            unusableConfigValues = problems;
+        }
+        if (problems.isEmpty()) {
+            return;
+        }
+        synchronized (reportedTo) {
+            if (!reportedTo.add(diagnostics)) {
+                return;
+            }
+        }
+        for (String problem : problems) {
+            diagnostics.addWarning(problem, "ConfigurationResolver");
+        }
+    }
+
     // ========================================================================
     // Type Configuration Resolution
     // ========================================================================
@@ -131,6 +187,7 @@ public final class ConfigurationResolver {
      * @return the effective TypeConfig (cached)
      */
     public TypeConfig resolveTypeConfig(EClass eClass, DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
@@ -170,6 +227,7 @@ public final class ConfigurationResolver {
      * @return the effective TypeConfig with feature-level overrides applied
      */
     public TypeConfig resolveTypeConfig(EClass eClass, EStructuralFeature feature, DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
@@ -195,6 +253,7 @@ public final class ConfigurationResolver {
      * @return the effective global TypeConfig
      */
     public TypeConfig resolveGlobalTypeConfig(DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
         if (globalTypeConfig == null) {
@@ -291,6 +350,7 @@ public final class ConfigurationResolver {
      * @return the effective SuperTypeConfig (cached)
      */
     public SuperTypeConfig resolveSuperTypeConfig(EClass eClass, DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
@@ -317,6 +377,7 @@ public final class ConfigurationResolver {
      * @return the effective global SuperTypeConfig
      */
     public SuperTypeConfig resolveGlobalSuperTypeConfig(DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
         if (globalSuperTypeConfig == null) {
@@ -347,6 +408,7 @@ public final class ConfigurationResolver {
      * @return the effective IdConfig (cached)
      */
     public IdConfig resolveIdConfig(EClass eClass, DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
@@ -373,6 +435,7 @@ public final class ConfigurationResolver {
      * @return the effective global IdConfig
      */
     public IdConfig resolveGlobalIdConfig(DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
         if (globalIdConfig == null) {
@@ -403,6 +466,7 @@ public final class ConfigurationResolver {
      * @return the effective DiscriminatorConfig (cached)
      */
     public DiscriminatorConfig resolveDiscriminatorConfig(EClass eClass, DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
@@ -429,6 +493,7 @@ public final class ConfigurationResolver {
      * @return the effective global DiscriminatorConfig
      */
     public DiscriminatorConfig resolveGlobalDiscriminatorConfig(DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
         if (globalDiscriminatorConfig == null) {
@@ -465,6 +530,7 @@ public final class ConfigurationResolver {
      * @return the effective ClassConfig (cached)
      */
     public ClassConfig resolveClassConfig(EClass eClass, DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(eClass, "eClass must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
@@ -491,6 +557,7 @@ public final class ConfigurationResolver {
      * @return the effective global ClassConfig
      */
     public ClassConfig resolveGlobalClassConfig(DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
         if (globalClassConfig == null) {
@@ -530,6 +597,7 @@ public final class ConfigurationResolver {
      * @return the effective FeatureConfig (cached)
      */
     public FeatureConfig resolveFeatureConfig(EStructuralFeature feature, DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(feature, "feature must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
@@ -640,6 +708,7 @@ public final class ConfigurationResolver {
      * @return the effective global FeatureConfig
      */
     public FeatureConfig resolveGlobalFeatureConfig(DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
         if (globalFeatureConfig == null) {
@@ -670,6 +739,7 @@ public final class ConfigurationResolver {
      * @return the effective ReferenceConfig (cached)
      */
     public ReferenceConfig resolveReferenceConfig(EStructuralFeature feature, DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(feature, "feature must not be null");
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
@@ -702,6 +772,7 @@ public final class ConfigurationResolver {
      * @return the effective global ReferenceConfig
      */
     public ReferenceConfig resolveGlobalReferenceConfig(DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         Objects.requireNonNull(diagnostics, "diagnostics must not be null");
 
         if (globalReferenceConfig == null) {
@@ -795,6 +866,7 @@ public final class ConfigurationResolver {
      * @return the resolved TypeConfig (SuperTypeConfig is resolved as side effect)
      */
     public TypeConfig resolveTypeAndSuperTypeConfig(EClass eClass, DiagnosticCollector diagnostics) {
+        reportUnusableConfigValues(diagnostics);
         TypeConfig typeConfig = resolveTypeConfig(eClass, diagnostics);
         SuperTypeConfig superTypeConfig = resolveSuperTypeConfig(eClass, diagnostics);
         validateCrossConfig(typeConfig, superTypeConfig, diagnostics);
