@@ -1924,7 +1924,28 @@ for (Diagnostic diag : diagnostics.getDiagnostics()) {
 - P1: `Abstract{TypeStrategy,IdStrategy,EnumStrategy,Polymorphism,ReferenceFormat,ValueHandling,CustomKey}TCK`
 - P2: `Abstract{EMap,SuperType,Visibility,ForceReadWrite,GlobalIgnore,Strictness,ArrayRoot,LargePayload,ExtendedMetaData,CustomValue}TCK`
 
-**Completed this session (2026-03-02):**
+**Completed this session (2026-08-31):**
+- [✅] Issue #171: `typeStrategy=NONE` honoured on read — step 3 of the read flow is skipped
+      entirely and skipping it is not reported; a value under the type key is data; the
+      NONE-without-root-type error names its actual reason (`TypeStrategyNoneOnReadTest`)
+- [✅] Issue #173: `codec.typeHintMode` implemented — `OVERRIDE` makes `CODEC_ROOT_TYPE` win
+      over the root's body type, contained objects untouched, warning when a stated type is
+      discarded or when the mode is inert; EObject nesting depth now tracked on the read
+      context to tell root from contained (`TypeHintModeTest`)
+- [✅] Issue #174: unusable config values reported — `ConfigProperty` records the enum its
+      value must name, `ConfigValueValidator` walks all five sources incl. scoped nested maps,
+      `getBoolean` no longer turns an unparseable string into `false`
+      (`ConfigValueValidationTest`)
+- [✅] Issue #175: feature-level type and reference annotations forwarded —
+      `AspectToPropertiesConverter.extractReferenceAspectProperties` was empty, dropping nine
+      documented `F`-level properties (`FeatureAspectBridgeTest`)
+- [ ] Follow-up for #174/#175: `codec.ecore` needs the reference/feature attributes made
+      unsettable (as issue #106 did for `superTypeFormat`) before an annotation value equal to
+      the model default, or an explicit `false` on a boolean feature flag, can be distinguished
+      from an unset one. `BaseReferenceConfig` also defaults to `_ref`/`PLAIN` where the codec
+      defaults to `$ref`/`STRUCTURED`.
+
+**Completed previous session (2026-03-02):**
 - [✅] Custom properties: generic `customProperties` map on `EffectiveCodecConfig` (replaces hard-coded format fields)
 - [✅] `CodecResource.extractCustomProperties()` — auto-collects `codec.*` options
 - [✅] JSON Schema option key migration to `codec.jsonschema.*` namespace
