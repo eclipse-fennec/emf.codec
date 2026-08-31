@@ -29,6 +29,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * <ul>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect#getReferenceConfig <em>Reference Config</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect#getTypeConfig <em>Type Config</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect#getIdConfig <em>Id Config</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect#isInheritTypeFromTarget <em>Inherit Type From Target</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect#isExpand <em>Expand</em>}</li>
  * </ul>
@@ -88,6 +89,31 @@ public interface ReferenceCodecAspect extends FeatureCodecAspect {
 	 * @generated
 	 */
 	void setTypeConfig(TypeSerializationConfig value);
+
+	/**
+	 * Returns the value of the '<em><b>Id Config</b></em>' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * ID configuration for objects accessed via this reference (issue #176). Carries only idKey and idFormat: those describe how an identity is written, and may be scoped to a containment reference. Everything else about an identity is class-intrinsic - which features form it, what appears in the output, the inner key, the separator, the value handlers - and is a validation error on an EReference. See 09-id.md section 4.4.
+	 * <!-- end-model-doc -->
+	 * @return the value of the '<em>Id Config</em>' containment reference.
+	 * @see #setIdConfig(IdSerializationConfig)
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getReferenceCodecAspect_IdConfig()
+	 * @model containment="true"
+	 * @generated
+	 */
+	IdSerializationConfig getIdConfig();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect#getIdConfig <em>Id Config</em>}' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Id Config</em>' containment reference.
+	 * @see #getIdConfig()
+	 * @generated
+	 */
+	void setIdConfig(IdSerializationConfig value);
 
 	/**
 	 * Returns the value of the '<em><b>Inherit Type From Target</b></em>' attribute.

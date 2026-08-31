@@ -21,6 +21,7 @@ import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 
 import org.eclipse.fennec.codec.metadata.model.codec.CodecPackage;
+import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
@@ -35,6 +36,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
  * <ul>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ReferenceCodecAspectImpl#getReferenceConfig <em>Reference Config</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ReferenceCodecAspectImpl#getTypeConfig <em>Type Config</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ReferenceCodecAspectImpl#getIdConfig <em>Id Config</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ReferenceCodecAspectImpl#isInheritTypeFromTarget <em>Inherit Type From Target</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ReferenceCodecAspectImpl#isExpand <em>Expand</em>}</li>
  * </ul>
@@ -61,6 +63,16 @@ public class ReferenceCodecAspectImpl extends FeatureCodecAspectImpl implements 
 	 * @ordered
 	 */
 	protected TypeSerializationConfig typeConfig;
+
+	/**
+	 * The cached value of the '{@link #getIdConfig() <em>Id Config</em>}' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getIdConfig()
+	 * @generated
+	 * @ordered
+	 */
+	protected IdSerializationConfig idConfig;
 
 	/**
 	 * The default value of the '{@link #isInheritTypeFromTarget() <em>Inherit Type From Target</em>}' attribute.
@@ -226,6 +238,51 @@ public class ReferenceCodecAspectImpl extends FeatureCodecAspectImpl implements 
 	 * @generated
 	 */
 	@Override
+	public IdSerializationConfig getIdConfig() {
+		return idConfig;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public NotificationChain basicSetIdConfig(IdSerializationConfig newIdConfig, NotificationChain msgs) {
+		IdSerializationConfig oldIdConfig = idConfig;
+		idConfig = newIdConfig;
+		if (eNotificationRequired()) {
+			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, CodecPackage.REFERENCE_CODEC_ASPECT__ID_CONFIG, oldIdConfig, newIdConfig);
+			if (msgs == null) msgs = notification; else msgs.add(notification);
+		}
+		return msgs;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setIdConfig(IdSerializationConfig newIdConfig) {
+		if (newIdConfig != idConfig) {
+			NotificationChain msgs = null;
+			if (idConfig != null)
+				msgs = ((InternalEObject)idConfig).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - CodecPackage.REFERENCE_CODEC_ASPECT__ID_CONFIG, null, msgs);
+			if (newIdConfig != null)
+				msgs = ((InternalEObject)newIdConfig).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - CodecPackage.REFERENCE_CODEC_ASPECT__ID_CONFIG, null, msgs);
+			msgs = basicSetIdConfig(newIdConfig, msgs);
+			if (msgs != null) msgs.dispatch();
+		}
+		else if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.REFERENCE_CODEC_ASPECT__ID_CONFIG, newIdConfig, newIdConfig));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public boolean isInheritTypeFromTarget() {
 		return inheritTypeFromTarget;
 	}
@@ -305,6 +362,8 @@ public class ReferenceCodecAspectImpl extends FeatureCodecAspectImpl implements 
 				return basicSetReferenceConfig(null, msgs);
 			case CodecPackage.REFERENCE_CODEC_ASPECT__TYPE_CONFIG:
 				return basicSetTypeConfig(null, msgs);
+			case CodecPackage.REFERENCE_CODEC_ASPECT__ID_CONFIG:
+				return basicSetIdConfig(null, msgs);
 		}
 		return super.eInverseRemove(otherEnd, featureID, msgs);
 	}
@@ -321,6 +380,8 @@ public class ReferenceCodecAspectImpl extends FeatureCodecAspectImpl implements 
 				return getReferenceConfig();
 			case CodecPackage.REFERENCE_CODEC_ASPECT__TYPE_CONFIG:
 				return getTypeConfig();
+			case CodecPackage.REFERENCE_CODEC_ASPECT__ID_CONFIG:
+				return getIdConfig();
 			case CodecPackage.REFERENCE_CODEC_ASPECT__INHERIT_TYPE_FROM_TARGET:
 				return isInheritTypeFromTarget();
 			case CodecPackage.REFERENCE_CODEC_ASPECT__EXPAND:
@@ -342,6 +403,9 @@ public class ReferenceCodecAspectImpl extends FeatureCodecAspectImpl implements 
 				return;
 			case CodecPackage.REFERENCE_CODEC_ASPECT__TYPE_CONFIG:
 				setTypeConfig((TypeSerializationConfig)newValue);
+				return;
+			case CodecPackage.REFERENCE_CODEC_ASPECT__ID_CONFIG:
+				setIdConfig((IdSerializationConfig)newValue);
 				return;
 			case CodecPackage.REFERENCE_CODEC_ASPECT__INHERIT_TYPE_FROM_TARGET:
 				setInheritTypeFromTarget((Boolean)newValue);
@@ -367,6 +431,9 @@ public class ReferenceCodecAspectImpl extends FeatureCodecAspectImpl implements 
 			case CodecPackage.REFERENCE_CODEC_ASPECT__TYPE_CONFIG:
 				setTypeConfig((TypeSerializationConfig)null);
 				return;
+			case CodecPackage.REFERENCE_CODEC_ASPECT__ID_CONFIG:
+				setIdConfig((IdSerializationConfig)null);
+				return;
 			case CodecPackage.REFERENCE_CODEC_ASPECT__INHERIT_TYPE_FROM_TARGET:
 				setInheritTypeFromTarget(INHERIT_TYPE_FROM_TARGET_EDEFAULT);
 				return;
@@ -389,6 +456,8 @@ public class ReferenceCodecAspectImpl extends FeatureCodecAspectImpl implements 
 				return referenceConfig != null;
 			case CodecPackage.REFERENCE_CODEC_ASPECT__TYPE_CONFIG:
 				return typeConfig != null;
+			case CodecPackage.REFERENCE_CODEC_ASPECT__ID_CONFIG:
+				return idConfig != null;
 			case CodecPackage.REFERENCE_CODEC_ASPECT__INHERIT_TYPE_FROM_TARGET:
 				return inheritTypeFromTarget != INHERIT_TYPE_FROM_TARGET_EDEFAULT;
 			case CodecPackage.REFERENCE_CODEC_ASPECT__EXPAND:

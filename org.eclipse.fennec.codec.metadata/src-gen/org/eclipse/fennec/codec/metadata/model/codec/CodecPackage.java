@@ -40,7 +40,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = CodecPackage.eNS_URI, fingerprint = "fp1:0b9de76be976df8df617cf48a03107d37591210ec08f4150340bf1b7dc02daca", genModel = "/model/codec.genmodel", genModelSourceLocations = {"model/codec.genmodel","org.eclipse.fennec.codec.metadata/model/codec.genmodel"}, ecore = "/model/codec.ecore", ecoreSourceLocations = "/model/codec.ecore")
+@EPackage(uri = CodecPackage.eNS_URI, fingerprint = "fp1:3aee2d346dace5b3020dc9f0ec76252f01840ced8d0f0f27f168878aed656b1a", genModel = "/model/codec.genmodel", genModelSourceLocations = {"model/codec.genmodel","org.eclipse.fennec.codec.metadata/model/codec.genmodel"}, ecore = "/model/codec.ecore", ecoreSourceLocations = "/model/codec.ecore")
 public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.
@@ -1537,13 +1537,22 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	int REFERENCE_CODEC_ASPECT__TYPE_CONFIG = FEATURE_CODEC_ASPECT_FEATURE_COUNT + 1;
 
 	/**
+	 * The feature id for the '<em><b>Id Config</b></em>' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int REFERENCE_CODEC_ASPECT__ID_CONFIG = FEATURE_CODEC_ASPECT_FEATURE_COUNT + 2;
+
+	/**
 	 * The feature id for the '<em><b>Inherit Type From Target</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int REFERENCE_CODEC_ASPECT__INHERIT_TYPE_FROM_TARGET = FEATURE_CODEC_ASPECT_FEATURE_COUNT + 2;
+	int REFERENCE_CODEC_ASPECT__INHERIT_TYPE_FROM_TARGET = FEATURE_CODEC_ASPECT_FEATURE_COUNT + 3;
 
 	/**
 	 * The feature id for the '<em><b>Expand</b></em>' attribute.
@@ -1552,7 +1561,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REFERENCE_CODEC_ASPECT__EXPAND = FEATURE_CODEC_ASPECT_FEATURE_COUNT + 3;
+	int REFERENCE_CODEC_ASPECT__EXPAND = FEATURE_CODEC_ASPECT_FEATURE_COUNT + 4;
 
 	/**
 	 * The number of structural features of the '<em>Reference Codec Aspect</em>' class.
@@ -1561,7 +1570,7 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REFERENCE_CODEC_ASPECT_FEATURE_COUNT = FEATURE_CODEC_ASPECT_FEATURE_COUNT + 4;
+	int REFERENCE_CODEC_ASPECT_FEATURE_COUNT = FEATURE_CODEC_ASPECT_FEATURE_COUNT + 5;
 
 	/**
 	 * The number of operations of the '<em>Reference Codec Aspect</em>' class.
@@ -2999,6 +3008,17 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	EReference getReferenceCodecAspect_TypeConfig();
 
 	/**
+	 * Returns the meta object for the containment reference '{@link org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect#getIdConfig <em>Id Config</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the containment reference '<em>Id Config</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect#getIdConfig()
+	 * @see #getReferenceCodecAspect()
+	 * @generated
+	 */
+	EReference getReferenceCodecAspect_IdConfig();
+
+	/**
 	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect#isInheritTypeFromTarget <em>Inherit Type From Target</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -4233,6 +4253,14 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EReference REFERENCE_CODEC_ASPECT__TYPE_CONFIG = eINSTANCE.getReferenceCodecAspect_TypeConfig();
+
+		/**
+		 * The meta object literal for the '<em><b>Id Config</b></em>' containment reference feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference REFERENCE_CODEC_ASPECT__ID_CONFIG = eINSTANCE.getReferenceCodecAspect_IdConfig();
 
 		/**
 		 * The meta object literal for the '<em><b>Inherit Type From Target</b></em>' attribute feature.

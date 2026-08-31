@@ -293,15 +293,15 @@
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="#//SerializationFormat"
-        defaultValueLiteral="PLAIN">
+        defaultValueLiteral="PLAIN" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Output format for the ID: PLAIN writes a single value, STRUCTURED writes a nested object with value/separator keys."/>
+        <details key="documentation" value="Output format for the ID: PLAIN writes a single value, STRUCTURED writes a nested object with value/separator keys. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175/#176) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="idKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
-        defaultValueLiteral="_id">
+        defaultValueLiteral="_id" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="JSON property name for the dedicated ID field. Default is '_id'."/>
+        <details key="documentation" value="JSON property name for the dedicated ID field. Default is '_id'. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175/#176) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="separator" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
@@ -745,6 +745,12 @@
         containment="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Type configuration for objects accessed via this reference."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="idConfig" eType="#//IdSerializationConfig"
+        containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="ID configuration for objects accessed via this reference (issue #176). Carries only idKey and idFormat: those describe how an identity is written, and may be scoped to a containment reference. Everything else about an identity is class-intrinsic - which features form it, what appears in the output, the inner key, the separator, the value handlers - and is a validation error on an EReference. See 09-id.md section 4.4."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="inheritTypeFromTarget"

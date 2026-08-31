@@ -1005,8 +1005,8 @@ ID configuration describes how an object identifies itself.
 | Annotation Key | Property Key | Global | EPkg | EClass | ERef | EAttr | Description |
 |----------------|--------------|:------:|:----:|:------:|:----:|:-----:|-------------|
 | `idStrategy` | `codec.idStrategy` | ✅ | ✅ | ✅ | ❌ | ❌ | ID building strategy (see [IdStrategy](#idstrategy-values) below) |
-| `idFormat` | `codec.idFormat` | ✅ | ✅ | ✅ | ✅ | ❌ | Output format (see [SerializationFormat](#serializationformat)) |
-| `idKey` | `codec.idKey` | ✅ | ✅ | ✅ | ✅ | ❌ | Outer JSON key (**default:** `_id`) |
+| `idFormat` | `codec.idFormat` | ✅ | ✅ | ✅ | ✅ | ❌ | Output format (see [SerializationFormat](#serializationformat)); on an ERef: containment only |
+| `idKey` | `codec.idKey` | ✅ | ✅ | ✅ | ✅ | ❌ | Outer JSON key (**default:** `_id`); on an ERef: containment only |
 | `idValueKey` | `codec.idValueKey` | ✅ | ✅ | ✅ | ❌ | ❌ | Inner key in STRUCTURED (**default:** `id`) |
 | `idFeatures` | `codec.idFeatures` | ❌ | ✅ | ✅ | ❌ | ❌ | Comma-separated feature names for COMBINED |
 | `idSeparator` | `codec.idSeparator` | ✅ | ✅ | ✅ | ❌ | ❌ | Separator for COMBINED (**default:** `-`) |
@@ -1822,6 +1822,12 @@ This section tracks the implementation status of features documented in this ref
 |----------|:-------------------:|:---------:|:--------------:|:--------:|:-----:|:----:|
 | `metadataMerge` | ✅ `KEY_METADATA_MERGE` | ✅ `ClassCodecAspect.metadataMerge` | ✅ | ❌ | ✅ | ✅ (+ ConfigProperty) |
 | `metadataKey` | ✅ `KEY_METADATA_KEY` | ✅ `ClassCodecAspect.metadataKey` | ✅ | ❌ | ✅ | ✅ (+ ConfigProperty) |
+
+**Note:** `idKey` and `idFormat` are the only ID keys valid on an `EReference`, and they apply
+to **containment** references: they rename, and reformat, the id of the objects written through
+that reference (issue #176, [09-id.md §4.4](09-id.md)). Every other `id*` key on an `EReference`
+is an ERROR — an identity's definition is class-intrinsic. A class-only id key that reaches the
+feature level through a runtime source rather than an annotation is dropped and reported.
 
 ### Reference Configuration
 

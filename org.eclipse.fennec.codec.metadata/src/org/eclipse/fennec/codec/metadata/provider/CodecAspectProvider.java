@@ -311,6 +311,12 @@ public class CodecAspectProvider implements MetadataHandler {
                 aspect.setReferenceConfig(buildReferenceConfig(details));
             }
 
+            // Parse the two id keys a reference may carry (issue #176). The class-only ones are
+            // reported above by checkForIdClassOnlyKeysOnReference and are not parsed here.
+            if (hasReferenceIdConfig(details)) {
+                aspect.setIdConfig(buildReferenceIdConfig(details));
+            }
+
             // Parse expand flag
             AnnotationParseHelper.ifBooleanPresent(details, KEY_EXPAND, aspect::setExpand);
 
@@ -827,6 +833,23 @@ public class CodecAspectProvider implements MetadataHandler {
     }
 
     /**
+     * Builds IdSerializationConfig from annotation details for EReference (issue #176).
+     * <p>
+     * Only {@code idKey} and {@code idFormat} are read: they describe how an identity is
+     * <em>written</em>, which is a property of the place it is written in, so they may be scoped
+     * to a containment reference. Everything else about an identity is class-intrinsic and is
+     * an error on an EReference - see 09-id.md section 4.4.
+     * </p>
+     */
+    private IdSerializationConfig buildReferenceIdConfig(Map<String, String> details) {
+        IdSerializationConfig config = factory.createIdSerializationConfig();
+        AnnotationParseHelper.ifStringPresent(details, KEY_ID_KEY, config::setIdKey);
+        AnnotationParseHelper.ifEnumPresent(details, KEY_ID_FORMAT, SerializationFormat.class,
+                config::setFormat);
+        return config;
+    }
+
+    /**
      * Builds TypeSerializationConfig from annotation details for EReference.
      * <p>
      * References support a subset of type config keys. Class-only keys like
@@ -970,6 +993,12 @@ public class CodecAspectProvider implements MetadataHandler {
      * Note: typeMapId and typeDiscriminatorPath are class-only and not checked here.
      * </p>
      */
+    private boolean hasReferenceIdConfig(Map<String, String> details) {
+        return details.containsKey(KEY_ID_KEY) || details.containsKey(KEY_ID_FORMAT);
+        // NOTE: every other id key is class-intrinsic on an EReference and is reported by
+        // checkForIdClassOnlyKeysOnReference - see 09-id.md section 4.4
+    }
+
     private boolean hasReferenceTypeConfig(Map<String, String> details) {
         return details.containsKey(KEY_TYPE_STRATEGY)
                 || details.containsKey(KEY_TYPE_KEY)

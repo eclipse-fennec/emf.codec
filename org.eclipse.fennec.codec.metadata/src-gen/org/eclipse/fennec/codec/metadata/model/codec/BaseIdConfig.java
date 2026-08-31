@@ -111,13 +111,15 @@ public interface BaseIdConfig extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Output format for the ID: PLAIN writes a single value, STRUCTURED writes a nested object with value/separator keys.
+	 * Output format for the ID: PLAIN writes a single value, STRUCTURED writes a nested object with value/separator keys. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175/#176) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Format</em>' attribute.
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat
+	 * @see #isSetFormat()
+	 * @see #unsetFormat()
 	 * @see #setFormat(SerializationFormat)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getBaseIdConfig_Format()
-	 * @model default="PLAIN"
+	 * @model default="PLAIN" unsettable="true"
 	 * @generated
 	 */
 	SerializationFormat getFormat();
@@ -128,10 +130,35 @@ public interface BaseIdConfig extends EObject {
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Format</em>' attribute.
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat
+	 * @see #isSetFormat()
+	 * @see #unsetFormat()
 	 * @see #getFormat()
 	 * @generated
 	 */
 	void setFormat(SerializationFormat value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getFormat <em>Format</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetFormat()
+	 * @see #getFormat()
+	 * @see #setFormat(SerializationFormat)
+	 * @generated
+	 */
+	void unsetFormat();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getFormat <em>Format</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Format</em>' attribute is set.
+	 * @see #unsetFormat()
+	 * @see #getFormat()
+	 * @see #setFormat(SerializationFormat)
+	 * @generated
+	 */
+	boolean isSetFormat();
 
 	/**
 	 * Returns the value of the '<em><b>Id Key</b></em>' attribute.
@@ -139,12 +166,14 @@ public interface BaseIdConfig extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * JSON property name for the dedicated ID field. Default is '_id'.
+	 * JSON property name for the dedicated ID field. Default is '_id'. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175/#176) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Id Key</em>' attribute.
+	 * @see #isSetIdKey()
+	 * @see #unsetIdKey()
 	 * @see #setIdKey(String)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getBaseIdConfig_IdKey()
-	 * @model default="_id"
+	 * @model default="_id" unsettable="true"
 	 * @generated
 	 */
 	String getIdKey();
@@ -154,10 +183,35 @@ public interface BaseIdConfig extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Id Key</em>' attribute.
+	 * @see #isSetIdKey()
+	 * @see #unsetIdKey()
 	 * @see #getIdKey()
 	 * @generated
 	 */
 	void setIdKey(String value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getIdKey <em>Id Key</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetIdKey()
+	 * @see #getIdKey()
+	 * @see #setIdKey(String)
+	 * @generated
+	 */
+	void unsetIdKey();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.BaseIdConfig#getIdKey <em>Id Key</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Id Key</em>' attribute is set.
+	 * @see #unsetIdKey()
+	 * @see #getIdKey()
+	 * @see #setIdKey(String)
+	 * @generated
+	 */
+	boolean isSetIdKey();
 
 	/**
 	 * Returns the value of the '<em><b>Separator</b></em>' attribute.

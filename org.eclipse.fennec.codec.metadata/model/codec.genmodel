@@ -168,6 +168,7 @@
     <genClasses ecoreClass="codec.ecore#//ReferenceCodecAspect">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec.ecore#//ReferenceCodecAspect/referenceConfig"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec.ecore#//ReferenceCodecAspect/typeConfig"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference codec.ecore#//ReferenceCodecAspect/idConfig"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//ReferenceCodecAspect/inheritTypeFromTarget"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//ReferenceCodecAspect/expand"/>
     </genClasses>
