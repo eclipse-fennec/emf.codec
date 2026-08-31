@@ -27,10 +27,8 @@ import org.eclipse.fennec.codec.metadata.model.codec.FingerprintMode;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig;
-import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
-import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
 import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata;
@@ -255,32 +253,43 @@ public final class AspectToPropertiesConverter {
     // FeatureCodecAspect extraction
     // ========================================================================
 
+    /**
+     * Extracts the properties a feature annotation carries.
+     * <p>
+     * The boolean flags are emitted whenever the annotation <em>wrote</em> them, value and all -
+     * not only when they are {@code true} (issue #175). Emitting a key only for {@code true}
+     * made {@code false} unrepresentable, so the most specific scope of the hierarchy could not
+     * opt out of what a wider one had turned on. {@code isSetX()} is the exact question here:
+     * {@code CodecAspectProvider.populateFeatureAspect} calls a setter only for a key the
+     * annotation actually contains, and the attributes are unsettable in {@code codec.ecore}.
+     * </p>
+     */
     private static void extractFeatureAspectProperties(FeatureCodecAspect aspect, Map<String, Object> props) {
         putIfNotNull(props, "key", aspect.getEffectiveKey());
 
-        if (aspect.isIgnore()) {
-            props.put("ignore", true);
+        if (aspect.isSetIgnore()) {
+            props.put("ignore", aspect.isIgnore());
         }
-        if (aspect.isIgnoreRead()) {
-            props.put("ignoreRead", true);
+        if (aspect.isSetIgnoreRead()) {
+            props.put("ignoreRead", aspect.isIgnoreRead());
         }
-        if (aspect.isIgnoreWrite()) {
-            props.put("ignoreWrite", true);
+        if (aspect.isSetIgnoreWrite()) {
+            props.put("ignoreWrite", aspect.isIgnoreWrite());
         }
-        if (aspect.isForceRead()) {
-            props.put("forceRead", true);
+        if (aspect.isSetForceRead()) {
+            props.put("forceRead", aspect.isForceRead());
         }
-        if (aspect.isForceWrite()) {
-            props.put("forceWrite", true);
+        if (aspect.isSetForceWrite()) {
+            props.put("forceWrite", aspect.isForceWrite());
         }
-        if (aspect.isSerializeNull()) {
-            props.put("serializeNull", true);
+        if (aspect.isSetSerializeNull()) {
+            props.put("serializeNull", aspect.isSerializeNull());
         }
-        if (aspect.isSerializeEmpty()) {
-            props.put("serializeEmpty", true);
+        if (aspect.isSetSerializeEmpty()) {
+            props.put("serializeEmpty", aspect.isSerializeEmpty());
         }
-        if (aspect.isSerializeDefaults()) {
-            props.put("serializeDefault", true);
+        if (aspect.isSetSerializeDefaults()) {
+            props.put("serializeDefault", aspect.isSerializeDefaults());
         }
 
         putIfNotNull(props, "valueWriterName", aspect.getValueWriterName());
@@ -308,15 +317,14 @@ public final class AspectToPropertiesConverter {
      * configuring {@code refKey} or {@code typeStrategy} had no effect at all.
      * </p>
      * <p>
-     * Values equal to the model default are treated as "not set", the same proxy the class-level
-     * extraction uses. It is a proxy and not the real question: a primitive or defaulted EMF
-     * attribute cannot tell an explicit restatement of its default from silence, so an
-     * annotation saying {@code refFormat="PLAIN"} is indistinguishable from one that says
-     * nothing. That matters here because {@code BaseReferenceConfig}'s model defaults
-     * ({@code _ref}, {@code PLAIN}) are not the codec's defaults ({@code $ref},
-     * {@code STRUCTURED}). Closing that gap needs the attributes made unsettable in
-     * {@code codec.ecore} and the model regenerated, as issue #106 did for
-     * {@code superTypeFormat}.
+     * Presence is asked of the aspect, not guessed from the value: these attributes are
+     * unsettable in {@code codec.ecore}, and {@code CodecAspectProvider} writes one only for a
+     * key the annotation actually contains, so {@code isSetX()} means exactly "the annotation
+     * said this". Comparing against the model default instead - the proxy this used to use -
+     * dropped precisely the values that equal it, and for references those are the ones a user
+     * is most likely to write: {@code BaseReferenceConfig} defaults to {@code _ref} and
+     * {@code PLAIN} where the codec defaults to {@code $ref} and {@code STRUCTURED}, so asking
+     * for the model's own documented behaviour was the request that got lost.
      * </p>
      */
     private static void extractReferenceAspectProperties(ReferenceCodecAspect aspect, Map<String, Object> props) {
@@ -325,27 +333,43 @@ public final class AspectToPropertiesConverter {
             // References carry a subset of the type keys; the class-only ones (typeMapId,
             // typeDiscriminatorPath) are deliberately not parsed for a reference, so there is
             // nothing to forward for them either - see 08-discriminator-mapping.md §7.
-            putIfNotDefault(props, "typeStrategy", literal(typeConfig.getStrategy()),
-                    TypeStrategy.URI.name());
-            putIfNotDefault(props, "typeKey", typeConfig.getTypeKey(), "_type");
-            putIfNotDefault(props, "typeFormat", literal(typeConfig.getFormat()),
-                    SerializationFormat.PLAIN.name());
-            putIfNotDefault(props, "typeSchemaKey", typeConfig.getSchemaKey(), "schema");
-            putIfNotDefault(props, "typeNameKey", typeConfig.getNameKey(), "name");
+            if (typeConfig.isSetStrategy()) {
+                putIfNotNull(props, "typeStrategy", literal(typeConfig.getStrategy()));
+            }
+            if (typeConfig.isSetTypeKey()) {
+                putIfNotNull(props, "typeKey", typeConfig.getTypeKey());
+            }
+            if (typeConfig.isSetFormat()) {
+                putIfNotNull(props, "typeFormat", literal(typeConfig.getFormat()));
+            }
+            if (typeConfig.isSetSchemaKey()) {
+                putIfNotNull(props, "typeSchemaKey", typeConfig.getSchemaKey());
+            }
+            if (typeConfig.isSetNameKey()) {
+                putIfNotNull(props, "typeNameKey", typeConfig.getNameKey());
+            }
         }
 
         ReferenceSerializationConfig referenceConfig = aspect.getReferenceConfig();
         if (referenceConfig != null) {
-            putIfNotDefault(props, "refFormat", literal(referenceConfig.getFormat()),
-                    SerializationFormat.PLAIN.name());
-            putIfNotDefault(props, "refKey", referenceConfig.getRefKey(), "_ref");
-            putIfNotDefault(props, "refTypeKey", referenceConfig.getTypeKey(), "_type");
+            if (referenceConfig.isSetFormat()) {
+                putIfNotNull(props, "refFormat", literal(referenceConfig.getFormat()));
+            }
+            if (referenceConfig.isSetRefKey()) {
+                putIfNotNull(props, "refKey", referenceConfig.getRefKey());
+            }
+            if (referenceConfig.isSetTypeKey()) {
+                putIfNotNull(props, "refTypeKey", referenceConfig.getTypeKey());
+            }
+            if (referenceConfig.isSetExpand()) {
+                props.put("expand", referenceConfig.isExpand());
+            }
         }
 
-        // The expand flag is parsed onto both the aspect and its reference config, so either
-        // one saying true is an opt-in. False is the default and carries no information.
-        if (aspect.isExpand() || (referenceConfig != null && referenceConfig.isExpand())) {
-            props.put("expand", true);
+        // The expand key is parsed onto the aspect as well as onto its reference config, so
+        // both are consulted; they carry the same value when both were written.
+        if (aspect.isSetExpand()) {
+            props.put("expand", aspect.isExpand());
         }
     }
 

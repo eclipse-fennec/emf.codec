@@ -155,6 +155,47 @@ class FeatureAspectBridgeTest {
     }
 
     @Test
+    @DisplayName("a value equal to the model default is forwarded")
+    void aValueEqualToTheModelDefaultIsForwarded() {
+        // The model defaults of BaseReferenceConfig are not the codec's: it defaults to _ref
+        // and PLAIN where the codec defaults to $ref and STRUCTURED. Comparing against the
+        // model default therefore dropped exactly the values a user writes to ask for the
+        // model's own documented behaviour (issue #175).
+        annotate(customerRef, "refKey", "_ref", "refFormat", "PLAIN");
+
+        Map<String, Object> props = referenceProperties();
+
+        assertEquals("_ref", props.get("refKey"), "the annotation asked for it explicitly");
+        assertEquals("PLAIN", props.get("refFormat"));
+    }
+
+    @Test
+    @DisplayName("an explicit false is forwarded, not omitted")
+    void anExplicitFalseIsForwarded() {
+        // Emitting a key only for `true` left `false` unrepresentable, so the most specific
+        // scope could not opt out of what a wider one turned on.
+        annotate(noteAttribute, "serializeNull", "false", "ignoreRead", "false");
+
+        Map<String, Object> props = attributeProperties();
+
+        assertEquals(Boolean.FALSE, props.get("serializeNull"));
+        assertEquals(Boolean.FALSE, props.get("ignoreRead"));
+    }
+
+    @Test
+    @DisplayName("an explicit type strategy equal to the default is forwarded")
+    void anExplicitDefaultTypeStrategyIsForwarded() {
+        // The class whose config the resolution starts from is the reference's target.
+        annotate(customerClass, "typeStrategy", "NAME");
+        annotate(customerRef, "typeStrategy", "URI");
+
+        TypeConfig config = resolver().resolveTypeConfig(customerClass, customerRef, diagnostics());
+
+        assertEquals(TypeStrategy.URI, config.getStrategy(),
+                "the feature said URI; that it equals the default does not make it silence");
+    }
+
+    @Test
     @DisplayName("every emitted feature-level key is canonical")
     void emittedKeysAreCanonical() {
         annotate(customerRef,

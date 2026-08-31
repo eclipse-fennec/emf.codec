@@ -77,6 +77,15 @@ public class ReferenceSerializationConfigImpl extends BaseReferenceConfigImpl im
 	protected boolean expand = EXPAND_EDEFAULT;
 
 	/**
+	 * This is true if the Expand attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean expandESet;
+
+	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -137,8 +146,35 @@ public class ReferenceSerializationConfigImpl extends BaseReferenceConfigImpl im
 	public void setExpand(boolean newExpand) {
 		boolean oldExpand = expand;
 		expand = newExpand;
+		boolean oldExpandESet = expandESet;
+		expandESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.REFERENCE_SERIALIZATION_CONFIG__EXPAND, oldExpand, expand));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.REFERENCE_SERIALIZATION_CONFIG__EXPAND, oldExpand, expand, !oldExpandESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetExpand() {
+		boolean oldExpand = expand;
+		boolean oldExpandESet = expandESet;
+		expand = EXPAND_EDEFAULT;
+		expandESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.REFERENCE_SERIALIZATION_CONFIG__EXPAND, oldExpand, EXPAND_EDEFAULT, oldExpandESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetExpand() {
+		return expandESet;
 	}
 
 	/**
@@ -187,7 +223,7 @@ public class ReferenceSerializationConfigImpl extends BaseReferenceConfigImpl im
 				setIncludeType(INCLUDE_TYPE_EDEFAULT);
 				return;
 			case CodecPackage.REFERENCE_SERIALIZATION_CONFIG__EXPAND:
-				setExpand(EXPAND_EDEFAULT);
+				unsetExpand();
 				return;
 		}
 		super.eUnset(featureID);
@@ -204,7 +240,7 @@ public class ReferenceSerializationConfigImpl extends BaseReferenceConfigImpl im
 			case CodecPackage.REFERENCE_SERIALIZATION_CONFIG__INCLUDE_TYPE:
 				return includeType != INCLUDE_TYPE_EDEFAULT;
 			case CodecPackage.REFERENCE_SERIALIZATION_CONFIG__EXPAND:
-				return expand != EXPAND_EDEFAULT;
+				return isSetExpand();
 		}
 		return super.eIsSet(featureID);
 	}
@@ -222,7 +258,7 @@ public class ReferenceSerializationConfigImpl extends BaseReferenceConfigImpl im
 		result.append(" (includeType: ");
 		result.append(includeType);
 		result.append(", expand: ");
-		result.append(expand);
+		if (expandESet) result.append(expand); else result.append("<unset>");
 		result.append(')');
 		return result.toString();
 	}
