@@ -58,6 +58,17 @@ public class CodecModule extends SimpleModule {
     private static final String DEFAULT_MODULE_NAME = "fennec-codec-module";
 
     private final String moduleName;
+
+    /**
+     * The collector the registered serializers and deserializers report configuration problems
+     * to, or {@code null} to use a throwaway (issue #182).
+     * <p>
+     * {@code CodecResource} supplies its per-operation collector so config diagnostics reach the
+     * resource. A caller driving the {@code ObjectMapper} itself supplies none and keeps the
+     * previous behaviour, which is why this stays optional.
+     * </p>
+     */
+    private final DiagnosticCollector diagnostics;
     private final ConfigurationResolver resolver;
     private final MetadataService metadataService;
     private final TypeDiscriminatorReader typeDiscriminatorService;
@@ -78,6 +89,7 @@ public class CodecModule extends SimpleModule {
 
     private CodecModule(Builder builder) {
         this.moduleName = builder.moduleName;
+        this.diagnostics = builder.diagnostics;
         this.resolver = builder.resolver;
         this.metadataService = builder.metadataService;
         this.typeDiscriminatorService = builder.typeDiscriminatorService;
@@ -113,8 +125,10 @@ public class CodecModule extends SimpleModule {
     public void setupModule(SetupContext context) {
         super.setupModule(context);
 
-        // Create effective configuration
-        EffectiveCodecConfig effectiveConfig = createEffectiveConfig();
+        // Create effective configuration. The collector is the caller's when one was supplied
+        // (issue #182): the serializers and deserializers registered here are what resolve
+        // config at runtime, so a throwaway collector here is a rule enforced in private.
+        EffectiveCodecConfig effectiveConfig = createEffectiveConfig(diagnostics);
 
         // Register serializers with effective configuration
         CodecSerializers serializers = new CodecSerializers(effectiveConfig);
@@ -138,7 +152,7 @@ public class CodecModule extends SimpleModule {
     public EffectiveCodecConfig createEffectiveConfig() {
         return EffectiveCodecConfig.builder()
                 .resolver(resolver)
-                .diagnostics(new DiagnosticCollector())
+                .diagnostics(diagnostics != null ? diagnostics : new DiagnosticCollector())
                 .metadataService(metadataService)
                 .typeDiscriminatorService(typeDiscriminatorService)
                 .valueRegistry(valueRegistry)
@@ -295,6 +309,7 @@ public class CodecModule extends SimpleModule {
     public static class Builder {
 
         private String moduleName = DEFAULT_MODULE_NAME;
+        private DiagnosticCollector diagnostics;
         private ConfigurationResolver resolver;
         private MetadataService metadataService;
         private TypeDiscriminatorReader typeDiscriminatorService;
@@ -316,6 +331,18 @@ public class CodecModule extends SimpleModule {
 
         public Builder moduleName(String moduleName) {
             this.moduleName = Objects.requireNonNull(moduleName, "moduleName must not be null");
+            return this;
+        }
+
+        /**
+         * Sets the collector the registered serializers and deserializers report configuration
+         * problems to (issue #182). Optional; without one they report into a throwaway.
+         *
+         * @param diagnostics the collector, may be null
+         * @return this builder
+         */
+        public Builder diagnostics(DiagnosticCollector diagnostics) {
+            this.diagnostics = diagnostics;
             return this;
         }
 
