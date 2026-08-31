@@ -219,14 +219,27 @@ Each diagnostic includes a source identifier for programmatic handling.
 
 ### 5.2 Serialization Sources
 
-| Source | Component | Error Examples | Warning Examples |
-|--------|-----------|----------------|------------------|
-| `CodecEObjectSerializer` | Root serializer | Null EObject, unregistered EPackage | — |
-| `TypeSerializationEntry` | Type writing | Unknown type strategy | — |
-| `IdSerializationEntry` | ID writing | Missing ID feature, null ID value | Combined ID with null component |
-| `ReferenceSerializationEntry` | Reference writing | Circular reference (non-expand), cross-doc without URI | Unresolved proxy serialized |
-| `AttributeSerializationEntry` | Attribute writing | Value conversion failure | Enum value not found |
-| `CodecValueWriter` (custom) | Custom value writing | Cannot serialize value, null value | Lossy conversion, precision loss |
+Everything the write side reports is a **WARNING**, and deliberately so: each case is the codec
+falling back to something workable rather than refusing to write. A save therefore never fails
+on a diagnostic of its own — there is no write-side counterpart to `failIfStrict`, and
+`codec.deserializationMode` does not govern saving. What a warning means is "the document was
+written, but not the way you configured it".
+
+| Source | Component | Warning | Since |
+|--------|-----------|---------|-------|
+| `IdSerializationEntry` | ID writing | a combined-id component contains the id separator, so the id will not round-trip | #101 / #184 |
+| `IdSerializationEntry` | ID writing | the class reached through an id feature defines no id — none is written rather than guessed | #184 |
+| `IdSerializationEntry` | ID writing | the configured `idValueWriterName` is not registered — the default is used | #184 |
+| `ReferenceSerializationEntry` | Reference writing | a configured `ReferenceValueWriter` answered `canHandle() == false` — the default is used (twice: by name, and by instance) | #184 |
+| `ReferenceSerializationEntry` | Reference writing | `CODEC_FEATURE_VALUE_WRITERS` is deprecated and ignored for references | #184 |
+| `AttributeSerializationEntry` | Attribute writing | a configured `AttributeValueWriter` answered `canHandle() == false` — the default is used | #184 |
+| `ConfigurationResolver` and the `*Config.validate` methods | Configuration | see Layers 2, 2a and 3 above; these reach the resource on save as well as load | #182 |
+
+> This table lists what the codec actually reports. It previously described a larger set —
+> null EObjects, unknown type strategies, circular references, conversion failures — none of
+> which was ever raised: `ContextHelper.addWarning(SerializationContext, …)` and its error twin
+> had no callers at all, and the write side logged instead (#184). Those are candidates for
+> future work, not current behaviour, and §5.4 can only switch on sources that exist.
 
 ### 5.3 Common Sources (Both Directions)
 

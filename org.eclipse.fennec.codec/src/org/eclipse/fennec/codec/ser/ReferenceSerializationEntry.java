@@ -157,8 +157,9 @@ public class ReferenceSerializationEntry implements SerializationEntry {
                     this.referenceWriter = refWriter;
                     this.uriWriter = null;
                 } else {
-                    LOGGER.warning("ReferenceValueWriter '" + writerName + "' cannot handle reference '" +
-                            reference.getName() + "' of type " + reference.getEReferenceType().getName());
+                    report("ReferenceValueWriter '" + writerName + "' cannot handle reference '" +
+                            reference.getName() + "' of type " + reference.getEReferenceType().getName()
+                            + " (canHandle returned false) - using default reference serialization");
                     this.referenceWriter = null;
                     this.uriWriter = null;
                 }
@@ -175,6 +176,21 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         } else {
             this.referenceWriter = null;
             this.uriWriter = null;
+        }
+    }
+
+    /**
+     * Reports a fallback the codec had to make while writing this reference (issue #184).
+     * <p>
+     * Warnings, not errors: each case describes the codec writing the reference a different way
+     * rather than refusing to write it. See {@code IdSerializationEntry.report} for the same
+     * reasoning.
+     * </p>
+     */
+    private void report(String message) {
+        LOGGER.warning(message);
+        if (entryContext != null && entryContext.getDiagnostics() != null) {
+            entryContext.getDiagnostics().addWarning(message, "ReferenceSerializationEntry");
         }
     }
 
@@ -300,7 +316,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
                     if (refWriter.canHandle(reference)) {
                         return refWriter;
                     }
-                    LOGGER.warning("ReferenceValueWriter instance '" + refWriter.getName() +
+                    report("ReferenceValueWriter instance '" + refWriter.getName() +
                             "' cannot handle reference '" + reference.getName() + "' of type " +
                             reference.getEReferenceType().getName() + ", falling back");
                 }
@@ -308,7 +324,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
 
             String runtimeWriterName = ContextHelper.getFeatureValueWriter(ctxt, reference);
             if (runtimeWriterName != null && !runtimeWriterName.isEmpty() && referenceWriter == null) {
-                LOGGER.warning("CODEC_FEATURE_VALUE_WRITERS is deprecated and not supported for references — " +
+                report("CODEC_FEATURE_VALUE_WRITERS is deprecated and not supported for references — " +
                         "writer '" + runtimeWriterName + "' for reference '" + reference.getName() +
                         "' is ignored. Use CODEC_FEATURE_VALUE_WRITER_INSTANCES or the valueWriterName " +
                         "config property instead.");
