@@ -151,6 +151,21 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             return null;
         }
 
+        // Every EObject - root or contained - is read through this method, so this is the one
+        // place that can tell the two apart: a contained object is read while its container's
+        // call is still on the stack (issue #173).
+        ContextHelper.enterEObject(ctxt);
+        try {
+            return deserializeObject(parser, ctxt);
+        } finally {
+            ContextHelper.exitEObject(ctxt);
+        }
+    }
+
+    /**
+     * Reads one EObject, with its nesting depth recorded on the context.
+     */
+    private EObject deserializeObject(JsonParser parser, DeserializationContext ctxt) {
         // Try to get EMF context from parser's stream context (preferred)
         // This provides access to resource, type hints, and metadata service
         EMFCodecReadContext emfContext = null;
@@ -356,6 +371,70 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         }
 
         return eObject;
+    }
+
+    /**
+     * Applies {@code codec.typeHintMode=OVERRIDE} to the root object (issue #173).
+     * <p>
+     * {@code CODEC_ROOT_TYPE} is a hint by default, and deliberately so: a subtype in the data
+     * must be able to beat it, or a collection read through its supertype could never
+     * deserialize its own members (spec 13 §2.11). {@code OVERRIDE} is the caller stating the
+     * opposite for their load - re-reading data against a type they have chosen, schema
+     * migration being the case the spec names.
+     * </p>
+     * <p>
+     * It applies to the root object only, which is why it asks the EObject nesting depth rather
+     * than the stream context: a contained object's current feature is reset when its context is
+     * reused for an array element, so that signal would silently let the override through.
+     * Extending it to contained objects would flatten a container's polymorphic contents to the
+     * container's own type, which is never what naming a <em>root</em> type asks for.
+     * </p>
+     *
+     * @return the type to use instead of the document's, or {@code null} to resolve normally
+     */
+    private EClass applyRootTypeOverride(String typeValue, DeserializationContext ctxt) {
+        if (!ContextHelper.isTypeHintOverride(ctxt) || !ContextHelper.isRootEObject(ctxt)) {
+            return null;
+        }
+        // At depth 1 the expected type is still the caller's root option: the per-nesting-level
+        // reuse of that attribute has not happened yet.
+        EClass rootType = ContextHelper.getExpectedType(ctxt);
+        if (rootType == null) {
+            // An option that cannot do anything says so. Behaving like HINT in silence would
+            // leave the caller believing a directive is in force when none is.
+            String msg = "codec.typeHintMode=OVERRIDE has no effect without a CODEC_ROOT_TYPE"
+                    + " hint to override with; the document's own type is used";
+            LOGGER.warning(msg);
+            ContextHelper.addWarning(ctxt, msg, null, "CodecEObjectDeserializer");
+            return null;
+        }
+        if (!namesTheSameType(typeValue, rootType)) {
+            // Overruling the document is legitimate but never silent (spec 13 §2.11).
+            String msg = String.format(
+                    "codec.typeHintMode=OVERRIDE: reading the root as '%s' as configured,"
+                            + " the type '%s' stated by the document is discarded",
+                    rootType.getName(), typeValue);
+            LOGGER.warning(msg);
+            ContextHelper.addWarning(ctxt, msg, null, "CodecEObjectDeserializer");
+        }
+        return rootType;
+    }
+
+    /**
+     * Tells whether a raw type value names the given EClass, comparing simple names.
+     * <p>
+     * Comparing names rather than resolving keeps this usable for every strategy that
+     * transports one - a full URI, a bare name, a schema-scoped name - and it only has to
+     * decide whether the override actually discarded anything, not what the value means.
+     * </p>
+     */
+    private static boolean namesTheSameType(String typeValue, EClass eClass) {
+        if (typeValue == null) {
+            return true;
+        }
+        int separator = typeValue.lastIndexOf("#//");
+        String simpleName = separator < 0 ? typeValue : typeValue.substring(separator + 3);
+        return simpleName.equals(eClass.getName());
     }
 
     /**
@@ -678,6 +757,16 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             EMFCodecReadContext emfContext, String streamFingerprint) {
         if (typeValue == null) {
             return hintEClass;
+        }
+
+        // OVERRIDE turns CODEC_ROOT_TYPE from a hint into a directive for the root object
+        // (issue #173, spec 06-type.md §6.5.1). Checked before any resolution: the point of the
+        // mode is that the document's type is not consulted, so resolving it first would be
+        // work whose only possible outcome is being thrown away.
+        EClass overridden = applyRootTypeOverride(typeValue, ctxt);
+        if (overridden != null) {
+            state.setResolvedEClass(overridden);
+            return overridden;
         }
 
         // Build type config from resolved global config

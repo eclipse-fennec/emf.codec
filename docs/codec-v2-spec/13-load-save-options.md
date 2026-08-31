@@ -504,9 +504,9 @@ Controls how type hints interact with JSON `_type` fields.
 ```java
 /**
  * Load option key for type hint behavior.
- * Value: TypeHintMode enum
+ * Value: TypeHintMode enum, or its name as a String
  */
-public static final String CODEC_TYPE_HINT_MODE = "CODEC_TYPE_HINT_MODE";
+public static final String CODEC_TYPE_HINT_MODE = "codec.typeHintMode";
 ```
 
 **TypeHintMode values:**
@@ -514,7 +514,12 @@ public static final String CODEC_TYPE_HINT_MODE = "CODEC_TYPE_HINT_MODE";
 | Value | Behavior |
 |-------|----------|
 | `HINT` **(default)** | Type hint is fallback; JSON `_type` takes precedence |
-| `OVERRIDE` | Type hint overrides JSON `_type` (useful for schema migration) |
+| `OVERRIDE` | Type hint overrides JSON `_type` for the **root object** (useful for schema migration) |
+
+`OVERRIDE` scope and diagnostics are specified in
+[06-type.md §6.5.1](06-type.md#651-type-hint-mode-codectypehintmode): it applies to the root
+object only, leaves contained objects on their own resolution, warns when it discards a type the
+document stated, and warns that it is inert when no `CODEC_ROOT_TYPE` was given.
 
 ---
 

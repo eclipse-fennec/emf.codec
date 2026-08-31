@@ -429,6 +429,13 @@ public class CodecResource extends ResourceImpl {
             reader = reader.withAttribute(ContextHelper.DESERIALIZATION_MODE, modeString);
         }
 
+        // Set type hint mode if provided: whether CODEC_ROOT_TYPE is a hint or a directive
+        // (issue #173). Accepts both String and TypeHintMode enum.
+        Object typeHintModeOption = mergedOptions.get(CodecOptions.CODEC_TYPE_HINT_MODE);
+        if (typeHintModeOption != null) {
+            reader = reader.withAttribute(ContextHelper.TYPE_HINT_MODE, typeHintModeOption.toString());
+        }
+
         try (JsonParser parser = codecFactory.createParser(ObjectReadContext.empty(), inputStream)) {
             if (parser.streamReadContext() instanceof CodecJsonReadContext ctx) {
                 ctx.setResource(this);
@@ -656,6 +663,12 @@ public class CodecResource extends ResourceImpl {
         if (deserializationModeOption != null) {
             String modeString = deserializationModeOption.toString();
             reader = reader.withAttribute(ContextHelper.DESERIALIZATION_MODE, modeString);
+        }
+
+        // Set type hint mode if provided (issue #173)
+        Object typeHintModeOption = mergedOptions.get(CodecOptions.CODEC_TYPE_HINT_MODE);
+        if (typeHintModeOption != null) {
+            reader = reader.withAttribute(ContextHelper.TYPE_HINT_MODE, typeHintModeOption.toString());
         }
 
         try (FormatDelegateParser<S> parser = FormatDelegateParser.create(
