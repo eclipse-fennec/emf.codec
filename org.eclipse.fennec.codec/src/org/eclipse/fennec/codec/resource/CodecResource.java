@@ -266,7 +266,11 @@ public class CodecResource extends ResourceImpl {
         // Enrich resolver with save options (highest priority in config hierarchy)
         ConfigurationResolver operationResolver = enrichWithOptions(resolver, effectiveOptions);
 
-        mapper = createObjectMapper(effectiveOptions, operationResolver, null);
+        // Saving had no collector at all, so a configuration problem found while writing was
+        // dropped on the floor (issue #182).
+        DiagnosticCollector saveDiagnostics = new DiagnosticCollector();
+
+        mapper = createObjectMapper(effectiveOptions, operationResolver, null, saveDiagnostics);
 
         if (formatProvider != null) {
             List<String> warnings = formatProvider.validateSaveOptions(
@@ -288,6 +292,7 @@ public class CodecResource extends ResourceImpl {
                 validationCollector.addToResource(this);
             }
             doSaveWithFormat(outputStream, effectiveOptions, operationResolver);
+            saveDiagnostics.addToResource(this);
             LOGGER.fine(() -> String.format("Saved %s to %s (format: %s)",
                     eClass.getName(), getURI(), formatProvider.getFormatId()));
             return;
@@ -327,6 +332,7 @@ public class CodecResource extends ResourceImpl {
             mapper.writeValue(outputStream, getContents().toArray(new EObject[0]));
         }
 
+        saveDiagnostics.addToResource(this);
         LOGGER.fine(() -> String.format("Saved %s to %s", eClass.getName(), getURI()));
     }
 
@@ -354,15 +360,20 @@ public class CodecResource extends ResourceImpl {
         // Enrich resolver with load options (highest priority in config hierarchy)
         ConfigurationResolver operationResolver = enrichWithOptions(resolver, mergedOptions);
 
-        mapper = createObjectMapper(mergedOptions, operationResolver, packageResolver);
+        // Created before the mapper: the module's serializers and deserializers report config
+        // problems into it, and it is drained into this resource at the end (issue #182).
+        DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+
+        mapper = createObjectMapper(mergedOptions, operationResolver, packageResolver,
+                diagnosticCollector);
 
         if (formatProvider != null) {
-            doLoadWithFormat(inputStream, mergedOptions, rootEClassHint, operationResolver, packageResolver);
+            doLoadWithFormat(inputStream, mergedOptions, rootEClassHint, operationResolver,
+                    packageResolver, diagnosticCollector);
             return;
         }
 
         // Create EffectiveCodecConfig for the codec factory
-        DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
         EffectiveCodecConfig effectiveConfig = EffectiveCodecConfig.builder()
                 .resolver(operationResolver)
                 .diagnostics(diagnosticCollector)
@@ -600,7 +611,8 @@ public class CodecResource extends ResourceImpl {
     @SuppressWarnings("unchecked")
     private <S> void doLoadWithFormat(InputStream inputStream, Map<String, Object> mergedOptions,
             EClass rootEClassHint, ConfigurationResolver operationResolver,
-            PackageResolver packageResolver) throws IOException {
+            PackageResolver packageResolver, DiagnosticCollector diagnosticCollector)
+            throws IOException {
 
         CodecFormatProvider<S, ?> provider = (CodecFormatProvider<S, ?>) formatProvider;
         FormatReaderDelegate<S> delegate = provider.createReader((S) inputStream);
@@ -612,7 +624,6 @@ public class CodecResource extends ResourceImpl {
                 new BufferRecycler(),
                 ContentReference.unknown(), true, JsonEncoding.UTF8);
 
-        DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
         List<UnresolvedReference> unresolvedReferences = new ArrayList<>();
 
         var reader = mapper.readerFor(EObject.class)
@@ -894,7 +905,7 @@ public class CodecResource extends ResourceImpl {
     }
 
     private ObjectMapper createObjectMapper(Map<String, Object> options, ConfigurationResolver operationResolver,
-            PackageResolver packageResolver) {
+            PackageResolver packageResolver, DiagnosticCollector diagnostics) {
         // Use externally managed TypeDiscriminatorReader, else build one for this operation.
         // On load (packageResolver != null): a per-step, version-scoped composed view (B.6) —
         // pinned version per nsURI, value collisions -> error. On save (packageResolver == null):
@@ -928,6 +939,10 @@ public class CodecResource extends ResourceImpl {
         Map<String, Object> customProperties = extractCustomProperties(options);
 
         CodecModule.Builder moduleBuilder = CodecModule.builder()
+                // The serializers and deserializers this module registers are what resolve
+                // config at runtime, so they get the operation's collector - otherwise every
+                // rule the config layer enforces is enforced in private (issue #182).
+                .diagnostics(diagnostics)
                 .resolver(operationResolver)
                 .metadataService(metadataService)
                 .typeDiscriminatorService(typeService)
