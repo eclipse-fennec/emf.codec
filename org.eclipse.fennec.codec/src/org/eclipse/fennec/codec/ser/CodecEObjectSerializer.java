@@ -127,7 +127,10 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
         TypeConfig typeConfig = currentRef != null
                 ? config.resolveTypeConfig(eClass, currentRef)
                 : config.resolveTypeConfig(eClass);
-        IdConfig idConfig = idConfigForIdSource(value, currentRef, config.resolveIdConfig(eClass));
+        // The reference is passed in so a reference-scoped idKey/idFormat applies to the objects
+        // written through it (issue #176), exactly as it already does for the type config.
+        IdConfig idConfig = idConfigForIdSource(value, currentRef,
+                config.resolveIdConfig(eClass, currentRef));
         SuperTypeConfig superTypeConfig = config.resolveSuperTypeConfig(eClass);
 
         // Build ordered serialization entries

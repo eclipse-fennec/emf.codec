@@ -168,8 +168,16 @@ public final class ReferenceConfig implements Mergeable<ReferenceConfig> {
     /**
      * Returns the per-reference ID key override, or null if not set.
      * <p>
-     * When set, this overrides the class-level idKey from IdConfig for
-     * objects serialized through this reference.
+     * <b>Not consumed by the codec.</b> A reference-scoped {@code idKey} is resolved through
+     * {@link ConfigurationResolver#resolveIdConfig(org.eclipse.emf.ecore.EClass,
+     * org.eclipse.emf.ecore.EStructuralFeature, org.eclipse.fennec.codec.diagnostic.DiagnosticCollector)}
+     * instead, so that one configuration object owns everything about an identity (issue #176).
+     * </p>
+     * <p>
+     * This field is kept because it fits the other reading of a reference-scoped id key -
+     * writing the target's identity in place of a {@code $ref} URI, for a non-containment
+     * reference. That is a separate feature, deliberately out of scope for #176, and nothing
+     * implements it yet.
      * </p>
      */
     public String getIdKey() {

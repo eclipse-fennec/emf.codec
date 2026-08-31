@@ -160,6 +160,22 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
 
     @Override
     public void deserialize(DeserializationState state, JsonParser parser, DeserializationContext ctxt) {
+        // Announce which reference is being read for the whole of this feature's value, so a
+        // reference-scoped idKey/idFormat applies to the objects underneath it (issue #176).
+        // Bracketed here rather than at each delegation site: this covers a single value, every
+        // element of an array, and a containment nested inside one - and restoring the previous
+        // reference is what keeps the parent's scope intact for the properties that follow.
+        EReference previousReference =
+                ContextHelper.setCurrentDeserializationReference(ctxt, reference);
+        try {
+            deserializeValue(state, parser, ctxt);
+        } finally {
+            ContextHelper.setCurrentDeserializationReference(ctxt, previousReference);
+        }
+    }
+
+    private void deserializeValue(DeserializationState state, JsonParser parser,
+            DeserializationContext ctxt) {
         EObject eObject = state.getEObject();
         if (eObject == null) {
             String msg = "Cannot set reference '" + reference.getName() + "': EObject not yet created";

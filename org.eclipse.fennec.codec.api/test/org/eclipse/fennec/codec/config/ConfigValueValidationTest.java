@@ -21,6 +21,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.fennec.codec.diagnostic.CodecDiagnostic;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -132,6 +133,44 @@ class ConfigValueValidationTest {
 
         assertEquals(1, messages().stream().filter(m -> m.contains("typeStrategy")).count(),
                 "a repeated report buries the diagnostics it sits among, was: " + messages());
+    }
+
+    @Test
+    @DisplayName("a class-only id property scoped to a feature is reported, not applied")
+    void classOnlyIdPropertyOnAFeatureIsReported() {
+        // Only idKey and idFormat may be scoped to a reference (issue #176, spec 09-id.md
+        // §4.4); an identity is otherwise class-intrinsic. Dropping the rest in silence is the
+        // failure that issue was filed about, so dropping it loudly is the fix.
+        org.eclipse.emf.ecore.EReference friend = reference();
+        ConfigurationResolver resolver = ConfigurationResolver.builder()
+                .resourceProperties(Map.of("Person",
+                        Map.of("friend", Map.of("idKeyMode", "BOTH", "idKey", "personId"))))
+                .build();
+
+        IdConfig config = resolver.resolveIdConfig(personClass, friend, diagnostics);
+
+        assertEquals("personId", config.getKey(), "idKey is feature-level and applies");
+        assertEquals(IdKeyMode.ID_ONLY, config.getKeyMode(),
+                "idKeyMode is class-intrinsic and must not be taken from the feature");
+        assertTrue(messages().stream().anyMatch(m -> m.contains("idKeyMode")
+                        && m.contains("Person.friend")),
+                "the refusal has to name the property and the feature, was: " + messages());
+    }
+
+    @Test
+    @DisplayName("a feature-scoped idKey is reported once, not once per resolution")
+    void classOnlyIdPropertyReportedOnce() {
+        org.eclipse.emf.ecore.EReference friend = reference();
+        ConfigurationResolver resolver = ConfigurationResolver.builder()
+                .resourceProperties(Map.of("Person", Map.of("friend", Map.of("idOnTop", "false"))))
+                .build();
+
+        resolver.resolveIdConfig(personClass, friend, diagnostics);
+        resolver.resolveIdConfig(personClass, friend, diagnostics);
+
+        assertEquals(1, messages().stream().filter(m -> m.contains("idOnTop")).count(),
+                "id config is resolved once per property on read; a repeated warning would bury"
+                        + " everything around it, was: " + messages());
     }
 
     // ========================================================================

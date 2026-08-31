@@ -173,6 +173,18 @@ public final class EffectiveCodecConfig
     }
 
     /**
+     * Resolves effective IdConfig for an EClass in the context of the feature it is reached
+     * through, applying a reference-scoped {@code idKey} or {@code idFormat} (issue #176).
+     *
+     * @param eClass the EClass
+     * @param feature the feature it is reached through, {@code null} for a root object
+     * @return the effective IdConfig
+     */
+    public IdConfig resolveIdConfig(EClass eClass, EStructuralFeature feature) {
+        return resolver.resolveIdConfig(eClass, feature, diagnostics);
+    }
+
+    /**
      * Resolves global IdConfig (no EClass context).
      *
      * @return the effective global IdConfig
