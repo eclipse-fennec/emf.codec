@@ -63,6 +63,15 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	protected SerializationFormat format = FORMAT_EDEFAULT;
 
 	/**
+	 * This is true if the Format attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean formatESet;
+
+	/**
 	 * The default value of the '{@link #getStrategy() <em>Strategy</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -81,6 +90,15 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	 * @ordered
 	 */
 	protected TypeStrategy strategy = STRATEGY_EDEFAULT;
+
+	/**
+	 * This is true if the Strategy attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean strategyESet;
 
 	/**
 	 * The default value of the '{@link #getTypeKey() <em>Type Key</em>}' attribute.
@@ -103,6 +121,15 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	protected String typeKey = TYPE_KEY_EDEFAULT;
 
 	/**
+	 * This is true if the Type Key attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean typeKeyESet;
+
+	/**
 	 * The default value of the '{@link #getSchemaKey() <em>Schema Key</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -123,6 +150,15 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	protected String schemaKey = SCHEMA_KEY_EDEFAULT;
 
 	/**
+	 * This is true if the Schema Key attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean schemaKeyESet;
+
+	/**
 	 * The default value of the '{@link #getNameKey() <em>Name Key</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -141,6 +177,15 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	 * @ordered
 	 */
 	protected String nameKey = NAME_KEY_EDEFAULT;
+
+	/**
+	 * This is true if the Name Key attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean nameKeyESet;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -180,8 +225,35 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	public void setFormat(SerializationFormat newFormat) {
 		SerializationFormat oldFormat = format;
 		format = newFormat == null ? FORMAT_EDEFAULT : newFormat;
+		boolean oldFormatESet = formatESet;
+		formatESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_TYPE_CONFIG__FORMAT, oldFormat, format));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_TYPE_CONFIG__FORMAT, oldFormat, format, !oldFormatESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetFormat() {
+		SerializationFormat oldFormat = format;
+		boolean oldFormatESet = formatESet;
+		format = FORMAT_EDEFAULT;
+		formatESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_TYPE_CONFIG__FORMAT, oldFormat, FORMAT_EDEFAULT, oldFormatESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetFormat() {
+		return formatESet;
 	}
 
 	/**
@@ -203,8 +275,35 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	public void setStrategy(TypeStrategy newStrategy) {
 		TypeStrategy oldStrategy = strategy;
 		strategy = newStrategy == null ? STRATEGY_EDEFAULT : newStrategy;
+		boolean oldStrategyESet = strategyESet;
+		strategyESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_TYPE_CONFIG__STRATEGY, oldStrategy, strategy));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_TYPE_CONFIG__STRATEGY, oldStrategy, strategy, !oldStrategyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetStrategy() {
+		TypeStrategy oldStrategy = strategy;
+		boolean oldStrategyESet = strategyESet;
+		strategy = STRATEGY_EDEFAULT;
+		strategyESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_TYPE_CONFIG__STRATEGY, oldStrategy, STRATEGY_EDEFAULT, oldStrategyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetStrategy() {
+		return strategyESet;
 	}
 
 	/**
@@ -226,8 +325,35 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	public void setTypeKey(String newTypeKey) {
 		String oldTypeKey = typeKey;
 		typeKey = newTypeKey;
+		boolean oldTypeKeyESet = typeKeyESet;
+		typeKeyESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_TYPE_CONFIG__TYPE_KEY, oldTypeKey, typeKey));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_TYPE_CONFIG__TYPE_KEY, oldTypeKey, typeKey, !oldTypeKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetTypeKey() {
+		String oldTypeKey = typeKey;
+		boolean oldTypeKeyESet = typeKeyESet;
+		typeKey = TYPE_KEY_EDEFAULT;
+		typeKeyESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_TYPE_CONFIG__TYPE_KEY, oldTypeKey, TYPE_KEY_EDEFAULT, oldTypeKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetTypeKey() {
+		return typeKeyESet;
 	}
 
 	/**
@@ -249,8 +375,35 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	public void setSchemaKey(String newSchemaKey) {
 		String oldSchemaKey = schemaKey;
 		schemaKey = newSchemaKey;
+		boolean oldSchemaKeyESet = schemaKeyESet;
+		schemaKeyESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_TYPE_CONFIG__SCHEMA_KEY, oldSchemaKey, schemaKey));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_TYPE_CONFIG__SCHEMA_KEY, oldSchemaKey, schemaKey, !oldSchemaKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetSchemaKey() {
+		String oldSchemaKey = schemaKey;
+		boolean oldSchemaKeyESet = schemaKeyESet;
+		schemaKey = SCHEMA_KEY_EDEFAULT;
+		schemaKeyESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_TYPE_CONFIG__SCHEMA_KEY, oldSchemaKey, SCHEMA_KEY_EDEFAULT, oldSchemaKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetSchemaKey() {
+		return schemaKeyESet;
 	}
 
 	/**
@@ -272,8 +425,35 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	public void setNameKey(String newNameKey) {
 		String oldNameKey = nameKey;
 		nameKey = newNameKey;
+		boolean oldNameKeyESet = nameKeyESet;
+		nameKeyESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_TYPE_CONFIG__NAME_KEY, oldNameKey, nameKey));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_TYPE_CONFIG__NAME_KEY, oldNameKey, nameKey, !oldNameKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetNameKey() {
+		String oldNameKey = nameKey;
+		boolean oldNameKeyESet = nameKeyESet;
+		nameKey = NAME_KEY_EDEFAULT;
+		nameKeyESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_TYPE_CONFIG__NAME_KEY, oldNameKey, NAME_KEY_EDEFAULT, oldNameKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetNameKey() {
+		return nameKeyESet;
 	}
 
 	/**
@@ -334,19 +514,19 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	public void eUnset(int featureID) {
 		switch (featureID) {
 			case CodecPackage.BASE_TYPE_CONFIG__FORMAT:
-				setFormat(FORMAT_EDEFAULT);
+				unsetFormat();
 				return;
 			case CodecPackage.BASE_TYPE_CONFIG__STRATEGY:
-				setStrategy(STRATEGY_EDEFAULT);
+				unsetStrategy();
 				return;
 			case CodecPackage.BASE_TYPE_CONFIG__TYPE_KEY:
-				setTypeKey(TYPE_KEY_EDEFAULT);
+				unsetTypeKey();
 				return;
 			case CodecPackage.BASE_TYPE_CONFIG__SCHEMA_KEY:
-				setSchemaKey(SCHEMA_KEY_EDEFAULT);
+				unsetSchemaKey();
 				return;
 			case CodecPackage.BASE_TYPE_CONFIG__NAME_KEY:
-				setNameKey(NAME_KEY_EDEFAULT);
+				unsetNameKey();
 				return;
 		}
 		super.eUnset(featureID);
@@ -361,15 +541,15 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
 			case CodecPackage.BASE_TYPE_CONFIG__FORMAT:
-				return format != FORMAT_EDEFAULT;
+				return isSetFormat();
 			case CodecPackage.BASE_TYPE_CONFIG__STRATEGY:
-				return strategy != STRATEGY_EDEFAULT;
+				return isSetStrategy();
 			case CodecPackage.BASE_TYPE_CONFIG__TYPE_KEY:
-				return TYPE_KEY_EDEFAULT == null ? typeKey != null : !TYPE_KEY_EDEFAULT.equals(typeKey);
+				return isSetTypeKey();
 			case CodecPackage.BASE_TYPE_CONFIG__SCHEMA_KEY:
-				return SCHEMA_KEY_EDEFAULT == null ? schemaKey != null : !SCHEMA_KEY_EDEFAULT.equals(schemaKey);
+				return isSetSchemaKey();
 			case CodecPackage.BASE_TYPE_CONFIG__NAME_KEY:
-				return NAME_KEY_EDEFAULT == null ? nameKey != null : !NAME_KEY_EDEFAULT.equals(nameKey);
+				return isSetNameKey();
 		}
 		return super.eIsSet(featureID);
 	}
@@ -385,15 +565,15 @@ public abstract class BaseTypeConfigImpl extends MinimalEObjectImpl.Container im
 
 		StringBuilder result = new StringBuilder(super.toString());
 		result.append(" (format: ");
-		result.append(format);
+		if (formatESet) result.append(format); else result.append("<unset>");
 		result.append(", strategy: ");
-		result.append(strategy);
+		if (strategyESet) result.append(strategy); else result.append("<unset>");
 		result.append(", typeKey: ");
-		result.append(typeKey);
+		if (typeKeyESet) result.append(typeKey); else result.append("<unset>");
 		result.append(", schemaKey: ");
-		result.append(schemaKey);
+		if (schemaKeyESet) result.append(schemaKey); else result.append("<unset>");
 		result.append(", nameKey: ");
-		result.append(nameKey);
+		if (nameKeyESet) result.append(nameKey); else result.append("<unset>");
 		result.append(')');
 		return result.toString();
 	}

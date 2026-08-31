@@ -60,6 +60,15 @@ public abstract class BaseReferenceConfigImpl extends MinimalEObjectImpl.Contain
 	protected SerializationFormat format = FORMAT_EDEFAULT;
 
 	/**
+	 * This is true if the Format attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean formatESet;
+
+	/**
 	 * The default value of the '{@link #getTypeKey() <em>Type Key</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -80,6 +89,15 @@ public abstract class BaseReferenceConfigImpl extends MinimalEObjectImpl.Contain
 	protected String typeKey = TYPE_KEY_EDEFAULT;
 
 	/**
+	 * This is true if the Type Key attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean typeKeyESet;
+
+	/**
 	 * The default value of the '{@link #getRefKey() <em>Ref Key</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -98,6 +116,15 @@ public abstract class BaseReferenceConfigImpl extends MinimalEObjectImpl.Contain
 	 * @ordered
 	 */
 	protected String refKey = REF_KEY_EDEFAULT;
+
+	/**
+	 * This is true if the Ref Key attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean refKeyESet;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -137,8 +164,35 @@ public abstract class BaseReferenceConfigImpl extends MinimalEObjectImpl.Contain
 	public void setFormat(SerializationFormat newFormat) {
 		SerializationFormat oldFormat = format;
 		format = newFormat == null ? FORMAT_EDEFAULT : newFormat;
+		boolean oldFormatESet = formatESet;
+		formatESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_REFERENCE_CONFIG__FORMAT, oldFormat, format));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_REFERENCE_CONFIG__FORMAT, oldFormat, format, !oldFormatESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetFormat() {
+		SerializationFormat oldFormat = format;
+		boolean oldFormatESet = formatESet;
+		format = FORMAT_EDEFAULT;
+		formatESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_REFERENCE_CONFIG__FORMAT, oldFormat, FORMAT_EDEFAULT, oldFormatESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetFormat() {
+		return formatESet;
 	}
 
 	/**
@@ -160,8 +214,35 @@ public abstract class BaseReferenceConfigImpl extends MinimalEObjectImpl.Contain
 	public void setTypeKey(String newTypeKey) {
 		String oldTypeKey = typeKey;
 		typeKey = newTypeKey;
+		boolean oldTypeKeyESet = typeKeyESet;
+		typeKeyESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_REFERENCE_CONFIG__TYPE_KEY, oldTypeKey, typeKey));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_REFERENCE_CONFIG__TYPE_KEY, oldTypeKey, typeKey, !oldTypeKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetTypeKey() {
+		String oldTypeKey = typeKey;
+		boolean oldTypeKeyESet = typeKeyESet;
+		typeKey = TYPE_KEY_EDEFAULT;
+		typeKeyESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_REFERENCE_CONFIG__TYPE_KEY, oldTypeKey, TYPE_KEY_EDEFAULT, oldTypeKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetTypeKey() {
+		return typeKeyESet;
 	}
 
 	/**
@@ -183,8 +264,35 @@ public abstract class BaseReferenceConfigImpl extends MinimalEObjectImpl.Contain
 	public void setRefKey(String newRefKey) {
 		String oldRefKey = refKey;
 		refKey = newRefKey;
+		boolean oldRefKeyESet = refKeyESet;
+		refKeyESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_REFERENCE_CONFIG__REF_KEY, oldRefKey, refKey));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.BASE_REFERENCE_CONFIG__REF_KEY, oldRefKey, refKey, !oldRefKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetRefKey() {
+		String oldRefKey = refKey;
+		boolean oldRefKeyESet = refKeyESet;
+		refKey = REF_KEY_EDEFAULT;
+		refKeyESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.BASE_REFERENCE_CONFIG__REF_KEY, oldRefKey, REF_KEY_EDEFAULT, oldRefKeyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetRefKey() {
+		return refKeyESet;
 	}
 
 	/**
@@ -235,13 +343,13 @@ public abstract class BaseReferenceConfigImpl extends MinimalEObjectImpl.Contain
 	public void eUnset(int featureID) {
 		switch (featureID) {
 			case CodecPackage.BASE_REFERENCE_CONFIG__FORMAT:
-				setFormat(FORMAT_EDEFAULT);
+				unsetFormat();
 				return;
 			case CodecPackage.BASE_REFERENCE_CONFIG__TYPE_KEY:
-				setTypeKey(TYPE_KEY_EDEFAULT);
+				unsetTypeKey();
 				return;
 			case CodecPackage.BASE_REFERENCE_CONFIG__REF_KEY:
-				setRefKey(REF_KEY_EDEFAULT);
+				unsetRefKey();
 				return;
 		}
 		super.eUnset(featureID);
@@ -256,11 +364,11 @@ public abstract class BaseReferenceConfigImpl extends MinimalEObjectImpl.Contain
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
 			case CodecPackage.BASE_REFERENCE_CONFIG__FORMAT:
-				return format != FORMAT_EDEFAULT;
+				return isSetFormat();
 			case CodecPackage.BASE_REFERENCE_CONFIG__TYPE_KEY:
-				return TYPE_KEY_EDEFAULT == null ? typeKey != null : !TYPE_KEY_EDEFAULT.equals(typeKey);
+				return isSetTypeKey();
 			case CodecPackage.BASE_REFERENCE_CONFIG__REF_KEY:
-				return REF_KEY_EDEFAULT == null ? refKey != null : !REF_KEY_EDEFAULT.equals(refKey);
+				return isSetRefKey();
 		}
 		return super.eIsSet(featureID);
 	}
@@ -276,11 +384,11 @@ public abstract class BaseReferenceConfigImpl extends MinimalEObjectImpl.Contain
 
 		StringBuilder result = new StringBuilder(super.toString());
 		result.append(" (format: ");
-		result.append(format);
+		if (formatESet) result.append(format); else result.append("<unset>");
 		result.append(", typeKey: ");
-		result.append(typeKey);
+		if (typeKeyESet) result.append(typeKey); else result.append("<unset>");
 		result.append(", refKey: ");
-		result.append(refKey);
+		if (refKeyESet) result.append(refKey); else result.append("<unset>");
 		result.append(')');
 		return result.toString();
 	}

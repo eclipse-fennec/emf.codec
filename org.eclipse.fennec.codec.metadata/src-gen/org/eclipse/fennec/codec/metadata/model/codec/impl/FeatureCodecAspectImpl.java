@@ -90,6 +90,15 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	protected boolean ignore = IGNORE_EDEFAULT;
 
 	/**
+	 * This is true if the Ignore attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean ignoreESet;
+
+	/**
 	 * The default value of the '{@link #isIgnoreRead() <em>Ignore Read</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -108,6 +117,15 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	 * @ordered
 	 */
 	protected boolean ignoreRead = IGNORE_READ_EDEFAULT;
+
+	/**
+	 * This is true if the Ignore Read attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean ignoreReadESet;
 
 	/**
 	 * The default value of the '{@link #isIgnoreWrite() <em>Ignore Write</em>}' attribute.
@@ -130,6 +148,15 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	protected boolean ignoreWrite = IGNORE_WRITE_EDEFAULT;
 
 	/**
+	 * This is true if the Ignore Write attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean ignoreWriteESet;
+
+	/**
 	 * The default value of the '{@link #isForceRead() <em>Force Read</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -148,6 +175,15 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	 * @ordered
 	 */
 	protected boolean forceRead = FORCE_READ_EDEFAULT;
+
+	/**
+	 * This is true if the Force Read attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean forceReadESet;
 
 	/**
 	 * The default value of the '{@link #isForceWrite() <em>Force Write</em>}' attribute.
@@ -170,6 +206,15 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	protected boolean forceWrite = FORCE_WRITE_EDEFAULT;
 
 	/**
+	 * This is true if the Force Write attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean forceWriteESet;
+
+	/**
 	 * The default value of the '{@link #isSerializeNull() <em>Serialize Null</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -188,6 +233,15 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	 * @ordered
 	 */
 	protected boolean serializeNull = SERIALIZE_NULL_EDEFAULT;
+
+	/**
+	 * This is true if the Serialize Null attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean serializeNullESet;
 
 	/**
 	 * The default value of the '{@link #isSerializeEmpty() <em>Serialize Empty</em>}' attribute.
@@ -210,6 +264,15 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	protected boolean serializeEmpty = SERIALIZE_EMPTY_EDEFAULT;
 
 	/**
+	 * This is true if the Serialize Empty attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean serializeEmptyESet;
+
+	/**
 	 * The default value of the '{@link #isSerializeDefaults() <em>Serialize Defaults</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -228,6 +291,15 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	 * @ordered
 	 */
 	protected boolean serializeDefaults = SERIALIZE_DEFAULTS_EDEFAULT;
+
+	/**
+	 * This is true if the Serialize Defaults attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean serializeDefaultsESet;
 
 	/**
 	 * The default value of the '{@link #getValueWriterName() <em>Value Writer Name</em>}' attribute.
@@ -370,8 +442,35 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	public void setIgnore(boolean newIgnore) {
 		boolean oldIgnore = ignore;
 		ignore = newIgnore;
+		boolean oldIgnoreESet = ignoreESet;
+		ignoreESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__IGNORE, oldIgnore, ignore));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__IGNORE, oldIgnore, ignore, !oldIgnoreESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetIgnore() {
+		boolean oldIgnore = ignore;
+		boolean oldIgnoreESet = ignoreESet;
+		ignore = IGNORE_EDEFAULT;
+		ignoreESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.FEATURE_CODEC_ASPECT__IGNORE, oldIgnore, IGNORE_EDEFAULT, oldIgnoreESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetIgnore() {
+		return ignoreESet;
 	}
 
 	/**
@@ -393,8 +492,35 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	public void setIgnoreRead(boolean newIgnoreRead) {
 		boolean oldIgnoreRead = ignoreRead;
 		ignoreRead = newIgnoreRead;
+		boolean oldIgnoreReadESet = ignoreReadESet;
+		ignoreReadESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__IGNORE_READ, oldIgnoreRead, ignoreRead));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__IGNORE_READ, oldIgnoreRead, ignoreRead, !oldIgnoreReadESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetIgnoreRead() {
+		boolean oldIgnoreRead = ignoreRead;
+		boolean oldIgnoreReadESet = ignoreReadESet;
+		ignoreRead = IGNORE_READ_EDEFAULT;
+		ignoreReadESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.FEATURE_CODEC_ASPECT__IGNORE_READ, oldIgnoreRead, IGNORE_READ_EDEFAULT, oldIgnoreReadESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetIgnoreRead() {
+		return ignoreReadESet;
 	}
 
 	/**
@@ -416,8 +542,35 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	public void setIgnoreWrite(boolean newIgnoreWrite) {
 		boolean oldIgnoreWrite = ignoreWrite;
 		ignoreWrite = newIgnoreWrite;
+		boolean oldIgnoreWriteESet = ignoreWriteESet;
+		ignoreWriteESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__IGNORE_WRITE, oldIgnoreWrite, ignoreWrite));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__IGNORE_WRITE, oldIgnoreWrite, ignoreWrite, !oldIgnoreWriteESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetIgnoreWrite() {
+		boolean oldIgnoreWrite = ignoreWrite;
+		boolean oldIgnoreWriteESet = ignoreWriteESet;
+		ignoreWrite = IGNORE_WRITE_EDEFAULT;
+		ignoreWriteESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.FEATURE_CODEC_ASPECT__IGNORE_WRITE, oldIgnoreWrite, IGNORE_WRITE_EDEFAULT, oldIgnoreWriteESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetIgnoreWrite() {
+		return ignoreWriteESet;
 	}
 
 	/**
@@ -439,8 +592,35 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	public void setForceRead(boolean newForceRead) {
 		boolean oldForceRead = forceRead;
 		forceRead = newForceRead;
+		boolean oldForceReadESet = forceReadESet;
+		forceReadESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__FORCE_READ, oldForceRead, forceRead));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__FORCE_READ, oldForceRead, forceRead, !oldForceReadESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetForceRead() {
+		boolean oldForceRead = forceRead;
+		boolean oldForceReadESet = forceReadESet;
+		forceRead = FORCE_READ_EDEFAULT;
+		forceReadESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.FEATURE_CODEC_ASPECT__FORCE_READ, oldForceRead, FORCE_READ_EDEFAULT, oldForceReadESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetForceRead() {
+		return forceReadESet;
 	}
 
 	/**
@@ -462,8 +642,35 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	public void setForceWrite(boolean newForceWrite) {
 		boolean oldForceWrite = forceWrite;
 		forceWrite = newForceWrite;
+		boolean oldForceWriteESet = forceWriteESet;
+		forceWriteESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__FORCE_WRITE, oldForceWrite, forceWrite));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__FORCE_WRITE, oldForceWrite, forceWrite, !oldForceWriteESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetForceWrite() {
+		boolean oldForceWrite = forceWrite;
+		boolean oldForceWriteESet = forceWriteESet;
+		forceWrite = FORCE_WRITE_EDEFAULT;
+		forceWriteESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.FEATURE_CODEC_ASPECT__FORCE_WRITE, oldForceWrite, FORCE_WRITE_EDEFAULT, oldForceWriteESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetForceWrite() {
+		return forceWriteESet;
 	}
 
 	/**
@@ -485,8 +692,35 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	public void setSerializeNull(boolean newSerializeNull) {
 		boolean oldSerializeNull = serializeNull;
 		serializeNull = newSerializeNull;
+		boolean oldSerializeNullESet = serializeNullESet;
+		serializeNullESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_NULL, oldSerializeNull, serializeNull));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_NULL, oldSerializeNull, serializeNull, !oldSerializeNullESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetSerializeNull() {
+		boolean oldSerializeNull = serializeNull;
+		boolean oldSerializeNullESet = serializeNullESet;
+		serializeNull = SERIALIZE_NULL_EDEFAULT;
+		serializeNullESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_NULL, oldSerializeNull, SERIALIZE_NULL_EDEFAULT, oldSerializeNullESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetSerializeNull() {
+		return serializeNullESet;
 	}
 
 	/**
@@ -508,8 +742,35 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	public void setSerializeEmpty(boolean newSerializeEmpty) {
 		boolean oldSerializeEmpty = serializeEmpty;
 		serializeEmpty = newSerializeEmpty;
+		boolean oldSerializeEmptyESet = serializeEmptyESet;
+		serializeEmptyESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_EMPTY, oldSerializeEmpty, serializeEmpty));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_EMPTY, oldSerializeEmpty, serializeEmpty, !oldSerializeEmptyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetSerializeEmpty() {
+		boolean oldSerializeEmpty = serializeEmpty;
+		boolean oldSerializeEmptyESet = serializeEmptyESet;
+		serializeEmpty = SERIALIZE_EMPTY_EDEFAULT;
+		serializeEmptyESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_EMPTY, oldSerializeEmpty, SERIALIZE_EMPTY_EDEFAULT, oldSerializeEmptyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetSerializeEmpty() {
+		return serializeEmptyESet;
 	}
 
 	/**
@@ -531,8 +792,35 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 	public void setSerializeDefaults(boolean newSerializeDefaults) {
 		boolean oldSerializeDefaults = serializeDefaults;
 		serializeDefaults = newSerializeDefaults;
+		boolean oldSerializeDefaultsESet = serializeDefaultsESet;
+		serializeDefaultsESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_DEFAULTS, oldSerializeDefaults, serializeDefaults));
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_DEFAULTS, oldSerializeDefaults, serializeDefaults, !oldSerializeDefaultsESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetSerializeDefaults() {
+		boolean oldSerializeDefaults = serializeDefaults;
+		boolean oldSerializeDefaultsESet = serializeDefaultsESet;
+		serializeDefaults = SERIALIZE_DEFAULTS_EDEFAULT;
+		serializeDefaultsESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_DEFAULTS, oldSerializeDefaults, SERIALIZE_DEFAULTS_EDEFAULT, oldSerializeDefaultsESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetSerializeDefaults() {
+		return serializeDefaultsESet;
 	}
 
 	/**
@@ -728,28 +1016,28 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 				setEffectiveKey(EFFECTIVE_KEY_EDEFAULT);
 				return;
 			case CodecPackage.FEATURE_CODEC_ASPECT__IGNORE:
-				setIgnore(IGNORE_EDEFAULT);
+				unsetIgnore();
 				return;
 			case CodecPackage.FEATURE_CODEC_ASPECT__IGNORE_READ:
-				setIgnoreRead(IGNORE_READ_EDEFAULT);
+				unsetIgnoreRead();
 				return;
 			case CodecPackage.FEATURE_CODEC_ASPECT__IGNORE_WRITE:
-				setIgnoreWrite(IGNORE_WRITE_EDEFAULT);
+				unsetIgnoreWrite();
 				return;
 			case CodecPackage.FEATURE_CODEC_ASPECT__FORCE_READ:
-				setForceRead(FORCE_READ_EDEFAULT);
+				unsetForceRead();
 				return;
 			case CodecPackage.FEATURE_CODEC_ASPECT__FORCE_WRITE:
-				setForceWrite(FORCE_WRITE_EDEFAULT);
+				unsetForceWrite();
 				return;
 			case CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_NULL:
-				setSerializeNull(SERIALIZE_NULL_EDEFAULT);
+				unsetSerializeNull();
 				return;
 			case CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_EMPTY:
-				setSerializeEmpty(SERIALIZE_EMPTY_EDEFAULT);
+				unsetSerializeEmpty();
 				return;
 			case CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_DEFAULTS:
-				setSerializeDefaults(SERIALIZE_DEFAULTS_EDEFAULT);
+				unsetSerializeDefaults();
 				return;
 			case CodecPackage.FEATURE_CODEC_ASPECT__VALUE_WRITER_NAME:
 				setValueWriterName(VALUE_WRITER_NAME_EDEFAULT);
@@ -778,21 +1066,21 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 			case CodecPackage.FEATURE_CODEC_ASPECT__EFFECTIVE_KEY:
 				return EFFECTIVE_KEY_EDEFAULT == null ? effectiveKey != null : !EFFECTIVE_KEY_EDEFAULT.equals(effectiveKey);
 			case CodecPackage.FEATURE_CODEC_ASPECT__IGNORE:
-				return ignore != IGNORE_EDEFAULT;
+				return isSetIgnore();
 			case CodecPackage.FEATURE_CODEC_ASPECT__IGNORE_READ:
-				return ignoreRead != IGNORE_READ_EDEFAULT;
+				return isSetIgnoreRead();
 			case CodecPackage.FEATURE_CODEC_ASPECT__IGNORE_WRITE:
-				return ignoreWrite != IGNORE_WRITE_EDEFAULT;
+				return isSetIgnoreWrite();
 			case CodecPackage.FEATURE_CODEC_ASPECT__FORCE_READ:
-				return forceRead != FORCE_READ_EDEFAULT;
+				return isSetForceRead();
 			case CodecPackage.FEATURE_CODEC_ASPECT__FORCE_WRITE:
-				return forceWrite != FORCE_WRITE_EDEFAULT;
+				return isSetForceWrite();
 			case CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_NULL:
-				return serializeNull != SERIALIZE_NULL_EDEFAULT;
+				return isSetSerializeNull();
 			case CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_EMPTY:
-				return serializeEmpty != SERIALIZE_EMPTY_EDEFAULT;
+				return isSetSerializeEmpty();
 			case CodecPackage.FEATURE_CODEC_ASPECT__SERIALIZE_DEFAULTS:
-				return serializeDefaults != SERIALIZE_DEFAULTS_EDEFAULT;
+				return isSetSerializeDefaults();
 			case CodecPackage.FEATURE_CODEC_ASPECT__VALUE_WRITER_NAME:
 				return VALUE_WRITER_NAME_EDEFAULT == null ? valueWriterName != null : !VALUE_WRITER_NAME_EDEFAULT.equals(valueWriterName);
 			case CodecPackage.FEATURE_CODEC_ASPECT__VALUE_READER_NAME:
@@ -818,21 +1106,21 @@ public class FeatureCodecAspectImpl extends MinimalEObjectImpl.Container impleme
 		result.append(" (effectiveKey: ");
 		result.append(effectiveKey);
 		result.append(", ignore: ");
-		result.append(ignore);
+		if (ignoreESet) result.append(ignore); else result.append("<unset>");
 		result.append(", ignoreRead: ");
-		result.append(ignoreRead);
+		if (ignoreReadESet) result.append(ignoreRead); else result.append("<unset>");
 		result.append(", ignoreWrite: ");
-		result.append(ignoreWrite);
+		if (ignoreWriteESet) result.append(ignoreWrite); else result.append("<unset>");
 		result.append(", forceRead: ");
-		result.append(forceRead);
+		if (forceReadESet) result.append(forceRead); else result.append("<unset>");
 		result.append(", forceWrite: ");
-		result.append(forceWrite);
+		if (forceWriteESet) result.append(forceWrite); else result.append("<unset>");
 		result.append(", serializeNull: ");
-		result.append(serializeNull);
+		if (serializeNullESet) result.append(serializeNull); else result.append("<unset>");
 		result.append(", serializeEmpty: ");
-		result.append(serializeEmpty);
+		if (serializeEmptyESet) result.append(serializeEmpty); else result.append("<unset>");
 		result.append(", serializeDefaults: ");
-		result.append(serializeDefaults);
+		if (serializeDefaultsESet) result.append(serializeDefaults); else result.append("<unset>");
 		result.append(", valueWriterName: ");
 		result.append(valueWriterName);
 		result.append(", valueReaderName: ");

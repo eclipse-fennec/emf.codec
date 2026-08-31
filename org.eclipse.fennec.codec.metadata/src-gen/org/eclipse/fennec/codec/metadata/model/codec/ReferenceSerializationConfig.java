@@ -69,12 +69,14 @@ public interface ReferenceSerializationConfig extends BaseReferenceConfig {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Override codec-level expand setting (null = use codec default).
+	 * Override codec-level expand setting (null = use codec default). Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Expand</em>' attribute.
+	 * @see #isSetExpand()
+	 * @see #unsetExpand()
 	 * @see #setExpand(boolean)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getReferenceSerializationConfig_Expand()
-	 * @model default="false"
+	 * @model default="false" unsettable="true"
 	 * @generated
 	 */
 	boolean isExpand();
@@ -84,9 +86,34 @@ public interface ReferenceSerializationConfig extends BaseReferenceConfig {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Expand</em>' attribute.
+	 * @see #isSetExpand()
+	 * @see #unsetExpand()
 	 * @see #isExpand()
 	 * @generated
 	 */
 	void setExpand(boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig#isExpand <em>Expand</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetExpand()
+	 * @see #isExpand()
+	 * @see #setExpand(boolean)
+	 * @generated
+	 */
+	void unsetExpand();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig#isExpand <em>Expand</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Expand</em>' attribute is set.
+	 * @see #unsetExpand()
+	 * @see #isExpand()
+	 * @see #setExpand(boolean)
+	 * @generated
+	 */
+	boolean isSetExpand();
 
 } // ReferenceSerializationConfig

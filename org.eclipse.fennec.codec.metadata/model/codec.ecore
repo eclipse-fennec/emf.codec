@@ -246,33 +246,33 @@
       <details key="documentation" value="Base configuration for type information serialization. Controls how EClass type identity is written to the output. Shared by class-level and reference-level type configurations."/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="#//SerializationFormat"
-        defaultValueLiteral="PLAIN">
+        defaultValueLiteral="PLAIN" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Output format for type information: PLAIN writes a single value, STRUCTURED writes a nested object with schema/name keys."/>
+        <details key="documentation" value="Output format for type information: PLAIN writes a single value, STRUCTURED writes a nested object with schema/name keys. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="strategy" eType="#//TypeStrategy"
-        defaultValueLiteral="URI">
+        defaultValueLiteral="URI" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Type identification strategy. Determines what kind of type identifier is written (NAME, CLASS, URI, SCHEMA_AND_TYPE, NUMERIC, NONE)."/>
+        <details key="documentation" value="Type identification strategy. Determines what kind of type identifier is written (NAME, CLASS, URI, SCHEMA_AND_TYPE, NUMERIC, NONE). Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
-        defaultValueLiteral="_type">
+        defaultValueLiteral="_type" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="JSON property name for the type field. Default is '_type'."/>
+        <details key="documentation" value="JSON property name for the type field. Default is '_type'. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="schemaKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
-        defaultValueLiteral="schema">
+        defaultValueLiteral="schema" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="JSON property name for the schema (nsURI) when using STRUCTURED format or SCHEMA_AND_TYPE strategy. Default is 'schema'."/>
+        <details key="documentation" value="JSON property name for the schema (nsURI) when using STRUCTURED format or SCHEMA_AND_TYPE strategy. Default is 'schema'. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="nameKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
-        defaultValueLiteral="name">
+        defaultValueLiteral="name" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="JSON property name for the type name inside a STRUCTURED type object. Default is 'name'."/>
+        <details key="documentation" value="JSON property name for the type name inside a STRUCTURED type object. Default is 'name'. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
@@ -340,21 +340,21 @@
       <details key="documentation" value="Base configuration for non-containment reference serialization. Controls how cross-references between EObjects are represented in the output."/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="#//SerializationFormat"
-        defaultValueLiteral="PLAIN">
+        defaultValueLiteral="PLAIN" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Output format for references: PLAIN writes a single reference value, STRUCTURED writes a nested object with type and reference keys."/>
+        <details key="documentation" value="Output format for references: PLAIN writes a single reference value, STRUCTURED writes a nested object with type and reference keys. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
-        defaultValueLiteral="_type">
+        defaultValueLiteral="_type" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="JSON property name for the type field inside a STRUCTURED reference object. Default is '_type'."/>
+        <details key="documentation" value="JSON property name for the type field inside a STRUCTURED reference object. Default is '_type'. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="refKey" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
-        defaultValueLiteral="_ref">
+        defaultValueLiteral="_ref" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="JSON property name for the reference value inside a STRUCTURED reference object. Default is '_ref'."/>
+        <details key="documentation" value="JSON property name for the reference value inside a STRUCTURED reference object. Default is '_ref'. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
@@ -541,9 +541,9 @@
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="expand" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="false">
+        defaultValueLiteral="false" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Override codec-level expand setting (null = use codec default)."/>
+        <details key="documentation" value="Override codec-level expand setting (null = use codec default). Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>
@@ -663,51 +663,51 @@
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="ignore" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="false">
+        defaultValueLiteral="false" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Skip this feature for both serialization and deserialization."/>
+        <details key="documentation" value="Skip this feature for both serialization and deserialization. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="ignoreRead" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="false">
+        defaultValueLiteral="false" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Skip this feature during deserialization only."/>
+        <details key="documentation" value="Skip this feature during deserialization only. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="ignoreWrite" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="false">
+        defaultValueLiteral="false" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Skip this feature during serialization only."/>
+        <details key="documentation" value="Skip this feature during serialization only. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="forceRead" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="false">
+        defaultValueLiteral="false" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Force deserialization of EMF transient/volatile features."/>
+        <details key="documentation" value="Force deserialization of EMF transient/volatile features. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="forceWrite" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="false">
+        defaultValueLiteral="false" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Force serialization of EMF transient/volatile/derived features."/>
+        <details key="documentation" value="Force serialization of EMF transient/volatile/derived features. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="serializeNull" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="false">
+        defaultValueLiteral="false" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Whether to serialize null values."/>
+        <details key="documentation" value="Whether to serialize null values. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="serializeEmpty" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="false">
+        defaultValueLiteral="false" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Whether to serialize empty collections."/>
+        <details key="documentation" value="Whether to serialize empty collections. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="serializeDefaults" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="false">
+        defaultValueLiteral="false" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Whether to serialize default values."/>
+        <details key="documentation" value="Whether to serialize default values. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="valueWriterName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
@@ -754,9 +754,9 @@
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="expand" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
-        defaultValueLiteral="false">
+        defaultValueLiteral="false" unsettable="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Whether to expand (inline) referenced objects."/>
+        <details key="documentation" value="Whether to expand (inline) referenced objects. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from &quot;not configured&quot; via eIsSet."/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>

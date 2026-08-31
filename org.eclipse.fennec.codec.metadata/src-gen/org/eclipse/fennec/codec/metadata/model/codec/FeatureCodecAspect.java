@@ -81,12 +81,14 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Skip this feature for both serialization and deserialization.
+	 * Skip this feature for both serialization and deserialization. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Ignore</em>' attribute.
+	 * @see #isSetIgnore()
+	 * @see #unsetIgnore()
 	 * @see #setIgnore(boolean)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect_Ignore()
-	 * @model default="false"
+	 * @model default="false" unsettable="true"
 	 * @generated
 	 */
 	boolean isIgnore();
@@ -96,10 +98,35 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Ignore</em>' attribute.
+	 * @see #isSetIgnore()
+	 * @see #unsetIgnore()
 	 * @see #isIgnore()
 	 * @generated
 	 */
 	void setIgnore(boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isIgnore <em>Ignore</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetIgnore()
+	 * @see #isIgnore()
+	 * @see #setIgnore(boolean)
+	 * @generated
+	 */
+	void unsetIgnore();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isIgnore <em>Ignore</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Ignore</em>' attribute is set.
+	 * @see #unsetIgnore()
+	 * @see #isIgnore()
+	 * @see #setIgnore(boolean)
+	 * @generated
+	 */
+	boolean isSetIgnore();
 
 	/**
 	 * Returns the value of the '<em><b>Ignore Read</b></em>' attribute.
@@ -107,12 +134,14 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Skip this feature during deserialization only.
+	 * Skip this feature during deserialization only. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Ignore Read</em>' attribute.
+	 * @see #isSetIgnoreRead()
+	 * @see #unsetIgnoreRead()
 	 * @see #setIgnoreRead(boolean)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect_IgnoreRead()
-	 * @model default="false"
+	 * @model default="false" unsettable="true"
 	 * @generated
 	 */
 	boolean isIgnoreRead();
@@ -122,10 +151,35 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Ignore Read</em>' attribute.
+	 * @see #isSetIgnoreRead()
+	 * @see #unsetIgnoreRead()
 	 * @see #isIgnoreRead()
 	 * @generated
 	 */
 	void setIgnoreRead(boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isIgnoreRead <em>Ignore Read</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetIgnoreRead()
+	 * @see #isIgnoreRead()
+	 * @see #setIgnoreRead(boolean)
+	 * @generated
+	 */
+	void unsetIgnoreRead();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isIgnoreRead <em>Ignore Read</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Ignore Read</em>' attribute is set.
+	 * @see #unsetIgnoreRead()
+	 * @see #isIgnoreRead()
+	 * @see #setIgnoreRead(boolean)
+	 * @generated
+	 */
+	boolean isSetIgnoreRead();
 
 	/**
 	 * Returns the value of the '<em><b>Ignore Write</b></em>' attribute.
@@ -133,12 +187,14 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Skip this feature during serialization only.
+	 * Skip this feature during serialization only. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Ignore Write</em>' attribute.
+	 * @see #isSetIgnoreWrite()
+	 * @see #unsetIgnoreWrite()
 	 * @see #setIgnoreWrite(boolean)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect_IgnoreWrite()
-	 * @model default="false"
+	 * @model default="false" unsettable="true"
 	 * @generated
 	 */
 	boolean isIgnoreWrite();
@@ -148,10 +204,35 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Ignore Write</em>' attribute.
+	 * @see #isSetIgnoreWrite()
+	 * @see #unsetIgnoreWrite()
 	 * @see #isIgnoreWrite()
 	 * @generated
 	 */
 	void setIgnoreWrite(boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isIgnoreWrite <em>Ignore Write</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetIgnoreWrite()
+	 * @see #isIgnoreWrite()
+	 * @see #setIgnoreWrite(boolean)
+	 * @generated
+	 */
+	void unsetIgnoreWrite();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isIgnoreWrite <em>Ignore Write</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Ignore Write</em>' attribute is set.
+	 * @see #unsetIgnoreWrite()
+	 * @see #isIgnoreWrite()
+	 * @see #setIgnoreWrite(boolean)
+	 * @generated
+	 */
+	boolean isSetIgnoreWrite();
 
 	/**
 	 * Returns the value of the '<em><b>Force Read</b></em>' attribute.
@@ -159,12 +240,14 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Force deserialization of EMF transient/volatile features.
+	 * Force deserialization of EMF transient/volatile features. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Force Read</em>' attribute.
+	 * @see #isSetForceRead()
+	 * @see #unsetForceRead()
 	 * @see #setForceRead(boolean)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect_ForceRead()
-	 * @model default="false"
+	 * @model default="false" unsettable="true"
 	 * @generated
 	 */
 	boolean isForceRead();
@@ -174,10 +257,35 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Force Read</em>' attribute.
+	 * @see #isSetForceRead()
+	 * @see #unsetForceRead()
 	 * @see #isForceRead()
 	 * @generated
 	 */
 	void setForceRead(boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isForceRead <em>Force Read</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetForceRead()
+	 * @see #isForceRead()
+	 * @see #setForceRead(boolean)
+	 * @generated
+	 */
+	void unsetForceRead();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isForceRead <em>Force Read</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Force Read</em>' attribute is set.
+	 * @see #unsetForceRead()
+	 * @see #isForceRead()
+	 * @see #setForceRead(boolean)
+	 * @generated
+	 */
+	boolean isSetForceRead();
 
 	/**
 	 * Returns the value of the '<em><b>Force Write</b></em>' attribute.
@@ -185,12 +293,14 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Force serialization of EMF transient/volatile/derived features.
+	 * Force serialization of EMF transient/volatile/derived features. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Force Write</em>' attribute.
+	 * @see #isSetForceWrite()
+	 * @see #unsetForceWrite()
 	 * @see #setForceWrite(boolean)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect_ForceWrite()
-	 * @model default="false"
+	 * @model default="false" unsettable="true"
 	 * @generated
 	 */
 	boolean isForceWrite();
@@ -200,10 +310,35 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Force Write</em>' attribute.
+	 * @see #isSetForceWrite()
+	 * @see #unsetForceWrite()
 	 * @see #isForceWrite()
 	 * @generated
 	 */
 	void setForceWrite(boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isForceWrite <em>Force Write</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetForceWrite()
+	 * @see #isForceWrite()
+	 * @see #setForceWrite(boolean)
+	 * @generated
+	 */
+	void unsetForceWrite();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isForceWrite <em>Force Write</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Force Write</em>' attribute is set.
+	 * @see #unsetForceWrite()
+	 * @see #isForceWrite()
+	 * @see #setForceWrite(boolean)
+	 * @generated
+	 */
+	boolean isSetForceWrite();
 
 	/**
 	 * Returns the value of the '<em><b>Serialize Null</b></em>' attribute.
@@ -211,12 +346,14 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Whether to serialize null values.
+	 * Whether to serialize null values. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Serialize Null</em>' attribute.
+	 * @see #isSetSerializeNull()
+	 * @see #unsetSerializeNull()
 	 * @see #setSerializeNull(boolean)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect_SerializeNull()
-	 * @model default="false"
+	 * @model default="false" unsettable="true"
 	 * @generated
 	 */
 	boolean isSerializeNull();
@@ -226,10 +363,35 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Serialize Null</em>' attribute.
+	 * @see #isSetSerializeNull()
+	 * @see #unsetSerializeNull()
 	 * @see #isSerializeNull()
 	 * @generated
 	 */
 	void setSerializeNull(boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isSerializeNull <em>Serialize Null</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetSerializeNull()
+	 * @see #isSerializeNull()
+	 * @see #setSerializeNull(boolean)
+	 * @generated
+	 */
+	void unsetSerializeNull();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isSerializeNull <em>Serialize Null</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Serialize Null</em>' attribute is set.
+	 * @see #unsetSerializeNull()
+	 * @see #isSerializeNull()
+	 * @see #setSerializeNull(boolean)
+	 * @generated
+	 */
+	boolean isSetSerializeNull();
 
 	/**
 	 * Returns the value of the '<em><b>Serialize Empty</b></em>' attribute.
@@ -237,12 +399,14 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Whether to serialize empty collections.
+	 * Whether to serialize empty collections. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Serialize Empty</em>' attribute.
+	 * @see #isSetSerializeEmpty()
+	 * @see #unsetSerializeEmpty()
 	 * @see #setSerializeEmpty(boolean)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect_SerializeEmpty()
-	 * @model default="false"
+	 * @model default="false" unsettable="true"
 	 * @generated
 	 */
 	boolean isSerializeEmpty();
@@ -252,10 +416,35 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Serialize Empty</em>' attribute.
+	 * @see #isSetSerializeEmpty()
+	 * @see #unsetSerializeEmpty()
 	 * @see #isSerializeEmpty()
 	 * @generated
 	 */
 	void setSerializeEmpty(boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isSerializeEmpty <em>Serialize Empty</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetSerializeEmpty()
+	 * @see #isSerializeEmpty()
+	 * @see #setSerializeEmpty(boolean)
+	 * @generated
+	 */
+	void unsetSerializeEmpty();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isSerializeEmpty <em>Serialize Empty</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Serialize Empty</em>' attribute is set.
+	 * @see #unsetSerializeEmpty()
+	 * @see #isSerializeEmpty()
+	 * @see #setSerializeEmpty(boolean)
+	 * @generated
+	 */
+	boolean isSetSerializeEmpty();
 
 	/**
 	 * Returns the value of the '<em><b>Serialize Defaults</b></em>' attribute.
@@ -263,12 +452,14 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * Whether to serialize default values.
+	 * Whether to serialize default values. Unsettable so that consumers (e.g. the properties bridge, issues #106/#175) can distinguish an explicitly configured value that happens to equal this default from "not configured" via eIsSet.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Serialize Defaults</em>' attribute.
+	 * @see #isSetSerializeDefaults()
+	 * @see #unsetSerializeDefaults()
 	 * @see #setSerializeDefaults(boolean)
 	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getFeatureCodecAspect_SerializeDefaults()
-	 * @model default="false"
+	 * @model default="false" unsettable="true"
 	 * @generated
 	 */
 	boolean isSerializeDefaults();
@@ -278,10 +469,35 @@ public interface FeatureCodecAspect extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Serialize Defaults</em>' attribute.
+	 * @see #isSetSerializeDefaults()
+	 * @see #unsetSerializeDefaults()
 	 * @see #isSerializeDefaults()
 	 * @generated
 	 */
 	void setSerializeDefaults(boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isSerializeDefaults <em>Serialize Defaults</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetSerializeDefaults()
+	 * @see #isSerializeDefaults()
+	 * @see #setSerializeDefaults(boolean)
+	 * @generated
+	 */
+	void unsetSerializeDefaults();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect#isSerializeDefaults <em>Serialize Defaults</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Serialize Defaults</em>' attribute is set.
+	 * @see #unsetSerializeDefaults()
+	 * @see #isSerializeDefaults()
+	 * @see #setSerializeDefaults(boolean)
+	 * @generated
+	 */
+	boolean isSetSerializeDefaults();
 
 	/**
 	 * Returns the value of the '<em><b>Value Writer Name</b></em>' attribute.
