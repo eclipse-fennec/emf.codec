@@ -62,6 +62,9 @@ Legal values are declared next to the property, not in the message: a `ConfigPro
 value names an enum literal records that enum, and everything a message says about legal values
 is derived from it.
 
+Reported through the operation's collector, so these reach `resource.getWarnings()` /
+`getErrors()` and a config **error** fails a STRICT load exactly like a runtime error (#182).
+
 Judged: enum-named values, booleans, integers. `typeInclude="yes"` is a WARNING and keeps the
 fallback — it used to become an explicit `false`, since `Boolean.parseBoolean` answers false to
 everything that is not `"true"`, so an unparseable value inverted the caller's intent instead of
@@ -74,7 +77,11 @@ it for load and save options).
 
 ### Layer 3: Cross-Config Validation
 
-Occurs after config resolution when multiple configs interact. Examples:
+Occurs once per EClass per operation, when the codec resolves a supertype config — that is
+where both halves of the pair are in play. `ConfigurationResolver.validateCrossConfig` had no
+caller before issue #182, so these constraints were specified and never checked; a
+`STRUCTURED + typeStrategy=NONE + superTypeSerialize=true` configuration saved and loaded
+without a word. Examples:
 - **STRUCTURED + NONE + superTypeSerialize=true** → ERROR (can't write supertype in _type object when no _type)
 - **STRUCTURED + both value readers** → WARNING (superType reader ignored)
 - **STRUCTURED + both value writers** → WARNING (superType writer ignored)

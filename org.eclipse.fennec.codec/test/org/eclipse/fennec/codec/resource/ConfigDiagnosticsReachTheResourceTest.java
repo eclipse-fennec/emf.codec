@@ -13,6 +13,7 @@
 package org.eclipse.fennec.codec.resource;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -33,6 +34,7 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.AfterEach;
@@ -147,6 +149,81 @@ class ConfigDiagnosticsReachTheResourceTest {
                         + warnings(resource));
     }
 
+    @Test
+    @DisplayName("a validate() warning reaches the resource")
+    void validateWarningReachesTheResource() throws IOException {
+        // TypeConfig.validate: typeNameKey is only meaningful in STRUCTURED format.
+        CodecResource resource = newResource(Map.of("typeNameKey", "kind"));
+        resource.getContents().add(team());
+
+        resource.save(new ByteArrayOutputStream(), null);
+
+        assertTrue(warnings(resource).stream().anyMatch(m -> m.contains("typeNameKey")),
+                "spec 15 Layer 2 has to be audible, was: " + warnings(resource));
+    }
+
+    @Test
+    @DisplayName("a validate() warning reaches the resource on a second operation too")
+    void validateWarningReachesASecondOperation() throws IOException {
+        // The resolved configs are cached per EClass and validate() runs inside that cache, so
+        // the second operation on a shared resolver used to get nothing. A resolver is built
+        // once and reused; the collector belongs to one operation.
+        ConfigurationResolver shared = ConfigurationResolver.builder()
+                .resourceProperties(Map.of("typeNameKey", "kind"))
+                .build();
+
+        CodecResource first = resourceWith(shared);
+        first.getContents().add(team());
+        first.save(new ByteArrayOutputStream(), null);
+        assertTrue(warnings(first).stream().anyMatch(m -> m.contains("typeNameKey")),
+                "first operation, was: " + warnings(first));
+
+        CodecResource second = resourceWith(shared);
+        second.getContents().add(team());
+        second.save(new ByteArrayOutputStream(), null);
+
+        assertTrue(warnings(second).stream().anyMatch(m -> m.contains("typeNameKey")),
+                "the cache must not silence the rule for every later operation, was: "
+                        + warnings(second));
+    }
+
+    @Test
+    @DisplayName("the cross-config error reaches the resource")
+    void crossConfigErrorReachesTheResource() throws IOException {
+        // spec 15 Layer 3: STRUCTURED + typeStrategy=NONE + superTypeSerialize=true cannot
+        // write a supertype inside a _type object that is never written.
+        CodecResource resource = newResource(invalidCrossConfig());
+        resource.getContents().add(team());
+
+        resource.save(new ByteArrayOutputStream(), null);
+
+        assertTrue(errors(resource).stream()
+                        .anyMatch(m -> m.contains("superTypeSerialize")),
+                "the spec calls this configuration invalid; saying nothing is not an option,"
+                        + " was: errors=" + errors(resource) + " warnings=" + warnings(resource));
+    }
+
+    @Test
+    @DisplayName("the cross-config error fails a STRICT load")
+    void crossConfigErrorFailsAStrictLoad() throws IOException {
+        String json = saveWith(Map.of());
+
+        CodecResource resource = newResource(invalidCrossConfig());
+        Map<Object, Object> options = new HashMap<>();
+        options.put(CodecResource.CODEC_ROOT_TYPE, teamClass);
+        options.put(CodecOptions.CODEC_DESERIALIZATION_MODE, "STRICT");
+
+        assertThrows(IOException.class,
+                () -> resource.load(new ByteArrayInputStream(json.getBytes(UTF_8)), options),
+                "a config error has to fail a strict load the way a runtime error does");
+    }
+
+    private Map<String, Object> invalidCrossConfig() {
+        return Map.of("typeFormat", "STRUCTURED",
+                "typeStrategy", "NONE",
+                "superTypeSerialize", "true");
+    }
+
     // ========================================================================
     // Helpers
     // ========================================================================
@@ -169,13 +246,20 @@ class ConfigDiagnosticsReachTheResourceTest {
     }
 
     private CodecResource newResource(Map<String, Object> resourceProperties) {
-        ConfigurationResolver resolver = ConfigurationResolver.builder()
+        return resourceWith(ConfigurationResolver.builder()
                 .resourceProperties(resourceProperties)
-                .build();
+                .build());
+    }
+
+    private CodecResource resourceWith(ConfigurationResolver resolver) {
         return new CodecResource(URI.createURI("configdiag.json"), metadataService, resolver, null);
     }
 
     private static List<String> warnings(Resource resource) {
         return resource.getWarnings().stream().map(Resource.Diagnostic::getMessage).toList();
+    }
+
+    private static List<String> errors(Resource resource) {
+        return resource.getErrors().stream().map(Resource.Diagnostic::getMessage).toList();
     }
 }
