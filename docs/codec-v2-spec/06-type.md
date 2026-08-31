@@ -82,6 +82,23 @@ The `NONE` strategy indicates that no type information should be written or expe
   2. `EReference.getEReferenceType()` (for nested objects)
 - **ERROR** if reference type is abstract and no concrete type can be determined
 
+`NONE` is a statement about the document, not a strategy that happens to resolve nothing. The
+read side therefore skips step 3 of the flow in §6.3.0 entirely — no URI parsing, no smart
+compression expansion, no name lookup — and **reports no diagnostic** for having skipped it. A
+value that does sit under the configured `typeKey` is data: if the class declares a feature of
+that name it is filled like any other property (§6.1), otherwise it is ignored.
+
+Steps 1 and 2 of the flow are unaffected. A discriminator mapping registry on the EClass or an
+inline mapping on the EReference reads its value from a path of its own and keeps working under
+`NONE`; the strategy only governs step 3.
+
+**NONE without a root type:** for the root object `CODEC_ROOT_TYPE` is the only remaining
+source, so omitting it is an ERROR — reported as *"typeStrategy=NONE transports no type
+information, so a CODEC_ROOT_TYPE hint is required for the root object"*, kept apart from the
+"unresolvable value" and "no type information found" wordings of §6.3.2 because under `NONE`
+neither describes what happened. For nested objects the reference type takes that role, and
+`DeserializationMode` decides between a skip and an error when it is abstract (§4c).
+
 **Example:**
 ```java
 CodecConfiguration config = CodecConfiguration.builder()
