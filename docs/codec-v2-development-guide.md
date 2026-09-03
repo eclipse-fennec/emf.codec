@@ -4,6 +4,33 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-03
 
+**Session Summary (2026-09-03) — issue #193 wave 2 (#198 wiring, #199 round-trip matrix, #200 docs):**
+
+- **Wiring (#198):** `CodecPrefixRegistryComponent` collects `CodecPrefixWriter`/`CodecPrefixReader`
+  services under the key(s) in their `codec.prefix.key` property (`CodecPrefixRegistry.SERVICE_PROPERTY_KEY`;
+  `String`, `String[]` or a collection). No property → log warning, not registered; duplicate key →
+  log warning, first stays — the registry's `IllegalArgumentException` must never tear down the
+  component. All eight `*ResourceFactoryComponent`s (core, bson, cbor, csv, ods, rlang, xlsx, yaml)
+  bind the registry optionally/dynamically and pass `copy()` through the new 8-arg `CodecResource`
+  constructor. Plain Java: `setPrefixRegistry` on `CodecResourceFactory` and `CodecFormatResourceFactory`
+  — the spec's §13.7 example was corrected to this; a `CodecConfiguration` builder does not exist in
+  the code, the older §5.1 example is spec drift and is left for a separate cleanup.
+- **Matrix (#199):** `AbstractPrefixTCK` in `codec.tests` (format-agnostic, 10 cases: the four
+  matrix rows, several writers/keys with a declining writer, unknown key beside registered ones,
+  feature clash on both sides, option instances, STRUCTURED × `idOnTop`, throwing reader) run by
+  `BsonPrefixTCKTest`, `CborPrefixTCKTest`, `YamlPrefixTCKTest`; binary formats round-trip byte for
+  byte. `PrefixRoundTripTest` (JSON, 6) adds the position assertions only a text format allows.
+  `PrefixRegistryOSGiTest` in `codec.osgi.tests` covers the whiteboard: two keys per service,
+  service without property, duplicate key, and a resource from the JSON `Resource.Factory` writing
+  and reading the key through whiteboard handlers.
+- **Fixture lesson:** a "clash" key is only a clash on the class that has the feature; on `Order`
+  (no `tenant`) the same key is a plain prefix key and is read as such — the first TCK draft asserted
+  otherwise.
+- **Docs (#200):** `codec-options-reference.md` (two runtime rows, section "Prefix readers/writers"),
+  `codec-v2-reference.md` (term, severity example), `osgi-resource-factory-architecture.md` (registry
+  component, service property, factory rule). Still to do after the merge: the note on
+  eclipse-fennec/emf.persistence-jpa#133 that the codec now offers the hook.
+
 **Session Summary (2026-09-03) — issue #193 wave 1 (#194 spec, #195 api, #196 write, #197 read): prefix readers/writers:**
 
 Supersedes #151 (reserved keys). A backend that stores one document per EObject can now own
@@ -266,7 +293,8 @@ example and was updated with it.
 
 **When adding a format bundle, the rule is now:** `*Impl` public and free of DS annotations, `*Component`
 internal and carrying them, value handlers registered by the factory rather than as services, and the
-`internal` package-info without `@Export`.
+`internal` package-info without `@Export`. A component that builds a `CodecResource` also binds the
+shared `CodecPrefixRegistry` (optional, dynamic) and passes `copy()` through the 8-arg constructor (#193).
 
 **Fixed in passing — issue #148, `fallbackStrategy=ERROR` did not fail the load inside containment:**
 

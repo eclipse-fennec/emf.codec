@@ -26,6 +26,7 @@ For the main guide, see `codec-v2-development-guide.md`.
 | **Source Hierarchy** | Options → Resource → Factory → Module → Annotation (5 levels) |
 | **Visibility Gate** | First gate: ignore/ignoreWrite/ignoreRead/force* |
 | **Value Gate** | Second gate: serializeNull/Empty/Default |
+| **Prefix key** | A backend-owned document key with no feature behind it (`_owner`), written after the metadata block by a `CodecPrefixWriter` and consumed by a `CodecPrefixReader`, both registered per key in the `CodecPrefixRegistry` (spec 14 §13) |
 
 ## 3. Jackson Integration
 
@@ -89,7 +90,7 @@ FeatureConfig featureConfig = FeatureConfig.builder()
 | Severity | Meaning | Example |
 |----------|---------|---------|
 | **ERROR** | Invalid configuration, feature disabled | typeValueReaderName on EReference |
-| **WARNING** | Questionable but allowed | Runtime-only key in EAnnotation |
+| **WARNING** | Questionable but allowed | Runtime-only key in EAnnotation; a prefix key that equals a feature name (the feature wins) |
 | **INFO** | Informational message | Deprecated key usage |
 
 ## 7. Type Resolution Priority Chain

@@ -151,6 +151,8 @@ EAnnotations or `CodecModule` config.
 | `codec.featureValueWriterInstances` | `CODEC_FEATURE_VALUE_WRITER_INSTANCES` | Map\<EStructuralFeature, CodecValueWriter\> | Bind writer instances directly to features (bypasses the registry). Works for EAttributes and EReferences. |
 | `codec.featureValueReaders` | `CODEC_FEATURE_VALUE_READERS` | Map\<EStructuralFeature, String\> | **Deprecated** — bind registered readers via `"ClassName.featureName"` → `valueReaderName` instead. Attributes only; ignored for references. |
 | `codec.featureValueWriters` | `CODEC_FEATURE_VALUE_WRITERS` | Map\<EStructuralFeature, String\> | **Deprecated** — bind registered writers via `"ClassName.featureName"` → `valueWriterName` instead. Attributes only; ignored for references. |
+| `codec.prefixReaderInstances` | `CODEC_PREFIX_READER_INSTANCES` | Map\<String, CodecPrefixReader\> | Bind a prefix reader to a document key for this load; wins over the `CodecPrefixRegistry` for that key. See [Prefix readers/writers](#prefix-readerswriters). |
+| `codec.prefixWriterInstances` | `CODEC_PREFIX_WRITER_INSTANCES` | Map\<String, CodecPrefixWriter\> | Bind a prefix writer to a document key for this save; wins over the registry for that key. |
 | `codec.eClassConfig` | `CODEC_ECLASS_CONFIG` | Map\<EClass, Map\> | Per-EClass option overrides applied at the EClass scope level. |
 | `codec.eReferenceConfig` | `CODEC_EREFERENCE_CONFIG` | Map\<EReference, Map\> | Per-EReference option overrides. |
 | `codec.eAttributeConfig` | `CODEC_EATTRIBUTE_CONFIG` | Map\<EAttribute, Map\> | Per-EAttribute option overrides. |
@@ -324,6 +326,47 @@ match a known `ConfigProperty` is automatically collected there.
 | `codec.jsonschema.oclDelegateUri` | `OPTION_OCL_DELEGATE_URI` | String | `http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot` | Load option. The EMF validation-delegate URI generated invariants are registered under. Only relevant when `OPTION_GENERATE_OCL_CONSTRAINTS` is enabled. Any URI works as long as a matching `EValidator.ValidationDelegate` is registered at runtime (Eclipse OCL, its Pivot dialect, or a third-party engine). fennec-codec has no compile/runtime dependency on any OCL engine — it only writes the annotations. |
 
 ---
+
+## Prefix readers/writers
+
+A backend that stores one document per EObject can own document keys that have **no feature
+behind them** — the persistence layer's `_owner` beside the codec's `_id`, for example. It
+registers, *per key*, a `CodecPrefixWriter` that writes the field from the EObject and a
+`CodecPrefixReader` that consumes it when the object is read back. Spec:
+[Custom Values §13](codec-v2-spec/14-custom-values.md#13-prefix-readerswriters) (issue #193).
+
+```java
+CodecPrefixRegistry registry = new CodecPrefixRegistry()
+    .register("_owner", (key, object, ctx) -> {          // CodecPrefixWriter
+        if (object.eContainer() == null) return false;   // declines: no field for roots
+        ctx.getGenerator().writeName(key);
+        ctx.getGenerator().writeString(idOf(object.eContainer()));
+        return true;
+    })
+    .register("_owner", (key, target, ctx) ->            // CodecPrefixReader
+        ownerIndex.put(target, ctx.getParser().getString()));
+```
+
+What to expect:
+
+| | write | read |
+|---|---|---|
+| **reader and writer registered** | field written after the metadata block (`_type`, `_id`, …), before the first feature, in registration order | consumed by the reader, no diagnostic — also under `strictOnUnknown` |
+| **writer only** | field written | *unknown feature*: WARNING, or a failed load under `strictOnUnknown` — you wrote a key you do not read |
+| **reader only** | nothing written | a foreign document carrying the key loads silently |
+| **neither** | nothing written | unchanged behaviour |
+
+- A key equal to a **feature name** of the class is written and read as the feature; the handler
+  is skipped and one WARNING per class and key says so.
+- A **reader that throws** is an ERROR diagnostic (the value is dropped); under
+  `codec.deserializationMode=STRICT` the load fails. A writer that throws is a WARNING.
+- **OSGi:** register the handlers as services with the property `codec.prefix.key`
+  (`String` or `String[]`); `CodecPrefixRegistryComponent` collects them and every codec
+  resource factory hands a copy of the registry to its resources. **Plain Java:** pass the
+  registry to `CodecResource`, or `setPrefixRegistry(...)` on `CodecResourceFactory` /
+  `CodecFormatResourceFactory`. **Per operation:** the two options above.
+- No annotation, no per-class configuration: a prefix key belongs to the document store, not to
+  the model.
 
 ## REST client-overridable options
 
