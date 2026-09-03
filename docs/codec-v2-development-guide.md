@@ -2,7 +2,33 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-08-19
+**Last Updated:** 2026-09-03
+
+**Session Summary (2026-09-03) — issue #168, GeoJSON factory had no content type:**
+
+`GeoJsonResourceFactoryComponent` registered file extension, configurator name and version, but no
+`EMF_MODEL_CONTENT_TYPE` — the only codec factory without one. The REST reader/writer resolves the
+factory for a request exclusively through the resource set's content type map, so a Jakarta-RS method
+annotated `@Produces("application/geo+json")` never reached the codec. Reported from the Data Atlas
+GeoJSON DataService, where it was the last missing piece.
+
+- **Fix:** both `application/geo+json` (RFC 7946) and the pre-RFC alias `application/vnd.geo+json`
+  as two values of the DS property, mirroring CSV's two types; the same pair as a `List` in the
+  non-OSGi `getServiceProperties()`, the shape `FennecXMLResourceFactory` in emf.osgi uses for
+  multi-valued content types. The two strings are public constants on `GeoJsonResourceFactoryImpl`,
+  so the component and a consumer's `@Produces` can share them.
+- **Verified in the built jar:** the generated component XML carries `emf.contentType` with both
+  values; the exported package stays at `1.0.0` (nothing is released, so the baseline has no
+  predecessor to compare against — this is a MINOR addition once it has one).
+- **Test:** `GeoJsonResourceFactoryPropertiesTest`, red before the fix.
+- **Rule written down** in `docs/osgi-resource-factory-architecture.md`: every factory registers its
+  content type(s), a file extension alone does not reach the REST layer.
+- **Issue triage the same day:** #177–#181 (sub-issues of #176) were closed — PR #185 had done the
+  work; the one leftover, no diagnostic for `idKey`/`idFormat` on a *non-containment* reference, is
+  #189. Still open: #170 (server-side per-request codec options in codec.rest, plus the filter's
+  missing application select), #151 (reserved document keys), #46 (release).
+- **Repo trap:** the remote `main` branch is the Otterdog initial commit only; the default and
+  integration branch is `snapshot`. Branching from `origin/main` empties the working tree.
 
 **Session Summary (2026-08-19) — issue #154, an EMap with a non-String key read back empty:**
 

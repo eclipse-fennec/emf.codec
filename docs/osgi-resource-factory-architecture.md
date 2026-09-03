@@ -41,7 +41,9 @@ public class GeoJsonResourceFactoryImpl extends ResourceFactoryImpl {
     property = {
         EMFNamespaces.EMF_CONFIGURATOR_NAME + "=" + GeoJsonPackage.eNAME,
         EMFNamespaces.EMF_MODEL_FILE_EXT + "=" + "geojson",
-        EMFNamespaces.EMF_MODEL_VERSION + "=" + "1.0"
+        EMFNamespaces.EMF_MODEL_VERSION + "=" + "1.0",
+        EMFNamespaces.EMF_MODEL_CONTENT_TYPE + "=" + GeoJsonResourceFactoryImpl.CONTENT_TYPE_GEO_JSON,
+        EMFNamespaces.EMF_MODEL_CONTENT_TYPE + "=" + GeoJsonResourceFactoryImpl.CONTENT_TYPE_GEO_JSON_LEGACY
     },
     reference = {
         @Reference(name = "geojsonPackage", service = GeoJsonPackage.class)
@@ -53,6 +55,12 @@ public class GeoJsonResourceFactoryComponent extends GeoJsonResourceFactoryImpl 
     }
 }
 ```
+
+**Every factory registers its content type(s), not only a file extension.** The REST message body
+reader/writer resolves the factory for a request exclusively through
+`getContentTypeToFactoryMap()`, so a factory without `EMF_MODEL_CONTENT_TYPE` is invisible to
+`@Produces`/`@Consumes` (issue #168: GeoJSON could not be served as `application/geo+json`).
+Several types are several property values, as in CSV and GeoJSON.
 
 **Limitation:** These are tightly coupled to a specific model and do not support custom value registries, format providers, or configuration beyond defaults.
 
