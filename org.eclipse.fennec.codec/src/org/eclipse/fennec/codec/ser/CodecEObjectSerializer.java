@@ -14,6 +14,8 @@ package org.eclipse.fennec.codec.ser;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -31,6 +33,8 @@ import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
+import org.eclipse.fennec.codec.prefix.CodecPrefixRegistry;
+import org.eclipse.fennec.codec.prefix.CodecPrefixWriter;
 import org.eclipse.fennec.codec.context.EMFCodecWriteContext;
 import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
 import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
@@ -90,8 +94,12 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
                 .effectiveConfig(config)
                 .diagnostics(config.getDiagnostics())
                 .valueRegistry(config.getValueRegistry())
+                .prefixRegistry(config.getPrefixRegistry())
                 .build();
     }
+
+    /** Prefix-key/feature clashes already reported, as {@code EClass#key}, per serializer (= per operation). */
+    private final Set<String> reportedPrefixClashes = ConcurrentHashMap.newKeySet();
 
     @Override
     public Class<EObject> handledType() {
@@ -139,6 +147,10 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
 
         // Apply ordering
         entries = applyOrdering(entries, idConfig, eClass);
+
+        // Backend-owned prefix keys go after the metadata block and before the first feature
+        // (issue #193, spec 14-custom-values.md §13.4)
+        entries = insertPrefixEntries(entries, eClass, ctxt);
 
         // Create serialization state with value cache
         SerializationState state = new SerializationState(value);
@@ -280,6 +292,74 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
         }
 
         return entries;
+    }
+
+    /**
+     * Inserts one {@link PrefixSerializationEntry} per prefix key after the last metadata entry
+     * and before the first feature entry, in registration order (option-level instances first
+     * win per key, then keys only known from the options, appended). A key that equals a feature
+     * key of this class is not written as a prefix: the feature wins, once per class and key a
+     * warning says so (spec 14-custom-values.md §13.4).
+     */
+    private Map<String, SerializationEntry> insertPrefixEntries(Map<String, SerializationEntry> entries,
+            EClass eClass, SerializationContext ctxt) {
+        CodecPrefixRegistry registry = entryContext.getPrefixRegistry();
+        Map<?, ?> instances = null;
+        if (ctxt != null && ctxt.getAttribute(ContextHelper.PREFIX_WRITER_INSTANCES) instanceof Map<?, ?> m) {
+            instances = m;
+        }
+        if (registry.writerKeys().isEmpty() && (instances == null || instances.isEmpty())) {
+            return entries;
+        }
+
+        LinkedHashMap<String, PrefixSerializationEntry> prefixEntries = new LinkedHashMap<>();
+        for (String key : registry.writerKeys()) {
+            CodecPrefixWriter writer = instances != null && instances.get(key) instanceof CodecPrefixWriter w
+                    ? w : registry.getWriter(key).orElse(null);
+            if (writer != null) {
+                prefixEntries.put(key, new PrefixSerializationEntry(key, writer, entryContext));
+            }
+        }
+        if (instances != null) {
+            for (Map.Entry<?, ?> e : instances.entrySet()) {
+                if (e.getKey() instanceof String key && e.getValue() instanceof CodecPrefixWriter w
+                        && !prefixEntries.containsKey(key)) {
+                    prefixEntries.put(key, new PrefixSerializationEntry(key, w, entryContext));
+                }
+            }
+        }
+        if (prefixEntries.isEmpty()) {
+            return entries;
+        }
+
+        // The feature wins a name clash - and says so, once per class and key
+        for (String key : List.copyOf(prefixEntries.keySet())) {
+            if (entries.containsKey(key)) {
+                prefixEntries.remove(key);
+                if (reportedPrefixClashes.add(eClass.getName() + "#" + key)) {
+                    PrefixSerializationEntry.warn(entryContext, "Prefix key '" + key + "' collides with feature "
+                            + eClass.getName() + "." + key + "; the feature is written");
+                }
+            }
+        }
+
+        LinkedHashMap<String, SerializationEntry> result = new LinkedHashMap<>();
+        boolean inserted = false;
+        for (Map.Entry<String, SerializationEntry> entry : entries.entrySet()) {
+            if (!inserted && isFeatureEntry(entry.getValue())) {
+                result.putAll(prefixEntries);
+                inserted = true;
+            }
+            result.put(entry.getKey(), entry.getValue());
+        }
+        if (!inserted) {
+            result.putAll(prefixEntries);
+        }
+        return result;
+    }
+
+    private static boolean isFeatureEntry(SerializationEntry entry) {
+        return entry instanceof AttributeSerializationEntry || entry instanceof ReferenceSerializationEntry;
     }
 
     /**

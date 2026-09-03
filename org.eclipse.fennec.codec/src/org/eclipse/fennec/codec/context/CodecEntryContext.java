@@ -15,7 +15,12 @@ package org.eclipse.fennec.codec.context;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
+import org.eclipse.fennec.codec.value.impl.CodecPrefixReaderContextImpl;
+import org.eclipse.fennec.codec.value.impl.CodecPrefixWriterContextImpl;
 import org.eclipse.fennec.codec.value.impl.CodecReaderContextImpl;
+import org.eclipse.fennec.codec.prefix.CodecPrefixReaderContext;
+import org.eclipse.fennec.codec.prefix.CodecPrefixRegistry;
+import org.eclipse.fennec.codec.prefix.CodecPrefixWriterContext;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.codec.value.impl.CodecWriterContextImpl;
@@ -81,11 +86,13 @@ import tools.jackson.databind.SerializationContext;
 public final class CodecEntryContext {
 
     private final CodecValueRegistry valueRegistry;
+    private final CodecPrefixRegistry prefixRegistry;
     private final EffectiveCodecConfig effectiveConfig;
     private final DiagnosticCollector diagnostics;
 
     private CodecEntryContext(Builder builder) {
         this.valueRegistry = builder.valueRegistry;
+        this.prefixRegistry = builder.prefixRegistry != null ? builder.prefixRegistry : new CodecPrefixRegistry();
         // Allow null for tests - these are only needed when actually invoking custom readers/writers
         this.effectiveConfig = builder.effectiveConfig;
         this.diagnostics = builder.diagnostics != null ? builder.diagnostics : new DiagnosticCollector();
@@ -98,6 +105,11 @@ public final class CodecEntryContext {
      */
     public CodecValueRegistry getValueRegistry() {
         return valueRegistry;
+    }
+
+    /** The prefix registry of this operation (issue #193); never null. */
+    public CodecPrefixRegistry getPrefixRegistry() {
+        return prefixRegistry;
     }
 
     /**
@@ -150,6 +162,14 @@ public final class CodecEntryContext {
         return new CodecReaderContextImpl(parser, jacksonContext, effectiveConfig, diagnostics);
     }
 
+    public CodecPrefixWriterContext createPrefixWriterContext(JsonGenerator generator, SerializationContext jacksonContext) {
+        return new CodecPrefixWriterContextImpl(generator, jacksonContext, effectiveConfig, diagnostics);
+    }
+
+    public CodecPrefixReaderContext createPrefixReaderContext(JsonParser parser, DeserializationContext jacksonContext) {
+        return new CodecPrefixReaderContextImpl(parser, jacksonContext, effectiveConfig, diagnostics);
+    }
+
     // ========================================================================
     // Builder
     // ========================================================================
@@ -168,6 +188,7 @@ public final class CodecEntryContext {
      */
     public static final class Builder {
         private CodecValueRegistry valueRegistry;
+        private CodecPrefixRegistry prefixRegistry;
         private EffectiveCodecConfig effectiveConfig;
         private DiagnosticCollector diagnostics;
 
@@ -181,6 +202,11 @@ public final class CodecEntryContext {
          */
         public Builder valueRegistry(CodecValueRegistry valueRegistry) {
             this.valueRegistry = valueRegistry;
+            return this;
+        }
+
+        public Builder prefixRegistry(CodecPrefixRegistry prefixRegistry) {
+            this.prefixRegistry = prefixRegistry;
             return this;
         }
 

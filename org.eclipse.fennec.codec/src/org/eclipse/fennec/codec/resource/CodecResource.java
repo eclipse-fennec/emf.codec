@@ -60,6 +60,7 @@ import org.eclipse.fennec.codec.jackson.CodecJsonReadContext;
 import org.eclipse.fennec.codec.module.CodecModule;
 import org.eclipse.fennec.codec.util.CodecResourceHelper;
 import org.eclipse.fennec.codec.util.PackageResolver;
+import org.eclipse.fennec.codec.prefix.CodecPrefixRegistry;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.util.TokenLoops;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
@@ -143,6 +144,7 @@ public class CodecResource extends ResourceImpl {
     private final MetadataService metadataService;
     private final ConfigurationResolver resolver;
     private final CodecValueRegistry valueRegistry;
+    private final CodecPrefixRegistry prefixRegistry;
     private final JsonMapper.Builder mapperBuilder;
     private final CodecResourceHelper helper;
     private final CodecFormatProvider<?, ?> formatProvider;
@@ -217,7 +219,22 @@ public class CodecResource extends ResourceImpl {
     public CodecResource(URI uri, MetadataService metadataService, ConfigurationResolver resolver,
             CodecValueRegistry valueRegistry, JsonMapper.Builder mapperBuilder,
             CodecFormatProvider<?, ?> formatProvider, TypeDiscriminatorReader typeDiscriminatorReader) {
+        this(uri, metadataService, resolver, valueRegistry, null, mapperBuilder, formatProvider,
+                typeDiscriminatorReader);
+    }
+
+    /**
+     * Full constructor, additionally taking the prefix registry: backend-owned document keys and
+     * their writers/readers (issue #193, spec 14-custom-values.md §13).
+     *
+     * @param prefixRegistry the prefix registry, or null for none
+     */
+    public CodecResource(URI uri, MetadataService metadataService, ConfigurationResolver resolver,
+            CodecValueRegistry valueRegistry, CodecPrefixRegistry prefixRegistry,
+            JsonMapper.Builder mapperBuilder, CodecFormatProvider<?, ?> formatProvider,
+            TypeDiscriminatorReader typeDiscriminatorReader) {
         super(uri);
+        this.prefixRegistry = prefixRegistry;
         this.metadataService = requireNonNull(metadataService, "metadataService must not be null");
         this.resolver = enrichWithAnnotations(resolver, metadataService);
         this.valueRegistry = valueRegistry;
@@ -303,8 +320,10 @@ public class CodecResource extends ResourceImpl {
         // Deprecated key, still honoured: this is its implementation, not a use of it.
         @SuppressWarnings("deprecation")
         Object valueWritersOption = effectiveOptions.get(CodecOptions.CODEC_FEATURE_VALUE_WRITERS);
+        Object prefixWriterInstancesOption = effectiveOptions.get(CodecOptions.CODEC_PREFIX_WRITER_INSTANCES);
         boolean hasCustomWriterConfig = (valueWriterInstancesOption instanceof Map<?, ?>)
-                || (valueWritersOption instanceof Map<?, ?>);
+                || (valueWritersOption instanceof Map<?, ?>)
+                || (prefixWriterInstancesOption instanceof Map<?, ?>);
 
         if (hasCustomWriterConfig) {
             // Prepare writer with value writer configurations
@@ -313,6 +332,11 @@ public class CodecResource extends ResourceImpl {
             // Set feature value writer instances if provided (highest priority - direct binding)
             if (valueWriterInstancesOption instanceof Map<?, ?> instancesMap) {
                 writer = writer.withAttribute(ContextHelper.FEATURE_VALUE_WRITER_INSTANCES, instancesMap);
+            }
+
+            // Prefix writer instances per document key (issue #193)
+            if (prefixWriterInstancesOption instanceof Map<?, ?> prefixMap) {
+                writer = writer.withAttribute(ContextHelper.PREFIX_WRITER_INSTANCES, prefixMap);
             }
 
             // Set feature value writers by name if provided
@@ -424,6 +448,12 @@ public class CodecResource extends ResourceImpl {
             reader = reader.withAttribute(ContextHelper.FEATURE_VALUE_READER_INSTANCES, instancesMap);
         }
 
+        // Prefix reader instances per document key (issue #193)
+        Object prefixReaderInstancesOption = mergedOptions.get(CodecOptions.CODEC_PREFIX_READER_INSTANCES);
+        if (prefixReaderInstancesOption instanceof Map<?, ?> prefixMap) {
+            reader = reader.withAttribute(ContextHelper.PREFIX_READER_INSTANCES, prefixMap);
+        }
+
         // Set feature value readers by name if provided
         // Deprecated key, still honoured: this is its implementation, not a use of it.
         @SuppressWarnings("deprecation")
@@ -526,6 +556,12 @@ public class CodecResource extends ResourceImpl {
                     CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES);
             if (valueWriterInstancesOption instanceof Map<?, ?> instancesMap) {
                 writer = writer.withAttribute(ContextHelper.FEATURE_VALUE_WRITER_INSTANCES, instancesMap);
+            }
+
+            // Prefix writer instances per document key (issue #193)
+            Object prefixWriterInstancesOption = effectiveOptions.get(CodecOptions.CODEC_PREFIX_WRITER_INSTANCES);
+            if (prefixWriterInstancesOption instanceof Map<?, ?> prefixMap) {
+                writer = writer.withAttribute(ContextHelper.PREFIX_WRITER_INSTANCES, prefixMap);
             }
 
             // Set feature value writers by name if provided
@@ -659,6 +695,12 @@ public class CodecResource extends ResourceImpl {
         Object valueReaderInstancesOption = mergedOptions.get(CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES);
         if (valueReaderInstancesOption instanceof Map<?, ?> instancesMap) {
             reader = reader.withAttribute(ContextHelper.FEATURE_VALUE_READER_INSTANCES, instancesMap);
+        }
+
+        // Prefix reader instances per document key (issue #193)
+        Object prefixReaderInstancesOption = mergedOptions.get(CodecOptions.CODEC_PREFIX_READER_INSTANCES);
+        if (prefixReaderInstancesOption instanceof Map<?, ?> prefixMap) {
+            reader = reader.withAttribute(ContextHelper.PREFIX_READER_INSTANCES, prefixMap);
         }
 
         // Set feature value readers by name if provided
@@ -959,6 +1001,9 @@ public class CodecResource extends ResourceImpl {
 
         if (valueRegistry != null) {
             moduleBuilder.valueRegistry(valueRegistry);
+        }
+        if (prefixRegistry != null) {
+            moduleBuilder.prefixRegistry(prefixRegistry);
         }
 
         CodecModule codecModule = moduleBuilder.build();

@@ -34,6 +34,7 @@ import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.value.CodecValueReader;
+import org.eclipse.fennec.codec.prefix.CodecPrefixRegistry;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.util.PackageResolver;
@@ -86,6 +87,7 @@ public final class EffectiveCodecConfig
     private final MetadataService metadataService;
     private final TypeDiscriminatorReader typeDiscriminatorService;
     private final CodecValueRegistry valueRegistry;
+    private final CodecPrefixRegistry prefixRegistry;
 
     // Global settings (not per-class)
     private final List<String> globalIgnoreFeatures;
@@ -108,6 +110,7 @@ public final class EffectiveCodecConfig
         this.metadataService = builder.metadataService;
         this.typeDiscriminatorService = builder.typeDiscriminatorService;
         this.valueRegistry = builder.valueRegistry;
+        this.prefixRegistry = builder.prefixRegistry != null ? builder.prefixRegistry : new CodecPrefixRegistry();
         this.globalIgnoreFeatures = builder.globalIgnoreFeatures != null
                 ? List.copyOf(builder.globalIgnoreFeatures) : List.of();
         this.sortPropertiesAlphabetically = builder.sortPropertiesAlphabetically;
@@ -429,6 +432,14 @@ public final class EffectiveCodecConfig
     }
 
     /**
+     * The prefix registry: backend-owned document keys and their writers/readers (issue #193,
+     * spec 14-custom-values.md §13). Never null; empty when nothing is registered.
+     */
+    public CodecPrefixRegistry getPrefixRegistry() {
+        return prefixRegistry;
+    }
+
+    /**
      * Gets a custom value writer by name from the registry.
      *
      * @param <T> the value type
@@ -660,6 +671,7 @@ public final class EffectiveCodecConfig
         private MetadataService metadataService;
         private TypeDiscriminatorReader typeDiscriminatorService;
         private CodecValueRegistry valueRegistry;
+        private CodecPrefixRegistry prefixRegistry;
         private List<String> globalIgnoreFeatures;
         private boolean sortPropertiesAlphabetically = false;
         private boolean smartCompression = false;
@@ -696,6 +708,11 @@ public final class EffectiveCodecConfig
 
         public Builder valueRegistry(CodecValueRegistry valueRegistry) {
             this.valueRegistry = valueRegistry;
+            return this;
+        }
+
+        public Builder prefixRegistry(CodecPrefixRegistry prefixRegistry) {
+            this.prefixRegistry = prefixRegistry;
             return this;
         }
 

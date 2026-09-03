@@ -25,6 +25,7 @@ import org.eclipse.fennec.codec.deser.CodecDeserializers;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.ser.CodecSerializers;
+import org.eclipse.fennec.codec.prefix.CodecPrefixRegistry;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
@@ -73,6 +74,7 @@ public class CodecModule extends SimpleModule {
     private final MetadataService metadataService;
     private final TypeDiscriminatorReader typeDiscriminatorService;
     private final CodecValueRegistry valueRegistry;
+    private final CodecPrefixRegistry prefixRegistry;
     private final List<String> globalIgnoreFeatures;
     private final boolean sortPropertiesAlphabetically;
     private final boolean smartCompression;
@@ -94,6 +96,7 @@ public class CodecModule extends SimpleModule {
         this.metadataService = builder.metadataService;
         this.typeDiscriminatorService = builder.typeDiscriminatorService;
         this.valueRegistry = builder.valueRegistry;
+        this.prefixRegistry = builder.prefixRegistry;
         this.globalIgnoreFeatures = builder.globalIgnoreFeatures != null
                 ? List.copyOf(builder.globalIgnoreFeatures) : List.of();
         this.sortPropertiesAlphabetically = builder.sortPropertiesAlphabetically;
@@ -156,6 +159,7 @@ public class CodecModule extends SimpleModule {
                 .metadataService(metadataService)
                 .typeDiscriminatorService(typeDiscriminatorService)
                 .valueRegistry(valueRegistry)
+                .prefixRegistry(prefixRegistry)
                 .globalIgnoreFeatures(globalIgnoreFeatures)
                 .sortPropertiesAlphabetically(sortPropertiesAlphabetically)
                 .smartCompression(smartCompression)
@@ -183,6 +187,7 @@ public class CodecModule extends SimpleModule {
                 .metadataService(metadataService)
                 .typeDiscriminatorService(typeDiscriminatorService)
                 .valueRegistry(valueRegistry)
+                .prefixRegistry(prefixRegistry)
                 .globalIgnoreFeatures(globalIgnoreFeatures)
                 .sortPropertiesAlphabetically(sortPropertiesAlphabetically)
                 .smartCompression(smartCompression)
@@ -235,6 +240,11 @@ public class CodecModule extends SimpleModule {
      */
     public CodecValueRegistry getValueRegistry() {
         return valueRegistry;
+    }
+
+    /** The prefix registry (issue #193); may be null, the effective config then uses an empty one. */
+    public CodecPrefixRegistry getPrefixRegistry() {
+        return prefixRegistry;
     }
 
     /**
@@ -314,6 +324,7 @@ public class CodecModule extends SimpleModule {
         private MetadataService metadataService;
         private TypeDiscriminatorReader typeDiscriminatorService;
         private CodecValueRegistry valueRegistry;
+        private CodecPrefixRegistry prefixRegistry;
         private List<String> globalIgnoreFeatures;
         private boolean sortPropertiesAlphabetically = false;
         private boolean smartCompression = false;
@@ -363,6 +374,11 @@ public class CodecModule extends SimpleModule {
 
         public Builder valueRegistry(CodecValueRegistry valueRegistry) {
             this.valueRegistry = valueRegistry;
+            return this;
+        }
+
+        public Builder prefixRegistry(CodecPrefixRegistry prefixRegistry) {
+            this.prefixRegistry = prefixRegistry;
             return this;
         }
 

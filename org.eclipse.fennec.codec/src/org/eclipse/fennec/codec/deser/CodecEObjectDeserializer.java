@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -37,6 +39,7 @@ import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
+import org.eclipse.fennec.codec.prefix.CodecPrefixReader;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
@@ -126,8 +129,14 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 .effectiveConfig(config)
                 .diagnostics(config.getDiagnostics())
                 .valueRegistry(config.getValueRegistry())
+                .prefixRegistry(config.getPrefixRegistry())
                 .build();
     }
+
+    /** Prefix-key/feature clashes already reported, as {@code EClass#key}, per deserializer (= per operation). */
+    private final Set<String> reportedPrefixClashes = ConcurrentHashMap.newKeySet();
+
+    private static final String PREFIX_SOURCE = "PrefixDeserializationEntry";
 
     @Override
     public Class<?> handledType() {
@@ -1011,12 +1020,19 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             Object value = entry.getValue();
 
             DeserializationEntry deserEntry = entries.get(propertyName);
+            CodecPrefixReader prefixReader = deserEntry == null ? null : resolvePrefixReader(propertyName, ctxt);
+            if (deserEntry != null && prefixReader != null) {
+                reportPrefixClash(propertyName, eClass, ctxt);
+            }
             if (deserEntry != null && value != null) {
                 replayDeferredValue(state, deserEntry, value, ctxt);
             } else if (deserEntry == null && isDeliberatelyNotRead(propertyName, eClass)) {
                 // Written by the codec itself, or excluded from reading - not unknown.
                 // Deferred properties need the same treatment as direct ones (issue #131)
                 LOGGER.fine("Skipping deliberately unread deferred property: " + propertyName);
+            } else if (deserEntry == null && (prefixReader = resolvePrefixReader(propertyName, ctxt)) != null) {
+                // A backend-owned prefix key, met before the type was known (issue #193)
+                readPrefix(state, propertyName, prefixReader, value, ctxt);
             } else if (deserEntry == null && unsettableFeature(propertyName, eClass) != null) {
                 ContextHelper.addWarning(ctxt, unsettableMessage(propertyName, eClass), null,
                         "CodecEObjectDeserializer");
@@ -1041,6 +1057,61 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     /**
      * Replays a deferred value through a TokenBuffer for proper deserialization.
      */
+    /**
+     * The prefix reader for a key: an instance bound through the load options wins, then the
+     * registry; {@code null} when the key has no reader and is therefore unknown (issue #193).
+     */
+    private CodecPrefixReader resolvePrefixReader(String key, DeserializationContext ctxt) {
+        if (ctxt != null && ctxt.getAttribute(ContextHelper.PREFIX_READER_INSTANCES) instanceof Map<?, ?> instances
+                && instances.get(key) instanceof CodecPrefixReader bound) {
+            return bound;
+        }
+        return entryContext.getPrefixRegistry().getReader(key).orElse(null);
+    }
+
+    /** The feature wins a name clash with a prefix key; says so once per class and key. */
+    private void reportPrefixClash(String key, EClass eClass, DeserializationContext ctxt) {
+        if (eClass != null && reportedPrefixClashes.add(eClass.getName() + "#" + key)) {
+            ContextHelper.addWarning(ctxt, "Prefix key '" + key + "' collides with feature "
+                    + eClass.getName() + "." + key + "; read as the feature", PREFIX_SOURCE);
+        }
+    }
+
+    /**
+     * Hands a buffered prefix value to its reader with the EObject already created (spec
+     * 14-custom-values.md §13.5). A reader that throws follows the strictness hierarchy: an
+     * error diagnostic, and under STRICT the load fails.
+     */
+    private void readPrefix(DeserializationState state, String key, CodecPrefixReader reader,
+            Object value, DeserializationContext ctxt) {
+        try {
+            tools.jackson.databind.util.TokenBuffer buffer = bufferFor(value, ctxt);
+            try (tools.jackson.core.JsonParser bufferParser = buffer.asParser(ctxt)) {
+                bufferParser.nextToken();
+                reader.read(key, state.getEObject(),
+                        entryContext.createPrefixReaderContext(bufferParser, ctxt));
+            }
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            String msg = "Prefix reader for '" + key + "' failed on "
+                    + (state.getResolvedEClass() != null ? state.getResolvedEClass().getName() : "?")
+                    + ": " + e.getMessage();
+            LOGGER.warning(msg);
+            ContextHelper.addError(ctxt, msg, null, PREFIX_SOURCE);
+            if (ContextHelper.isStrictMode(ctxt)) {
+                throw new IllegalStateException(msg, e);
+            }
+        }
+    }
+
+    /** Writes a value read by {@link #readCurrentValue} into a token buffer, so it can be parsed again. */
+    private tools.jackson.databind.util.TokenBuffer bufferFor(Object value, DeserializationContext ctxt) {
+        tools.jackson.databind.util.TokenBuffer buffer = ctxt.bufferForInputBuffering(ctxt.getParser());
+        writeValueToBuffer(buffer, value);
+        return buffer;
+    }
+
     private void replayDeferredValue(DeserializationState state, DeserializationEntry entry,
             Object value, DeserializationContext ctxt) {
         try {
@@ -1148,13 +1219,21 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         Map<String, DeserializationEntry> entries = buildDeserializationEntries(eClass, ctxt);
 
         DeserializationEntry entry = entries.get(propertyName);
+        CodecPrefixReader prefixReader;
         if (entry != null) {
+            if (resolvePrefixReader(propertyName, ctxt) != null) {
+                reportPrefixClash(propertyName, eClass, ctxt);
+            }
             entry.deserialize(state, parser, ctxt);
         } else if (isDeliberatelyNotRead(propertyName, eClass)) {
             // The codec wrote this itself, or was told not to read it. Reporting it as
             // unknown means the codec cannot read its own output without complaining, which
             // makes the diagnostics useless as a signal (issue #131).
             parser.skipChildren();
+        } else if ((prefixReader = resolvePrefixReader(propertyName, ctxt)) != null) {
+            // A backend-owned prefix key with a registered reader is known (issue #193). The
+            // value is buffered first so a failing reader can never leave the stream half read.
+            readPrefix(state, propertyName, prefixReader, readCurrentValue(parser, ctxt), ctxt);
         } else if (unsettableFeature(propertyName, eClass) != null) {
             ContextHelper.addWarning(ctxt, unsettableMessage(propertyName, eClass), parser,
                     "CodecEObjectDeserializer");
