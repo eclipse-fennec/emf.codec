@@ -1140,6 +1140,8 @@ public class CodecResource extends ResourceImpl {
             CodecOptions.CODEC_FEATURE_VALUE_WRITERS,
             CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES,
             CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES,
+            CodecOptions.CODEC_PREFIX_READER_INSTANCES,
+            CodecOptions.CODEC_PREFIX_WRITER_INSTANCES,
             CodecOptions.CODEC_FAIL_FAST,
             CodecOptions.CODEC_SUPPRESS_WARNINGS,
             CodecOptions.CODEC_SUPPRESS_WARNING_SOURCES,

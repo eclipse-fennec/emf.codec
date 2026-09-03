@@ -440,6 +440,27 @@ public enum ConfigProperty {
     FEATURE_VALUE_WRITER_INSTANCES("featureValueWriterInstances", (Class<Map<?, ?>>) (Class<?>) Map.class, null,
         levels(GLOBAL), directions(WRITE)),
 
+    /**
+     * Per-key prefix reader instances (issue #193, spec 14-custom-values.md §13.7).
+     * <p>
+     * Value type: {@code Map<String, CodecPrefixReader>} - the key is the document key, not a
+     * feature. An instance bound here wins over the {@code CodecPrefixRegistry} for that key.
+     * </p>
+     */
+    @SuppressWarnings("unchecked")
+    PREFIX_READER_INSTANCES("prefixReaderInstances", (Class<Map<?, ?>>) (Class<?>) Map.class, null,
+        levels(GLOBAL), directions(READ)),
+
+    /**
+     * Per-key prefix writer instances (issue #193, spec 14-custom-values.md §13.7).
+     * <p>
+     * Value type: {@code Map<String, CodecPrefixWriter>}.
+     * </p>
+     */
+    @SuppressWarnings("unchecked")
+    PREFIX_WRITER_INSTANCES("prefixWriterInstances", (Class<Map<?, ?>>) (Class<?>) Map.class, null,
+        levels(GLOBAL), directions(WRITE)),
+
     // ========================================================================
     // Scope Configuration (for runtime options)
     // ========================================================================

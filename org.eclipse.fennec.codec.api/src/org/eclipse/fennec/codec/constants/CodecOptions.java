@@ -148,6 +148,27 @@ public final class CodecOptions {
     public static final String CODEC_FEATURE_VALUE_WRITER_INSTANCES = "codec.featureValueWriterInstances";
 
     /**
+     * Load option: prefix reader instances per document key (issue #193).
+     * <p>Value: {@code Map<String, CodecPrefixReader>}</p>
+     * <p>
+     * A prefix key has no feature behind it; the map key is the document key. An instance bound
+     * here wins over the {@code CodecPrefixRegistry} entry for the same key. See spec
+     * 14-custom-values.md §13.
+     * </p>
+     */
+    public static final String CODEC_PREFIX_READER_INSTANCES = "codec.prefixReaderInstances";
+
+    /**
+     * Save option: prefix writer instances per document key (issue #193).
+     * <p>Value: {@code Map<String, CodecPrefixWriter>}</p>
+     * <p>
+     * An instance bound here wins over the {@code CodecPrefixRegistry} entry for the same key.
+     * See spec 14-custom-values.md §13.
+     * </p>
+     */
+    public static final String CODEC_PREFIX_WRITER_INSTANCES = "codec.prefixWriterInstances";
+
+    /**
      * Load/Save option: Throw on first error.
      * <p>Value: {@code Boolean}, default: false</p>
      */
