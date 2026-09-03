@@ -66,7 +66,7 @@ Several types are several property values, as in CSV and GeoJSON.
 
 ### 2.2 Non-OSGi Factories
 
-- `CodecResourceFactory` — plain Java factory with setter-based DI; supports `MetadataService`, `ConfigurationResolver`, `JsonMapper.Builder`, default save/load options. Does **not** support `CodecValueRegistry`, `CodecFormatProvider`, or `TypeDiscriminatorReader`.
+- `CodecResourceFactory` — plain Java factory with setter-based DI; supports `MetadataService`, `ConfigurationResolver`, `JsonMapper.Builder`, default save/load options and, since #193, a `CodecPrefixRegistry` via `setPrefixRegistry`. Does **not** support `CodecValueRegistry`, `CodecFormatProvider`, or `TypeDiscriminatorReader`.
 - `CodecFormatResourceFactory` — adds `CodecFormatProvider` support but still no value registry or type discriminator.
 
 ### 2.3 MetadataServiceComponent (Whiteboard Orchestrator)
@@ -121,6 +121,14 @@ Currently plain Java classes with no DS annotations:
 **Package:** `org.eclipse.fennec.codec.resource`
 
 This is the core component. It registers as `Resource.Factory` for the `.json` extension and assembles a `CodecValueRegistry` from whiteboardcollected value writers/readers.
+
+Since issue #193 every factory component additionally binds the shared **`CodecPrefixRegistry`**
+(optional, dynamic) and hands a `copy()` to each resource, exactly as it does for the value
+registry. `CodecPrefixRegistryComponent` (`org.eclipse.fennec.codec.resource.internal`) assembles
+that registry from `CodecPrefixWriter` / `CodecPrefixReader` services; each service names the
+document key(s) it serves in the `codec.prefix.key` property (`String` or `String[]`). A service
+without the property is ignored with a log warning, a second service for a taken key too — the
+first stays. Spec: `docs/codec-v2-spec/14-custom-values.md` §13.7.
 
 ```java
 @Component(
@@ -178,6 +186,7 @@ public class CodecResourceFactoryComponent extends ResourceFactoryImpl {
             metadataService,
             resolver,
             valueRegistry.copy(),  // snapshot to avoid concurrent modification
+            prefixRegistry.copy(), // prefix registry, same reasoning (issue #193)
             null,                  // mapperBuilder (default)
             null,                  // formatProvider (JSON = null)
             null                   // typeDiscriminatorReader (built internally)

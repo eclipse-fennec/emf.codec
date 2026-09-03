@@ -1136,14 +1136,22 @@ ignored with a log warning; a second service for a key already taken is ignored 
 warning — the registry's `IllegalArgumentException` is for programmatic misuse and must not tear
 down the component.
 
-**Plain Java.**
+**Plain Java.** Build the registry and hand it to the resource or to a factory:
 
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .prefixWriter("_owner", new OwnerWriter())
-    .prefixReader("_owner", new OwnerReader())
-    .prefixWriter("_ownerRef", new OwnerWriter())   // same instance, second key
-    .build();
+CodecPrefixRegistry registry = new CodecPrefixRegistry()
+    .register("_owner", new OwnerWriter())
+    .register("_owner", new OwnerReader())
+    .register("_ownerRef", new OwnerWriter());     // same instance, second key
+
+// per resource: the full constructor
+new CodecResource(uri, metadataService, resolver, valueRegistry, registry, mapperBuilder, formatProvider, null);
+
+// or per factory, for every resource it creates
+CodecResourceFactory factory = new CodecResourceFactory(metadataService);
+factory.setPrefixRegistry(registry);
+CodecFormatResourceFactory bson = new CodecFormatResourceFactory(metadataService, new BsonFormatProvider());
+bson.setPrefixRegistry(registry);
 ```
 
 **Load/save options** — per-operation instance binding that wins over the registry for its key
