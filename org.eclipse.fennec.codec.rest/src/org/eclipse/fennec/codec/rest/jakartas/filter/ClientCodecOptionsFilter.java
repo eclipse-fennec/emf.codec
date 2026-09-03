@@ -25,6 +25,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.jakartars.whiteboard.JakartarsWhiteboardConstants;
+import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsApplicationSelect;
 import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsExtension;
 import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsName;
 
@@ -40,12 +42,22 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
  * <p>
  * Secure by default: with no {@link RestOverridableCodecOptions} services (empty whitelist) the
  * header is ignored entirely.
+ * <p>
+ * The request property is a shared channel (issue #170): server-side code may fill it as well,
+ * see {@link JakartaRestConstants#CLIENT_CODEC_OPTIONS}. This filter therefore <em>merges</em>
+ * onto a map already present rather than replacing it, with the client's whitelisted keys
+ * winning on a collision - whitelisting a key is the decision to let the client set it.
+ * <p>
+ * Attaches to the same applications as the codec's message body handlers ({@code emf=true} or
+ * {@code .default}), so the header works by default wherever the handlers do. The selector is a
+ * component property and can be widened through Config Admin.
  *
  * @since 1.0
  */
 @Component
 @JakartarsExtension
 @JakartarsName("ClientCodecOptionsFilter")
+@JakartarsApplicationSelect("(|(emf=true)(" + JakartarsWhiteboardConstants.JAKARTA_RS_NAME + "=.default))")
 public class ClientCodecOptionsFilter implements ContainerRequestFilter {
 
 	/** All modules' contributions; the union of their keys forms the allow-list. */
@@ -63,8 +75,29 @@ public class ClientCodecOptionsFilter implements ContainerRequestFilter {
 		Map<String, Object> clientOptions = parseClientOptions(whitelist, headerValues);
 
 		if (!clientOptions.isEmpty()) {
-			requestContext.setProperty(JakartaRestConstants.CLIENT_CODEC_OPTIONS, clientOptions);
+			Object existing = requestContext.getProperty(JakartaRestConstants.CLIENT_CODEC_OPTIONS);
+			requestContext.setProperty(JakartaRestConstants.CLIENT_CODEC_OPTIONS,
+					mergeClientOptions(existing, clientOptions));
 		}
+	}
+
+	/**
+	 * Lays the client's options over whatever the request property already holds (issue #170).
+	 * <p>
+	 * A server-side filter running earlier may have filled the property; its keys survive, and
+	 * the client's whitelisted keys win where both set the same one. A value that is not a map
+	 * is not a channel and is replaced. The earlier map is left untouched. Package visible for
+	 * testing.
+	 * </p>
+	 */
+	@SuppressWarnings("unchecked")
+	static Map<String, Object> mergeClientOptions(Object existing, Map<String, Object> clientOptions) {
+		if (!(existing instanceof Map)) {
+			return clientOptions;
+		}
+		Map<String, Object> merged = new HashMap<>((Map<String, Object>) existing);
+		merged.putAll(clientOptions);
+		return merged;
 	}
 
 	/**
