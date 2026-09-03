@@ -4,6 +4,18 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-03
 
+**Session Summary (2026-09-03) — issue #201, GeoJSON had no `@RequireCodecGeoJson` and no capability:**
+
+The only format bundle outside the `@RequireCodec*` / `@Capability` pattern documented below (the
+2026 pattern table). Data Atlas wanted a consumer of `application/geo+json` to fail at resolve time
+when the codec is missing, as every other format allows, and had to fall back to `bnd.identity` in
+its bndruns. Fixed mechanically along the pattern: `@Capability(emf.configurator, RESOURCE_FACTORY,
+emf.configuratorName=FennecCodecGeoJson)` on the main package, new exported package
+`…geojson.annotation` with `RequireCodecGeoJson`. Verified in the built manifest
+(`Provide-Capability` and the new `Export-Package`). Deliberately untouched: the component's
+service property `emf.configuratorName=geojson` — a service property, not a capability, and the
+siblings do not set one at all; renaming it would surprise anyone filtering on it.
+
 **Session Summary (2026-09-03) — issue #170, codec.rest: server-side per-request options:**
 
 Data Atlas generates REST endpoints from a configuration model at runtime and needs per-endpoint
@@ -565,6 +577,7 @@ Added the OSGi resolver wiring pattern used by gecko (`emf.configurator` namespa
 | `org.eclipse.fennec.codec.xlsx` | `@RequireCodecXlsx` | `FennecCodecXlsx` |
 | `org.eclipse.fennec.codec.rlang` | `@RequireCodecRLang` | `FennecCodecRLang` |
 | `org.eclipse.fennec.codec.jsonschema` | `@RequireCodecJsonSchema` (in `v2.annotation`) | `FennecCodecJsonSchema` |
+| `org.eclipse.fennec.codec.geojson` | `@RequireCodecGeoJson` | `FennecCodecGeoJson` (added 2026-09-03, #201) |
 
 *Note:* The `codec.rest` bundle uses its own `fennec.codec.rest` namespace (capability `messagebody`) rather than `emf.configurator`, because `@RequireCodecMessageBodyReaderWriter` requires the JAX-RS message body reader/writer component, not a resource factory.
 
