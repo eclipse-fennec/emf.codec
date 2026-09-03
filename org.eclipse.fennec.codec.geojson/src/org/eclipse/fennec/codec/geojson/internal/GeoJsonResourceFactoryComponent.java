@@ -23,7 +23,14 @@ import org.osgi.service.component.annotations.Reference;
 
 /**
  * Registers {@link GeoJsonResourceFactoryImpl} as {@code Resource.Factory} service for the
- * {@code geojson} file extension.
+ * {@code geojson} file extension and the GeoJSON media types.
+ * <p>
+ * The content types matter for the REST layer: the message body reader/writer looks a factory up
+ * through the resource set's content type map alone, so without them
+ * {@code application/geo+json} could never reach this codec (issue #168). {@code application/geo+json}
+ * is the type RFC 7946 registers; {@code application/vnd.geo+json} is the pre-RFC alias still
+ * found in clients.
+ * </p>
  * <p>
  * The static {@code geojsonPackage} reference keeps the component unsatisfied until the GeoJSON
  * model is present.
@@ -36,7 +43,9 @@ import org.osgi.service.component.annotations.Reference;
 	property = {
 		EMFNamespaces.EMF_CONFIGURATOR_NAME + "=" + GeoJsonPackage.eNAME,
 		EMFNamespaces.EMF_MODEL_FILE_EXT + "=" + "geojson",
-		EMFNamespaces.EMF_MODEL_VERSION + "=" + "1.0"
+		EMFNamespaces.EMF_MODEL_VERSION + "=" + "1.0",
+		EMFNamespaces.EMF_MODEL_CONTENT_TYPE + "=" + GeoJsonResourceFactoryImpl.CONTENT_TYPE_GEO_JSON,
+		EMFNamespaces.EMF_MODEL_CONTENT_TYPE + "=" + GeoJsonResourceFactoryImpl.CONTENT_TYPE_GEO_JSON_LEGACY
 	},
 	reference = {
 		@Reference(name = "geojsonPackage", service = GeoJsonPackage.class)

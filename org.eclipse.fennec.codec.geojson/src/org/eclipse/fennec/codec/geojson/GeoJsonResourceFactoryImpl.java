@@ -15,6 +15,7 @@ package org.eclipse.fennec.codec.geojson;
 import static java.util.Objects.requireNonNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
@@ -42,6 +43,12 @@ import org.geojson.GeoJsonPackage;
  * @since 1.0
  */
 public class GeoJsonResourceFactoryImpl extends ResourceFactoryImpl {
+
+	/** The GeoJSON media type registered by RFC 7946. */
+	public static final String CONTENT_TYPE_GEO_JSON = "application/geo+json";
+
+	/** The pre-RFC GeoJSON media type, still used by some clients. */
+	public static final String CONTENT_TYPE_GEO_JSON_LEGACY = "application/vnd.geo+json";
 
 	private final MetadataService metadataService;
 
@@ -84,6 +91,8 @@ public class GeoJsonResourceFactoryImpl extends ResourceFactoryImpl {
 		properties.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, GeoJsonPackage.eNAME);
 		properties.put(EMFNamespaces.EMF_MODEL_FILE_EXT, "geojson");
 		properties.put(EMFNamespaces.EMF_MODEL_VERSION, "1.0");
+		properties.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE,
+				List.of(CONTENT_TYPE_GEO_JSON, CONTENT_TYPE_GEO_JSON_LEGACY));
 		return properties;
 	}
 }
