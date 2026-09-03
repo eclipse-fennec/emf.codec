@@ -28,6 +28,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.EnumSerializationStrategy;
 import org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
@@ -1038,6 +1039,62 @@ class CodecAspectProviderMisconfigTest {
                     .filter(d -> d.getKey().startsWith("metadata"))
                     .count(),
                 "Should have exactly 2 metadata-merge-related diagnostics");
+        }
+    }
+
+    // ========================================================================
+    // idKey / idFormat and the containment rule (issue #189)
+    // ========================================================================
+
+    @Nested
+    @DisplayName("Reference-scoped id keys on a non-containment reference")
+    class IdKeysOnNonContainmentReference {
+
+        /**
+         * @VALID @SPEC(09-id.md#4.4)
+         * The control: on a containment reference the two keys land on the aspect.
+         */
+        @Test
+        @DisplayName("idKey/idFormat on a containment EReference - parsed into the aspect")
+        void idKeysOnContainmentReference_parsed() {
+            EClass owner = EcoreHelper.getEClass(testPackage, "RefWithIdKeyOnNonContainment");
+            EReference address = (EReference) EcoreHelper.getFeature(owner, "address");
+
+            AspectEntry entry = featureEntry(address);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
+
+            assertNotNull(aspect.getIdConfig(), "containment is where a reference-scoped id key applies");
+            assertEquals("addrId", aspect.getIdConfig().getIdKey());
+            assertEquals(SerializationFormat.STRUCTURED, aspect.getIdConfig().getFormat());
+            assertTrue(entry.getDiagnostics().stream().noneMatch(d -> d.getKey().startsWith("id")),
+                    "nothing to report on the containment side, was: " + entry.getDiagnostics());
+        }
+
+        /**
+         * @MISCONFIG @SPEC(09-id.md#4.4)
+         * A non-containment reference writes a {@code $ref}, not the target's body, so there is no
+         * id key in that position to rename. The annotation is inert; saying so is the fix.
+         */
+        @Test
+        @DisplayName("idKey/idFormat on a non-containment EReference - dropped with WARNING diagnostics")
+        void idKeysOnNonContainmentReference_droppedAndReported() {
+            EClass owner = EcoreHelper.getEClass(testPackage, "RefWithIdKeyOnNonContainment");
+            EReference cached = (EReference) EcoreHelper.getFeature(owner, "cachedAddress");
+
+            AspectEntry entry = featureEntry(cached);
+            ReferenceCodecAspect aspect = (ReferenceCodecAspect) entry.getContent();
+
+            assertNull(aspect.getIdConfig(), "an id config nobody can apply must not reach the aspect");
+            assertNotNull(aspect.getTypeConfig(), "the valid key next to it is still parsed");
+
+            for (String key : new String[] { "idKey", "idFormat" }) {
+                assertTrue(entry.getDiagnostics().stream()
+                        .anyMatch(d -> key.equals(d.getKey())
+                                && d.getSeverity() == DiagnosticSeverity.WARNING
+                                && d.getMessage().contains("containment")),
+                        "expected a WARNING naming '" + key + "' and the containment rule, was: "
+                                + entry.getDiagnostics());
+            }
         }
     }
 }

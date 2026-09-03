@@ -22,6 +22,7 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.fennec.codec.diagnostic.CodecDiagnostic;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -158,6 +159,30 @@ class ConfigValueValidationTest {
     }
 
     @Test
+    @DisplayName("idKey and idFormat on a non-containment reference are reported, not applied")
+    void idKeyOnANonContainmentReferenceIsReported() {
+        // A non-containment reference writes a $ref, not the target's body, so there is no id
+        // key in that position to rename (issue #189, spec 09-id.md §4.4). Applying the value
+        // would change nothing; dropping it in silence is the trap.
+        org.eclipse.emf.ecore.EReference friend = reference(false);
+        ConfigurationResolver resolver = ConfigurationResolver.builder()
+                .resourceProperties(Map.of("Person",
+                        Map.of("friend", Map.of("idKey", "personId", "idFormat", "STRUCTURED"))))
+                .build();
+
+        IdConfig config = resolver.resolveIdConfig(personClass, friend, diagnostics);
+
+        assertEquals("_id", config.getKey(), "the class-level key stands");
+        assertEquals(SerializationFormat.PLAIN, config.getFormat(), "the class-level format stands");
+        for (String key : new String[] { "idKey", "idFormat" }) {
+            assertTrue(messages().stream().anyMatch(m -> m.contains(key)
+                            && m.contains("Person.friend") && m.contains("containment")),
+                    "the refusal has to name '" + key + "', the feature and the rule, was: "
+                            + messages());
+        }
+    }
+
+    @Test
     @DisplayName("a feature-scoped idKey is reported once, not once per resolution")
     void classOnlyIdPropertyReportedOnce() {
         org.eclipse.emf.ecore.EReference friend = reference();
@@ -218,10 +243,16 @@ class ConfigValueValidationTest {
                 .build();
     }
 
+    /** A containment reference: the place a reference-scoped id key applies (09-id.md §4.4). */
     private org.eclipse.emf.ecore.EReference reference() {
+        return reference(true);
+    }
+
+    private org.eclipse.emf.ecore.EReference reference(boolean containment) {
         org.eclipse.emf.ecore.EReference ref = EcoreFactory.eINSTANCE.createEReference();
         ref.setName("friend");
         ref.setEType(personClass);
+        ref.setContainment(containment);
         personClass.getEStructuralFeatures().add(ref);
         return ref;
     }
