@@ -346,3 +346,50 @@ bundles and jakarta.
   secure-by-default). Full `./gradlew build` green.
 - No new dependency between `codec.rest` and the format bundles; no jakarta dependency added to any
   format bundle.
+
+---
+
+## 13. The request property is a shared channel — server-side per-request options (issue #170)
+
+§7 describes one writer of `CLIENT_CODEC_OPTIONS`: the filter, on behalf of the client. It is not
+the only legitimate one. An endpoint whose options are known only at runtime — the motivating case
+is a generic Jakarta-RS resource serving many configured data sets, each with its own CSV dialect —
+cannot express them as Java annotations, and there is no hook on the resource method to hand the
+message body writer an options map. The request property **is** that hook.
+
+**Contract (as of 2026-09-03):**
+
+1. `JakartaRestConstants.CLIENT_CODEC_OPTIONS` is the general per-request option channel. Server-side
+   code — a `ContainerRequestFilter` of its own, or the resource method — may write it. This is
+   supported and documented on the constant; the name stays for compatibility.
+2. The value is a `Map<String, Object>` of option keys to typed values. The reader/writer reads it
+   once, right before `load`/`save`, and `putAll`s it over the annotation-derived options. Anything
+   that is not a map is ignored.
+3. **Ordering.** Request filters run before the resource method. `ClientCodecOptionsFilter` has no
+   `@Priority`, so it runs at `Priorities.USER`.
+   - The filter **merges** onto a map it finds instead of replacing it (`mergeClientOptions`), the
+     client's whitelisted keys winning on a collision. A server-side filter with a higher priority
+     can therefore simply set the property.
+   - Server-side code running *after* the filter — the resource method, or a lower-priority filter —
+     should do the reverse: start from its own values and lay the existing map on top, so a
+     whitelisted client override still wins.
+4. **Client wins for whitelisted keys, in both orders.** This is the §11 decision applied to the new
+   writer: whitelisting a key *is* the decision to let clients set it. A server that needs a key to
+   be final must not whitelist it.
+
+**Application select.** The message body handlers and `CodecResourceSetFeature` attach to
+`(|(emf=true)(osgi.jakartars.name=.default))`. The filter used to declare no selector and so
+attached to `.default` only — a custom whiteboard application flagged `emf=true` got the handlers but
+silently ignored the `Codec-Options` header. The filter now carries the same selector; it is a
+component property and can still be widened per deployment through Config Admin
+(`osgi.jakartars.application.select` on PID
+`org.eclipse.fennec.codec.rest.jakartas.filter.ClientCodecOptionsFilter`).
+
+**Why no second property.** A separate `endpoint.codec.options` slot with a fixed precedence inside
+the writer was considered. It would spare the server the merge, but it adds a second channel with
+the same shape and the same precedence outcome; the contract above achieves that with the existing
+one. Revisit if a consumer needs the server value to beat a *whitelisted* client value — that is a
+different policy, not a second slot.
+
+**Tests:** `ClientCodecOptionsFilterTest` (merge semantics), `ClientCodecOptionsFilterOSGiTest`
+(registration shape, application selector).

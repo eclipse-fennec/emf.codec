@@ -4,6 +4,27 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-03
 
+**Session Summary (2026-09-03) — issue #170, codec.rest: server-side per-request options:**
+
+Data Atlas generates REST endpoints from a configuration model at runtime and needs per-endpoint
+save options (CSV dialect per data set) that Java annotations cannot carry. The `save` in the REST
+case is made by the message body writer, whose options map has exactly two feeders: the method's
+Java annotations and the request property `CLIENT_CODEC_OPTIONS`. Server code can — and Data Atlas
+does — write that property; it worked, but the name and javadoc said "client", nothing documented
+the filter/method ordering, and the filter *replaced* the property instead of merging.
+
+- **No code path changed for the codec.** Everything is in `org.eclipse.fennec.codec.rest`:
+  the constant's javadoc is now the contract (general per-request channel, server-side writers
+  supported, ordering, client wins on a shared key in both orders); `ClientCodecOptionsFilter`
+  merges onto an existing map (`mergeClientOptions`, unit-tested) and carries the handlers'
+  `@JakartarsApplicationSelect` so the header works by default wherever the handlers attach
+  (`ClientCodecOptionsFilterOSGiTest` in `rest.tests`, run via `testOSGi`).
+- **Decision:** no second request property. Documented in
+  `codec-rest-client-overridable-options.md` §13 with the condition for revisiting.
+- **Distinction worth keeping straight:** the precedence here is *who fills the load/save options
+  map* in the REST layer. The codec's own configuration hierarchy (annotation < module < factory <
+  resource < options) sits below and is untouched — options remain its top.
+
 **Session Summary (2026-09-03) — issue #189, `idKey`/`idFormat` on a non-containment reference were accepted in silence:**
 
 Leftover from #176: the spec restricts reference-scoped `idKey`/`idFormat` to containment
