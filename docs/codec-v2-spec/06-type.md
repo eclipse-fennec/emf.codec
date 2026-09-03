@@ -655,6 +655,8 @@ This is a **runtime orchestration constraint** — the `CodecEObjectSerializer` 
 
 The fingerprint has a **defined slot directly after the type** (`_id → _type → fingerprint → features`) rather than a carrier mechanism of its own, because `idOnTop` is only an *ordering* constraint, not a preamble object — there is no separate metadata container it could live in. In STRUCTURED format it is written *inside* the type object, so the slot is intrinsic. See [§8](#8-in-band-epackage-fingerprint). The slot is only occupied when a fingerprint is actually due; by default nothing is written and the order above is unchanged from single-version output.
 
+Backend-owned **prefix fields** ([14-custom-values.md §13](14-custom-values.md#13-prefix-readerswriters)) come after all of this — after the type, the fingerprint and, with `idOnTop=false`, the id — and before the first feature. In STRUCTURED format they follow the type object and are never written inside it.
+
 > **Deserialization:** Field order is irrelevant — JSON objects are unordered. See [Architecture §5.1](01-architecture.md#51-deferred-properties-order-independent-parsing).
 
 ---

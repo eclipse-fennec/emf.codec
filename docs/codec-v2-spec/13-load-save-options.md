@@ -420,7 +420,26 @@ Map<String, Object> options = Map.of(
 resource.save(outputStream, options);
 ```
 
-### 4.2 Per-Feature Binding by Name (deprecated)
+### 4.2 Prefix Reader/Writer Instances
+
+| Java Constant | Property Key | Value Type | Direction | Description |
+|---------------|--------------|------------|-----------|-------------|
+| `CODEC_PREFIX_READER_INSTANCES` | `codec.prefixReaderInstances` | `Map<String, CodecPrefixReader>` | Load | Reader instance per document key |
+| `CODEC_PREFIX_WRITER_INSTANCES` | `codec.prefixWriterInstances` | `Map<String, CodecPrefixWriter>` | Save | Writer instance per document key |
+
+Per-operation binding of a prefix handler to a document key (see
+[Custom Values §13](14-custom-values.md#13-prefix-readerswriters)). The key is the map key, not a
+feature: prefix fields have no feature behind them. An instance bound here wins over the
+`CodecPrefixRegistry` entry for the same key; keys not in the map keep their registry handler.
+
+```java
+Map<String, Object> options = Map.of(
+    "codec.prefixWriterInstances", Map.of("_owner", new OwnerWriter())
+);
+resource.save(outputStream, options);
+```
+
+### 4.3 Per-Feature Binding by Name (deprecated)
 
 | Java Constant | Property Key | Value Type | Direction | Description |
 |---------------|--------------|------------|-----------|-------------|
@@ -443,7 +462,7 @@ Map<String, Object> options = Map.of(
 Note: these options only ever worked for **EAttributes**. For EReferences they were always
 ignored; since their deprecation a binding for a reference produces a warning diagnostic.
 
-### 4.3 Runtime Registration (not supported)
+### 4.4 Runtime Registration (not supported)
 
 There is deliberately **no** load/save option to register readers/writers into the
 `CodecValueRegistry` per operation. Readers/writers resolved by name — whether through

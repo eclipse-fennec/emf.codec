@@ -474,6 +474,26 @@ For each feature chapter, verify EObjects are correctly created from JSON.
 | Discriminator mapping | Type lookup from discriminator value | ✅ |
 | Fallback resolution | ERROR, SKIP, FALLBACK strategies | ❌ TODO |
 
+### 4.3 Prefix Reader/Writer Round Trips ([14-custom-values.md §13](14-custom-values.md#13-prefix-readerswriters))
+
+**Test Class:** `PrefixRoundTripTest` (end to end through `CodecResource.save`/`load`), plus
+`PrefixSerializationEntryTest`, `PrefixDeserializationEntryTest`, `CodecPrefixRegistryTest`.
+Every case uses **at least two prefix keys**, a root with several contained children, and asserts
+on parsed trees. Issue #193.
+
+| registered | write | read | Test Status |
+|---|---|---|---|
+| reader and writer | fields present after the metadata block | consumed, no diagnostic in both modes; write → read → write reproduces the document | ❌ #199 |
+| writer only | fields present | WARNING lenient, load fails under `strictOnUnknown`, model otherwise intact | ❌ #199 |
+| reader only | nothing written | a hand-written document loads silently in both modes | ❌ #199 |
+| neither | nothing written | today's behaviour (regression pin) | ❌ #199 |
+| unknown key beside registered ones | — | only the unknown key is reported | ❌ #199 |
+| writer declines for some objects | field absent for those, present for the others | round trip still clean | ❌ #199 |
+| feature-name clash | feature written, writer skipped, one WARNING per class and key | feature read, reader skipped, one WARNING | ❌ #199 |
+| STRUCTURED type + id, `idOnTop` both ways | prefix directly after the metadata block, never inside it | — | ❌ #199 |
+| option-level instances | `codec.prefix*Instances` beat the registry for the same key | same | ❌ #199 |
+| BSON and CBOR | reader-and-writer and writer-only cases once per format | same | ❌ #199 |
+
 ---
 
 ## 5. Test Models
@@ -808,6 +828,7 @@ Main codec implementation with comprehensive entry-level and integration tests.
 | **EMap** | EMapSerializationTest, EMapDeserializationTest, EMapRoundtripTest, EMapHelperTest, EMapNonStringKeyTest | Map-as-object, map-as-array, non-String keys and their write back (#154) |
 | **Context** | CodecReadContext*Test (12), CodecWriteContext*Test (10), ContextHelperTest, EMFContextHolderTest | Jackson context integration, EMF state |
 | **Resource** | CodecResource*Test (15+) | End-to-end roundtrip, cross-package, custom values |
+| **Prefix** | PrefixRoundTripTest, PrefixSerializationEntryTest, PrefixDeserializationEntryTest | Backend-owned document keys (#193), see §4.3 |
 | **Discriminator** | CodecResourceInlineMappingTest, CodecResourceMappedTypeTest, DeserializationModeTest | Inline mapping, type mapping registry, fallback |
 | **Integration** | FeatureVisibilityIntegrationTest, StrictnessIntegrationTest, ForceReadWriteTest, GlobalIgnoreFeatureTest | Cross-cutting concerns |
 

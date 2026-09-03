@@ -7,6 +7,7 @@
 > **See also:**
 > - [Annotation Reference](16-annotation-reference.md) (Feature Configuration) for `valueReaderName` and `valueWriterName` keys
 > - [Load/Save Options](13-load-save-options.md) for `CODEC_FEATURE_VALUE_READER_INSTANCES` and `CODEC_FEATURE_VALUE_WRITER_INSTANCES`
+> - [§13 Prefix Readers/Writers](#13-prefix-readerswriters) for document keys that belong to a backend, not to a feature (`CODEC_PREFIX_WRITER_INSTANCES`, `CODEC_PREFIX_READER_INSTANCES`)
 
 ---
 
@@ -20,6 +21,10 @@ Custom value readers/writers allow you to:
 - Implement domain-specific encoding
 - Customize reference URI formats
 - Convert embedded formats (e.g., JSON Schema to EPackage)
+
+A second, key-bound extension point — **prefix readers/writers** — lets a backend own document
+keys that have no feature behind them at all (`_owner` beside `_id`). It is described in
+[§13](#13-prefix-readerswriters); everything before that is about feature values.
 
 ### 1.1 Interface Hierarchy
 
@@ -928,6 +933,238 @@ CodecConfiguration config = CodecConfiguration.builder()
 The `schemas` object is automatically converted to an `EPackage` with an `EClass` named "Person".
 
 **For complete OpenAPI support documentation, see [Chapter 17: OpenAPI Support](17-format-abstraction.md).**
+
+---
+
+## 13. Prefix Readers/Writers
+
+*Issue #193 (supersedes #151). Spec first, then implementation — see the sub-issues there.*
+
+### 13.1 Purpose
+
+A backend that stores one document per EObject sometimes needs bookkeeping of its own next to
+the codec's output — the Fennec Mongo backend wanted `_owner` beside `_id`, so that dropping a
+containment subtree deletes the child documents it owned. Such a key has **no feature behind
+it**: nothing in the model produces it, nothing in the model consumes it. The value readers and
+writers of §2–§9 cannot express it — they transform the value of a feature, and are looked up by
+name from a feature's configuration.
+
+Prefix readers/writers are the key-bound counterpart. A backend registers, **per document key**, a
+writer that produces the field from the EObject and a reader that consumes the field when the
+object is read back. The codec does not know what the key means; it knows who owns it.
+
+The name says where the fields go: into the *prefix* of the object, after the codec's own metadata
+and before the model's features.
+
+### 13.2 Interfaces
+
+```java
+public interface CodecPrefixWriter {
+    /**
+     * Writes the field for {@code key} — field name and value — through the context's
+     * generator, or returns {@code false} to write nothing for this object.
+     */
+    boolean write(String key, EObject object, CodecPrefixWriterContext ctx) throws IOException;
+}
+
+public interface CodecPrefixReader {
+    /**
+     * Consumes the value found under {@code key}. The context's parser is positioned at the
+     * value; {@code target} is the EObject being built, already created.
+     */
+    void read(String key, EObject target, CodecPrefixReaderContext ctx) throws IOException;
+}
+
+public interface CodecPrefixWriterContext {
+    JsonGenerator getGenerator();          // inside the object, after the metadata fields
+    SerializationContext getJacksonContext();
+    EffectiveCodecConfig getConfig();
+    DiagnosticCollector getDiagnostics();
+    void addWarning(String message);
+    void addError(String message);
+}
+
+public interface CodecPrefixReaderContext {
+    JsonParser getParser();                // positioned at the value of the key
+    DeserializationContext getJacksonContext();
+    EffectiveCodecConfig getConfig();
+    DiagnosticCollector getDiagnostics();
+    void addWarning(String message);
+    void addError(String message);
+}
+```
+
+The **key is a parameter**, not a property of the handler. One handler instance may be registered
+under several keys and is told which one it is serving. There is no `getName()`, no `canHandle()`:
+the registry is the binding.
+
+**Writer contract.** The writer writes the field name itself (`writeName(key)`) and then the
+value, using the generator. It writes **that one field or nothing** — one key, one field. The
+codec does not verify this; a writer that emits other field names breaks the read side's ability
+to route them and is a bug in the writer. Returning `false` means the field is absent for this
+object; that is how a writer restricts itself to roots, to cross-document children, or to whatever
+it decides — the codec has no scope configuration for prefix keys.
+
+**Reader contract.** The reader consumes exactly the value the parser is positioned at (a scalar,
+an object or an array, whole) and leaves the parser after it. Whether the parser is the live
+stream or a replay of a buffered value (§13.5) is invisible to the reader. It may do anything
+with the value: ignore it (the "reserved key" of #151 is an empty reader), attach an `Adapter`
+to `target`, fill an index on the resource, validate. It must not set features on `target`
+that the document also carries — that is the feature entry's job and would be written twice.
+
+### 13.3 Registry
+
+```java
+public class CodecPrefixRegistry {
+    CodecPrefixRegistry register(String key, CodecPrefixWriter writer);   // duplicate key → IllegalArgumentException
+    CodecPrefixRegistry register(String key, CodecPrefixReader reader);   // duplicate key → IllegalArgumentException
+    CodecPrefixRegistry unregisterWriter(String key);
+    CodecPrefixRegistry unregisterReader(String key);
+    Optional<CodecPrefixWriter> getWriter(String key);
+    Optional<CodecPrefixReader> getReader(String key);
+    boolean hasWriter(String key);
+    boolean hasReader(String key);
+    List<String> writerKeys();     // registration order — this is the output order (§13.4)
+    Set<String> readerKeys();
+    CodecPrefixRegistry copy();
+}
+```
+
+Registration is **by key, lookup is a map**. A key may have one writer and one reader, registered
+independently — a backend that only ever reads a foreign document registers a reader alone
+(§13.6, row "reader only"). A second writer or a second reader for the same key is rejected at
+registration; there is no "first wins" and no priority. The registry's key sets are the complete
+list of what a backend occupies in a document.
+
+The registry is a **sister** of `CodecValueRegistry`, not part of it: different handler shape,
+different lookup, and a prefix key must never be confused with a value handler name.
+
+### 13.4 Position in the output — the prefix
+
+Prefix fields are written **after the codec's metadata fields and before the first feature**, in
+registration order (`writerKeys()`):
+
+```
+metadata (_type, _supertype, fingerprint, _id — in whatever order idOnTop and the formats
+          produce, see 09-id.md §8.7 and 06-type.md §5.0.2)
+prefix   (registered keys, registration order)
+features (model order, or as ordered by the feature configuration)
+```
+
+Rules that follow from this:
+
+- **`idOnTop` does not move the prefix.** With `idOnTop=true` the `_id` key and the promoted
+  eID attribute float to the front; the prefix still follows the last metadata field
+  (`_type` / `_supertype` / fingerprint). With `idOnTop=false` the prefix follows `_id`.
+- **STRUCTURED type or id: the prefix follows the metadata object, it is never placed inside
+  it.** The merged metadata object of 06-type.md §7 is the codec's; prefix keys are the backend's.
+- **`sortPropertiesAlphabetically` sorts features, not the prefix.** The prefix block keeps its
+  slot and its registration order.
+- **Every object is a candidate**, not only the root: a contained object gets the same writers
+  called with itself as `object`. Declining (`false`) is per call.
+- **A key that collides with a feature name of the class being written is not written as a
+  prefix field.** The feature is written, the writer is skipped for that class, and a WARNING
+  reaches the resource once per class and key (§13.7). Data loss is worse than noise.
+
+Example — a writer registered under `_owner` that writes the container's id and declines for the
+root, model `Order` containing `Item`:
+
+```json
+{
+  "_id": "o1",
+  "_type": "Order",
+  "items": [
+    { "_id": "i1", "_type": "Item", "_owner": "o1", "label": "Bolt" },
+    { "_id": "i2", "_type": "Item", "_owner": "o1", "label": "Nut" }
+  ]
+}
+```
+
+### 13.5 Reading — routing order and deferral
+
+On read, a property name is resolved in this order:
+
+1. the deserialization entries — features, `_id`, `_type`, `_supertype` — and the codec's own
+   deliberately-unread keys (separator key, non-deserialized features);
+2. the **prefix registry** (and the `codec.prefixReaderInstances` option, which wins per key);
+3. the unknown branch, exactly as today: WARNING, or an `IllegalStateException` under
+   `strictOnUnknown`.
+
+Step 1 before step 2 is what makes the feature win a name clash on the read side too: a prefix key
+equal to a feature name is read as the feature, the reader is skipped for that class, WARNING once
+per class and key.
+
+**Deferral.** A prefix key usually precedes the type — that is the point of the prefix — so the
+EObject does not exist yet when the key is met. Such a value goes into the deferred map like any
+other early property (01-architecture.md §5.1) and the reader is invoked in the replay, once the
+EObject exists, with a parser over the buffered value. A key met after the object exists is read
+in place. The reader sees a parser positioned at the value in both cases and cannot tell the
+difference.
+
+### 13.6 Diagnostics — no new strictness flag
+
+The rule is one sentence: **a key with a registered reader is known; a key without one is
+unknown.** Everything else follows from the existing hierarchy (15-error-handling.md §0,
+11-feature.md §11.5):
+
+| registered | write | read |
+|---|---|---|
+| **reader and writer** | field written | consumed by the reader, no diagnostic, also under `strictOnUnknown`; write → read → write reproduces the document |
+| **writer only** | field written | *unknown*: WARNING (lenient) / load fails (`strictOnUnknown`) — the backend wrote a key it does not read, and is told so on every read |
+| **reader only** | nothing written | consumed silently in both modes; the document was written by someone else |
+| **neither** | nothing written | today's behaviour, unchanged |
+
+- A **reader that throws** follows the strictness hierarchy: STRICT fails the load; otherwise an
+  ERROR diagnostic on the resource, the value is dropped, the rest of the object is read.
+- A **writer that throws** is a write-side WARNING (15-error-handling.md §5.2) and the field is
+  skipped; the save does not fail on it, like every other write-side fallback.
+- **Name clash**, either side: WARNING once per class and key, the feature wins (§13.4, §13.5).
+
+There is deliberately **no option to silence an unregistered key**. Registering an empty reader is
+that option, and it leaves a trace of who owns the key.
+
+### 13.7 Registration and configuration
+
+Mirrors §5 and §6.4 for value handlers, with the key in place of the name.
+
+**OSGi.** `CodecPrefixWriter` and `CodecPrefixReader` are registered as services carrying the
+service property `codec.prefix.key` (`String+`; several keys register the same service under each).
+`CodecPrefixRegistryComponent` collects them into a shared `CodecPrefixRegistry`; the resource
+factory components bind it optionally and hand a `copy()` to every resource, exactly as they do
+for the value registry (osgi-resource-factory-architecture.md). A service without the property is
+ignored with a log warning; a second service for a key already taken is ignored with a log
+warning — the registry's `IllegalArgumentException` is for programmatic misuse and must not tear
+down the component.
+
+**Plain Java.**
+
+```java
+CodecConfiguration config = CodecConfiguration.builder()
+    .prefixWriter("_owner", new OwnerWriter())
+    .prefixReader("_owner", new OwnerReader())
+    .prefixWriter("_ownerRef", new OwnerWriter())   // same instance, second key
+    .build();
+```
+
+**Load/save options** — per-operation instance binding that wins over the registry for its key
+(13-load-save-options.md §4.3):
+
+```java
+Map<String, Object> options = Map.of(
+    "codec.prefixWriterInstances", Map.of("_owner", new OwnerWriter()),   // save
+    "codec.prefixReaderInstances", Map.of("_owner", new OwnerReader())    // load
+);
+```
+
+There is **no annotation** for prefix keys, and no per-class configuration: a prefix key is a
+property of the document store, not of the model.
+
+### 13.8 What this is not
+
+- Not a way to read arbitrary unknown keys into the model. A key nobody registered is unknown.
+- Not a feature-value hook. A backend that wants to transform how a *feature* is written uses §2–§9.
+- Not shipped with handlers. This repository provides the extension point and a test pair; the
+  `_owner` pair belongs to the backend that needs it.
 
 ---
 
