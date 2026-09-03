@@ -181,6 +181,18 @@ public final class ContextHelper {
     public static final String FEATURE_VALUE_WRITER_INSTANCES = "CODEC_FEATURE_VALUE_WRITER_INSTANCES";
 
     /**
+     * Attribute key for {@code Map<String, CodecPrefixReader>} - prefix reader instances bound
+     * per document key for this load (issue #193); wins over the registry per key.
+     */
+    public static final String PREFIX_READER_INSTANCES = "CODEC_PREFIX_READER_INSTANCES";
+
+    /**
+     * Attribute key for {@code Map<String, CodecPrefixWriter>} - prefix writer instances bound
+     * per document key for this save (issue #193); wins over the registry per key.
+     */
+    public static final String PREFIX_WRITER_INSTANCES = "CODEC_PREFIX_WRITER_INSTANCES";
+
+    /**
      * Context attribute key for the current feature's type hint.
      * <p>
      * Set temporarily during deserialization when a type hint is available
