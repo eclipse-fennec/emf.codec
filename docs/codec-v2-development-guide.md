@@ -4,6 +4,49 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-03
 
+**Session Summary (2026-09-03) — issue #193 wave 1 (#194 spec, #195 api, #196 write, #197 read): prefix readers/writers:**
+
+Supersedes #151 (reserved keys). A backend that stores one document per EObject can now own
+document keys that have no feature behind them (`_owner` beside `_id`): a `CodecPrefixWriter`
+produces the field from the EObject, a `CodecPrefixReader` consumes it on read, both registered
+**per key** in a `CodecPrefixRegistry` — a sister of the value registry, not part of it. Spec is
+`14-custom-values.md` §13; cross-references in 01, 06, 09, 13, 15, 19 and the overview.
+
+- **Design points to remember** (all in §13): registration by key, map lookup, duplicates
+  rejected at registration; the prefix sits after the *last* metadata field (type, supertype,
+  fingerprint, id in whatever order `idOnTop` yields) and before the first feature, in
+  registration order, never inside a STRUCTURED metadata object, untouched by
+  `sortPropertiesAlphabetically`; a writer declines by returning `false`; read routing is
+  entries → registry → unknown, so the feature wins a name clash (one WARNING per class and key,
+  both sides); a key with a reader is *known* — no diagnostic, also under `strictOnUnknown`;
+  no new strictness flag.
+- **Two implementation choices worth knowing.** (1) The deserializer always buffers the prefix
+  value (`readCurrentValue` → `TokenBuffer`) and hands the reader a parser over the buffer, live
+  or deferred alike — a failing reader can therefore never leave the main stream half consumed,
+  and the reader cannot tell the two cases apart, as the spec promises. (2) The write side
+  reports through the `CodecEntryContext` collector (`PrefixSerializationEntry.warn`), the #184
+  channel — `ContextHelper.addWarning(SerializationContext, …)` does not reach the resource from
+  an entry. A writer that throws after `writeName(key)` gets a `null` written for it so the
+  document stays parseable (`repairDanglingName`).
+- **A reader sees an *existing*, not a *complete* EObject.** A prefix key met before `_type` is
+  replayed as soon as the type is known, i.e. before `_id` and the features that follow; the
+  `RecordingReader` in the tests records the target's class, not its id, for that reason. Deferred
+  replay order is `HashMap` order, not document order — tests compare sorted.
+- **Test fixture facts:** with the default `idKeyMode=ID_ONLY` the eID attribute is *not* written
+  as a feature (`id` is absent, only `_id`); `sortPropertiesAlphabetically` sorts features only.
+- **Plumbing:** `CodecModule.Builder.prefixRegistry`, `EffectiveCodecConfig.getPrefixRegistry()`
+  (never null), `CodecEntryContext.getPrefixRegistry()` + `createPrefixWriterContext` /
+  `createPrefixReaderContext`, `CodecResource` 8-arg constructor with the registry,
+  `ContextHelper.PREFIX_{WRITER,READER}_INSTANCES` attributes fed from
+  `codec.prefix{Writer,Reader}Instances` on all four save/load paths.
+- **Tests:** `CodecPrefixRegistryTest` (api), `PrefixWriteTest` (9) and `PrefixReadTest` (10) on
+  `CodecResource` with a shared `PrefixTestSupport` (Order/Item model, `KeyedWriter`,
+  `RecordingReader`). Every case uses two keys and children, asserts on parsed trees.
+- **Open — wave 2 (#198 wiring, #199 round-trip matrix incl. BSON/CBOR via a TCK base in
+  `codec.tests`, #200 docs).** The OSGi side (`CodecPrefixRegistryComponent`, factory component
+  references, `codec.prefix.key` service property) and the plain-Java `CodecConfiguration`
+  builder methods do not exist yet; the spec §13.7 already describes them.
+
 **Session Summary (2026-09-03) — issue #201, GeoJSON had no `@RequireCodecGeoJson` and no capability:**
 
 The only format bundle outside the `@RequireCodec*` / `@Capability` pattern documented below (the
