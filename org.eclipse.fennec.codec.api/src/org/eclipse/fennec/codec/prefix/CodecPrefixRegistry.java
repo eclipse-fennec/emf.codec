@@ -40,6 +40,13 @@ import java.util.Set;
  */
 public class CodecPrefixRegistry {
 
+    /**
+     * Service property under which a {@link CodecPrefixWriter} or {@link CodecPrefixReader}
+     * service declares the document key(s) it serves ({@code String} or {@code String[]}). The
+     * whiteboard registry component registers the service under each key.
+     */
+    public static final String SERVICE_PROPERTY_KEY = "codec.prefix.key";
+
     private final Map<String, CodecPrefixWriter> writers = new LinkedHashMap<>();
     private final Map<String, CodecPrefixReader> readers = new LinkedHashMap<>();
 

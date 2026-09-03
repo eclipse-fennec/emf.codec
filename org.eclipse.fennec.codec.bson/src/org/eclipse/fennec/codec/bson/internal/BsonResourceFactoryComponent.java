@@ -19,6 +19,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
+import org.eclipse.fennec.codec.prefix.CodecPrefixRegistry;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
@@ -65,13 +66,33 @@ public class BsonResourceFactoryComponent extends ResourceFactoryImpl {
         this.valueRegistry = null;
     }
 
+    /** The prefix registry (issue #193): backend-owned document keys; copied per resource like the value registry. */
+    private volatile CodecPrefixRegistry prefixRegistry;
+
+    @Reference(
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetPrefixRegistry"
+    )
+    void setPrefixRegistry(CodecPrefixRegistry registry) {
+        this.prefixRegistry = registry;
+    }
+
+    void unsetPrefixRegistry(CodecPrefixRegistry registry) {
+        this.prefixRegistry = null;
+    }
+
     @Override
     public Resource createResource(URI uri) {
         CodecValueRegistry reg = valueRegistry;
+        CodecPrefixRegistry prefixReg = prefixRegistry;
         return new CodecResource(
-                uri, metadataService,
-                ConfigurationResolver.defaults(),
-                reg != null ? reg.copy() : null, null,
-                formatProvider);
+        uri, metadataService,
+        ConfigurationResolver.defaults(),
+        reg != null ? reg.copy() : null,
+        prefixReg != null ? prefixReg.copy() : null,
+        null,
+        formatProvider,
+        null);
     }
 }
