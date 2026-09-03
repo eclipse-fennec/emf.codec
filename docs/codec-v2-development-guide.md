@@ -4,6 +4,34 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-03
 
+**Session Summary (2026-09-03) — issue #189, `idKey`/`idFormat` on a non-containment reference were accepted in silence:**
+
+Leftover from #176: the spec restricts reference-scoped `idKey`/`idFormat` to containment
+references, but nothing on the path from annotation to output checked `isContainment()`. The
+value was parsed, forwarded and resolved — and then had no effect, because a non-containment
+reference writes a `$ref`, not the target's body. Same shape of trap as #174/#176.
+
+- **Fix, two gates, both WARNING:** `CodecAspectProvider.buildReferenceAspectEntry` parses the two
+  keys only for a containment reference and otherwise reports them via
+  `checkForIdKeysOnNonContainmentReference` (key-tagged, so tests can find them);
+  `ConfigurationResolver.featureLevelIdProperties` drops and reports them for a non-containment
+  `EReference` from every runtime source, deduplicated per collector/feature/property like the
+  class-only report. WARNING, not ERROR: nothing about the value is malformed, it has nothing to
+  act on. Not touched: `idKey` on an `EAttribute` at the resolver level (the parser already
+  errors on it).
+- **Test fixtures were the trap.** `EcoreFactory.createEReference()` is non-containment by
+  default, and three fixtures relied on a bare reference for tests whose intent is the id-key
+  path: `ConfigValueValidationTest.reference()`, `FeatureAspectBridgeTest.customerRef` and the
+  #176 tests built on them. They are containment now, with a comment saying why; the intent of
+  those tests did not change. New tests: metadata (`IdKeysOnNonContainmentReference`, both
+  sides, fixture `RefWithIdKeyOnNonContainment` in `test-codec-annotations.ecore`), api
+  (`idKeyOnANonContainmentReferenceIsReported`), bridge
+  (`idKeysOnANonContainmentReferenceAreNotForwarded`). All negative tests red before the fix.
+- **Spec:** `09-id.md` §4.4 says what happens when the annotation sits on a non-containment
+  reference anyway; `16-annotation-reference.md` has the two rows; `15-error-handling.md` §6.9
+  gained the two feature-level id rows (class-only from #176 was missing there too) and §6.10 the
+  annotation row.
+
 **Session Summary (2026-09-03) — issue #168, GeoJSON factory had no content type:**
 
 `GeoJsonResourceFactoryComponent` registered file extension, configurator name and version, but no

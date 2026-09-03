@@ -369,6 +369,8 @@ the same escalation path as every other dropped value, it has no flag of its own
 | Unknown discriminator value | WARNING | `Unknown discriminator value '{value}' for map '{mapId}'` | Falls back to type strategy |
 | Invalid scope value | ERROR | `Invalid StrategyScope value: {value}` | Operation fails |
 | Invalid option type | ERROR | `Expected {expected} for option '{key}' but got {actual}` | Operation fails |
+| Class-only id property scoped to a feature | WARNING | `Config property '{key}' is not valid on feature '{Class.feature}'; an identity is class-intrinsic and only idKey and idFormat may be scoped to a reference` | Value ignored, class-level config applies (issue #176) |
+| `idKey` / `idFormat` scoped to a non-containment reference | WARNING | `Config property '{key}' has no effect on non-containment reference '{Class.feature}'; … reference-scoped id keys apply to containment only` | Value ignored, class-level config applies (issue #189) |
 
 ### 6.10 Annotation Parsing Errors (Metadata Layer)
 
@@ -379,6 +381,7 @@ These errors occur during EPackage registration when the `codec.metadata` layer 
 | Scenario | Severity | Message Template | Recovery |
 |----------|----------|------------------|----------|
 | Annotation key at wrong level | WARNING | `Annotation key '{key}' is not valid on {elementType}, ignored` | Key ignored, not applied to Aspect |
+| `idKey` / `idFormat` on a non-containment EReference | WARNING | `Annotation key '{key}' has no effect on non-containment EReference '{name}', ignored (…containment only…)` | Key ignored, no id config on the reference aspect (issue #189) |
 | Unknown annotation key | WARNING | `Unknown annotation key '{key}' on {element}` | Key ignored |
 | Invalid enum value | WARNING | `Invalid value '{value}' for enum {enumType}, using default` | Default value used |
 | Invalid boolean value | WARNING | `Invalid boolean value '{value}' for key '{key}'` | Default value used |
