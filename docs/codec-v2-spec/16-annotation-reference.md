@@ -1163,6 +1163,8 @@ The inner key for the combined/single ID value is configurable via `idValueKey` 
 | `idOnTop` on EReference | ERROR | Field ordering is class-specific |
 | `idValueReaderName` on EReference | ERROR | Value reader/writer is class-intrinsic |
 | `idValueWriterName` on EReference | ERROR | Value reader/writer is class-intrinsic |
+| `idKey` on a **non-containment** EReference | WARNING | A non-containment reference writes a `$ref`, not the target's body — no id key to rename; dropped (see [09-id §4.4](09-id.md#44-almost-no-id-configuration-on-the-reference)) |
+| `idFormat` on a **non-containment** EReference | WARNING | Same rule; dropped |
 | `idScope` via EAnnotation | WARNING | Scope is runtime-only (🔧) — ignored, not harmful |
 | `idFormatScope` via EAnnotation | WARNING | Scope is runtime-only (🔧) — ignored, not harmful |
 | Any `id*` key on EAttribute | ERROR | ID config not applicable to attributes |
