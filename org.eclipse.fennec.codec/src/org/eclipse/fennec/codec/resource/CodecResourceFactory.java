@@ -19,6 +19,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.prefix.CodecPrefixRegistry;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 import tools.jackson.databind.json.JsonMapper;
@@ -38,6 +39,7 @@ public class CodecResourceFactory extends ResourceFactoryImpl {
     private MetadataService metadataService;
     private ConfigurationResolver resolver = ConfigurationResolver.defaults();
     private JsonMapper.Builder mapperBuilder;
+    private CodecPrefixRegistry prefixRegistry;
 
     private Map<Object, Object> defaultSaveOptions = Collections.emptyMap();
     private Map<Object, Object> defaultLoadOptions = Collections.emptyMap();
@@ -89,7 +91,21 @@ public class CodecResourceFactory extends ResourceFactoryImpl {
                 "MetadataService not set. Call setMetadataService() before creating resources, " +
                 "or use a constructor that accepts MetadataService.");
         }
-        return new CodecResource(uri, metadataService, resolver, mapperBuilder);
+        return new CodecResource(uri, metadataService, resolver, null, prefixRegistry, mapperBuilder, null, null);
+    }
+
+    /**
+     * The prefix registry handed to every resource this factory creates: backend-owned document
+     * keys and their writers/readers (issue #193, spec 14-custom-values.md §13). Optional.
+     *
+     * @param prefixRegistry the registry, or null for none
+     */
+    public void setPrefixRegistry(CodecPrefixRegistry prefixRegistry) {
+        this.prefixRegistry = prefixRegistry;
+    }
+
+    public CodecPrefixRegistry getPrefixRegistry() {
+        return prefixRegistry;
     }
 
     public MetadataService getMetadataService() {
