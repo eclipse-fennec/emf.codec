@@ -74,7 +74,7 @@ Options passed to `resource.load(options)` and `resource.save(options)`: root ty
 
 ### [14 - Custom Value Readers/Writers](14-custom-values.md)
 
-Extend the codec with custom serialization for specific types. Define `CodecValueReader` and `CodecValueWriter` implementations, register them globally or activate per-feature via annotations. Includes examples for OpenAPI, GeoJSON coordinates, and date formatting.
+Extend the codec with custom serialization for specific types. Define `CodecValueReader` and `CodecValueWriter` implementations, register them globally or activate per-feature via annotations. Includes examples for OpenAPI, GeoJSON coordinates, and date formatting. §13 adds **prefix readers/writers**: backend-owned document keys with no feature behind them (`_owner` beside `_id`), registered per key, written after the metadata block, consumed on read.
 
 ### [15 - Error Handling & Diagnostics](15-error-handling.md)
 

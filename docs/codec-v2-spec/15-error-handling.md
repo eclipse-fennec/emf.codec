@@ -216,6 +216,7 @@ Each diagnostic includes a source identifier for programmatic handling.
 | `ReferenceDeserializationEntry` | Reference handling | EObject not yet created, no deserializer found, EMap entry class without key/value feature | Unexpected token, EMap key not parseable by its data type |
 | `AttributeDeserializationEntry` | Attribute parsing | EObject not yet created | Value conversion failure, unexpected token |
 | `CodecValueReader` (custom) | Custom value reading | Invalid value format, parse failure | Deprecated format, data migration hints |
+| `PrefixDeserializationEntry` | Prefix keys (14-custom-values.md §13) | a `CodecPrefixReader` threw (ERROR; fails the load under STRICT) | prefix key equals a feature name — feature read, reader skipped |
 
 ### 5.2 Serialization Sources
 
@@ -234,6 +235,7 @@ written, but not the way you configured it".
 | `ReferenceSerializationEntry` | Reference writing | `CODEC_FEATURE_VALUE_WRITERS` is deprecated and ignored for references | #184 |
 | `AttributeSerializationEntry` | Attribute writing | a configured `AttributeValueWriter` answered `canHandle() == false` — the default is used | #184 |
 | `ConfigurationResolver` and the `*Config.validate` methods | Configuration | see Layers 2, 2a and 3 above; these reach the resource on save as well as load | #182 |
+| `PrefixSerializationEntry` | Prefix keys (14-custom-values.md §13) | a `CodecPrefixWriter` threw — the field is skipped; a prefix key equals a feature name of the class — the feature is written, the writer skipped (once per class and key) | #193 |
 
 > This table lists what the codec actually reports. It previously described a larger set —
 > null EObjects, unknown type strategies, circular references, conversion failures — none of
@@ -453,6 +455,20 @@ Custom value readers and writers (see [Custom Values](14-custom-values.md)) can 
 | Deprecated format detected | WARNING | `Deprecated format, consider migrating to {newFormat}` | Value parsed with warning |
 | Precision loss | WARNING | `Precision loss converting {source} to {target}` | Best-effort conversion |
 | Missing optional data | WARNING | `Optional field '{field}' not present` | Default used |
+
+### 6.12 Prefix Reader/Writer Diagnostics
+
+Prefix keys (see [Custom Values §13](14-custom-values.md#13-prefix-readerswriters)) add no
+strictness flag. The rule is: a key with a registered reader is known, a key without one is
+unknown and takes the existing unknown-feature rows of §6.4.
+
+| Scenario | Severity | Message Template | Recovery |
+|----------|----------|------------------|----------|
+| Prefix key written, no reader registered | WARNING / ERROR under `strictOnUnknown` | `Unknown feature '{key}' for EClass {name}` (existing row) | Key skipped / load fails |
+| `CodecPrefixReader` throws | ERROR | `Prefix reader for '{key}' failed on {EClass}: {cause}` | STRICT: load fails; otherwise value dropped, object read |
+| `CodecPrefixWriter` throws | WARNING | `Prefix writer for '{key}' failed on {EClass}: {cause}` | Field skipped, save continues |
+| Prefix key equals a feature name (write) | WARNING | `Prefix key '{key}' collides with feature {EClass}.{key}; the feature is written` | Writer skipped for this class, once per class and key |
+| Prefix key equals a feature name (read) | WARNING | `Prefix key '{key}' collides with feature {EClass}.{key}; read as the feature` | Reader skipped for this class, once per class and key |
 
 **Example - Custom reader reporting diagnostics:**
 ```java

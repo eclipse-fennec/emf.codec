@@ -95,6 +95,9 @@ EMFContextHolder (internal holder)
    - **Metadata field ordering:** The `idOnTop` property (from effective ID config) determines whether `_id` or `_type` is written first:
      - `idOnTop=true` (default): `_id` → `_type` → `_supertype` → features
      - `idOnTop=false`: `_type` → `_supertype` → `_id` → features
+   - **Prefix fields** (14-custom-values.md §13): after the last metadata field and before the
+     first feature, one `PrefixSerializationEntry` per key in the `CodecPrefixRegistry`, in
+     registration order. Not moved by `idOnTop`, never inside a STRUCTURED metadata object.
    - Get `EffectiveFeatureConfig` for each feature
    - Delegate to `SerializationEntry` (Attribute, Reference, etc.)
 4. Each entry uses pre-merged config (no fallback logic needed)
@@ -110,7 +113,8 @@ EMFContextHolder (internal holder)
 3. `CodecEObjectDeserializer`:
    - Resolve type (from content or hint)
    - Create EObject
-   - Iterate JSON fields, match to `DeserializationEntry`
+   - Iterate JSON fields, match to `DeserializationEntry`; a field that matches no entry is
+     offered to the `CodecPrefixRegistry` (14-custom-values.md §13.5) before it counts as unknown
 4. Post-processing: resolve references
 
 > **See also:** [Load/Save Options](13-load-save-options.md) for root type hints and feature type hints during deserialization.
@@ -135,6 +139,10 @@ When data fields appear **before** metadata fields, they are **deferred** and pr
 2. `_type` encountered → EClass resolved, EObject created
 3. `_id` encountered → ID set on EObject
 4. Deferred properties replayed → `name` and `age` set on EObject
+
+Prefix keys (14-custom-values.md §13) take the same route: met before `_type`, the value is
+buffered and the registered `CodecPrefixReader` is invoked in the replay with a parser over the
+buffer; met after the EObject exists, it is read in place.
 
 **Supported deferred value types:**
 - Primitives: String, Number, Boolean, null
