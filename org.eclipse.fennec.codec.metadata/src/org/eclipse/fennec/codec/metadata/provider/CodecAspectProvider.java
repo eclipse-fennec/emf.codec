@@ -313,8 +313,14 @@ public class CodecAspectProvider implements MetadataHandler {
 
             // Parse the two id keys a reference may carry (issue #176). The class-only ones are
             // reported above by checkForIdClassOnlyKeysOnReference and are not parsed here.
+            // Containment only: a non-containment reference writes a $ref, not the target's
+            // body, so there is no id key in that position to rename (issue #189).
             if (hasReferenceIdConfig(details)) {
-                aspect.setIdConfig(buildReferenceIdConfig(details));
+                if (reference.isContainment()) {
+                    aspect.setIdConfig(buildReferenceIdConfig(details));
+                } else {
+                    checkForIdKeysOnNonContainmentReference(diagnostics, details, reference);
+                }
             }
 
             // Parse expand flag
@@ -1198,6 +1204,29 @@ public class CodecAspectProvider implements MetadataHandler {
      * Most id* keys are class-intrinsic. Only idFormat and idKey are valid on EReference.
      * </p>
      */
+    /**
+     * Reports {@code idKey} / {@code idFormat} on a non-containment EReference (issue #189).
+     * <p>
+     * The two keys are valid on a reference, but only a containment reference writes the target's
+     * body and with it an id key that could be renamed. On a non-containment reference the
+     * annotation is inert - a WARNING, not an ERROR, because nothing about it is malformed - and
+     * the value is dropped rather than parsed into a config nobody can apply (09-id.md §4.4).
+     * </p>
+     */
+    private void checkForIdKeysOnNonContainmentReference(EList<MetadataDiagnostic> diagnostics,
+            Map<String, String> details, EReference reference) {
+        for (String key : new String[] { KEY_ID_KEY, KEY_ID_FORMAT }) {
+            if (details.containsKey(key)) {
+                addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
+                        "Annotation key '" + key + "' has no effect on non-containment EReference '"
+                                + reference.getName() + "', ignored (a non-containment reference writes"
+                                + " a $ref, not the target's body; reference-scoped id keys apply to"
+                                + " containment only - see 09-id.md section 4.4)",
+                        key);
+            }
+        }
+    }
+
     private void checkForIdClassOnlyKeysOnReference(EList<MetadataDiagnostic> diagnostics, Map<String, String> details, EReference reference) {
         for (Map.Entry<String, String> entry : details.entrySet()) {
             String key = entry.getKey();

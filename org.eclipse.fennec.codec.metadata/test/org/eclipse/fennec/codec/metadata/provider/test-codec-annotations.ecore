@@ -1027,4 +1027,25 @@
     </eStructuralFeatures>
   </eClassifiers>
 
+  <!-- @MISCONFIG @SPEC(09-id.md#4.4): idKey/idFormat on a NON-containment EReference (issue #189) -->
+  <!-- Expected: containment reference parses them; non-containment reference drops them with a WARNING -->
+  <eClassifiers xsi:type="ecore:EClass" name="RefWithIdKeyOnNonContainment">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="address" eType="#//Address" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="idKey" value="addrId"/>
+        <details key="idFormat" value="STRUCTURED"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="cachedAddress" eType="#//Address">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <!-- A non-containment reference writes a $ref, there is no id key to rename -->
+        <details key="idKey" value="addrId"/>
+        <details key="idFormat" value="STRUCTURED"/>
+        <!-- Valid key for reference -->
+        <details key="typeStrategy" value="NAME"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+
 </ecore:EPackage>

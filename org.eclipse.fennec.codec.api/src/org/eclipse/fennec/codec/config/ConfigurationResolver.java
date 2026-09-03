@@ -586,18 +586,28 @@ public final class ConfigurationResolver {
         if (featureProperties == null || featureProperties.isEmpty()) {
             return featureProperties;
         }
+        // A reference-scoped id key applies to containment only: a non-containment reference
+        // writes a $ref, not the target's body, so there is no id key to rename (issue #189).
+        boolean nonContainment = feature instanceof EReference reference && !reference.isContainment();
         Map<String, Object> allowed = null;
         for (Map.Entry<String, Object> entry : featureProperties.entrySet()) {
             ConfigProperty property = ConfigProperty.byKey(entry.getKey());
-            if (property == null || !isIdProperty(property)
-                    || property.isValidAt(ConfigLevel.FEATURE)) {
+            if (property == null || !isIdProperty(property)) {
+                continue;
+            }
+            boolean classOnly = !property.isValidAt(ConfigLevel.FEATURE);
+            if (!classOnly && !nonContainment) {
                 continue;
             }
             if (allowed == null) {
                 allowed = new HashMap<>(featureProperties);
             }
             allowed.remove(entry.getKey());
-            reportClassOnlyIdProperty(property, feature, diagnostics);
+            if (classOnly) {
+                reportClassOnlyIdProperty(property, feature, diagnostics);
+            } else {
+                reportIdPropertyOnNonContainment(property, feature, diagnostics);
+            }
         }
         return allowed != null ? allowed : featureProperties;
     }
@@ -609,19 +619,43 @@ public final class ConfigurationResolver {
 
     private void reportClassOnlyIdProperty(ConfigProperty property, EStructuralFeature feature,
             DiagnosticCollector diagnostics) {
-        String signature = feature.getEContainingClass().getName() + "." + feature.getName()
-                + "#" + property.getKey();
-        Set<String> reported = reportedClassOnlyIdProperties.computeIfAbsent(diagnostics,
-                collector -> ConcurrentHashMap.newKeySet());
-        if (!reported.add(signature)) {
+        String featureName = feature.getEContainingClass().getName() + "." + feature.getName();
+        if (!firstReport(property, featureName, diagnostics)) {
             return;
         }
         diagnostics.addWarning(
-                "Config property '" + property.getKey() + "' is not valid on feature '"
-                        + signature.substring(0, signature.indexOf('#'))
+                "Config property '" + property.getKey() + "' is not valid on feature '" + featureName
                         + "'; an identity is class-intrinsic and only idKey and idFormat may be"
                         + " scoped to a reference (spec 09-id.md §4.4). The value is ignored.",
                 "ConfigurationResolver");
+    }
+
+    /**
+     * Reports {@code idKey} / {@code idFormat} scoped to a non-containment reference (issue #189):
+     * valid at the feature level, but inert there, because a non-containment reference writes a
+     * {@code $ref} and not the target's body. Once per feature and property, like the class-only
+     * report.
+     */
+    private void reportIdPropertyOnNonContainment(ConfigProperty property, EStructuralFeature feature,
+            DiagnosticCollector diagnostics) {
+        String featureName = feature.getEContainingClass().getName() + "." + feature.getName();
+        if (!firstReport(property, featureName, diagnostics)) {
+            return;
+        }
+        diagnostics.addWarning(
+                "Config property '" + property.getKey() + "' has no effect on non-containment"
+                        + " reference '" + featureName + "'; a non-containment reference writes a $ref,"
+                        + " not the target's body, so reference-scoped id keys apply to containment"
+                        + " only (spec 09-id.md §4.4). The value is ignored.",
+                "ConfigurationResolver");
+    }
+
+    /** Dedupes the feature-level id reports per collector, feature and property. */
+    private boolean firstReport(ConfigProperty property, String featureName,
+            DiagnosticCollector diagnostics) {
+        Set<String> reported = reportedClassOnlyIdProperties.computeIfAbsent(diagnostics,
+                collector -> ConcurrentHashMap.newKeySet());
+        return reported.add(featureName + "#" + property.getKey());
     }
 
     /**

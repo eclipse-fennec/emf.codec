@@ -79,6 +79,9 @@ class FeatureAspectBridgeTest {
         customerRef = ecore.createEReference();
         customerRef.setName("customer");
         customerRef.setEType(customerClass);
+        // Containment: the place a reference-scoped idKey/idFormat applies (09-id.md §4.4). On a
+        // non-containment reference the parser drops them before the bridge sees them (#189).
+        customerRef.setContainment(true);
         orderClass.getEStructuralFeatures().add(customerRef);
 
         noteAttribute = ecore.createEAttribute();
@@ -228,6 +231,21 @@ class FeatureAspectBridgeTest {
 
         assertEquals("customerId", props.get("idKey"));
         assertNull(props.get("idKeyMode"), "an identity's mode is class-intrinsic");
+    }
+
+    @Test
+    @DisplayName("id keys on a non-containment reference never reach the bridge")
+    void idKeysOnANonContainmentReferenceAreNotForwarded() {
+        // A non-containment reference writes a $ref, not the target's body; the parser reports
+        // idKey/idFormat there as inert and parses nothing, so there is nothing to forward (#189).
+        customerRef.setContainment(false);
+        annotate(customerRef, "idKey", "customerId", "idFormat", "STRUCTURED", "refKey", "cust");
+
+        Map<String, Object> props = referenceProperties();
+
+        assertNull(props.get("idKey"), "no id key is written in a $ref position");
+        assertNull(props.get("idFormat"));
+        assertEquals("cust", props.get("refKey"), "the reference's own keys still flow");
     }
 
     @Test
