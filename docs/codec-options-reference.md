@@ -341,6 +341,12 @@ The `ClientCodecOptionsFilter` in `codec.rest` collects whitelists from all regi
 declared type, and merges the result into the save/load options map.
 **Client values win over annotation-based options.**
 
+> **Server-side per-request options:** the request property the filter fills
+> (`JakartaRestConstants.CLIENT_CODEC_OPTIONS`, a `Map<String, Object>`) is the general per-request
+> channel, not a client-only one. An endpoint whose options are known only at runtime may write it
+> from its own request filter or from the resource method. Client values win on a shared key in
+> either order; see `codec-rest-client-overridable-options.md` §13 for the ordering rules.
+
 > **Key format:** core options use their *short* ConfigProperty key (e.g. `serializeNull`),
 > while format-specific options use their full prefixed key (e.g. `codec.csv.delimiter`).
 > Non-whitelisted keys are silently ignored.
