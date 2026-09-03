@@ -79,4 +79,44 @@ class ClientCodecOptionsFilterTest {
     void nullHeader() {
         assertTrue(ClientCodecOptionsFilter.parseClientOptions(WHITELIST, null).isEmpty());
     }
+
+    // ------------------------------------------------------------------
+    // The request property is a shared channel (issue #170)
+    // ------------------------------------------------------------------
+
+    @Test
+    @DisplayName("no earlier value ⇒ the client options become the property")
+    void mergeOntoNothing() {
+        Map<String, Object> client = Map.of("codec.csv.delimiter", "|");
+
+        Map<String, Object> merged = ClientCodecOptionsFilter.mergeClientOptions(null, client);
+
+        assertEquals(client, merged);
+    }
+
+    @Test
+    @DisplayName("server-side values written earlier survive; the client wins on a shared key")
+    void mergeOntoServerValues() {
+        // A server-side filter with a higher priority may have filled the property already.
+        // Its keys stay, and a whitelisted client key beats it - whitelisting a key is the
+        // decision to let the client set it.
+        Map<String, Object> server = Map.of("codec.csv.delimiter", ";", "codec.csv.dataTypeInSecondRow", false);
+        Map<String, Object> client = Map.of("codec.csv.delimiter", "|");
+
+        Map<String, Object> merged = ClientCodecOptionsFilter.mergeClientOptions(server, client);
+
+        assertEquals("|", merged.get("codec.csv.delimiter"), "client wins for whitelisted keys");
+        assertEquals(false, merged.get("codec.csv.dataTypeInSecondRow"), "server-only keys stay");
+        assertEquals(";", server.get("codec.csv.delimiter"), "the earlier map is not mutated");
+    }
+
+    @Test
+    @DisplayName("a value that is not a map is not a channel ⇒ replaced")
+    void mergeOntoGarbage() {
+        Map<String, Object> client = Map.of("codec.csv.delimiter", "|");
+
+        Map<String, Object> merged = ClientCodecOptionsFilter.mergeClientOptions("not a map", client);
+
+        assertEquals(client, merged);
+    }
 }
