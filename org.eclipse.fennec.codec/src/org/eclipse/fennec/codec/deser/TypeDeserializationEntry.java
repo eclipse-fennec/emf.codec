@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EClass;
@@ -192,7 +193,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             }
         } else if (token == JsonToken.START_OBJECT) {
             // STRUCTURED format: "_type": {"schema": "...", "type": "...", "supertype": [...]}
-            StructuredTypeResult result = parseStructuredType(parser);
+            StructuredTypeResult result = parseStructuredType(parser, ctxt);
             typeValue = result.typeValue;
 
             // Store parsed supertypes for validation after EClass is resolved
@@ -309,9 +310,11 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      * </p>
      *
      * @param parser the JSON parser positioned at START_OBJECT
+     * @param ctxt the deserialization context, carrier of the per-load package resolver
      * @return the structured type result containing type value and optional supertypes
      */
-    private StructuredTypeResult parseStructuredType(JsonParser parser) {
+    private StructuredTypeResult parseStructuredType(JsonParser parser,
+            DeserializationContext ctxt) {
         StructuredTypeResult result = new StructuredTypeResult();
         String schema = null;
         String typeValue = null;
@@ -337,7 +340,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
 
         // NUMERIC strategy: schema + classifier
         if (classifier != null && schema != null) {
-            result.typeValue = buildNumericTypeValue(schema, classifier);
+            result.typeValue = buildNumericTypeValue(schema, classifier, ctxt);
             return result;
         }
 
@@ -421,12 +424,21 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      * Returns the composed URI if found.
      * </p>
      *
+     * <p>
+     * The schema is looked up through the per-load {@link PackageResolver}, not the global
+     * registry: the id is only meaningful inside one package version, and in an OSGi runtime
+     * that publishes its models through the metadata whiteboard the global registry holds
+     * nothing to look it up in (issue #207).
+     * </p>
+     *
      * @param schema the EPackage nsURI
      * @param classifier the classifier ID
+     * @param ctxt the deserialization context, carrier of the per-load package resolver
      * @return the composed URI string, or the classifier as string if not found
      */
-    private String buildNumericTypeValue(String schema, int classifier) {
-        EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(schema);
+    private String buildNumericTypeValue(String schema, int classifier,
+            DeserializationContext ctxt) {
+        EPackage ePackage = resolvePackageVia(ContextHelper.getPackageResolver(ctxt), schema);
         if (ePackage != null) {
             EClass resolved = TypeResolutionHelper.findClassifierInPackage(ePackage, classifier);
             if (resolved != null) {
@@ -557,9 +569,10 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         // If we are deserializing a contained object under a specific EReference
         // that has an inlineMapping annotation, try to resolve using that reference's
         // dedicated registry first.
+        Function<String, EClass> mappedTypeResolver = mappedTypeResolver(packageResolver, ctxt);
         if (typeDiscriminatorService != null && currentReference != null) {
             EClass resolved = typeDiscriminatorService.resolveForReference(
-                    currentReference, typeValue, TypeResolutionHelper::resolveFromUri);
+                    currentReference, typeValue, mappedTypeResolver);
             if (resolved != null) {
                 LOGGER.fine("Resolved type via inline mapping for reference '" +
                         currentReference.getName() + "': " + typeValue + " -> " + resolved.getName());
@@ -575,14 +588,14 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         if (typeDiscriminatorService != null) {
             EClass resolved;
             if (discriminatorMapId != null) {
-                resolved = typeDiscriminatorService.resolve(discriminatorMapId, typeValue, TypeResolutionHelper::resolveFromUri);
+                resolved = typeDiscriminatorService.resolve(discriminatorMapId, typeValue, mappedTypeResolver);
                 if (resolved != null) {
                     LOGGER.fine("Resolved type via discriminator registry '" + discriminatorMapId +
                             "': " + typeValue + " -> " + resolved.getName());
                     return resolved;
                 }
             } else {
-                resolved = typeDiscriminatorService.resolveFromAny(typeValue, TypeResolutionHelper::resolveFromUri);
+                resolved = typeDiscriminatorService.resolveFromAny(typeValue, mappedTypeResolver);
                 if (resolved != null) {
                     LOGGER.fine("Resolved type via discriminator: " + typeValue + " -> " + resolved.getName());
                     return resolved;
@@ -631,7 +644,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
             case NUMERIC:
                 String numericContextSchema = ctxt != null ? ContextHelper.getContextSchemaUri(ctxt) : null;
                 resolved = TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass, numericContextSchema,
-                        ContextHelper.getDiagnosticCollector(ctxt));
+                        packageResolver, ContextHelper.getDiagnosticCollector(ctxt));
                 break;
             case SCHEMA_AND_TYPE:
                 // TODO: Implement SCHEMA_AND_TYPE resolution
@@ -654,7 +667,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         if (resolved == null && strategy != TypeStrategy.NUMERIC && isClassifierId(typeValue)) {
             String numericContextSchema = ctxt != null ? ContextHelper.getContextSchemaUri(ctxt) : null;
             resolved = TypeResolutionHelper.resolveFromNumeric(typeValue, hintEClass, numericContextSchema,
-                        ContextHelper.getDiagnosticCollector(ctxt));
+                        packageResolver, ContextHelper.getDiagnosticCollector(ctxt));
         }
 
         // S-4: Add resource diagnostic when resolution fails due to missing context
@@ -666,6 +679,21 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         }
 
         return resolved;
+    }
+
+    /**
+     * The {@code eClassResolver} the discriminator registries use to turn a mapped class URI —
+     * a mapping target or a {@code fallbackEClass} — into an {@link EClass}.
+     * <p>
+     * It has to go through the per-load {@link PackageResolver} for the same reason every other
+     * type URI does: the annotation names an nsURI, and which version of it the load reads
+     * against is the resolver's decision, not the global registry's (issue #207).
+     * </p>
+     */
+    private static Function<String, EClass> mappedTypeResolver(PackageResolver packageResolver,
+            DeserializationContext ctxt) {
+        DiagnosticCollector diagnostics = ContextHelper.getDiagnosticCollector(ctxt);
+        return uri -> TypeResolutionHelper.resolveFromUri(uri, packageResolver, diagnostics);
     }
 
     /** Tells whether a type value is a plain non-negative integer, i.e. a classifier id. */
@@ -782,6 +810,8 @@ public class TypeDeserializationEntry implements DeserializationEntry {
     private static EClass resolveUriVia(PackageResolver resolver, String typeUri,
             String streamFingerprint, DiagnosticCollector diagnostics) {
         if (resolver == null) {
+            // See resolvePackageVia: no MetadataService, hence no resolver, hence the global
+            // registry as the only tier (issue #207).
             return TypeResolutionHelper.resolveFromUri(typeUri, diagnostics);
         }
         try {
@@ -806,6 +836,10 @@ public class TypeDeserializationEntry implements DeserializationEntry {
      */
     private static EPackage resolvePackageVia(PackageResolver resolver, String nsURI) {
         if (resolver == null) {
+            // Reachable, and only here: a CodecModule configured without a MetadataService has
+            // nothing to build a resolver from, so the global registry is all there is. Under
+            // the whiteboard a resolver is always seeded, which is why an OSGi runtime never
+            // has to mirror its packages into the global registry (issue #207).
             return EPackage.Registry.INSTANCE.getEPackage(nsURI);
         }
         try {

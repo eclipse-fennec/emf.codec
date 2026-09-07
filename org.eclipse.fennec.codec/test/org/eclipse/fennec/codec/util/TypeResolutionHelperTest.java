@@ -64,6 +64,9 @@ class TypeResolutionHelperTest {
 
     @Nested
     @DisplayName("resolveFromSimpleName")
+    // Covers the whole-registry scan variant, deprecated for removal in favour of the
+    // context-package one (issue #207); the behaviour is still contractual until it goes.
+    @SuppressWarnings("removal")
     class ResolveFromSimpleName {
 
         @Test
@@ -230,6 +233,7 @@ class TypeResolutionHelperTest {
 
     @Nested
     @DisplayName("resolveFromClassName")
+    @SuppressWarnings("removal")
     class ResolveFromClassName {
 
         @Test

@@ -991,13 +991,19 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         // ref-read time or the proxy cannot be built correctly at all.
         PackageResolver resolver = ContextHelper.getPackageResolver(ctxt);
         if (resolver == null) {
+            // Reachable only without a MetadataService: a CodecModule configured without one
+            // has nothing to build a resolver from, so the global registry is all there is.
             return TypeResolutionHelper.resolveFromUri(typeValue,
                     ContextHelper.getDiagnosticCollector(ctxt));
         }
         try {
-            EClass resolved = resolver.resolveEClassFromTypeUri(typeValue, entryFingerprint);
-            return resolved != null ? resolved : TypeResolutionHelper.resolveFromUri(typeValue,
-                    ContextHelper.getDiagnosticCollector(ctxt));
+            // No second lookup after this answer: the resolver has already been through the
+            // whole binding order, the global registry included as its own last tier for
+            // nsURIs the MetadataService does not know. Asking the global registry again could
+            // only answer with a class from a *different* version of an nsURI the load has
+            // already selected a version for - the reference would silently leave the model
+            // world the rest of the document is read in (issue #207).
+            return resolver.resolveEClassFromTypeUri(typeValue, entryFingerprint);
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

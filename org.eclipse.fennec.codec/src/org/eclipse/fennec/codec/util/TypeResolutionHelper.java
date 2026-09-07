@@ -12,6 +12,7 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.util;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.common.util.URI;
@@ -30,6 +31,16 @@ import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
  *   <li>Numeric classifier ID: {@code "3"} — looks up by classifier ID (with optional package hint)</li>
  *   <li>Full URI: {@code "http://example.org/1.0#//Person"} — direct nsURI + fragment lookup</li>
  * </ul>
+ * </p>
+ * <p>
+ * Wherever an nsURI has to be turned into an {@link EPackage}, that step belongs to the
+ * per-load {@link PackageResolver}: it applies the binding source order and the count-based
+ * candidate rule, so the version the load selected is the version the type is read against.
+ * The overloads that take no resolver read {@link EPackage.Registry#INSTANCE} directly and
+ * exist for callers that have no load context at all — a {@code CodecModule} configured
+ * without a {@code MetadataService}. In an OSGi runtime that publishes its models through the
+ * metadata whiteboard, the global registry is empty, so those overloads find nothing
+ * (issue #207).
  * </p>
  *
  * @author Mark Hoffmann
@@ -124,7 +135,13 @@ public final class TypeResolutionHelper {
      *
      * @param className the simple class name (e.g. "Person")
      * @return the resolved EClass, or null if not found
+     * @deprecated scans {@link EPackage.Registry#INSTANCE} without any load context, so it
+     *             cannot tell versions of one nsURI apart and finds nothing at all in a
+     *             runtime that publishes its models through the metadata whiteboard. Use
+     *             {@link #resolveFromSimpleName(String, EPackage)} with the package the
+     *             per-load {@link PackageResolver} selected (issue #207).
      */
+    @Deprecated(forRemoval = true)
     public static EClass resolveFromSimpleName(String className) {
         return resolveFromSimpleNameGlobally(className, null);
     }
@@ -221,7 +238,13 @@ public final class TypeResolutionHelper {
      *
      * @param className the fully qualified Java class name (e.g. "com.example.Person")
      * @return the resolved EClass, or null if not found
+     * @deprecated scans {@link EPackage.Registry#INSTANCE} without any load context, so it
+     *             cannot tell versions of one nsURI apart and finds nothing at all in a
+     *             runtime that publishes its models through the metadata whiteboard. Use
+     *             {@link #resolveFromClassName(String, EPackage)} with the package the
+     *             per-load {@link PackageResolver} selected (issue #207).
      */
+    @Deprecated(forRemoval = true)
     public static EClass resolveFromClassName(String className) {
         if (className == null || className.isEmpty()) {
             return null;
@@ -296,6 +319,32 @@ public final class TypeResolutionHelper {
      */
     public static EClass resolveFromNumeric(String numericValue, EClass hintEClass,
             String contextSchemaUri, DiagnosticCollector diagnostics) {
+        return resolveFromNumeric(numericValue, hintEClass, contextSchemaUri, null, diagnostics);
+    }
+
+    /**
+     * Same, locating the context schema's package through the per-load {@link PackageResolver}
+     * (issue #207).
+     * <p>
+     * A classifier id means nothing without a package, so the package lookup <i>is</i> the
+     * resolution here. Doing it through the resolver is what makes NUMERIC readable in a
+     * runtime that publishes its models through the metadata whiteboard, and what makes it
+     * pick the version the load selected when several are registered for the nsURI.
+     * </p>
+     *
+     * @param numericValue the classifier ID as string
+     * @param hintEClass optional hint EClass for package context (may be null)
+     * @param contextSchemaUri optional context schema URI for package lookup (may be null)
+     * @param packageResolver the per-load resolver, or {@code null} when the caller has no
+     *        load context — then the global registry is the only tier left
+     * @param diagnostics receives the reason, may be null when nobody is listening
+     * @return the resolved EClass, or null if not found or not a valid number
+     * @throws IllegalStateException if the nsURI has more than one registered version and no
+     *         pin or fingerprint selects one
+     */
+    public static EClass resolveFromNumeric(String numericValue, EClass hintEClass,
+            String contextSchemaUri, PackageResolver packageResolver,
+            DiagnosticCollector diagnostics) {
         if (numericValue == null || numericValue.isEmpty()) {
             return null;
         }
@@ -312,7 +361,7 @@ public final class TypeResolutionHelper {
 
             // Try context schema URI to locate the package
             if (contextSchemaUri != null && !contextSchemaUri.isEmpty()) {
-                EPackage pkg = EPackage.Registry.INSTANCE.getEPackage(contextSchemaUri);
+                EPackage pkg = resolvePackage(contextSchemaUri, packageResolver);
                 if (pkg != null) {
                     EClass resolved = findClassifierInPackage(pkg, classifierId);
                     if (resolved != null) {
@@ -373,6 +422,23 @@ public final class TypeResolutionHelper {
      * @return the resolved EClass, or null if not found
      */
     public static EClass resolveFromUri(String uri, DiagnosticCollector diagnostics) {
+        return resolveFromUri(uri, null, diagnostics);
+    }
+
+    /**
+     * Same, selecting the package version through the per-load {@link PackageResolver}
+     * (issue #207).
+     *
+     * @param uri the EClass URI
+     * @param packageResolver the per-load resolver, or {@code null} when the caller has no
+     *        load context — then the global registry is the only tier left
+     * @param diagnostics receives the reason, may be null when nobody is listening
+     * @return the resolved EClass, or null if not found
+     * @throws IllegalStateException if the nsURI has more than one registered version and no
+     *         pin or fingerprint selects one
+     */
+    public static EClass resolveFromUri(String uri, PackageResolver packageResolver,
+            DiagnosticCollector diagnostics) {
         if (uri == null || uri.isEmpty()) {
             return null;
         }
@@ -388,7 +454,7 @@ public final class TypeResolutionHelper {
 
             String className = fragment.substring(2); // Remove "//"
 
-            EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(nsUri);
+            EPackage ePackage = resolvePackage(nsUri, packageResolver);
             if (ePackage == null) {
                 warn(diagnostics, "EPackage not found for URI: " + nsUri);
                 return null;
@@ -401,9 +467,40 @@ public final class TypeResolutionHelper {
                 warn(diagnostics, "Classifier is not an EClass: " + className);
                 return null;
             }
+        } catch (IllegalStateException e) {
+            // An ambiguous nsURI is a hard error in every strictness mode (A.3): swallowing it
+            // here would turn "which version did you mean" into a plain "not found".
+            throw e;
         } catch (Exception e) {
             warn(diagnostics, "Error resolving EClass from URI: " + uri + " - " + e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Turns an nsURI into an {@link EPackage} through the per-load {@link PackageResolver},
+     * which applies the binding source order (pin, ResourceSet registry, MetadataService
+     * candidate query, global registry) and the count-based candidate rule.
+     * <p>
+     * Without a resolver the global registry is read directly. That branch is reachable — a
+     * {@code CodecModule} configured without a {@code MetadataService} has no load context to
+     * build a resolver from — but it is the plain-EMF case, not the OSGi one: a runtime that
+     * publishes its models through the metadata whiteboard puts nothing there (issue #207).
+     * </p>
+     *
+     * @param nsUri the namespace URI
+     * @param packageResolver the per-load resolver, or {@code null}
+     * @return the package, or {@code null} if unresolvable
+     * @throws IllegalStateException on an ambiguous nsURI (&gt; 1 registered version, no pin)
+     */
+    private static EPackage resolvePackage(String nsUri, PackageResolver packageResolver) {
+        if (packageResolver == null) {
+            return nsUri != null ? EPackage.Registry.INSTANCE.getEPackage(nsUri) : null;
+        }
+        try {
+            return packageResolver.resolveEPackage(nsUri, null);
+        } catch (IOException e) {
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 

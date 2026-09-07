@@ -92,6 +92,18 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
     private final Map<String, TypeDiscriminatorRegistry> registries = new ConcurrentHashMap<>();
 
     /**
+     * The {@link MetadataRegistry} the packages behind these registries were published
+     * through, remembered so a class URI named by a mapping annotation can be resolved
+     * without the global {@link EPackage.Registry#INSTANCE} (issue #207).
+     * <p>
+     * Taken from EMF containment of the {@link PackageMetadata} handed in, so the incremental
+     * {@link MetadataHandler} path picks it up as well as the service-wide scan. All
+     * registrations from one whiteboard share one registry, so a single reference is enough.
+     * </p>
+     */
+    private volatile MetadataRegistry metadataRegistry;
+
+    /**
      * Cache of per-{@link PackageMetadata} discriminator views (B.6). Each view is a service
      * holding only that one package's registries, built once via {@link #onPackageRegistered}
      * and reused (immutable after build) to compose per-load effective views. Keyed by
@@ -124,6 +136,7 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
 
         MetadataRegistry registry = metadataService.getRegistry();
         if (registry != null) {
+            service.metadataRegistry = registry;
             for (PackageMetadata pkgMetadata : registry.getPackages()) {
                 // Phase 1: register discriminator values from ClassCodecAspect
                 for (ClassMetadata classMetadata : pkgMetadata.getClasses()) {
@@ -133,7 +146,8 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
                 // Phase 2: scan raw annotations for fallback config and inline mappings
                 EPackage ePackage = pkgMetadata.getEPackage();
                 if (ePackage != null) {
-                    Function<String, EClass> eClassResolver = uri -> resolveEClassFromUri(uri, ePackage);
+                    Function<String, EClass> eClassResolver =
+                            uri -> resolveEClassFromUri(uri, ePackage, pkgMetadata);
                     service.registerAnnotationMappings(ePackage, eClassResolver);
                 }
             }
@@ -164,6 +178,7 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
         if (registry == null) {
             return composed;
         }
+        composed.metadataRegistry = registry;
         for (PackageMetadata pm : selectVersions(registry, pinnedVersionLookup)) {
             composed.mergePackageView(perPackageView(pm), pm);
         }
@@ -213,6 +228,7 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
      * collisions (same mapId + value -> different class) as hard errors (B.6 §7.4).
      */
     private void mergePackageView(TypeDiscriminatorService view, PackageMetadata source) {
+        rememberMetadataRegistry(source);
         for (String mapId : view.getMapIds()) {
             TypeDiscriminatorRegistry src = view.getRegistry(mapId);
             if (src == null) {
@@ -263,6 +279,7 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
         if (packageMetadata == null) {
             return;
         }
+        rememberMetadataRegistry(packageMetadata);
 
         // Phase 1: register discriminator values from ClassCodecAspect
         for (ClassMetadata classMetadata : packageMetadata.getClasses()) {
@@ -272,7 +289,8 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
         // Phase 2: scan raw annotations for fallback config and inline mappings
         EPackage ePackage = packageMetadata.getEPackage();
         if (ePackage != null) {
-            Function<String, EClass> eClassResolver = uri -> resolveEClassFromUri(uri, ePackage);
+            Function<String, EClass> eClassResolver =
+                    uri -> resolveEClassFromUri(uri, ePackage, packageMetadata);
             registerAnnotationMappings(ePackage, eClassResolver);
         }
     }
@@ -359,13 +377,29 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
     }
 
     /**
-     * Resolves an EClass URI string using a package as context.
+     * Resolves an EClass URI string named by a mapping annotation, using the package that
+     * carries the annotation as context.
      * <p>
-     * Supports fragment-based URIs (e.g., "http://example.org/1.0#//ClassName")
-     * by looking up the classifier in the global package registry.
+     * Supports fragment-based URIs (e.g., "http://example.org/1.0#//ClassName"). A URI naming
+     * a class in <b>another</b> package is resolved through the metadata registry the source
+     * {@link PackageMetadata} belongs to — the same registry the discriminator view is being
+     * built from — before the global {@link EPackage.Registry#INSTANCE} is consulted at all.
      * </p>
+     * <p>
+     * The registry is the whole point: a runtime that publishes its models through the
+     * metadata whiteboard puts nothing in the global registry, so a cross-package mapping
+     * resolved from there alone finds nothing and the mapping is dropped silently
+     * (issue #207). The global registry stays as the last tier, for genuinely foreign
+     * packages the whiteboard does not carry.
+     * </p>
+     *
+     * @param uriStr the EClass URI named by the annotation
+     * @param contextPackage the package carrying the annotation
+     * @param source the metadata of that package, or {@code null} when it is not at hand
+     * @return the resolved EClass, or {@code null} if not found
      */
-    private static EClass resolveEClassFromUri(String uriStr, EPackage contextPackage) {
+    private static EClass resolveEClassFromUri(String uriStr, EPackage contextPackage,
+            PackageMetadata source) {
         if (uriStr == null || uriStr.isEmpty()) {
             return null;
         }
@@ -379,8 +413,13 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
                 if (classifier instanceof EClass eClass) {
                     return eClass;
                 }
-                // Try global registry
                 String nsUri = uri.trimFragment().toString();
+                // Then the metadata registry this package was published through
+                EClass fromRegistry = findInMetadataRegistry(source, nsUri, className);
+                if (fromRegistry != null) {
+                    return fromRegistry;
+                }
+                // Last tier: the global registry, for foreign / plain-EMF packages
                 EPackage pkg = EPackage.Registry.INSTANCE.getEPackage(nsUri);
                 if (pkg != null) {
                     classifier = pkg.getEClassifier(className);
@@ -391,6 +430,95 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
             }
         } catch (Exception e) {
             LOGGER.warning("Failed to resolve EClass URI: " + uriStr + " — " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Remembers the {@link MetadataRegistry} a {@link PackageMetadata} was published through,
+     * so mapping URIs can be resolved through it later.
+     */
+    private void rememberMetadataRegistry(PackageMetadata packageMetadata) {
+        if (metadataRegistry == null
+                && packageMetadata.eContainer() instanceof MetadataRegistry registry) {
+            metadataRegistry = registry;
+        }
+    }
+
+    /**
+     * Extends a caller's {@code eClassResolver} with this service's own registry-backed lookup
+     * (issue #207).
+     * <p>
+     * A {@code fallbackEClass} is a URI in an annotation, resolved at read time through
+     * whatever function the caller passes. The caller's resolver goes first — on a load it is
+     * the per-load package resolver, which knows the version this load selected — but when it
+     * comes up empty the metadata registry these mappings were built from still knows the
+     * class. Leaving that lookup to the caller is what made a configured fallback fail in a
+     * runtime whose global {@code EPackage.Registry} is empty.
+     * </p>
+     */
+    private Function<String, EClass> withOwnLookup(Function<String, EClass> eClassResolver) {
+        return uri -> {
+            EClass fromCaller = eClassResolver != null ? eClassResolver.apply(uri) : null;
+            if (fromCaller != null) {
+                return fromCaller;
+            }
+            return resolveEClassInMetadataRegistry(uri);
+        };
+    }
+
+    /**
+     * Resolves a full class URI ({@code nsURI#//ClassName}) against the remembered
+     * {@link MetadataRegistry}.
+     */
+    private EClass resolveEClassInMetadataRegistry(String uriStr) {
+        MetadataRegistry registry = metadataRegistry;
+        if (registry == null || uriStr == null || uriStr.isEmpty()) {
+            return null;
+        }
+        URI uri = URI.createURI(uriStr);
+        String fragment = uri.fragment();
+        if (fragment == null || !fragment.startsWith("//")) {
+            return null;
+        }
+        return findInRegistry(registry, uri.trimFragment().toString(), fragment.substring(2));
+    }
+
+    /**
+     * Looks a class up in the {@link MetadataRegistry} containing the given
+     * {@link PackageMetadata} — reachable through EMF containment, so no extra wiring is
+     * needed and the incremental {@link MetadataHandler} path resolves as well as the
+     * service-wide scan.
+     * <p>
+     * More than one version may be registered for the nsURI. All of them are tried and the
+     * first that carries the class wins: unlike a read, a mapping annotation is resolved once
+     * at registration time and has no load to take a pin from, so there is no version to
+     * prefer. The per-load composed view (B.6) is what scopes the result to a version, and it
+     * rejects a value that ends up mapped to two different classes.
+     * </p>
+     */
+    private static EClass findInMetadataRegistry(PackageMetadata source, String nsUri,
+            String className) {
+        if (source == null || !(source.eContainer() instanceof MetadataRegistry registry)) {
+            return null;
+        }
+        return findInRegistry(registry, nsUri, className);
+    }
+
+    /** The registry scan both lookups share. */
+    private static EClass findInRegistry(MetadataRegistry registry, String nsUri,
+            String className) {
+        if (nsUri == null) {
+            return null;
+        }
+        for (PackageMetadata candidate : registry.getPackages()) {
+            EPackage ePackage = candidate.getEPackage();
+            if (ePackage == null || !nsUri.equals(ePackage.getNsURI())) {
+                continue;
+            }
+            if (ePackage.getEClassifier(className) instanceof EClass eClass) {
+                return eClass;
+            }
         }
         return null;
     }
@@ -650,7 +778,7 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
         if (registry == null) {
             return null;
         }
-        return registry.resolve(discriminatorValue, eClassResolver);
+        return registry.resolve(discriminatorValue, withOwnLookup(eClassResolver));
     }
 
     /**
@@ -803,7 +931,7 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
         // Find the first registry with a non-SKIP fallback strategy
         for (TypeDiscriminatorRegistry registry : registries.values()) {
             if (registry.getFallbackStrategy() != FallbackStrategy.SKIP) {
-                return registry.resolve(discriminatorValue, eClassResolver);
+                return registry.resolve(discriminatorValue, withOwnLookup(eClassResolver));
             }
         }
 
