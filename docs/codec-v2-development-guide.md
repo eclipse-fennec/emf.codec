@@ -2,7 +2,48 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-09-03
+**Last Updated:** 2026-09-07
+
+**Session Summary (2026-09-07) — issue #207: the type-resolution paths that read `EPackage.Registry.INSTANCE`:**
+
+Spec 06 §6.4.6 already said the binding order is binding; four paths did not follow it. All four
+are now routed through the per-load `PackageResolver`, and the spec section names the paths it
+covers so the next reader does not have to find them again.
+
+- **NUMERIC, both presentations.** A classifier id means nothing without a package, so the schema
+  lookup *is* the resolution. `TypeResolutionHelper.resolveFromNumeric` gained a resolver-aware
+  overload; the PLAIN caller is `TypeDeserializationEntry` (context schema), the STRUCTURED one
+  `CodecEObjectDeserializer.readStructuredTypeObject` and
+  `TypeDeserializationEntry.buildNumericTypeValue` (the embedded `schema`). Before this, NUMERIC
+  simply did not work in a whiteboard-only runtime.
+- **`ReferenceDeserializationEntry.resolveTypeFromValue`** asked the global registry *after* the
+  resolver had answered `null`. Removed: the resolver has already been through tier 4 where tier 4
+  applies, so the only thing the second lookup can add is a class from a **different version of an
+  nsURI this load has already pinned** — the proxy leaves the model world the rest of the document
+  is read in. That is what `ResolverBypassTest.ReferenceTypeUris` pins down.
+- **Discriminator mapping URIs, on both sides of the bundle boundary.** In the codec,
+  `TypeDeserializationEntry` passed `TypeResolutionHelper::resolveFromUri` (global registry) as the
+  registries' `eClassResolver`; it now passes a resolver-backed function. In
+  `codec.metadata`, `TypeDiscriminatorService` resolved a cross-package mapping target from the
+  global registry alone and dropped the mapping with a warning when it was not there. It now
+  resolves through the `MetadataRegistry` — reached via `PackageMetadata.eContainer()`, so no new
+  wiring and the incremental `MetadataHandler` path works like the service-wide scan — and
+  remembers that registry so a `fallbackEClass` resolves too, whatever the caller passes.
+- **Why mapping URIs are the odd one out:** they are resolved once, at package registration, with
+  no load and therefore no pin. All registered versions are tried, first hit wins; version scoping
+  for these is the per-step composed view (B.6), which errors on a value mapped to two classes.
+- **The `resolver == null` branches are real, and now say so.** They are reachable exactly when a
+  `CodecModule` is configured without a `MetadataService` — the plain-EMF case. Under the
+  whiteboard `CodecEObjectDeserializer.ensurePackageResolver` always seeds one, which is the reason
+  an OSGi runtime never has to mirror its packages into the global registry.
+- **Deprecated for removal:** `TypeResolutionHelper.resolveFromSimpleName(String)` and
+  `resolveFromClassName(String)`, the two whole-registry scans. Nothing in `src` calls them; the
+  package is exported at 1.0.0, so they are deprecated rather than deleted.
+- **Tests:** `ResolverBypassTest` (codec, 5) and `CrossPackageMappingResolutionTest`
+  (codec.metadata, 2). Three and two respectively fail on the pre-fix sources.
+- **Noticed, not fixed:** `CodecOptions.CODEC_ROOT_SCHEMA` (`"codec.rootSchema"`) is documented and
+  listed in `CodecResource.KNOWN_RUNTIME_OPTIONS`, but `resolveContextSchema` only reads
+  `CodecResource.CODEC_ROOT_SCHEMA` (`"CODEC_ROOT_SCHEMA"`). The documented option key is inert.
 
 **Session Summary (2026-09-03) — issue #193 wave 2 (#198 wiring, #199 round-trip matrix, #200 docs):**
 

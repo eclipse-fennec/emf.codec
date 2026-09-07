@@ -735,6 +735,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 // NUMERIC STRUCTURED: resolve classifier ID within the embedded schema package.
                 // Look up the EClass directly and return its full URI for downstream resolution.
                 EClass resolved = TypeResolutionHelper.resolveFromNumeric(classifierValue, null, schemaValue,
+                        ContextHelper.getPackageResolver(ctxt),
                         ContextHelper.getDiagnosticCollector(ctxt));
                 if (resolved != null && resolved.getEPackage() != null) {
                     return new TypeContext(

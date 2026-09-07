@@ -1293,6 +1293,33 @@ global cross-package scan that S-4 forbids (§15 9.3). The `MetadataService.getC
 last-wins behavior is therefore **not** used for version selection under multi-version;
 the count rule replaces it.
 
+**Every** path that turns an nsURI into a package goes through this order — the rule is about
+the nsURI, not about which reader happens to hold it:
+
+| Path | What it resolves |
+|------|------------------|
+| Type URI (`nsURI#//Class`) | the class, on the root and on every nested object |
+| Context schema (`CODEC_ROOT_SCHEMA`, smart compression) | the package simple names and classifier ids are read against |
+| NUMERIC strategy | the package a classifier id is meaningful in — PLAIN and STRUCTURED (`{"schema": …, "classifier": …}`) alike |
+| Reference entry `_type` | the version-correct class instance a proxy is built from |
+| Discriminator mapping URIs | a mapping target or a `fallbackEClass` named by an annotation |
+
+Two consequences follow, and they are the point of the rule (issue #207):
+
+- An OSGi runtime that publishes its models through the metadata whiteboard **never** has to
+  mirror them into `EPackage.Registry.INSTANCE`. Any path that reads the global registry
+  instead of the resolver would simply not work there.
+- No path may consult the global registry **after** the resolver has answered. The resolver
+  has already been through tier 4 where tier 4 applies; a second lookup can only answer with a
+  class from a *different* version of an nsURI whose version this load has already selected —
+  silently mixing model worlds inside one document.
+
+Mapping URIs are the one path resolved outside a load: an annotation's target is resolved once,
+when the package is registered. There is no pin to take a version from, so all registered
+versions of the named nsURI are tried and the first carrying the class wins. Version scoping
+for these happens in the per-step composed discriminator view (B.6, spec 08 §7.4), which
+rejects a value that ends up mapped to two different classes.
+
 ### 6.5 Type Resolution Rules
 
 | Content has `_type` | `CODEC_ROOT_TYPE` set | Behavior |
