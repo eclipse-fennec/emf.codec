@@ -14,11 +14,14 @@ package org.eclipse.fennec.codec.util;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -35,21 +38,21 @@ class CodecResourceHelperResolveRootEClassTest extends CodecResourceHelperTestBa
 
     @Test
     @DisplayName("returns null for null options")
-    void returnsNullForNullOptions() {
+    void returnsNullForNullOptions() throws IOException {
         EClass result = helper.resolveRootEClass(null);
         assertNull(result);
     }
 
     @Test
     @DisplayName("returns null for empty options")
-    void returnsNullForEmptyOptions() {
+    void returnsNullForEmptyOptions() throws IOException {
         EClass result = helper.resolveRootEClass(new HashMap<>());
         assertNull(result);
     }
 
     @Test
     @DisplayName("returns null when CODEC_ROOT_TYPE not set")
-    void returnsNullWhenOptionNotSet() {
+    void returnsNullWhenOptionNotSet() throws IOException {
         Map<String, Object> options = new HashMap<>();
         options.put("OTHER_OPTION", "value");
 
@@ -62,7 +65,7 @@ class CodecResourceHelperResolveRootEClassTest extends CodecResourceHelperTestBa
      */
     @Test
     @DisplayName("returns EClass when passed directly (Spec 15.4: EClass value type)")
-    void returnsEClassWhenPassedDirectly() {
+    void returnsEClassWhenPassedDirectly() throws IOException {
         Map<String, Object> options = new HashMap<>();
         options.put(CodecResourceHelper.CODEC_ROOT_TYPE, personClass);
 
@@ -75,7 +78,7 @@ class CodecResourceHelperResolveRootEClassTest extends CodecResourceHelperTestBa
      */
     @Test
     @DisplayName("resolves EClass from URI string (Spec 15.4: String URI value type)")
-    void resolvesEClassFromUriString() {
+    void resolvesEClassFromUriString() throws IOException {
         // Get the actual URI from the registered ClassMetadata
         String uri = metadataService.getClassMetadata(personClass).orElseThrow().getTypeURI();
         Map<String, Object> options = new HashMap<>();
@@ -87,7 +90,7 @@ class CodecResourceHelperResolveRootEClassTest extends CodecResourceHelperTestBa
 
     @Test
     @DisplayName("returns null for unknown URI string")
-    void returnsNullForUnknownUri() {
+    void returnsNullForUnknownUri() throws IOException {
         Map<String, Object> options = new HashMap<>();
         options.put(CodecResourceHelper.CODEC_ROOT_TYPE, "http://unknown.org/1.0#//Unknown");
 
@@ -97,11 +100,34 @@ class CodecResourceHelperResolveRootEClassTest extends CodecResourceHelperTestBa
 
     @Test
     @DisplayName("returns null for invalid option type (not EClass or String)")
-    void returnsNullForInvalidOptionType() {
+    void returnsNullForInvalidOptionType() throws IOException {
         Map<String, Object> options = new HashMap<>();
         options.put(CodecResourceHelper.CODEC_ROOT_TYPE, Integer.valueOf(42));
 
         EClass result = helper.resolveRootEClass(options);
         assertNull(result);
+    }
+
+    /**
+     * Issue #208: the canonical dotted key is read here too, not only the literal one.
+     */
+    @Test
+    @DisplayName("reads the canonical dotted key codec.rootType (issue #208)")
+    void readsDottedKey() throws IOException {
+        Map<String, Object> options = new HashMap<>();
+        options.put(CodecOptions.CODEC_ROOT_TYPE, personClass);
+
+        EClass result = helper.resolveRootEClass(options);
+        assertSame(personClass, result);
+    }
+
+    @Test
+    @DisplayName("reports the two keys carrying contradictory values (issue #208)")
+    void reportsContradictoryKeys() {
+        Map<String, Object> options = new HashMap<>();
+        options.put(CodecOptions.CODEC_ROOT_TYPE, personClass);
+        options.put(CodecResourceHelper.CODEC_ROOT_TYPE, addressClass);
+
+        assertThrows(IOException.class, () -> helper.resolveRootEClass(options));
     }
 }

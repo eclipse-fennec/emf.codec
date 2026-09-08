@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.constants.CodecOptions;
+import org.eclipse.fennec.codec.constants.RootOptions;
 import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
@@ -43,8 +44,13 @@ public class CodecResourceHelper {
 
     private static final Logger LOGGER = Logger.getLogger(CodecResourceHelper.class.getName());
 
-    /** Option key for specifying the root EClass during deserialization. */
-    public static final String CODEC_ROOT_TYPE = "CODEC_ROOT_TYPE";
+    /**
+     * Option key for specifying the root EClass during deserialization: the literal
+     * spelling, carrying the single declaration {@link CodecOptions#CODEC_ROOT_TYPE_LITERAL}.
+     * The canonical, dotted key is {@link CodecOptions#CODEC_ROOT_TYPE}; both are read
+     * (issue #208), so read them through {@link RootOptions#rootType(Map)}.
+     */
+    public static final String CODEC_ROOT_TYPE = CodecOptions.CODEC_ROOT_TYPE_LITERAL;
 
     private final MetadataService metadataService;
 
@@ -60,18 +66,20 @@ public class CodecResourceHelper {
     /**
      * Resolves the root EClass from load options.
      * <p>
-     * Supports both direct EClass reference and URI string.
+     * Supports both direct EClass reference and URI string, under either of the option's
+     * two keys ({@code codec.rootType} and {@code CODEC_ROOT_TYPE}).
      * </p>
      *
      * @param options the options map
      * @return the root EClass, or null if not specified or not resolvable
+     * @throws IOException if the two root type keys carry contradictory values
      */
-    public EClass resolveRootEClass(Map<?, ?> options) {
+    public EClass resolveRootEClass(Map<?, ?> options) throws IOException {
         if (isNull(options)) {
             return null;
         }
 
-        Object rootObject = options.get(CODEC_ROOT_TYPE);
+        Object rootObject = RootOptions.rootType(options);
 
         if (rootObject instanceof EClass eClass) {
             return eClass;
@@ -148,7 +156,7 @@ public class CodecResourceHelper {
             // A.3: a String root type whose nsURI has more than one registered version is
             // ambiguous without a fingerprint -> error listing candidates (both modes), never
             // a silent last-wins pick.
-            Object rootObject = options.get(CODEC_ROOT_TYPE);
+            Object rootObject = RootOptions.rootType(options);
             if (rootObject instanceof String uriString && !uriString.isEmpty()) {
                 int hash = uriString.indexOf('#');
                 if (hash > 0) {
@@ -170,7 +178,7 @@ public class CodecResourceHelper {
             throw new IOException("Unknown root fingerprint: " + fingerprint);
         }
 
-        Object rootObject = options.get(CODEC_ROOT_TYPE);
+        Object rootObject = RootOptions.rootType(options);
         if (rootObject instanceof EClass eClass) {
             // Checkable case: the explicit instance must belong to the named version.
             verifyPackageFingerprint(eClass.getEPackage(), fingerprint, CODEC_ROOT_TYPE);

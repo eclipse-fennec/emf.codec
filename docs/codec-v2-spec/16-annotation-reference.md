@@ -157,8 +157,8 @@ Load/Save options use the same convention:
 
 | Java Constant | String Value | Description |
 |---------------|--------------|-------------|
-| `CODEC_ROOT_TYPE` | `"codec.rootType"` | Type hint for root object |
-| `CODEC_ROOT_SCHEMA` | `"codec.rootSchema"` | Schema context for NAME strategy |
+| `CODEC_ROOT_TYPE` | `"codec.rootType"` | Type hint for root object. Also read under the literal key `"CODEC_ROOT_TYPE"` ([13 §2.1.1](13-load-save-options.md#211-two-keys-per-root-option)) |
+| `CODEC_ROOT_SCHEMA` | `"codec.rootSchema"` | Schema context for NAME strategy. Also read under the literal key `"CODEC_ROOT_SCHEMA"` ([13 §2.1.1](13-load-save-options.md#211-two-keys-per-root-option)) |
 | `CODEC_FEATURE_TYPE_HINTS` | `"codec.featureTypeHints"` | Per-feature type hints |
 | `CODEC_TYPE_HINT_MODE` | `"codec.typeHintMode"` | HINT or OVERRIDE |
 | `CODEC_DESERIALIZATION_MODE` | `"codec.deserializationMode"` | STRICT, LENIENT, AUTO_DETECT |

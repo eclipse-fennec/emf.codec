@@ -41,6 +41,7 @@ import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.prefix.CodecPrefixReader;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.ConversionFailures;
@@ -84,8 +85,12 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 
     private static final Logger LOGGER = Logger.getLogger(CodecEObjectDeserializer.class.getName());
 
-    /** Context attribute key for CODEC_ROOT_TYPE option (user-provided root hint) */
-    public static final String CODEC_ROOT_TYPE = "CODEC_ROOT_TYPE";
+    /**
+     * Context attribute key for the root type option (user-provided root hint). Carries the
+     * single declaration of the literal spelling, {@link CodecOptions#CODEC_ROOT_TYPE_LITERAL}
+     * (issue #208).
+     */
+    public static final String CODEC_ROOT_TYPE = CodecOptions.CODEC_ROOT_TYPE_LITERAL;
 
     /** Default reference key for non-containment references */
     private static final String DEFAULT_REF_KEY = "$ref";
