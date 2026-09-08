@@ -232,7 +232,7 @@ public enum ConfigProperty {
     REF_FORMAT("refFormat", String.class, "STRUCTURED", SerializationFormat.class,
         levels(GLOBAL, FEATURE), directions(READ, WRITE)),
 
-    REF_KEY("refKey", String.class, "$ref",
+    REF_KEY("refKey", String.class, "_ref",
         levels(GLOBAL, FEATURE), directions(READ, WRITE)),
 
     REF_TYPE_KEY("refTypeKey", String.class, "_type",

@@ -296,7 +296,7 @@ Output:
   "_t": "Person",
   "_id": "maho",
   "firstName": "Mark",
-  "employer": { "$ref": "companies", "$id": "datainmotion" }
+  "employer": { "$id": "datainmotion" }
 }
 ```
 

@@ -4,6 +4,48 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-08
 
+**Session Summary (2026-09-08) — issue #211: `refKey` had two different defaults:**
+
+The Options layer defaulted to `$ref` (`ConfigProperty.REF_KEY`), the model layer to `_ref`
+(`codec.ecore`'s `defaultValueLiteral`). A STRUCTURED reference written through one path could
+not be read back through the other, and nothing in the output said which convention had been
+used. `$ref` is also unusable in BSON: MongoDB reserves it for DBRef and rejects a subdocument
+carrying it without a sibling `$id` ("The DBRef $ref field must be followed by a $id field"),
+which made every non-containment reference unwritable by default.
+
+- **Both layers now default to `_ref`.** The model side and the spec already said `_ref`
+  (03 §naming table, 10 §66/§141/§729, 16 §1303/§1493); only the Options layer, two ASCII
+  diagrams in 10, the property table in 02 §521 and `docs/codec-options-reference.md` said
+  `$ref`. The spec was the source of truth, so the Options layer moved.
+- **Three functional defaults changed:** `ConfigProperty.REF_KEY`,
+  `CodecEObjectDeserializer.DEFAULT_REF_KEY` and the `refConfig == null` fallback in
+  `ReferenceSerializationEntry`'s delegating constructor. `codec.ecore` was already `_ref` and
+  is untouched, so nothing was regenerated.
+- **The guard is `RefKeyDefaultAgreementTest`** (codec, 4). It asserts the two layers agree and
+  that the default carries no `$` prefix. It lives in `org.eclipse.fennec.codec` because that is
+  the only module that sees both layers — codec.api cannot see the generated model, and
+  codec.metadata cannot see `ConfigProperty`. Verified red by flipping `REF_KEY` back.
+- **Tests updated:** six default assertions in codec.api (`ConfigPropertyTest`,
+  `ReferenceConfigTest` ×3, `ConfigurationResolverTest`, `ReferenceConfigResolverSpecTest`,
+  `ReferenceConfigSpecTest` — the last of which carried a comment admitting it contradicted
+  the spec), and the `$ref` JSON literals in the end-to-end tests that never set `refKey`
+  (`ExpandReferenceTest`, `PlainReferenceFormatTest`, `SubtypeContainmentSerializationTest`,
+  `CrossResourceReferenceTest`, `ReferenceResolutionNoIoTest`, `ReferenceUriPolicyTest`,
+  `ResolverBypassTest`).
+- **Left alone deliberately:** the explicitly-annotated `refKey="$ref"` in
+  `test-codec-annotations.ecore`, `CodecProfileBuildTest` and `CodecAspectProviderValidConfigTest`
+  — an explicit `$ref` is still valid config, and those tests now genuinely prove the annotation
+  is honoured instead of coinciding with the default. Also the three `$ref` mentions in
+  `ReferenceDeserializationEntry` that describe OpenAPI's own `$ref` attribute, where the key is
+  payload and the model wins.
+- **`FeatureAnnotationReferenceFormatTest`'s premise was the divergence itself** (issue #175) and
+  was rewritten: `refFormat` still diverges (model `PLAIN`, codec `STRUCTURED`), so that case
+  still shows a dropped annotation as a visibly different wire format; `refKey` no longer does.
+  The same passage in 16 §1852 was corrected.
+- **Not done — the optional BSON hardening** from the issue (reject `$`-prefixed field names with
+  a clear diagnostic rather than letting MongoDB fail server-side). It is independent of which
+  default wins and touches a different module; deliberately deferred to its own issue.
+
 **Session Summary (2026-09-08) — issue #208: `codec.rootType` / `codec.rootSchema` were inert:**
 
 Both root options had grown two keys — the canonical dotted one the spec documents and the

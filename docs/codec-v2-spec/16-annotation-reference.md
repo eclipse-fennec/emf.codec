@@ -1163,7 +1163,7 @@ The inner key for the combined/single ID value is configurable via `idValueKey` 
 | `idOnTop` on EReference | ERROR | Field ordering is class-specific |
 | `idValueReaderName` on EReference | ERROR | Value reader/writer is class-intrinsic |
 | `idValueWriterName` on EReference | ERROR | Value reader/writer is class-intrinsic |
-| `idKey` on a **non-containment** EReference | WARNING | A non-containment reference writes a `$ref`, not the target's body — no id key to rename; dropped (see [09-id §4.4](09-id.md#44-almost-no-id-configuration-on-the-reference)) |
+| `idKey` on a **non-containment** EReference | WARNING | A non-containment reference writes a `_ref`, not the target's body — no id key to rename; dropped (see [09-id §4.4](09-id.md#44-almost-no-id-configuration-on-the-reference)) |
 | `idFormat` on a **non-containment** EReference | WARNING | Same rule; dropped |
 | `idScope` via EAnnotation | WARNING | Scope is runtime-only (🔧) — ignored, not harmful |
 | `idFormatScope` via EAnnotation | WARNING | Scope is runtime-only (🔧) — ignored, not harmful |
@@ -1849,9 +1849,9 @@ feature level through a runtime source rather than an annotation is dropped and 
 The attributes behind these keys are `unsettable` in `codec.ecore` (issues #106/#175), so the
 bridge asks `isSetX()` — "did the annotation say this?" — instead of comparing against the model
 default. That distinction matters because the model defaults are not always the codec's:
-`BaseReferenceConfig` defaults to `_ref` / `PLAIN` while the codec defaults to `$ref` /
-`STRUCTURED`, so `refKey="_ref"` and `refFormat="PLAIN"` are honoured rather than mistaken for
-silence. The boolean feature flags (`ignore`, `serializeNull`, …) work the same way, so an
+`BaseReferenceConfig` defaults to `PLAIN` while the codec defaults to `STRUCTURED`, so
+`refFormat="PLAIN"` is honoured rather than mistaken for silence. (`refKey` used to diverge
+the same way; since issue #211 both layers default to `_ref`.) The boolean feature flags (`ignore`, `serializeNull`, …) work the same way, so an
 explicit `false` at the feature scope overrides a `true` from a wider one.
 
 ### Feature Configuration

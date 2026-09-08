@@ -1072,7 +1072,7 @@ class CodecAspectProviderMisconfigTest {
 
         /**
          * @MISCONFIG @SPEC(09-id.md#4.4)
-         * A non-containment reference writes a {@code $ref}, not the target's body, so there is no
+         * A non-containment reference writes a {@code _ref}, not the target's body, so there is no
          * id key in that position to rename. The annotation is inert; saying so is the fix.
          */
         @Test

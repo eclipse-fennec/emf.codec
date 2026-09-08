@@ -209,7 +209,7 @@ class ResolverBypassTest {
         @DisplayName("a class only another version knows is not smuggled onto the proxy")
         void staleGlobalVersionDoesNotWin() throws IOException {
             String json = "{ \"_type\": \"" + NS_URI + "#//Holder\","
-                    + " \"target\": { \"$ref\": \"file:/other-resource.json#/1\","
+                    + " \"target\": { \"_ref\": \"file:/other-resource.json#/1\","
                     + " \"_type\": \"" + NS_URI + "#//RetiredNode\" } }";
 
             CodecResource resource = load(metadataService, json, Map.of());

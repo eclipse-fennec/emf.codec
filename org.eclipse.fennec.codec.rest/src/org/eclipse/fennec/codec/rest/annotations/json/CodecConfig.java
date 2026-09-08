@@ -221,7 +221,7 @@ public @interface CodecConfig {
 
 	/**
 	 * JSON key for reference values.
-	 * @return the ref key, or empty string for default ("$ref")
+	 * @return the ref key, or empty string for default ("_ref")
 	 * @see CodecOptions#CODEC_REF_KEY
 	 */
 	String refKey() default "";

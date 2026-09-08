@@ -423,7 +423,7 @@ class PlainReferenceFormatTest {
                             "name": "Grace",
                             "friends": [
                                 "//@employees.0",
-                                { "_type": "http://test.example.org/roundtrip/1.0#//Person", "$ref": "//@employees.1" }
+                                { "_type": "http://test.example.org/roundtrip/1.0#//Person", "_ref": "//@employees.1" }
                             ]
                         }
                     ]
@@ -546,7 +546,7 @@ class PlainReferenceFormatTest {
 
             // Verify PLAIN format is used (bare string, no object wrapper)
             assertTrue(json.contains("\"ceo\""), "JSON should contain ceo field");
-            // PLAIN format should NOT have $ref inside an object for ceo
+            // PLAIN format should NOT have _ref inside an object for ceo
             // Check that ceo is followed by a string value, not an object
             assertTrue(json.matches("(?s).*\"ceo\"\\s*:\\s*\"[^{].*"),
                     "PLAIN format should write bare URI string, not object");
@@ -583,7 +583,7 @@ class PlainReferenceFormatTest {
 
             // Verify PLAIN format for multi-valued: array of strings
             assertTrue(json.contains("\"friends\""), "JSON should contain friends field");
-            // Friends array should contain URI strings, not objects with $ref
+            // Friends array should contain URI strings, not objects with _ref
         }
 
         @Test
@@ -601,10 +601,10 @@ class PlainReferenceFormatTest {
             // Use default resolver (STRUCTURED format)
             String json = serialize(company, ConfigurationResolver.defaults());
 
-            // Verify STRUCTURED format is used (contains $ref)
+            // Verify STRUCTURED format is used (contains _ref)
             assertTrue(json.contains("\"ceo\""), "JSON should contain ceo field");
-            assertTrue(json.contains("$ref"),
-                    "Default serialization should use STRUCTURED format with $ref key");
+            assertTrue(json.contains("_ref"),
+                    "Default serialization should use STRUCTURED format with _ref key");
         }
 
         @Test

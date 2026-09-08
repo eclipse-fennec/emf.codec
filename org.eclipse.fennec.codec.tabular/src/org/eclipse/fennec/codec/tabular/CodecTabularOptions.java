@@ -79,7 +79,7 @@ public interface CodecTabularOptions {
      * Conceptually adjacent to the codec's global {@link
      * org.eclipse.fennec.codec.config.ConfigProperty#REF_KEY} but kept as a
      * distinct option because the syntactic roles differ: {@code REF_KEY} is an
-     * <em>inner</em> JSON key (e.g. {@code "address": {"$ref": "..."}}), whereas
+     * <em>inner</em> JSON key (e.g. {@code "address": {"_ref": "..."}}), whereas
      * this is a <em>suffix</em> on the parent column name. Keeping them separate
      * avoids cross-format surprises when a user sets one without realising it
      * would affect the other.

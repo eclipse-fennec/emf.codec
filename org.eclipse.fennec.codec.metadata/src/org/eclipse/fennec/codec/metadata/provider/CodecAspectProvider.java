@@ -313,7 +313,7 @@ public class CodecAspectProvider implements MetadataHandler {
 
             // Parse the two id keys a reference may carry (issue #176). The class-only ones are
             // reported above by checkForIdClassOnlyKeysOnReference and are not parsed here.
-            // Containment only: a non-containment reference writes a $ref, not the target's
+            // Containment only: a non-containment reference writes a _ref, not the target's
             // body, so there is no id key in that position to rename (issue #189).
             if (hasReferenceIdConfig(details)) {
                 if (reference.isContainment()) {
@@ -1220,7 +1220,7 @@ public class CodecAspectProvider implements MetadataHandler {
                 addDiagnostic(diagnostics, DiagnosticSeverity.WARNING,
                         "Annotation key '" + key + "' has no effect on non-containment EReference '"
                                 + reference.getName() + "', ignored (a non-containment reference writes"
-                                + " a $ref, not the target's body; reference-scoped id keys apply to"
+                                + " a _ref, not the target's body; reference-scoped id keys apply to"
                                 + " containment only - see 09-id.md section 4.4)",
                         key);
             }

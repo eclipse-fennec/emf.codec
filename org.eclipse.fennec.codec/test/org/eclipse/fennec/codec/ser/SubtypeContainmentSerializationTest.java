@@ -58,7 +58,7 @@ import tools.jackson.core.json.JsonFactory;
  * Reproduces what the Model Atlas REST API returns for {@code GET /scopes/{scope}}: the
  * {@code registries} feature is declared as {@code RegistryInfo} while the instances are
  * {@code Registry} (a subtype living in another EPackage), and the children come out as
- * {@code {"_type": "…#//Registry", "$ref": "#//"}} instead of their fields.
+ * {@code {"_type": "…#//Registry", "_ref": "#//"}} instead of their fields.
  * </p>
  */
 @DisplayName("Containment of subtype instances (both write paths)")
@@ -182,7 +182,7 @@ class SubtypeContainmentSerializationTest {
 
         assertTrue(json.contains("kept-without-container"),
                 "a child that owns no resource is part of this document and must be inlined, was: " + json);
-        assertFalse(json.contains("$ref"),
+        assertFalse(json.contains("_ref"),
                 "a child that owns no resource must not be written as a reference, was: " + json);
     }
 
@@ -195,7 +195,7 @@ class SubtypeContainmentSerializationTest {
 
         assertTrue(json.contains(item.eGet(nameAttributeOf(item)).toString()),
                 "contained subtype instance must be inlined with its fields, was: " + json);
-        assertFalse(json.contains("$ref"),
+        assertFalse(json.contains("_ref"),
                 "a contained subtype instance is part of this document, not a reference, was: " + json);
     }
 

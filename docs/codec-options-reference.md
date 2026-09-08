@@ -95,10 +95,10 @@ These options apply to every format. Java constants are in
 
 | Option key | Constant | Type | Default | Description |
 |---|---|---|---|---|
-| `codec.refFormat` | `CODEC_REF_FORMAT` | String | `PLAIN` | `PLAIN` writes a bare URI string; `STRUCTURED` wraps it in `{"$ref":"…"}` (with optional `_type`). |
-| `codec.refKey` | `CODEC_REF_KEY` | String | `$ref` | Key for the reference URI inside a STRUCTURED object. |
+| `codec.refFormat` | `CODEC_REF_FORMAT` | String | `PLAIN` | `PLAIN` writes a bare URI string; `STRUCTURED` wraps it in `{"_ref":"…"}` (with optional `_type`). |
+| `codec.refKey` | `CODEC_REF_KEY` | String | `_ref` | Key for the reference URI inside a STRUCTURED object. |
 | `codec.refTypeKey` | `CODEC_REF_TYPE_KEY` | String | `_type` | Key for the type hint inside a STRUCTURED reference object. |
-| `codec.expand` | `CODEC_EXPAND` | Boolean | `false` | Inline (expand) non-containment referenced objects instead of emitting a `$ref`. |
+| `codec.expand` | `CODEC_EXPAND` | Boolean | `false` | Inline (expand) non-containment referenced objects instead of emitting a `_ref`. |
 | `codec.expandDepth` | `CODEC_EXPAND_DEPTH` | Integer | `1` | Maximum depth for recursive expansion. |
 | `codec.expandIgnoreBidirectional` | `CODEC_EXPAND_IGNORE_BIDIRECTIONAL` | Boolean | `true` | Skip the back-pointer side of bidirectional references during expansion. |
 | `codec.loadReferencedResources` | `CODEC_LOAD_REFERENCED_RESOURCES` | Boolean | `false` | Let resolution load the resource a cross-document reference names. Off means resolution uses what the ResourceSet already holds and leaves a proxy otherwise. |

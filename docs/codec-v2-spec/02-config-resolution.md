@@ -518,7 +518,7 @@ For any property lookup:
 | Property | Levels | Direction | Default | Spec Section |
 |----------|--------|-----------|---------|--------------|
 | `refFormat` | G, F | RW | `STRUCTURED` | 10-reference.md |
-| `refKey` | G, F | RW | `$ref` | 10-reference.md |
+| `refKey` | G, F | RW | `_ref` | 10-reference.md |
 | `refTypeKey` | G, F | RW | `_type` | 10-reference.md |
 | `proxyKey` | G, F | RW | `$proxy` | 10-reference.md |
 | `expand` | G, C, F | RW | `false` | 10-reference.md |

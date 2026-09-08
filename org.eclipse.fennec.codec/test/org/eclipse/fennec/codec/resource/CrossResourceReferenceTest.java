@@ -450,7 +450,7 @@ class CrossResourceReferenceTest {
                   "name": "Alice",
                   "friends": [
                     { "_type": "%s#//Person", "name": "Bob" },
-                    { "_type": "%s#//Person", "$ref": "%s" },
+                    { "_type": "%s#//Person", "_ref": "%s" },
                     { "_type": "%s#//Person", "name": "Charlie" }
                   ]
                 }

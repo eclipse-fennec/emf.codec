@@ -127,7 +127,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             ReferenceConfig refConfig, boolean smartCompression, EffectiveCodecConfig codecConfig,
             CodecEntryContext entryContext) {
         this(config, reference, refConfig,
-                refConfig != null ? refConfig.getRefKey() : "$ref",
+                refConfig != null ? refConfig.getRefKey() : "_ref",
                 refConfig != null ? refConfig.getFormat() : SerializationFormat.STRUCTURED,
                 smartCompression, codecConfig, entryContext);
     }
@@ -442,9 +442,9 @@ public class ReferenceSerializationEntry implements SerializationEntry {
      * "employer": "//@employees.0"
      * </pre>
      *
-     * STRUCTURED format: object with _type and $ref
+     * STRUCTURED format: object with _type and _ref
      * <pre>
-     * "employer": { "_type": "...", "$ref": "//@employees.0" }
+     * "employer": { "_type": "...", "_ref": "//@employees.0" }
      * </pre>
      * </p>
      *
@@ -456,7 +456,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             // PLAIN format: just write the URI string directly
             writeReferenceValue(source, target, gen, crossDocument, ctxt);
         } else {
-            // STRUCTURED format: object with _type and $ref
+            // STRUCTURED format: object with _type and _ref
             gen.writeStartObject();
 
             String typeUri = EcoreUtil.getURI(target.eClass()).toString();
