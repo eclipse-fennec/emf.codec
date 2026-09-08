@@ -57,16 +57,46 @@ public final class CodecOptions {
     // ========================================================================
 
     /**
-     * Load option: Type hint for root object.
+     * Load option: Type hint for root object. Canonical, dotted key.
      * <p>Value: {@code EClass} or EClass URI string</p>
+     * <p>
+     * The option answers to two keys: this one and the literal
+     * {@link #CODEC_ROOT_TYPE_LITERAL}. Both are read everywhere; read them through
+     * {@link RootOptions#rootType(java.util.Map)} rather than by a bare map lookup.
+     * </p>
      */
     public static final String CODEC_ROOT_TYPE = "codec.rootType";
 
     /**
-     * Load option: Schema context for NAME strategy.
+     * Load option: the literal alias of {@link #CODEC_ROOT_TYPE}, kept because it is the
+     * spelling {@code CodecResource.CODEC_ROOT_TYPE} has always carried (issue #208).
+     * <p>
+     * The single declaration of the literal: every other constant of that spelling aliases
+     * this one. Passing both keys with different values is a caller bug and is reported.
+     * </p>
+     */
+    public static final String CODEC_ROOT_TYPE_LITERAL = "CODEC_ROOT_TYPE";
+
+    /**
+     * Load option: Schema context for NAME strategy. Canonical, dotted key.
      * <p>Value: {@code EPackage} or namespace URI string</p>
+     * <p>
+     * The option answers to two keys: this one and the literal
+     * {@link #CODEC_ROOT_SCHEMA_LITERAL}. Both are read everywhere; read them through
+     * {@link RootOptions#rootSchema(java.util.Map)} rather than by a bare map lookup.
+     * </p>
      */
     public static final String CODEC_ROOT_SCHEMA = "codec.rootSchema";
+
+    /**
+     * Load option: the literal alias of {@link #CODEC_ROOT_SCHEMA}, kept because it is the
+     * spelling {@code CodecResource.CODEC_ROOT_SCHEMA} has always carried (issue #208).
+     * <p>
+     * The single declaration of the literal: every other constant of that spelling aliases
+     * this one. Passing both keys with different values is a caller bug and is reported.
+     * </p>
+     */
+    public static final String CODEC_ROOT_SCHEMA_LITERAL = "CODEC_ROOT_SCHEMA";
 
     /**
      * Load option: package model fingerprint selecting the version a String root

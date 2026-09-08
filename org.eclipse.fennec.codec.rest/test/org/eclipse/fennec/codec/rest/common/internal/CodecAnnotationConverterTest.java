@@ -16,12 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.fennec.codec.constants.CodecOptions;
-import org.eclipse.fennec.codec.resource.CodecResource;
+import org.eclipse.fennec.codec.constants.RootOptions;
 import org.eclipse.fennec.codec.rest.annotations.json.CodecConfig;
 import org.eclipse.fennec.codec.rest.annotations.json.RootElement;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,32 +75,37 @@ class CodecAnnotationConverterTest {
 	@DisplayName("RootElement conversion")
 	class RootElementConversion {
 
+		/*
+		 * Asserted through RootOptions rather than a bare map lookup: what the annotation owes
+		 * the codec is a root option the reading side finds, not one particular spelling of the
+		 * key (issue #208).
+		 */
 		@Test
 		@DisplayName("puts rootType when not blank")
-		void putsRootType() {
+		void putsRootType() throws IOException {
 			RootElement root = AnnotationHelper.rootElement("http://test/1.0#//Person", "");
 			Map<Object, Object> options = new HashMap<>();
 			converter.convertAnnotation(root, false, options);
-			assertEquals("http://test/1.0#//Person", options.get(CodecResource.CODEC_ROOT_TYPE));
+			assertEquals("http://test/1.0#//Person", RootOptions.rootType(options));
 		}
 
 		@Test
 		@DisplayName("puts rootSchema when not blank")
-		void putsRootSchema() {
+		void putsRootSchema() throws IOException {
 			RootElement root = AnnotationHelper.rootElement("", "http://test/1.0");
 			Map<Object, Object> options = new HashMap<>();
 			converter.convertAnnotation(root, false, options);
-			assertEquals("http://test/1.0", options.get(CodecResource.CODEC_ROOT_SCHEMA));
+			assertEquals("http://test/1.0", RootOptions.rootSchema(options));
 		}
 
 		@Test
 		@DisplayName("puts both rootType and rootSchema")
-		void putsBoth() {
+		void putsBoth() throws IOException {
 			RootElement root = AnnotationHelper.rootElement("http://test/1.0#//Person", "http://test/1.0");
 			Map<Object, Object> options = new HashMap<>();
 			converter.convertAnnotation(root, false, options);
-			assertEquals("http://test/1.0#//Person", options.get(CodecResource.CODEC_ROOT_TYPE));
-			assertEquals("http://test/1.0", options.get(CodecResource.CODEC_ROOT_SCHEMA));
+			assertEquals("http://test/1.0#//Person", RootOptions.rootType(options));
+			assertEquals("http://test/1.0", RootOptions.rootSchema(options));
 		}
 
 		@Test
@@ -108,8 +114,8 @@ class CodecAnnotationConverterTest {
 			RootElement root = AnnotationHelper.rootElement("", "");
 			Map<Object, Object> options = new HashMap<>();
 			converter.convertAnnotation(root, false, options);
-			assertFalse(options.containsKey(CodecResource.CODEC_ROOT_TYPE));
-			assertFalse(options.containsKey(CodecResource.CODEC_ROOT_SCHEMA));
+			assertFalse(RootOptions.hasRootType(options));
+			assertFalse(RootOptions.hasRootSchema(options));
 		}
 	}
 

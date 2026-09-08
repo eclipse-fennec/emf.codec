@@ -50,6 +50,7 @@ import org.eclipse.fennec.codec.format.FormatReaderDelegate;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.constants.CodecOptions;
+import org.eclipse.fennec.codec.constants.RootOptions;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.deser.DeserializationState.UnresolvedReference;
 import org.eclipse.fennec.codec.diagnostic.CodecDiagnostic;
@@ -106,13 +107,27 @@ public class CodecResource extends ResourceImpl {
 
     private static final Logger LOGGER = Logger.getLogger(CodecResource.class.getName());
 
-    /** Option key for specifying the root EClass during deserialization */
-    public static final String CODEC_ROOT_TYPE = "CODEC_ROOT_TYPE";
+    /**
+     * Option key for specifying the root EClass during deserialization: the literal
+     * spelling, carrying the single declaration {@link CodecOptions#CODEC_ROOT_TYPE_LITERAL}.
+     * <p>
+     * The canonical key of this option is the dotted {@link CodecOptions#CODEC_ROOT_TYPE};
+     * both are read wherever the option is consulted (issue #208), and setting them to
+     * values that disagree is an error.
+     * </p>
+     */
+    public static final String CODEC_ROOT_TYPE = CodecOptions.CODEC_ROOT_TYPE_LITERAL;
 
     /**
-     * Option key for specifying the context schema URI during deserialization.
+     * Option key for specifying the context schema URI during deserialization: the literal
+     * spelling, carrying the single declaration {@link CodecOptions#CODEC_ROOT_SCHEMA_LITERAL}.
+     * <p>
+     * The canonical key of this option is the dotted {@link CodecOptions#CODEC_ROOT_SCHEMA};
+     * both are read wherever the option is consulted (issue #208), and setting them to
+     * values that disagree is an error.
+     * </p>
      */
-    public static final String CODEC_ROOT_SCHEMA = "CODEC_ROOT_SCHEMA";
+    public static final String CODEC_ROOT_SCHEMA = CodecOptions.CODEC_ROOT_SCHEMA_LITERAL;
 
     /**
      * Optional option key selecting the package version a String root type / schema
@@ -813,7 +828,7 @@ public class CodecResource extends ResourceImpl {
     }
 
     private String resolveContextSchema(Map<?, ?> options, EClass rootEClassHint) throws IOException {
-        Object schemaOption = options.get(CODEC_ROOT_SCHEMA);
+        Object schemaOption = RootOptions.rootSchema(options);
         String rootFingerprint = helper.rootFingerprint(options);
 
         // A.4: CODEC_ROOT_SCHEMA as an EPackage instance (multi-version-safe). When a

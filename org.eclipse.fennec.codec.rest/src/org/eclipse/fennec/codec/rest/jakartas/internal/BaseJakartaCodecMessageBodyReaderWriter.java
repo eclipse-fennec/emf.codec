@@ -36,7 +36,8 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
-import org.eclipse.fennec.codec.resource.CodecResource;
+import org.eclipse.fennec.codec.constants.CodecOptions;
+import org.eclipse.fennec.codec.constants.RootOptions;
 import org.eclipse.fennec.codec.rest.annotations.ResourceOverwriteContentType;
 import org.eclipse.fennec.codec.rest.common.internal.XMLURIHandler;
 import org.eclipse.fennec.codec.rest.jakartas.AbstractJakartaCodecAnnotationHandler;
@@ -174,9 +175,11 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 			// Client-supplied (whitelisted) options win over endpoint annotations.
 			options.putAll(getClientCodecOptions());
 
-			if (!options.containsKey(CodecResource.CODEC_ROOT_TYPE)) {
+			// The root type option answers to two keys (issue #208): only fall back to the Java
+			// type when the caller named neither, or an annotation's dotted key would be ignored.
+			if (!RootOptions.hasRootType(options)) {
 				resolveRootEClass(metadataService, type)
-						.ifPresent(eClass -> options.put(CodecResource.CODEC_ROOT_TYPE, eClass));
+						.ifPresent(eClass -> options.put(CodecOptions.CODEC_ROOT_TYPE, eClass));
 			}
 
 			resource.load(entityStream, options);
@@ -205,7 +208,7 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 	 * <p>
 	 * More than one match means the same Java class is registered for several model versions.
 	 * Picking one would be a coin flip between them, so the request fails instead; the caller
-	 * disambiguates by passing {@code CODEC_ROOT_TYPE} itself, which takes precedence over
+	 * disambiguates by passing the root type option itself, which takes precedence over
 	 * this lookup.
 	 * </p>
 	 *
@@ -229,7 +232,7 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 					.collect(Collectors.joining(", "));
 			String errorText = String.format(
 					"Ambiguous root type for %s: %d registered model versions [%s]; pass %s explicitly to select one",
-					type.getName(), matches.size(), candidates, CodecResource.CODEC_ROOT_TYPE);
+					type.getName(), matches.size(), candidates, CodecOptions.CODEC_ROOT_TYPE);
 			throw new WebApplicationException(
 					Response.serverError().entity(errorText).type(MediaType.TEXT_PLAIN).build());
 		}

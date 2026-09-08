@@ -22,7 +22,7 @@ import java.util.Optional;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
-import org.eclipse.fennec.codec.resource.CodecResource;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataServices;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +34,7 @@ import jakarta.ws.rs.core.Response;
 
 /**
  * Root-type resolution for a Java entity type, as used when a request carries no explicit
- * {@code CODEC_ROOT_TYPE}.
+ * root type option under either of its keys.
  * <p>
  * The lookup goes through the metadata index, which keys classes by
  * {@code EClass.getInstanceClassName()}. It replaced the deprecated {@code EMFModelInfo}, whose
@@ -117,7 +117,7 @@ class RootTypeResolutionTest {
         assertTrue(message.contains(Person.class.getName()), "the message must name the entity type: " + message);
         assertTrue(message.contains("http://test/person/1.0"), "the message must list both candidates: " + message);
         assertTrue(message.contains("http://test/person/2.0"), "the message must list both candidates: " + message);
-        assertTrue(message.contains(CodecResource.CODEC_ROOT_TYPE),
+        assertTrue(message.contains(CodecOptions.CODEC_ROOT_TYPE),
                 "the message must say how to disambiguate: " + message);
     }
 

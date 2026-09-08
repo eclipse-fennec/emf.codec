@@ -40,11 +40,41 @@ Load/Save options have the **highest priority** in the configuration hierarchy:
 
 ### 2.1 Option Keys
 
-| Java Constant | Property Key | Value Type | Direction | Description |
-|---------------|--------------|------------|-----------|-------------|
-| `CODEC_ROOT_TYPE` | `codec.rootType` | `EClass` or `String` | Load | Type hint for root object |
-| `CODEC_ROOT_SCHEMA` | `codec.rootSchema` | `String` (URI) or `EPackage` | Load | Schema context for NAME strategy |
-| `CODEC_ROOT_FINGERPRINT` | `codec.rootFingerprint` | `String` (fingerprint) | Load | Optional; selects the package version a String root type resolves against (multi-version) |
+| Java Constant | Property Key | Also accepted | Value Type | Direction | Description |
+|---------------|--------------|---------------|------------|-----------|-------------|
+| `CODEC_ROOT_TYPE` | `codec.rootType` | `CODEC_ROOT_TYPE` | `EClass` or `String` | Load | Type hint for root object |
+| `CODEC_ROOT_SCHEMA` | `codec.rootSchema` | `CODEC_ROOT_SCHEMA` | `String` (URI) or `EPackage` | Load | Schema context for NAME strategy |
+| `CODEC_ROOT_FINGERPRINT` | `codec.rootFingerprint` | — | `String` (fingerprint) | Load | Optional; selects the package version a String root type resolves against (multi-version) |
+
+#### 2.1.1 Two Keys per Root Option
+
+The root type and root schema options each answer to **two** keys, and every reading site
+reads both:
+
+| Option | Canonical key | Literal key |
+|---|---|---|
+| Root type | `codec.rootType` (`CodecOptions.CODEC_ROOT_TYPE`) | `CODEC_ROOT_TYPE` (`CodecResource.CODEC_ROOT_TYPE`) |
+| Root schema | `codec.rootSchema` (`CodecOptions.CODEC_ROOT_SCHEMA`) | `CODEC_ROOT_SCHEMA` (`CodecResource.CODEC_ROOT_SCHEMA`) |
+
+The dotted key is the canonical one — it is the spelling the rest of this spec uses and the
+one every other option follows. The literal key is what `CodecResource` has always exposed
+and what most existing code passes, so it stays supported rather than being deprecated out
+from under callers.
+
+- **Either key works, anywhere.** `codec.rootType` used to be accepted into the options map
+  and then never read, which turned a spec-following call into a load failure that named the
+  very option the caller had set. Both keys now reach the resolution (issue #208).
+- **Both keys with the same value** is redundant but fine — no diagnostic.
+- **Both keys with different values is an ERROR**, in every strictness mode. It is not a
+  precedence question: the caller has made two contradictory statements about the same
+  option, which is a caller bug, exactly as with a fingerprint that contradicts an instance
+  option (§2.9). The error names both keys and both values.
+- Values are compared **by identity/equality**: the same `EClass` instance, or the same
+  String, under both keys is one statement. An `EClass` under one key and a String under the
+  other counts as a conflict — the codec will not resolve one to guess whether the two agree.
+- Implementations read these options through `RootOptions.rootType(options)` /
+  `RootOptions.rootSchema(options)`; a bare `options.get(key)` sees only one of the two keys
+  and is the bug this rule exists to prevent.
 
 ### 2.2 EMF Resource Contents
 
@@ -91,16 +121,21 @@ When JSON does not contain type information (no `_type` field), the `CODEC_ROOT_
 
 ```java
 /**
- * Load option key for root object type hint.
+ * Load option key for root object type hint - the canonical, dotted key.
  * Value: EClass or String (type URI / qualified name)
  */
-public static final String CODEC_ROOT_TYPE = "CODEC_ROOT_TYPE";
+public static final String CODEC_ROOT_TYPE = "codec.rootType";
+
+/** The literal key the same option also answers to (§2.1.1). */
+public static final String CODEC_ROOT_TYPE_LITERAL = "CODEC_ROOT_TYPE";
 ```
 
-**Usage:**
+**Usage:** either key carries the hint (§2.1.1).
 ```java
 Map<String, Object> options = new HashMap<>();
-options.put(CodecResource.CODEC_ROOT_TYPE, personEClass);
+options.put(CodecOptions.CODEC_ROOT_TYPE, personEClass);    // codec.rootType
+// or
+options.put(CodecResource.CODEC_ROOT_TYPE, personEClass);   // CODEC_ROOT_TYPE
 
 resource.load(inputStream, options);
 ```
@@ -151,16 +186,21 @@ For SCHEMA_AND_TYPE strategy, provides the schema context:
 
 ```java
 /**
- * Load option key for schema context.
+ * Load option key for schema context - the canonical, dotted key.
  * Value: String (EPackage nsURI) or EPackage instance
  */
-public static final String CODEC_ROOT_SCHEMA = "CODEC_ROOT_SCHEMA";
+public static final String CODEC_ROOT_SCHEMA = "codec.rootSchema";
+
+/** The literal key the same option also answers to (§2.1.1). */
+public static final String CODEC_ROOT_SCHEMA_LITERAL = "CODEC_ROOT_SCHEMA";
 ```
 
-**Usage:**
+**Usage:** either key carries the schema (§2.1.1).
 ```java
 Map<String, Object> options = new HashMap<>();
-options.put(CodecResource.CODEC_ROOT_SCHEMA, "http://example.org/person/1.0");
+options.put(CodecOptions.CODEC_ROOT_SCHEMA, "http://example.org/person/1.0");   // codec.rootSchema
+// or
+options.put(CodecResource.CODEC_ROOT_SCHEMA, "http://example.org/person/1.0");  // CODEC_ROOT_SCHEMA
 
 resource.load(inputStream, options);
 ```
@@ -189,8 +229,8 @@ public static final String CODEC_ROOT_FINGERPRINT = "codec.rootFingerprint";
 
 - **Canonical key:** `codec.rootFingerprint`. Both `CodecOptions.CODEC_ROOT_FINGERPRINT`
   and `CodecResource.CODEC_ROOT_FINGERPRINT` carry this **single value**, so either
-  constant works and the dotted/literal duality that affects `CODEC_ROOT_TYPE` /
-  `CODEC_ROOT_SCHEMA` does **not** apply here (K9).
+  constant works. It never grew the second, literal key that `CODEC_ROOT_TYPE` and
+  `CODEC_ROOT_SCHEMA` carry (§2.1.1) — there is nothing to contradict here (K9).
 - **Optional:** in the common single-version case it is pure noise and may be omitted;
   omitting it preserves today's behavior exactly.
 
@@ -220,6 +260,9 @@ strictness governs tolerance toward *data*, not toward the *caller*.
 - **Non-checkable — String root options.** When the root options are Strings, the
   fingerprint is trusted but must **resolve**: an **unknown option fingerprint → ERROR**,
   never a silent fallback to nsURI resolution.
+- **Two keys, one option.** The root type and root schema each answer to two keys
+  (§2.1.1); passing both with values that disagree is the same class of caller
+  self-contradiction and is an ERROR in both modes.
 - **Scope:** these rules govern the *option* fingerprint only. A fingerprint carried
   *inside the data stream* is the in-band carrier of
   [06-type.md §8](06-type.md#8-in-band-epackage-fingerprint); its precedence against this
@@ -701,8 +744,8 @@ fingerprints, not model contents, keeping the model inventory undisclosed (S-12)
 
 | Java Constant | Property Key | Value Type | Purpose |
 |---------------|--------------|------------|---------|
-| `CODEC_ROOT_TYPE` | `codec.rootType` | `EClass` or `String` | Type hint for root object(s) |
-| `CODEC_ROOT_SCHEMA` | `codec.rootSchema` | `String` | Schema context for NAME strategy |
+| `CODEC_ROOT_TYPE` | `codec.rootType` (also `CODEC_ROOT_TYPE`, §2.1.1) | `EClass` or `String` | Type hint for root object(s) |
+| `CODEC_ROOT_SCHEMA` | `codec.rootSchema` (also `CODEC_ROOT_SCHEMA`, §2.1.1) | `String` or `EPackage` | Schema context for NAME strategy |
 | `CODEC_FEATURE_TYPE_HINTS` | `codec.featureTypeHints` | `Map<EStructuralFeature, EClass>` | EClass hints for specific features |
 | `CODEC_DESERIALIZATION_MODE` | `codec.deserializationMode` | `DeserializationMode` | Strictness level |
 | `CODEC_TYPE_HINT_MODE` | `codec.typeHintMode` | `TypeHintMode` | Hint vs Override behavior |

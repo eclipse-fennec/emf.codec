@@ -143,8 +143,8 @@ EAnnotations or `CodecModule` config.
 
 | Option key | Constant | Type | Description |
 |---|---|---|---|
-| `codec.rootType` | `CODEC_ROOT_TYPE` | EClass or URI String | Type hint for the root object during load. Required when the JSON has no `_type` field and the type cannot be inferred. |
-| `codec.rootSchema` | `CODEC_ROOT_SCHEMA` | String (nsURI) or EPackage | EPackage namespace URI (or EPackage instance) used as context for `NAME` strategy type resolution. The instance form is multi-version-safe. |
+| `codec.rootType` | `CODEC_ROOT_TYPE` | EClass or URI String | Type hint for the root object during load. Required when the JSON has no `_type` field and the type cannot be inferred. Also accepted under the literal key `"CODEC_ROOT_TYPE"` (see below). |
+| `codec.rootSchema` | `CODEC_ROOT_SCHEMA` | String (nsURI) or EPackage | EPackage namespace URI (or EPackage instance) used as context for `NAME` strategy type resolution. The instance form is multi-version-safe. Also accepted under the literal key `"CODEC_ROOT_SCHEMA"` (see below). |
 | `codec.rootFingerprint` | `CODEC_ROOT_FINGERPRINT` | String (fingerprint) | Optional. Package model fingerprint selecting the version a String root type/schema resolves against under same-nsURI multi-version. Unknown or conflicting fingerprint → error (both modes). |
 | `codec.featureTypeHints` | `CODEC_FEATURE_TYPE_HINTS` | Map\<String, EClass\> | Per-feature type hints keyed by feature name. |
 | `codec.featureValueReaderInstances` | `CODEC_FEATURE_VALUE_READER_INSTANCES` | Map\<EStructuralFeature, CodecValueReader\> | Bind reader instances directly to features (bypasses the registry). Works for EAttributes and EReferences. |
@@ -156,6 +156,27 @@ EAnnotations or `CodecModule` config.
 | `codec.eClassConfig` | `CODEC_ECLASS_CONFIG` | Map\<EClass, Map\> | Per-EClass option overrides applied at the EClass scope level. |
 | `codec.eReferenceConfig` | `CODEC_EREFERENCE_CONFIG` | Map\<EReference, Map\> | Per-EReference option overrides. |
 | `codec.eAttributeConfig` | `CODEC_EATTRIBUTE_CONFIG` | Map\<EAttribute, Map\> | Per-EAttribute option overrides. |
+
+#### Two keys for the root type and root schema
+
+These two options are the only ones with a second, non-dotted key. `codec.rootType` is the
+canonical key; `"CODEC_ROOT_TYPE"` — the value of `CodecResource.CODEC_ROOT_TYPE`, which
+most existing code passes — names the same option, and the same holds for
+`codec.rootSchema` / `"CODEC_ROOT_SCHEMA"`. Either key works at every reading site.
+
+```java
+Map<Object, Object> options = new HashMap<>();
+options.put(CodecOptions.CODEC_ROOT_TYPE, customerEClass);   // codec.rootType
+options.put(CodecResource.CODEC_ROOT_TYPE, customerEClass);  // CODEC_ROOT_TYPE - same option
+```
+
+Setting both keys to the *same* value is redundant but harmless. Setting them to values that
+disagree fails the load with an error naming both keys and both values, in every strictness
+mode — two contradictory statements about one option are a caller bug, not a precedence
+question. Values count as equal by identity/equality, so an `EClass` under one key and a type
+URI String under the other is a conflict even if they would resolve to the same type.
+
+`codec.rootFingerprint` has no second key.
 
 > **Not supported — runtime registry registration:** there is no option to register
 > readers/writers into the `CodecValueRegistry` per load/save operation. In particular,

@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.constants.RootOptions;
 import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.EPackageToJsonSchemaConverter;
 import org.eclipse.fennec.codec.jsonschema.v2.converter.JsonSchemaConversionDiagnostic;
@@ -120,7 +121,9 @@ public class JsonSchemaResourceImpl extends CodecResource {
 	 */
 	@Override
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) throws IOException {
-		EClass rootObj = extractOption(options, CodecResource.CODEC_ROOT_TYPE, EcorePackage.Literals.EPACKAGE);
+		// The root type option answers to two keys (issue #208); read both, not just the literal.
+		Object rootTypeOption = RootOptions.rootType(options);
+		EClass rootObj = rootTypeOption instanceof EClass eClass ? eClass : EcorePackage.Literals.EPACKAGE;
 		String schemaFeature = extractOption(options, CodecJsonSchemaOptions.OPTION_SCHEMA_FEATURE, "$defs");
 		
 		EObject eObj = null;

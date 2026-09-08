@@ -2,7 +2,50 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-09-07
+**Last Updated:** 2026-09-08
+
+**Session Summary (2026-09-08) — issue #208: `codec.rootType` / `codec.rootSchema` were inert:**
+
+Both root options had grown two keys — the canonical dotted one the spec documents and the
+literal one `CodecResource` exposes — and only the literal one was ever read. A caller
+following the spec got `Cannot deserialize: no type information found and no CODEC_ROOT_TYPE
+hint` while holding a map that named `codec.rootType`. Both keys are kept, and both are now
+read everywhere.
+
+- **One reader, `RootOptions` (codec.api, `constants` package).** `rootType(options)` /
+  `rootSchema(options)` return the value under either key, `hasRootType` / `hasRootSchema`
+  answer the "did the caller already decide?" question that guards a default. A bare
+  `options.get(key)` is what caused this bug, so the reading is in one place — new reading
+  sites should go through it rather than picking a key.
+- **Contradiction is an error, not a precedence rule.** Both keys with the same value is
+  redundant and silent; both with values that disagree throws `IOException` naming both keys
+  and both values, in every strictness mode. Same reasoning as the fingerprint rules
+  (spec 13 §2.9): the caller contradicting *itself* is a bug, unlike the caller overruling
+  the *document*. Comparison is by `Objects.equals`, so an `EClass` under one key and a type
+  URI String under the other is a conflict — resolving one to check would mean guessing.
+- **Reading sites wired:** `CodecResourceHelper.resolveRootEClass` / `resolveRootType` (both
+  reads), `CodecResource.resolveContextSchema`, `GeoJsonResourceImpl.doLoad` (the default
+  schema must not overwrite one passed under the other key), `JsonSchemaResourceImpl.doLoad`,
+  `BaseJakartaCodecMessageBodyReaderWriter.readResourceFrom` (the Java-type fallback).
+  Writers now write the canonical key: `CodecAnnotationConverter` (`@RootElement`), the REST
+  Java-type fallback, GeoJSON's default schema.
+- **Signature change:** `CodecResourceHelper.resolveRootEClass(Map)` now declares
+  `throws IOException` — it is a reading site, so it reports the conflict. Its only
+  in-tree caller was `resolveRootType`, which already threw.
+- **The literal is declared once,** in `CodecOptions.CODEC_ROOT_TYPE_LITERAL` /
+  `CODEC_ROOT_SCHEMA_LITERAL`; `CodecResource.CODEC_ROOT_TYPE`,
+  `CodecResourceHelper.CODEC_ROOT_TYPE`, `CodecResource.CODEC_ROOT_SCHEMA` and the (unused)
+  `CodecEObjectDeserializer.CODEC_ROOT_TYPE` alias those, so all existing call sites and the
+  TCKs keep compiling unchanged and the values cannot drift.
+- **Tests:** `RootOptionsTest` (codec.api, 14) unit-covers the reader; `RootOptionDualKeyTest`
+  (codec, 10) drives both options through a real load — five of them fail on the pre-fix
+  sources; `CodecResourceHelperResolveRootEClassTest` gained the dotted-key and conflict
+  cases; `CodecAnnotationConverterTest` now asserts through `RootOptions` rather than a key,
+  which is the contract that actually matters.
+- **Spec:** 13 §2.1.1 is new (the two-key rule and the conflict rule), §2.5/§2.7 code blocks
+  showed the wrong constant values and now show both, §2.8's K9 note and §2.9 were corrected,
+  15 §6.1 lists the conflict error, 16's option table and `docs/codec-options-reference.md`
+  cross-reference §2.1.1.
 
 **Session Summary (2026-09-07) — issue #207: the type-resolution paths that read `EPackage.Registry.INSTANCE`:**
 
@@ -44,6 +87,7 @@ covers so the next reader does not have to find them again.
 - **Noticed, not fixed:** `CodecOptions.CODEC_ROOT_SCHEMA` (`"codec.rootSchema"`) is documented and
   listed in `CodecResource.KNOWN_RUNTIME_OPTIONS`, but `resolveContextSchema` only reads
   `CodecResource.CODEC_ROOT_SCHEMA` (`"CODEC_ROOT_SCHEMA"`). The documented option key is inert.
+  *(Fixed 2026-09-08 as issue #208 — see that session summary.)*
 
 **Session Summary (2026-09-03) — issue #193 wave 2 (#198 wiring, #199 round-trip matrix, #200 docs):**
 

@@ -24,6 +24,8 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.constants.CodecOptions;
+import org.eclipse.fennec.codec.constants.RootOptions;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
@@ -133,9 +135,11 @@ public class GeoJsonResourceImpl extends CodecResource {
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) throws IOException {
 		Map<Object, Object> effectiveOptions = createEffectiveOptions(options);
 
-		// Set GeoJSON package as the context schema for type resolution
-		if (!effectiveOptions.containsKey(CODEC_ROOT_SCHEMA)) {
-			effectiveOptions.put(CODEC_ROOT_SCHEMA, GeoJsonPackage.eNS_URI);
+		// Set GeoJSON package as the context schema for type resolution. The caller may have
+		// named one under either of the option's two keys (issue #208), so ask for both before
+		// defaulting - a bare containsKey would overwrite a schema passed under the other key.
+		if (!RootOptions.hasRootSchema(effectiveOptions)) {
+			effectiveOptions.put(CodecOptions.CODEC_ROOT_SCHEMA, GeoJsonPackage.eNS_URI);
 		}
 
 		super.doLoad(inputStream, effectiveOptions);

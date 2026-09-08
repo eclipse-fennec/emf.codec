@@ -289,6 +289,7 @@ for (Diagnostic error : resource.getErrors()) {
 | Unknown type value (no hint) | ERROR | `Cannot deserialize: no type information and no CODEC_ROOT_TYPE hint` | Operation fails |
 | Abstract type without concrete hint | ERROR | `Cannot instantiate abstract type: {type}` | Operation fails |
 | Type collision (incompatible) | WARNING | `Type collision: CODEC_ROOT_TYPE={hint} but content type={actual}` | Content type used |
+| Root option under both its keys with contradictory values ([13 §2.1.1](13-load-save-options.md#211-two-keys-per-root-option)) | ERROR (both modes) | `Contradictory root options: {dottedKey}={value} but {literalKey}={value}. ...` | Operation fails |
 
 ### 6.2 ID Errors (Deserialization)
 

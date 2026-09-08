@@ -24,7 +24,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.ComponentServiceObjects;
 import org.eclipse.fennec.codec.constants.CodecOptions;
-import org.eclipse.fennec.codec.resource.CodecResource;
 
 /**
  * 
@@ -56,8 +55,9 @@ public class CodecAnnotationConverter implements AnnotationConverter {
 		if(annotation instanceof RootElement) {
 			RootElement element = (RootElement) annotation;
 			
-			if(!element.rootType().isBlank()) options.put(CodecResource.CODEC_ROOT_TYPE , element.rootType());
-			if(!element.rootSchema().isBlank()) options.put(CodecResource.CODEC_ROOT_SCHEMA, element.rootSchema());
+			// The canonical, dotted keys - both spellings are read on the way in (issue #208).
+			if(!element.rootType().isBlank()) options.put(CodecOptions.CODEC_ROOT_TYPE , element.rootType());
+			if(!element.rootSchema().isBlank()) options.put(CodecOptions.CODEC_ROOT_SCHEMA, element.rootSchema());
 			
 		} else if(annotation instanceof CodecConfig) {
 			CodecConfig config = (CodecConfig) annotation;
