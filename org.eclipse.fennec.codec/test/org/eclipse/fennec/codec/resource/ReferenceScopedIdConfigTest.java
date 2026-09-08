@@ -51,7 +51,7 @@ import org.junit.jupiter.api.Test;
  * leaving the same class's id alone everywhere else.
  * </p>
  * <p>
- * Containment only. A non-containment reference writes a {@code $ref} or a bare URI, not the
+ * Containment only. A non-containment reference writes a {@code _ref} or a bare URI, not the
  * target's body, so there is no id key in that position to rename; identifying a target by its
  * id instead of by URI is a different feature and not this one.
  * </p>

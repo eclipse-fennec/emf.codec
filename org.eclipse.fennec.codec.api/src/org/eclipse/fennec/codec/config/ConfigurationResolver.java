@@ -587,7 +587,7 @@ public final class ConfigurationResolver {
             return featureProperties;
         }
         // A reference-scoped id key applies to containment only: a non-containment reference
-        // writes a $ref, not the target's body, so there is no id key to rename (issue #189).
+        // writes a _ref, not the target's body, so there is no id key to rename (issue #189).
         boolean nonContainment = feature instanceof EReference reference && !reference.isContainment();
         Map<String, Object> allowed = null;
         for (Map.Entry<String, Object> entry : featureProperties.entrySet()) {
@@ -633,7 +633,7 @@ public final class ConfigurationResolver {
     /**
      * Reports {@code idKey} / {@code idFormat} scoped to a non-containment reference (issue #189):
      * valid at the feature level, but inert there, because a non-containment reference writes a
-     * {@code $ref} and not the target's body. Once per feature and property, like the class-only
+     * {@code _ref} and not the target's body. Once per feature and property, like the class-only
      * report.
      */
     private void reportIdPropertyOnNonContainment(ConfigProperty property, EStructuralFeature feature,
@@ -644,7 +644,7 @@ public final class ConfigurationResolver {
         }
         diagnostics.addWarning(
                 "Config property '" + property.getKey() + "' has no effect on non-containment"
-                        + " reference '" + featureName + "'; a non-containment reference writes a $ref,"
+                        + " reference '" + featureName + "'; a non-containment reference writes a _ref,"
                         + " not the target's body, so reference-scoped id keys apply to containment"
                         + " only (spec 09-id.md §4.4). The value is ignored.",
                 "ConfigurationResolver");
@@ -1858,7 +1858,7 @@ public final class ConfigurationResolver {
         /**
          * Sets the JSON key for reference URIs.
          * <p>
-         * Default is "$ref". Used in STRUCTURED format for non-containment references.
+         * Default is "_ref". Used in STRUCTURED format for non-containment references.
          *
          * @param key the reference key
          * @return this builder

@@ -73,14 +73,15 @@ class ReferenceConfigSpecTest {
         }
 
         /**
-         * Spec section 8: "Ref Key | codec.refKey | $ref"
-         * Note: spec §8 table says "_ref" but ConfigProperty default is "$ref"
+         * Spec section 8: "Ref Key | codec.refKey | _ref" (issue #211: the Options layer
+         * used to default to "$ref", which the model layer and the spec never agreed with
+         * and which MongoDB rejects as a reserved DBRef field).
          */
         @Test
-        @DisplayName("1.2 refKey defaults to $ref")
+        @DisplayName("1.2 refKey defaults to _ref")
         void refKey_defaultsToRef() {
             ReferenceConfig config = ReferenceConfig.defaults();
-            assertEquals("$ref", config.getRefKey());
+            assertEquals("_ref", config.getRefKey());
         }
 
         /**
@@ -232,7 +233,7 @@ class ReferenceConfigSpecTest {
         }
 
         /**
-         * Spec section 3.1: "refKey | codec.refKey | $ref | Reference value key"
+         * Spec section 3.1: "refKey | codec.refKey | _ref | Reference value key"
          */
         @Test
         @DisplayName("2.3 custom refKey overrides default")

@@ -179,16 +179,16 @@ class ExpandReferenceTest {
             // Serialize with default config (no expand)
             String json = serialize(company, ConfigurationResolver.defaults());
 
-            // CEO should be serialized as $ref (proxy reference)
+            // CEO should be serialized as _ref (proxy reference)
             assertTrue(json.contains("\"ceo\""), "JSON should contain ceo field");
-            assertTrue(json.contains("\"$ref\""), "CEO should be serialized with $ref key");
+            assertTrue(json.contains("\"_ref\""), "CEO should be serialized with _ref key");
 
             // The CEO object should NOT contain inline data like "name":"Alice" outside of employees
-            // We need to check that the ceo field has $ref and should NOT have "name" inside it
+            // We need to check that the ceo field has _ref and should NOT have "name" inside it
             int ceoIndex = json.indexOf("\"ceo\"");
             int ceoEndIndex = json.indexOf("}", ceoIndex);
             String ceoJson = json.substring(ceoIndex, ceoEndIndex + 1);
-            assertTrue(ceoJson.contains("$ref"), "CEO should contain $ref");
+            assertTrue(ceoJson.contains("_ref"), "CEO should contain _ref");
             assertFalse(ceoJson.contains("\"name\""), "CEO should NOT contain name (not expanded)");
         }
 
@@ -211,9 +211,9 @@ class ExpandReferenceTest {
 
             String json = serialize(company, resolver);
 
-            // CEO should be expanded inline (no $ref)
+            // CEO should be expanded inline (no _ref)
             assertTrue(json.contains("\"ceo\""), "JSON should contain ceo field");
-            // The expanded CEO should have name but no $ref
+            // The expanded CEO should have name but no _ref
             // Note: Due to expandIgnoreBidirectional default=true, we need objects without opposite refs
         }
 
@@ -282,9 +282,9 @@ class ExpandReferenceTest {
 
             String json = serialize(company, resolver);
 
-            // Proxy CEO should still be serialized as $ref (not expanded)
+            // Proxy CEO should still be serialized as _ref (not expanded)
             assertTrue(json.contains("\"ceo\""), "JSON should contain ceo field");
-            assertTrue(json.contains("$ref"), "Proxy CEO should be serialized as $ref");
+            assertTrue(json.contains("_ref"), "Proxy CEO should be serialized as _ref");
         }
 
         @Test
@@ -327,7 +327,7 @@ class ExpandReferenceTest {
         @Test
         @DisplayName("deserializes expanded non-containment as orphan object")
         void deserializesExpandedAsOrphan() throws IOException {
-            // JSON with expanded CEO (no $ref, just inline object)
+            // JSON with expanded CEO (no _ref, just inline object)
             String json = """
                 {
                   "_type": "http://test.example.org/roundtrip/1.0#//Company",
@@ -361,9 +361,9 @@ class ExpandReferenceTest {
         }
 
         @Test
-        @DisplayName("deserializes proxy reference with $ref")
+        @DisplayName("deserializes proxy reference with _ref")
         void deserializesProxyReference() throws IOException {
-            // JSON with proxy CEO (has $ref)
+            // JSON with proxy CEO (has _ref)
             String json = """
                 {
                   "_type": "http://test.example.org/roundtrip/1.0#//Company",
@@ -376,7 +376,7 @@ class ExpandReferenceTest {
                   ],
                   "ceo": {
                     "_type": "http://test.example.org/roundtrip/1.0#//Person",
-                    "$ref": "//@employees.0"
+                    "_ref": "//@employees.0"
                   }
                 }
                 """;
@@ -397,7 +397,7 @@ class ExpandReferenceTest {
         }
 
         @Test
-        @DisplayName("deserializes proxy with projection ($ref + additional fields)")
+        @DisplayName("deserializes proxy with projection (_ref + additional fields)")
         void deserializesProxyWithProjection() throws IOException {
             // JSON with proxy that has projection data
             String json = """
@@ -407,7 +407,7 @@ class ExpandReferenceTest {
                   "employees": [],
                   "ceo": {
                     "_type": "http://test.example.org/roundtrip/1.0#//Person",
-                    "$ref": "other.json#//@employees.0",
+                    "_ref": "other.json#//@employees.0",
                     "name": "Alice"
                   }
                 }
@@ -420,7 +420,7 @@ class ExpandReferenceTest {
             // CEO should be a proxy with populated name field
             EObject ceo = (EObject) loaded.eGet(ceoRef);
             assertNotNull(ceo, "CEO should be created");
-            assertTrue(ceo.eIsProxy(), "CEO should be a proxy (has $ref)");
+            assertTrue(ceo.eIsProxy(), "CEO should be a proxy (has _ref)");
             assertEquals("Alice", ceo.eGet(personNameAttribute),
                     "Proxy should have projected name populated");
         }
@@ -428,7 +428,7 @@ class ExpandReferenceTest {
         @Test
         @DisplayName("deserializes multi-valued expanded references")
         void deserializesMultiValuedExpanded() throws IOException {
-            // JSON with expanded friends array (no $ref)
+            // JSON with expanded friends array (no _ref)
             String json = """
                 {
                   "_type": "http://test.example.org/roundtrip/1.0#//Person",
@@ -473,7 +473,7 @@ class ExpandReferenceTest {
         @DisplayName("deserializes a mixed array keeping every element at its position")
         void deserializesMixedExpandedAndProxyElements() throws IOException {
             // A mixed array is normal output: with expand on, an unresolved proxy target is
-            // never expanded, so expanded elements and $ref elements end up side by side.
+            // never expanded, so expanded elements and _ref elements end up side by side.
             String json = """
                 {
                   "_type": "http://test.example.org/roundtrip/1.0#//Person",
@@ -485,7 +485,7 @@ class ExpandReferenceTest {
                     },
                     {
                       "_type": "http://test.example.org/roundtrip/1.0#//Person",
-                      "$ref": "other.json#//@persons.0"
+                      "_ref": "other.json#//@persons.0"
                     },
                     {
                       "_type": "http://test.example.org/roundtrip/1.0#//Person",
@@ -508,7 +508,7 @@ class ExpandReferenceTest {
         }
 
         @Test
-        @DisplayName("mixed array: a $ref without _type falls back to the declared reference type")
+        @DisplayName("mixed array: a _ref without _type falls back to the declared reference type")
         void deserializesMixedArrayWithUntypedRef() throws IOException {
             // Spec §1: without type information the declared reference type applies
             // (after CODEC_FEATURE_TYPE_HINTS, which is not set here)
@@ -522,7 +522,7 @@ class ExpandReferenceTest {
                       "name": "Bob"
                     },
                     {
-                      "$ref": "other.json#//@persons.0"
+                      "_ref": "other.json#//@persons.0"
                     },
                     {
                       "_type": "http://test.example.org/roundtrip/1.0#//Person",
@@ -539,7 +539,7 @@ class ExpandReferenceTest {
 
             assertEquals(3, friends.size(), "no element may be lost (issue #114)");
             assertEquals("Bob", friends.get(0).eGet(personNameAttribute));
-            assertTrue(friends.get(1).eIsProxy(), "the untyped $ref must still become a proxy");
+            assertTrue(friends.get(1).eIsProxy(), "the untyped _ref must still become a proxy");
             assertEquals(personClass, friends.get(1).eClass(),
                     "an untyped proxy takes the declared reference type");
             assertEquals("Charlie", friends.get(2).eGet(personNameAttribute));
@@ -606,8 +606,8 @@ class ExpandReferenceTest {
             String json = serialize(alice, resolver);
             System.out.println("Multi-valued expand JSON:\n" + json);
 
-            // Verify serialized JSON has no $ref
-            assertFalse(json.contains("$ref"), "Expanded friends should not have $ref");
+            // Verify serialized JSON has no _ref
+            assertFalse(json.contains("_ref"), "Expanded friends should not have _ref");
             assertTrue(json.contains("\"Bob\""), "JSON should contain Bob");
             assertTrue(json.contains("\"Charlie\""), "JSON should contain Charlie");
 
@@ -803,13 +803,13 @@ class ExpandReferenceTest {
 
             System.out.println("Mixed expand/proxy JSON:\n" + json);
 
-            // Friends should be expanded (no $ref)
+            // Friends should be expanded (no _ref)
             assertTrue(json.contains("\"friends\""), "JSON should contain friends");
             assertTrue(json.contains("\"Charlie\""), "Friends should have Charlie's name");
 
-            // Manager should be proxy ($ref)
+            // Manager should be proxy (_ref)
             assertTrue(json.contains("\"manager\""), "JSON should contain manager");
-            // Manager should have $ref since it's not expanded
+            // Manager should have _ref since it's not expanded
         }
     }
 }

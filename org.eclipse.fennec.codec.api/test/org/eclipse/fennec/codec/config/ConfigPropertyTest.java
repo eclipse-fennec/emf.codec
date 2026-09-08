@@ -196,9 +196,9 @@ class ConfigPropertyTest {
         }
 
         @Test
-        @DisplayName("REF_KEY default is $ref")
-        void refKeyDefaultIsDollarRef() {
-            assertEquals("$ref", ConfigProperty.REF_KEY.getDefaultValue());
+        @DisplayName("REF_KEY default is _ref")
+        void refKeyDefaultIsUnderscoreRef() {
+            assertEquals("_ref", ConfigProperty.REF_KEY.getDefaultValue());
         }
 
         @Test

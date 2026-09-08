@@ -174,7 +174,7 @@ class ReferenceUriPolicyTest {
         Map<Object, Object> options = new HashMap<>(codecOptions);
         options.put(CodecResource.CODEC_ROOT_TYPE, personClass);
 
-        String json = "{ \"name\": \"victim\", \"manager\": { \"$ref\": \"" + refUri + "\" } }";
+        String json = "{ \"name\": \"victim\", \"manager\": { \"_ref\": \"" + refUri + "\" } }";
         resource.load(new ByteArrayInputStream(json.getBytes(UTF_8)), options);
         return resource;
     }

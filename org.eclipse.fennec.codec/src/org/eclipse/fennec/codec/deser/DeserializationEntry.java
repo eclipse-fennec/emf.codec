@@ -23,7 +23,7 @@ import tools.jackson.databind.DeserializationContext;
  *   <li>{@code TypeDeserializationEntry} - resolves _type to EClass</li>
  *   <li>{@code IdDeserializationEntry} - reads _id and sets on EObject</li>
  *   <li>{@code AttributeDeserializationEntry} - reads attribute values</li>
- *   <li>{@code ReferenceDeserializationEntry} - reads references (inline or $ref)</li>
+ *   <li>{@code ReferenceDeserializationEntry} - reads references (inline or _ref)</li>
  * </ul>
  * </p>
  * <p>

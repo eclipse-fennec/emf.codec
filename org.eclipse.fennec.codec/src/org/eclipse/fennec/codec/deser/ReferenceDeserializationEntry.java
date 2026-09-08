@@ -57,8 +57,8 @@ import tools.jackson.databind.util.TokenBuffer;
  * Supports:
  * <ul>
  *   <li>Containment references (inline objects)</li>
- *   <li>Non-containment references ($ref objects) - creates proxies</li>
- *   <li>Expanded non-containment references (no $ref) - creates orphan objects</li>
+ *   <li>Non-containment references (_ref objects) - creates proxies</li>
+ *   <li>Expanded non-containment references (no _ref) - creates orphan objects</li>
  *   <li>Multi-valued references (arrays)</li>
  *   <li>Null values</li>
  * </ul>
@@ -95,7 +95,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      *
      * @param config the effective feature configuration
      * @param reference the EReference to deserialize
-     * @param refKey the key used for non-containment references (e.g., "$ref")
+     * @param refKey the key used for non-containment references (e.g., "_ref")
      */
     public ReferenceDeserializationEntry(FeatureConfig config, EReference reference, String refKey) {
         this(config, reference, refKey, null);
@@ -106,7 +106,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      *
      * @param config the effective feature configuration
      * @param reference the EReference to deserialize
-     * @param refKey the key used for non-containment references (e.g., "$ref")
+     * @param refKey the key used for non-containment references (e.g., "_ref")
      * @param entryContext the codec entry context for custom readers (may be null)
      */
     public ReferenceDeserializationEntry(FeatureConfig config, EReference reference,
@@ -211,7 +211,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      * <p>
      * Supports both STRUCTURED and PLAIN formats:
      * <ul>
-     *   <li>STRUCTURED: {@code {"_type": "...", "$ref": "uri"}} - object with $ref</li>
+     *   <li>STRUCTURED: {@code {"_type": "...", "_ref": "uri"}} - object with _ref</li>
      *   <li>PLAIN: {@code "uri"} - bare string (non-containment only)</li>
      * </ul>
      * </p>
@@ -415,7 +415,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                     eObject.eSet(reference, child);
                 }
             } else {
-                // Non-containment: check for $ref to determine proxy vs orphan
+                // Non-containment: check for _ref to determine proxy vs orphan
                 deserializeNonContainmentObject(state, parser, ctxt, eObject, -1);
             }
         } else if (token == JsonToken.VALUE_STRING && !reference.isContainment()) {
@@ -461,7 +461,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                     values.add(child);
                 }
             } else {
-                // Non-containment: check for $ref to determine proxy vs orphan
+                // Non-containment: check for _ref to determine proxy vs orphan
                 deserializeNonContainmentElement(state, parser, ctxt, eObject, values, index);
             }
             index++;
@@ -1106,9 +1106,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     }
 
     /**
-     * Reads a reference URI from a $ref object.
+     * Reads a reference URI from a _ref object.
      * <p>
-     * Expected format: {@code {"$ref": "uri"}}
+     * Expected format: {@code {"_ref": "uri"}}
      * </p>
      *
      * @param parser the JSON parser at START_OBJECT
@@ -1119,9 +1119,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     }
 
     /**
-     * Reads a reference URI from a $ref object with optional custom reader support.
+     * Reads a reference URI from a _ref object with optional custom reader support.
      * <p>
-     * Expected format: {@code {"$ref": "uri"}}
+     * Expected format: {@code {"_ref": "uri"}}
      * </p>
      * <p>
      * If a custom value reader is configured, it reads the reference value
@@ -1188,7 +1188,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
     /**
      * Returns the key used for non-containment references.
      *
-     * @return the ref key (e.g., "$ref")
+     * @return the ref key (e.g., "_ref")
      */
     public String getRefKey() {
         return refKey;

@@ -1039,7 +1039,7 @@
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="cachedAddress" eType="#//Address">
       <eAnnotations source="http://eclipse.org/fennec/codec">
-        <!-- A non-containment reference writes a $ref, there is no id key to rename -->
+        <!-- A non-containment reference writes a _ref, there is no id key to rename -->
         <details key="idKey" value="addrId"/>
         <details key="idFormat" value="STRUCTURED"/>
         <!-- Valid key for reference -->

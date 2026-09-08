@@ -329,7 +329,7 @@ public final class AspectToPropertiesConverter {
      * said this". Comparing against the model default instead - the proxy this used to use -
      * dropped precisely the values that equal it, and for references those are the ones a user
      * is most likely to write: {@code BaseReferenceConfig} defaults to {@code _ref} and
-     * {@code PLAIN} where the codec defaults to {@code $ref} and {@code STRUCTURED}, so asking
+     * {@code PLAIN} where the codec defaults to {@code _ref} and {@code STRUCTURED}, so asking
      * for the model's own documented behaviour was the request that got lost.
      * </p>
      */

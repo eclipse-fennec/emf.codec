@@ -462,7 +462,7 @@ ReferenceSerializationEntry
     │   ├─ Containment + referenceWriter → referenceWriter.write(...)
     │   ├─ Containment + no writer → ctxt.writeValue(gen, target)
     │   ├─ Non-containment + referenceWriter → referenceWriter.write(...)
-    │   └─ Non-containment + no writer → writeReferenceObject (URI/$ref)
+    │   └─ Non-containment + no writer → writeReferenceObject (URI/_ref)
     │
     └─ Key: referenceWriter is used for BOTH containment and non-containment
 ```

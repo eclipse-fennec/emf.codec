@@ -433,7 +433,7 @@ class ConfigurationResolverTest {
 
             ReferenceConfig config = resolver.resolveReferenceConfig(addressReference, diagnostics);
 
-            assertEquals("$ref", config.getRefKey());
+            assertEquals("_ref", config.getRefKey());
             assertFalse(config.isExpand());
         }
 

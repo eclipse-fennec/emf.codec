@@ -45,11 +45,15 @@ import org.junit.jupiter.api.Test;
  * A feature-level reference annotation has to reach the wire (issue #175).
  * <p>
  * The two values below are the ones that used to be lost, and they are lost for a reason that
- * has nothing to do with the codec: they equal the <i>model's</i> default. Since
- * {@code BaseReferenceConfig} defaults to {@code _ref} and {@code PLAIN} where the codec
- * defaults to {@code $ref} and {@code STRUCTURED}, asking for the model's own documented
- * behaviour was exactly the request that got dropped - and what the wire then carried
- * contradicted the {@code .ecore} that a consumer reads.
+ * has nothing to do with the codec: they equal the <i>model's</i> default. Asking for the
+ * model's own documented behaviour was exactly the request that got dropped - and what the
+ * wire then carried contradicted the {@code .ecore} that a consumer reads.
+ * </p>
+ * <p>
+ * Since issue #211 the two layers agree on {@code refKey}: both {@code BaseReferenceConfig}
+ * and {@code ConfigProperty.REF_KEY} default to {@code _ref}. {@code refFormat} still
+ * diverges - the model defaults to {@code PLAIN}, the codec to {@code STRUCTURED} - so that
+ * case still shows a dropped annotation as a visibly different wire format.
  * </p>
  */
 @DisplayName("Feature-level reference annotation on the wire")
@@ -117,12 +121,12 @@ class FeatureAnnotationReferenceFormatTest {
 
         assertTrue(json.contains("\"ceo\":\"//@employees.0\""),
                 "PLAIN writes the reference as a bare string, was: " + json);
-        assertFalse(json.contains("\"$ref\""),
+        assertFalse(json.contains("\"_ref\""),
                 "the object wrapper belongs to STRUCTURED, which is not what was asked for");
     }
 
     @Test
-    @DisplayName("refKey=_ref on the reference writes _ref, not $ref")
+    @DisplayName("refKey=_ref on the reference writes _ref")
     void modelDefaultRefKeyFromAnnotation() throws IOException {
         annotate(ceo, "refKey", "_ref");
 
@@ -130,7 +134,8 @@ class FeatureAnnotationReferenceFormatTest {
 
         assertTrue(json.contains("\"_ref\":\"//@employees.0\""),
                 "the annotation asked for _ref, was: " + json);
-        assertFalse(json.contains("\"$ref\""), "the codec default must not win over the model");
+        assertFalse(json.contains("\"$ref\""),
+                "nothing may write the pre-#211 default any more, was: " + json);
     }
 
     @Test

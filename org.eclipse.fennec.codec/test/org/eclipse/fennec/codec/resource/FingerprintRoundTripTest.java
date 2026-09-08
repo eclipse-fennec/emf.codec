@@ -499,7 +499,7 @@ class FingerprintRoundTripTest {
                     Map.of(CodecOptions.CODEC_FINGERPRINT_MODE, "FIRST_TOUCH"));
 
             // The fingerprint sits inside the reference's own type object, as the unprefixed
-            // inner key next to $ref - not as a sibling of the enclosing object's _type.
+            // inner key next to _ref - not as a sibling of the enclosing object's _type.
             assertTrue(json.contains("\"fingerprint\":\"" + fingerprintB2 + "\""),
                     "the reference entry must carry the target's version: " + json);
             // Object writer and reference writer share the per-save pins, so the second root -

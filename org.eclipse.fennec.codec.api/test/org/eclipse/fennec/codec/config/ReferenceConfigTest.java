@@ -42,7 +42,7 @@ class ReferenceConfigTest {
             ReferenceConfig config = ReferenceConfig.defaults();
 
             assertEquals(SerializationFormat.STRUCTURED, config.getFormat());
-            assertEquals("$ref", config.getRefKey());
+            assertEquals("_ref", config.getRefKey());
             assertEquals("_type", config.getRefTypeKey());
             assertEquals("$proxy", config.getProxyKey());
             assertFalse(config.isExpand());
@@ -289,7 +289,7 @@ class ReferenceConfigTest {
             assertNotSame(afterAnnotation, afterModule);
 
             // And have different values
-            assertEquals("$ref", base.getRefKey());
+            assertEquals("_ref", base.getRefKey());
             assertEquals("annotationRef", afterAnnotation.getRefKey());
             assertEquals("moduleRef", afterModule.getRefKey());
         }
@@ -340,7 +340,7 @@ class ReferenceConfigTest {
                     .build();
 
             // Original should be unchanged
-            assertEquals("$ref", original.getRefKey());
+            assertEquals("_ref", original.getRefKey());
             assertEquals("newKey", modified.getRefKey());
         }
     }

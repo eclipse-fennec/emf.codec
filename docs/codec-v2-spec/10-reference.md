@@ -456,9 +456,9 @@ INPUT: EReference, target EObject (resolved or proxy), effective ReferenceConfig
 │              Example: "_type": "http://example.org/1.0#//Company"          │
 │                                                                            │
 │          6b. REF FIELD                                                     │
-│              gen.writeFieldName(refKey)  // default: "$ref"                │
+│              gen.writeFieldName(refKey)  // default: "_ref"                │
 │              gen.writeString(refValue)                                      │
-│              Example: "$ref": "companies.json#//@companies.0"              │
+│              Example: "_ref": "companies.json#//@companies.0"              │
 │                                                                            │
 │          gen.writeEndObject()                                              │
 │          ──────────────────────────────────────────────────→ DONE ✓       │
@@ -967,7 +967,7 @@ INPUT: JsonParser positioned at value token, EReference, effective ReferenceConf
 │ from external sources:         │  │   ├─ YES → typeValue = parse type       │
 │                                │  │   │        (see 06-type.md deser flow)  │
 │ 1. CODEC_FEATURE_TYPE_HINTS   │  │   │                                      │
-│    (runtime per-feature hint,  │  │   Is field == refKey (default $ref)?    │
+│    (runtime per-feature hint,  │  │   Is field == refKey (default _ref)?    │
 │    see 13-load-save-options)   │  │   ├─ YES → refValue = parser.getText()  │
 │                                │  │   │                                      │
 │ 2. EReference.getEReferenceType() │  │   Is field == proxyKey ($proxy)?     │

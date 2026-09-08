@@ -117,7 +117,7 @@ class ReferenceResolutionNoIoTest {
             Resource resource = resourceSet.createResource(URI.createURI("temp/id.json"));
             String refUri = "http://127.0.0.1:" + port + "/probe.json#//0";
 
-            load(resource, "{ \"name\": \"victim\", \"manager\": { \"$ref\": \"" + refUri + "\" } }");
+            load(resource, "{ \"name\": \"victim\", \"manager\": { \"_ref\": \"" + refUri + "\" } }");
 
             assertTrue(requests.isEmpty(),
                     "loading must not issue a request for a reference URI, but did: " + requests);
@@ -137,7 +137,7 @@ class ReferenceResolutionNoIoTest {
         Resource resource = resourceSet.createResource(URI.createURI("temp/id.json"));
         String refUri = URI.createFileURI(target.toAbsolutePath().toString()) + "#//0";
 
-        load(resource, "{ \"name\": \"victim\", \"manager\": { \"$ref\": \"" + refUri + "\" } }");
+        load(resource, "{ \"name\": \"victim\", \"manager\": { \"_ref\": \"" + refUri + "\" } }");
 
         assertTrue(resourceSet.getResources().stream()
                         .noneMatch(r -> r.getURI().toString().endsWith("target.json")),
@@ -160,7 +160,7 @@ class ReferenceResolutionNoIoTest {
         Resource resource = resourceSet.createResource(
                 URI.createFileURI(tempDir.resolve("person.json").toAbsolutePath().toString()));
         String refUri = managerUri + "#" + managerResource.getURIFragment(boss);
-        load(resource, "{ \"name\": \"Alice\", \"manager\": { \"$ref\": \"" + refUri + "\" } }");
+        load(resource, "{ \"name\": \"Alice\", \"manager\": { \"_ref\": \"" + refUri + "\" } }");
 
         EObject manager = (EObject) resource.getContents().get(0).eGet(managerRef, false);
         assertNotNull(manager, "manager reference must be set");

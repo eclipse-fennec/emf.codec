@@ -151,7 +151,7 @@ class ReferenceExample {
     }
 
     @Test
-    @DisplayName("STRUCTURED reference format — reference as {$ref: ...} object")
+    @DisplayName("STRUCTURED reference format — reference as {_ref: ...} object")
     void structuredReferenceFormat() throws IOException {
         ConfigurationResolver resolver = ConfigurationResolver.defaults();
 

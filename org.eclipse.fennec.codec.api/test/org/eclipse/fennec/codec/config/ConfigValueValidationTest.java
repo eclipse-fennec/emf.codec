@@ -161,7 +161,7 @@ class ConfigValueValidationTest {
     @Test
     @DisplayName("idKey and idFormat on a non-containment reference are reported, not applied")
     void idKeyOnANonContainmentReferenceIsReported() {
-        // A non-containment reference writes a $ref, not the target's body, so there is no id
+        // A non-containment reference writes a _ref, not the target's body, so there is no id
         // key in that position to rename (issue #189, spec 09-id.md §4.4). Applying the value
         // would change nothing; dropping it in silence is the trap.
         org.eclipse.emf.ecore.EReference friend = reference(false);

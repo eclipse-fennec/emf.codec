@@ -114,7 +114,7 @@ class ReferenceConfigResolverSpecTest {
             ReferenceConfig config = resolver.resolveReferenceConfig(employerRef, diagnostics);
 
             assertEquals(SerializationFormat.STRUCTURED, config.getFormat());
-            assertEquals("$ref", config.getRefKey());
+            assertEquals("_ref", config.getRefKey());
             assertEquals("_type", config.getRefTypeKey());
             assertEquals("$proxy", config.getProxyKey());
             assertFalse(config.isExpand());

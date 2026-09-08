@@ -78,7 +78,7 @@ public final class ReferenceConfig implements Mergeable<ReferenceConfig> {
 
     /**
      * Returns the JSON property key for reference value.
-     * Default: "$ref"
+     * Default: "_ref"
      */
     public String getRefKey() {
         return refKey;
@@ -175,7 +175,7 @@ public final class ReferenceConfig implements Mergeable<ReferenceConfig> {
      * </p>
      * <p>
      * This field is kept because it fits the other reading of a reference-scoped id key -
-     * writing the target's identity in place of a {@code $ref} URI, for a non-containment
+     * writing the target's identity in place of a {@code _ref} URI, for a non-containment
      * reference. That is a separate feature, deliberately out of scope for #176, and nothing
      * implements it yet.
      * </p>
