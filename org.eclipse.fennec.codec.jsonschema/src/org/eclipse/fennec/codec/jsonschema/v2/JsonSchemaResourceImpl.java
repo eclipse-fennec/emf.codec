@@ -171,12 +171,42 @@ public class JsonSchemaResourceImpl extends CodecResource {
 		String schemaFeature = extractOption(options, CodecJsonSchemaOptions.OPTION_SCHEMA_FEATURE, "$defs");
 		boolean prettyPrint = extractOption(options, CodecJsonSchemaOptions.OPTION_PRETTY_PRINT, Boolean.TRUE);
 		Map<String, Object> customProperties = extractCustomProperties(toStringKeyMap(options));
+		// Which features are serialized at all is general codec configuration, not a
+		// jsonschema concern (issue #214), so the resolver decides - enriched with the save
+		// options, which sit highest in the configuration hierarchy.
+		ConfigurationResolver saveResolver = enrichWithSaveOptions(toStringKeyMap(options));
 		if(getContents().get(0) instanceof EPackage ePackage) {
-			ePackageToSchemaConverter.convert(ePackage, outputStream, schemaFeature, prettyPrint, customProperties);
+			ePackageToSchemaConverter.convert(ePackage, outputStream, schemaFeature, prettyPrint, customProperties, saveResolver);
 		} else if(getContents().get(0) instanceof EClass eClass){
-			ePackageToSchemaConverter.convertEClass(eClass, outputStream, prettyPrint, customProperties);
+			ePackageToSchemaConverter.convertEClass(eClass, outputStream, prettyPrint, customProperties, saveResolver);
 		}
 
+	}
+
+	/**
+	 * Returns this resource's {@link ConfigurationResolver} with the save options merged in
+	 * at the highest priority, mirroring what {@code CodecResource} does for the data
+	 * formats. This is what lets {@code forceWrite}, {@code ignore} and the global
+	 * {@code ignoreFeatures} list steer the generated schema (issue #214).
+	 *
+	 * @param options the save options, may be {@code null} or empty
+	 * @return the resolver to hand to the converter, never {@code null}
+	 */
+	private ConfigurationResolver enrichWithSaveOptions(Map<String, Object> options) {
+		ConfigurationResolver base = getResolver();
+		if (base == null) {
+			base = ConfigurationResolver.defaults();
+		}
+		if (options == null || options.isEmpty()) {
+			return base;
+		}
+		Map<String, Object> merged = new HashMap<>();
+		Map<String, Object> existing = base.getOptionsProperties();
+		if (existing != null) {
+			merged.putAll(existing);
+		}
+		merged.putAll(options);
+		return base.toBuilder().optionsProperties(merged).build();
 	}
 
 	/**
