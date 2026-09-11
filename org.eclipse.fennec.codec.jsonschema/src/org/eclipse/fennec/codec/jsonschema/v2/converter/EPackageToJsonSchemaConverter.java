@@ -37,7 +37,9 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.AnnotationSources;
+import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
 
 import tools.jackson.core.JsonGenerator;
@@ -85,6 +87,8 @@ public class EPackageToJsonSchemaConverter {
 	private Map<String, Object> options = new HashMap<>();
 	private Map<EClassifier, String> anchorNames = new HashMap<>();  // Track generated anchors
 	private Set<String> suppressedKeywords = Set.of();
+	private ConfigurationResolver configurationResolver = ConfigurationResolver.defaults();
+	private DiagnosticCollector featureDiagnostics = new DiagnosticCollector();
 	private boolean suppressVendorExtensions = false;
 	private Set<String> inlineStack = new HashSet<>();  // Cycle detection for inline refs
 
@@ -125,6 +129,24 @@ public class EPackageToJsonSchemaConverter {
 	 */
 	public void convert(EPackage ePackage, OutputStream outputStream, String schemaFeature,
 			boolean prettyPrint, Map<String, Object> options) throws IOException {
+		convert(ePackage, outputStream, schemaFeature, prettyPrint, options, null);
+	}
+
+	/**
+	 * Converts an EPackage to JSON Schema and writes to output stream.
+	 *
+	 * @param ePackage the EPackage to convert
+	 * @param outputStream the output stream to write to
+	 * @param schemaFeature the key for definitions (e.g., "definitions", "$defs", "schemas")
+	 * @param prettyPrint whether to format the output with indentation
+	 * @param options conversion options (e.g., {@link CodecJsonSchemaOptions#OPTION_USE_ANCHOR_REFS})
+	 * @param resolver the codec configuration resolver deciding which features are
+	 *        serialized at all (issue #214); {@code null} falls back to
+	 *        {@link ConfigurationResolver#defaults()}
+	 * @throws IOException if writing fails
+	 */
+	public void convert(EPackage ePackage, OutputStream outputStream, String schemaFeature,
+			boolean prettyPrint, Map<String, Object> options, ConfigurationResolver resolver) throws IOException {
 		this.currentPackage = ePackage;
 		this.schemaFeature = schemaFeature;
 		this.processedClassifiers.clear();
@@ -133,6 +155,8 @@ public class EPackageToJsonSchemaConverter {
 		this.inlineStack.clear();
 		this.suppressedKeywords = resolveSuppressedKeywords(this.options);
 		this.suppressVendorExtensions = Boolean.TRUE.equals(this.options.get(CodecJsonSchemaOptions.OPTION_SUPPRESS_VENDOR_EXTENSIONS));
+		this.configurationResolver = resolver != null ? resolver : ConfigurationResolver.defaults();
+		this.featureDiagnostics = new DiagnosticCollector();
 
 		JsonMapper.Builder mapperBuilder = JsonMapper.builder();
 		if (prettyPrint) {
@@ -197,11 +221,11 @@ public class EPackageToJsonSchemaConverter {
 		if (schema == null) {
 			schema = resolveSchemaDraft();
 		}
-		if (schema != null) {
+		if (schema != null && !isSuppressed("$schema")) {
 			gen.writeStringProperty("$schema", schema);
 		}
 
-		if (ePackage.getNsURI() != null) {
+		if (ePackage.getNsURI() != null && !isSuppressed("$id")) {
 			gen.writeStringProperty("$id", ePackage.getNsURI());
 		}
 
@@ -249,8 +273,9 @@ public class EPackageToJsonSchemaConverter {
 		}
 
 		// Collect required properties
+		List<EStructuralFeature> rootFeatures = schemaFeatures(rootClass);
 		List<String> requiredProps = new ArrayList<>();
-		for (EStructuralFeature feature : rootClass.getEStructuralFeatures()) {
+		for (EStructuralFeature feature : rootFeatures) {
 			if (feature.getLowerBound() >= 1) {
 				requiredProps.add(feature.getName());
 			}
@@ -267,7 +292,7 @@ public class EPackageToJsonSchemaConverter {
 
 		// Write properties
 		gen.writeObjectPropertyStart("properties");
-		for (EStructuralFeature feature : rootClass.getEStructuralFeatures()) {
+		for (EStructuralFeature feature : rootFeatures) {
 			writeFeature(feature, gen);
 		}
 		gen.writeEndObject();
@@ -523,8 +548,8 @@ public class EPackageToJsonSchemaConverter {
 
 		// Collect all properties (from base + variant)
 		List<EStructuralFeature> allFeatures = new ArrayList<>();
-		allFeatures.addAll(baseClass.getEStructuralFeatures());
-		allFeatures.addAll(variant.getEStructuralFeatures());
+		allFeatures.addAll(schemaFeatures(baseClass));
+		allFeatures.addAll(schemaFeatures(variant));
 
 		// Collect required properties
 		List<String> requiredProps = new ArrayList<>();
@@ -635,6 +660,23 @@ public class EPackageToJsonSchemaConverter {
 	 * @throws IOException if writing fails
 	 */
 	public void convertEClass(EClass eClass, OutputStream outputStream, boolean prettyPrint, Map<String, Object> options) throws IOException {
+		convertEClass(eClass, outputStream, prettyPrint, options, null);
+	}
+
+	/**
+	 * Converts a single EClass to a JSON Schema document and writes to output stream.
+	 *
+	 * @param eClass the EClass to convert
+	 * @param outputStream the output stream to write to
+	 * @param prettyPrint whether to format the output with indentation
+	 * @param options conversion options (e.g., {@link CodecJsonSchemaOptions#OPTION_ALL_FIELDS_REQUIRED})
+	 * @param resolver the codec configuration resolver deciding which features are
+	 *        serialized at all (issue #214); {@code null} falls back to
+	 *        {@link ConfigurationResolver#defaults()}
+	 * @throws IOException if writing fails
+	 */
+	public void convertEClass(EClass eClass, OutputStream outputStream, boolean prettyPrint,
+			Map<String, Object> options, ConfigurationResolver resolver) throws IOException {
 		this.currentPackage = resolvePackage(eClass);
 		this.schemaFeature = "$defs";
 		this.processedClassifiers.clear();
@@ -643,6 +685,8 @@ public class EPackageToJsonSchemaConverter {
 		this.inlineStack.clear();
 		this.suppressedKeywords = resolveSuppressedKeywords(this.options);
 		this.suppressVendorExtensions = Boolean.TRUE.equals(this.options.get(CodecJsonSchemaOptions.OPTION_SUPPRESS_VENDOR_EXTENSIONS));
+		this.configurationResolver = resolver != null ? resolver : ConfigurationResolver.defaults();
+		this.featureDiagnostics = new DiagnosticCollector();
 		if (currentPackage != null) {
 			precomputeAnchors(currentPackage);
 		}
@@ -721,7 +765,7 @@ public class EPackageToJsonSchemaConverter {
 	}
 
 	private void collectReferencedClasses(EClass eClass, List<EClass> needsDef, List<EClass> visited) {
-		for (EStructuralFeature feature : eClass.getEAllStructuralFeatures()) {
+		for (EStructuralFeature feature : schemaAllFeatures(eClass)) {
 			if (feature instanceof EReference eRef) {
 				EClassifier type = eRef.getEType();
 				if (type instanceof EClass refClass && !visited.contains(refClass)) {
@@ -757,16 +801,16 @@ public class EPackageToJsonSchemaConverter {
 		if (schema == null) {
 			schema = resolveSchemaDraft();
 		}
-		if (schema != null) {
+		if (schema != null && !isSuppressed("$schema")) {
 			gen.writeStringProperty("$schema", schema);
 		}
 
-		// $id: from EClass annotation, fallback to derived URI
+		// $id: from EClass annotation, fallback to a derived URI (issue #213)
 		String id = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "id");
-		if (id == null && currentPackage != null && currentPackage.getNsURI() != null) {
-			id = currentPackage.getNsURI() + "#" + eClass.getName();
+		if (id == null && currentPackage != null) {
+			id = deriveSchemaId(currentPackage.getNsURI(), eClass.getName());
 		}
-		if (id != null) {
+		if (id != null && !isSuppressed("$id")) {
 			gen.writeStringProperty("$id", id);
 		}
 
@@ -834,7 +878,7 @@ public class EPackageToJsonSchemaConverter {
 		java.util.Set<String> writtenFeatureNames = new java.util.LinkedHashSet<>();
 
 		// Write own features
-		for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
+		for (EStructuralFeature feature : schemaFeatures(eClass)) {
 			if (!isPropertiesWritten) {
 				gen.writeObjectPropertyStart("properties");
 				isPropertiesWritten = true;
@@ -848,8 +892,8 @@ public class EPackageToJsonSchemaConverter {
 
 		// Write inherited features from parents (artificial or flattened non-artificial)
 		for (EClass parent : parents) {
-			// Use getEAllStructuralFeatures to include the full inheritance chain
-			for (EStructuralFeature feature : parent.getEAllStructuralFeatures()) {
+			// Use the full inheritance chain, minus the features the codec never writes
+			for (EStructuralFeature feature : schemaAllFeatures(parent)) {
 				if (writtenFeatureNames.contains(feature.getName())) {
 					continue; // skip duplicates
 				}
@@ -891,7 +935,7 @@ public class EPackageToJsonSchemaConverter {
 		List<String> requiredProperties = new LinkedList<>();
 		boolean isPropertiesWritten = false;
 
-		for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
+		for (EStructuralFeature feature : schemaFeatures(eClass)) {
 			if (!isPropertiesWritten) {
 				gen.writeObjectPropertyStart("properties");
 				isPropertiesWritten = true;
@@ -904,7 +948,7 @@ public class EPackageToJsonSchemaConverter {
 
 		// Include artificial parent features
 		for (EClass parent : artificialParents) {
-			for (EStructuralFeature feature : parent.getEStructuralFeatures()) {
+			for (EStructuralFeature feature : schemaFeatures(parent)) {
 				if (!isPropertiesWritten) {
 					gen.writeObjectPropertyStart("properties");
 					isPropertiesWritten = true;
@@ -1143,8 +1187,9 @@ public class EPackageToJsonSchemaConverter {
 	private void writeVariantInline(EClass variant, JsonGenerator gen) throws IOException {
 		gen.writeStartObject();
 
-		if (variant.getEStructuralFeatures().size() == 1) {
-			EStructuralFeature feature = variant.getEStructuralFeatures().get(0);
+		List<EStructuralFeature> variantFeatures = schemaFeatures(variant);
+		if (variantFeatures.size() == 1) {
+			EStructuralFeature feature = variantFeatures.get(0);
 
 			if ("value".equals(feature.getName()) && feature instanceof EAttribute attr) {
 				// Primitive type variant
@@ -1153,7 +1198,7 @@ public class EPackageToJsonSchemaConverter {
 			} else {
 				writeVariantWithProperties(variant, gen);
 			}
-		} else if (variant.getEStructuralFeatures().isEmpty()) {
+		} else if (variantFeatures.isEmpty()) {
 			gen.writeStringProperty("type", "object");
 			gen.writeBooleanProperty("additionalProperties", false);
 		} else {
@@ -1170,16 +1215,17 @@ public class EPackageToJsonSchemaConverter {
 		gen.writeStringProperty("type", "object");
 		gen.writeBooleanProperty("additionalProperties", false);
 
+		List<EStructuralFeature> variantFeatures = schemaFeatures(variant);
 		List<String> requiredProps = new ArrayList<>();
-		for (EStructuralFeature feature : variant.getEStructuralFeatures()) {
+		for (EStructuralFeature feature : variantFeatures) {
 			if (feature.getLowerBound() >= 1) {
 				requiredProps.add(feature.getName());
 			}
 		}
 
-		if (!variant.getEStructuralFeatures().isEmpty()) {
+		if (!variantFeatures.isEmpty()) {
 			gen.writeObjectPropertyStart("properties");
-			for (EStructuralFeature feature : variant.getEStructuralFeatures()) {
+			for (EStructuralFeature feature : variantFeatures) {
 				writeFeature(feature, gen);
 			}
 			gen.writeEndObject();
@@ -1207,16 +1253,17 @@ public class EPackageToJsonSchemaConverter {
 
 		gen.writeStringProperty("type", "object");
 
+		List<EStructuralFeature> inlineFeatures = schemaFeatures(eClass);
 		List<String> requiredProps = new ArrayList<>();
-		for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
+		for (EStructuralFeature feature : inlineFeatures) {
 			if (feature.getLowerBound() >= 1) {
 				requiredProps.add(feature.getName());
 			}
 		}
 
-		if (!eClass.getEStructuralFeatures().isEmpty()) {
+		if (!inlineFeatures.isEmpty()) {
 			gen.writeObjectPropertyStart("properties");
-			for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
+			for (EStructuralFeature feature : inlineFeatures) {
 				writeFeature(feature, gen);
 			}
 			gen.writeEndObject();
@@ -1902,6 +1949,83 @@ public class EPackageToJsonSchemaConverter {
 
 	private String abstractRefKeyword() {
 		return isUseAnyOfForAbstract() ? "anyOf" : "oneOf";
+	}
+
+	/**
+	 * Returns the features of {@code eClass} that belong in the generated schema.
+	 * <p>
+	 * The schema describes the documents the codec reads and writes, so the codec's own
+	 * visibility gate decides: EMF {@code transient}, {@code derived} and {@code volatile}
+	 * features are excluded unless {@code forceWrite}/{@code forceRead} re-enables them,
+	 * as are features turned off through {@code ignore}/{@code ignoreWrite} or the global
+	 * {@code ignoreFeatures} list (issue #214, spec 11-feature.md §13.1). There is no
+	 * jsonschema-specific option for this — the general codec configuration is the single
+	 * source of truth.
+	 * </p>
+	 *
+	 * @param eClass the EClass whose own features are wanted
+	 * @return the features to write, in declaration order
+	 */
+	private List<EStructuralFeature> schemaFeatures(EClass eClass) {
+		return filterSchemaFeatures(eClass.getEStructuralFeatures());
+	}
+
+	/**
+	 * Same as {@link #schemaFeatures(EClass)} but including the inherited features.
+	 *
+	 * @param eClass the EClass whose full feature chain is wanted
+	 * @return the features to write, in declaration order
+	 */
+	private List<EStructuralFeature> schemaAllFeatures(EClass eClass) {
+		return filterSchemaFeatures(eClass.getEAllStructuralFeatures());
+	}
+
+	private List<EStructuralFeature> filterSchemaFeatures(List<EStructuralFeature> features) {
+		List<EStructuralFeature> result = new ArrayList<>(features.size());
+		for (EStructuralFeature feature : features) {
+			if (isSchemaFeature(feature)) {
+				result.add(feature);
+			}
+		}
+		return result;
+	}
+
+	private boolean isSchemaFeature(EStructuralFeature feature) {
+		return configurationResolver.resolveFeatureConfig(feature, featureDiagnostics).shouldSerialize();
+	}
+
+	/**
+	 * Derives the {@code $id} of a single-EClass schema document from the owning
+	 * package's {@code nsURI} when no {@code id} annotation supplies one.
+	 * <p>
+	 * JSON Schema 2019-09 §8.2.1 and 2020-12 §8.2.1 require the URI-reference in
+	 * {@code $id} to carry no non-empty fragment, so the class name is appended as a
+	 * path segment rather than as a fragment (issue #213). Any fragment already present
+	 * on the {@code nsURI} is dropped — {@code http://example.org/model#} and
+	 * {@code http://example.org/model/} both yield {@code http://example.org/model/Name}.
+	 * </p>
+	 *
+	 * @param nsURI the namespace URI of the owning package, may be {@code null}
+	 * @param name the name of the EClass, may be {@code null}
+	 * @return a valid {@code $id}, or {@code null} when none can be derived — in which
+	 *         case {@code $id} is omitted rather than written invalid
+	 */
+	private static String deriveSchemaId(String nsURI, String name) {
+		if (nsURI == null || name == null || name.isBlank()) {
+			return null;
+		}
+		String base = nsURI;
+		int fragment = base.indexOf('#');
+		if (fragment >= 0) {
+			base = base.substring(0, fragment);
+		}
+		while (base.endsWith("/")) {
+			base = base.substring(0, base.length() - 1);
+		}
+		if (base.isBlank()) {
+			return null;
+		}
+		return base + "/" + name;
 	}
 
 	private boolean isSuppressed(String keyword) {

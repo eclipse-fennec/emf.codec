@@ -2,7 +2,55 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-09-08
+**Last Updated:** 2026-09-11
+
+**Session Summary (2026-09-11) — issues #213, #214, #215: three jsonschema writer defects:**
+
+All three sit in `EPackageToJsonSchemaConverter`, all three were driven red first.
+
+- **#213 — the derived `$id` was syntactically invalid.** With no `id` annotation the writer
+  fell back to `nsURI + "#" + eClass.getName()`; JSON Schema 2019-09/2020-12 §8.2.1 forbid a
+  non-empty fragment in `$id`. The new `deriveSchemaId(nsURI, name)` appends the class name as
+  a **path segment**, drops any fragment already on the `nsURI` and collapses trailing slashes,
+  so `http://example.org/test`, `http://example.org/test/` and `http://example.org/test#` all
+  yield `http://example.org/test/Person`. When nothing valid can be derived (no package, no
+  `nsURI`) `$id` is now **omitted** instead of written invalid. Guard:
+  `JsonSchemaIdFallbackTest` (jsonschema, 6). Reading is untouched — an incoming `$id` still
+  lands in the `id` annotation verbatim and is written back as-is, so existing round-trips do
+  not move.
+- **#214 — transient/derived features were emitted unconditionally.** Deliberately **no new
+  jsonschema option**: the schema describes the documents the codec reads and writes, and
+  `ConfigurationResolver`/`FeatureConfig.shouldSerialize()` already answers exactly that
+  question (spec 11-feature.md §13.1, and `ConfigurationResolver` line ~889 has skipped
+  EMF `transient`/`derived`/`volatile` since forever). The converter now holds a
+  `ConfigurationResolver` (defaulting to `ConfigurationResolver.defaults()`), and every
+  property/`required`/`$defs`-collection loop goes through `schemaFeatures(eClass)` /
+  `schemaAllFeatures(eClass)`. `JsonSchemaResourceImpl.doSave` hands over its own resolver
+  enriched with the save options, so `codec.forceWrite`, `codec.ignore` and the global
+  `codec.ignoreFeatures` list steer the schema exactly as they steer the data — `forceWrite`
+  is the opt-in, and no jsonschema-specific switch was invented. New overloads:
+  `EPackageToJsonSchemaConverter.convert(..., ConfigurationResolver)`,
+  `convertEClass(..., ConfigurationResolver)` and
+  `EClassToJsonSchemaConverter.convert(..., ConfigurationResolver)`; the old signatures
+  delegate with `null`. Guard: `JsonSchemaFeatureVisibilityTest` (jsonschema, 11).
+  The one site left unfiltered is `resolvePackage`, which only *infers* the owning package
+  from any reference and must keep working when every reference is transient.
+- **#215 — `$id`/`$schema` ignored `OPTION_SUPPRESS_KEYWORDS`.** Both were written
+  unconditionally in `writePackageMetadata` and `writeEClassDocumentMetadata`; both now pass
+  through `isSuppressed(...)` like every other keyword, annotation-supplied values included.
+  Guard: `SuppressedSchemaKeywordsTest` (jsonschema, 9).
+- **Found while writing the #215 test:** `codec.jsonschema.draft` has **no default** — unset
+  and unannotated, no `$schema` is written at all. `docs/codec-options-reference.md` claimed
+  `2020-12`; the doc was corrected to match the code, the code was not changed.
+- **Docs:** `docs/codec-options-reference.md` — corrected `draft` default, `$id` derivation
+  rule, `$id`/`$schema` suppressibility, and a note that feature visibility is general codec
+  configuration rather than a jsonschema option (the `forceWrite` example there is the
+  `"Person.cachedLabel"` save-option form, covered by a test). `docs-site/` was left alone:
+  it is a stale generated copy that already lags `docs/` by several commits.
+- **Verified:** full `./gradlew build` green, plus
+  `:org.eclipse.fennec.codec.jsonschema.tests:testOSGi --rerun-tasks` (55/55) — that suite
+  round-trips the hand-written civitasconnect schemas and is the real regression net for the
+  `$id` change.
 
 **Session Summary (2026-09-08) — issue #211: `refKey` had two different defaults:**
 

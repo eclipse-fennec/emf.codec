@@ -333,18 +333,38 @@ match a known `ConfigProperty` is automatically collected there.
 
 | Option key | Constant | Type | Default | Description |
 |---|---|---|---|---|
-| `codec.jsonschema.draft` | `OPTION_SCHEMA_DRAFT` | String | `2020-12` | JSON Schema draft version. Values: `draft-04`, `draft-06`, `draft-07`, `2019-09`, `2020-12`. |
+| `codec.jsonschema.draft` | `OPTION_SCHEMA_DRAFT` | String | — | JSON Schema draft version. Values: `draft-04`, `draft-06`, `draft-07`, `2019-09`, `2020-12`. Unset and unannotated, **no `$schema` is written at all**. |
 | `codec.jsonschema.pretty.print` | `OPTION_PRETTY_PRINT` | Boolean | `false` | Pretty-print the JSON Schema output. |
 | `codec.jsonschema.allFieldsRequired` | `OPTION_ALL_FIELDS_REQUIRED` | Boolean | `false` | Mark every property as `required`. Useful for AI structured-output schemas. |
 | `codec.jsonschema.flatAllOf` | `OPTION_FLAT_ALL_OF` | Boolean | `false` | Flatten `allOf` inheritance into a single object definition. |
 | `codec.jsonschema.useAnchorRefs` | `OPTION_USE_ANCHOR_REFS` | Boolean | `false` | Use `$anchor` identifiers instead of JSON Pointer `$ref` paths. |
 | `codec.jsonschema.inlineRefs` | `OPTION_INLINE_REFS` | Boolean | `false` | Replace all `$ref` uses with inlined definitions. Omits `$defs`. Cycle guard emits `{"type":"object"}` for recursive types. |
 | `codec.jsonschema.useNamesFromExtendedMetadata` | `OPTION_USE_NAMES_FROM_EXTENDED_METADATA` | Boolean | `false` | Use `ExtendedMetaData` annotation names for properties instead of feature names. |
-| `codec.jsonschema.suppressKeywords` | `OPTION_SUPPRESS_KEYWORDS` | Collection\<String\> | — | Suppress specific JSON Schema keywords from output (e.g. `maxItems`, `description`, `additionalProperties`). Useful for API validators that reject certain keywords. |
+| `codec.jsonschema.suppressKeywords` | `OPTION_SUPPRESS_KEYWORDS` | Collection\<String\> | — | Suppress specific JSON Schema keywords from output (e.g. `maxItems`, `description`, `additionalProperties`). `$id` and `$schema` are suppressible like any other keyword — including when an annotation supplies them (issue #215). Useful for API validators that reject certain keywords. |
 | `codec.jsonschema.suppressVendorExtensions` | `OPTION_SUPPRESS_VENDOR_EXTENSIONS` | Boolean | `false` | Omit `x-abstract`, `x-interface`, and `x-containment` vendor extensions from output. |
 | `codec.jsonschema.useAnyOfForAbstract` | `OPTION_USE_ANY_OF_FOR_ABSTRACT` | Boolean | `false` | Use `anyOf` instead of `oneOf` for abstract type discriminators. |
 | `codec.jsonschema.generateOclConstraints` | `OPTION_GENERATE_OCL_CONSTRAINTS` | Boolean | `false` | Load option. Compile JSON Schema assertion keywords (`minLength`, `maxLength`, `pattern`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`, `uniqueItems`) and `format` (`uuid`/`email`) into OCL invariants on the generated `EClass`es, using EMF's standard validation-delegate annotation convention (`validationDelegates` / `constraints` / delegate-URI-sourced expression details). See `docs/OCL-Constraint-Generation-Implementation-Plan.md`. |
 | `codec.jsonschema.oclDelegateUri` | `OPTION_OCL_DELEGATE_URI` | String | `http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot` | Load option. The EMF validation-delegate URI generated invariants are registered under. Only relevant when `OPTION_GENERATE_OCL_CONSTRAINTS` is enabled. Any URI works as long as a matching `EValidator.ValidationDelegate` is registered at runtime (Eclipse OCL, its Pivot dialect, or a third-party engine). fennec-codec has no compile/runtime dependency on any OCL engine — it only writes the annotations. |
+
+
+**Which features end up in the schema** is *not* a jsonschema option. The generated schema
+describes the documents the codec reads and writes, so the general feature-visibility gate
+decides (see [Feature](codec-v2-spec/11-feature.md)): EMF `transient`, `derived` and
+`volatile` features are left out, as are features turned off through `codec.ignore` /
+`codec.ignoreWrite` or the global `codec.ignoreFeatures` list. `codec.forceWrite` on the
+feature brings an EMF-excluded one back into the schema, exactly as it brings it back into
+the data (issue #214).
+
+```java
+// a transient feature you do want advertised in the schema
+resource.save(out, Map.of("Person.cachedLabel", Map.of("forceWrite", true)));
+```
+
+**`$id`** falls back to `nsURI + "/" + eClass.getName()` when no `id` annotation supplies
+one. The class name is a path segment, never a fragment: JSON Schema 2019-09/2020-12 §8.2.1
+forbid a non-empty fragment in `$id` (issue #213). When no valid identifier can be derived —
+a classifier with no package, or a package with no `nsURI` — `$id` is omitted rather than
+written invalid.
 
 ---
 
