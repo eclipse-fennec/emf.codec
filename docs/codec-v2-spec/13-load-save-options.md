@@ -280,7 +280,7 @@ read-side restriction on `codec.fingerprintKey` described below.
 
 - `codec.fingerprintMode` governs **writing only**. Reading is always liberal: a reader
   accepts a fingerprint it finds regardless of this option
-  ([06-type.md §8.4](06-type.md#84-read-liberal)).
+  ([06-type.md §8.4](06-type.md#84-read-liberal-but-placement-bound)).
 - `codec.fingerprintKey` is the **only** way to tell a *reader* about a non-default key.
   Model annotations configure the key for writing exclusively — see the chicken-and-egg
   break in [06-type.md §8.5](06-type.md#85--the-fingerprintkey-chicken-and-egg-problem).

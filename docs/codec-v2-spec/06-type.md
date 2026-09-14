@@ -1803,7 +1803,7 @@ Repeating it on every object would be pure redundancy: once a version is establi
 `nsURI`, every later object of that package is interpreted under it. There is deliberately
 **no** "write everywhere" variant.
 
-Writer first-touch and [reader pinning](#84-read-liberal) are the *same rule seen from both
+Writer first-touch and [reader pinning](#84-read-liberal-but-placement-bound) are the *same rule seen from both
 sides* — which is what makes the round-trip closed: the writer emits exactly the points at
 which the reader would otherwise have to guess.
 
@@ -1825,13 +1825,38 @@ the type context on purpose rather than as an optimization:
 A document produced this way is not self-describing; callers needing that must leave the type
 context in place, or answer the version question out-of-band with `codec.rootFingerprint`.
 
-### 8.4 Read: Liberal
+### 8.4 Read: Liberal, but Placement-Bound
 
 Reading is deliberately more permissive than writing: a reader accepts a fingerprint
 **wherever it appears** in any of the type-context locations of §8.2, regardless of how the
 document was produced or of the local write configuration. No pre-scan is needed — the
 fingerprint is read at the same point the type is read today, which also covers polymorphic
 sub-trees with per-object types.
+
+**Liberal about the site, strict about the key.** "Wherever it appears" means every location
+of §8.2, each with *its own* form of the key — not every key in every location:
+
+| Location | Key accepted |
+|---|---|
+| PLAIN sibling of the type key | the `_`-prefixed form only (`_fingerprint`) |
+| Inside a STRUCTURED type object | the inner form only (`fingerprint`) |
+| A STRUCTURED reference entry ([10 §1.2.1](10-reference.md#121-version-identity-in-a-reference-entry)) | the inner form only (`fingerprint`) |
+
+A reader that accepts the inner form in the sibling placement reserves `fingerprint` in the
+very namespace the model's own keys live in, and quietly eats an attribute of that name —
+audit records, build manifests and content-identity models all have one.
+
+**And the model wins.** Where a reserved key can still collide with model data — the inner
+form in a reference entry, which shares its object with projected attributes, or a feature
+actually named `_fingerprint` — a structural feature declared under that key takes it back,
+and the field is read as data. This is the same rule the reference key already follows for
+OpenAPI's `$ref` ([10 §1.1](10-reference.md#11-plain-strategy)): a name the model declares was
+never the codec's to take.
+
+The one place this rule cannot reach is a key arriving **before** the type is resolved with no
+caller hint to name the class — asking the model there would reintroduce the cycle of §8.5. A
+collision detected once the class *is* known is reported as a warning rather than passed over
+in silence.
 
 A resolved fingerprint **pins** the version for its `nsURI` for the rest of that load: later
 objects of the same `nsURI` without their own fingerprint use the pinned version. A new

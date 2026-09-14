@@ -279,11 +279,22 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      * </p>
      */
     private boolean modelOwnsRefKey() {
+        return modelOwnsKey(refKey);
+    }
+
+    /**
+     * Tells whether a key the codec reserves inside a reference object is a real feature of
+     * the referenced type - in which case it is projection data and the model wins.
+     *
+     * @param key the reserved key found in the document
+     * @return true if the referenced type declares a feature under that key
+     */
+    private boolean modelOwnsKey(String key) {
         EClass declaredType = reference.getEReferenceType();
         if (declaredType == null) {
             return false;
         }
-        if (declaredType.getEStructuralFeature(refKey) != null) {
+        if (declaredType.getEStructuralFeature(key) != null) {
             return true;
         }
         // The key may be configured on a feature rather than being its name - OpenAPI names
@@ -292,7 +303,22 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                 .map(feature -> feature.getEAnnotation(AnnotationSources.CODEC))
                 .filter(Objects::nonNull)
                 .map(annotation -> annotation.getDetails().get("key"))
-                .anyMatch(refKey::equals);
+                .anyMatch(key::equals);
+    }
+
+    /**
+     * Tells whether a key in a reference entry is the in-band fingerprint (B.1) rather than
+     * the reference's own projection data.
+     * <p>
+     * A reference entry <i>is</i> type context, so it carries the unprefixed inner key next
+     * to {@code _type} and {@code _ref} (spec 10 §1.2.1) - which puts it in the same
+     * namespace as projected attributes. Where the referenced type declares a feature of
+     * that name the model wins, exactly as it does for {@code _ref} itself, and the field
+     * goes back to being projection data (issue #217).
+     * </p>
+     */
+    private boolean isFingerprintEntryKey(DeserializationContext ctxt, String fieldName) {
+        return ContextHelper.isInnerFingerprintKey(ctxt, fieldName) && !modelOwnsKey(fieldName);
     }
 
     /**
@@ -349,7 +375,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                     refUri = readReferenceValue(bufferParser, ctxt);
                 } else if ("_type".equals(fieldName)) {
                     rawTypeValue = bufferParser.getString();
-                } else if (ContextHelper.isFingerprintKey(ctxt, fieldName)) {
+                } else if (isFingerprintEntryKey(ctxt, fieldName)) {
                     entryFingerprint = bufferParser.getString();
                 } else {
                     bufferParser.skipChildren();
@@ -710,7 +736,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                 } else if ("_type".equals(fieldName)) {
                     // Held back: the fingerprint sibling may still follow and decide the version
                     rawTypeValue = bufferParser.getString();
-                } else if (ContextHelper.isFingerprintKey(ctxt, fieldName)) {
+                } else if (isFingerprintEntryKey(ctxt, fieldName)) {
                     // B.1/B.3: part of the reference's type context, NOT projection data.
                     // Counting it as a data field would turn a plain proxy into a
                     // proxy-with-projection and change how the reference is built.
@@ -848,7 +874,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                 } else if ("_type".equals(fieldName)) {
                     // Held back: the fingerprint sibling may still follow and decide the version
                     rawTypeValue = bufferParser.getString();
-                } else if (ContextHelper.isFingerprintKey(ctxt, fieldName)) {
+                } else if (isFingerprintEntryKey(ctxt, fieldName)) {
                     // B.1/B.3: part of the reference's type context, NOT projection data.
                     // Counting it as a data field would turn a plain proxy into a
                     // proxy-with-projection and change how the reference is built.

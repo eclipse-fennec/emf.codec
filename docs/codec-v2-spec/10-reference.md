@@ -98,6 +98,11 @@ beyond `_ref`/`_type`/`_id` is treated as a *proxy with projection* and deserial
 object. The fingerprint key must be recognised as part of the type context, or a plain proxy
 reference silently changes shape into a projection.
 
+**Unless the referenced type declares it.** The inner key sits in the same object as projected
+attributes, so where `eReferenceType` declares a structural feature under that key, the field is
+projection data and the model wins — the same rule this section's `$ref` case already follows,
+and the read-side rule of [06 §8.4](06-type.md#84-read-liberal-but-placement-bound).
+
 **PLAIN references have no room for it.** A bare URI string cannot carry a fingerprint, so a
 PLAIN reference resolves against the context — the pin established for the target's `nsURI`, or
 the `ResourceSet`. Documents that need self-describing mixed-version cross-references must use

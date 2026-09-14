@@ -2,7 +2,43 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-09-11
+**Last Updated:** 2026-09-14
+
+**Session Summary (2026-09-14) — issue #217: a model attribute named `fingerprint` was eaten on read:**
+
+Reported from a model.atlas upload: an `EAttribute` called `fingerprint` round-tripped to
+nothing, silently, and changing `codec.fingerprintKey` on the REST endpoint did not help —
+by design, since spec 06 §8.5 keeps the default key accepted in addition to any configured
+one. The real defect was that the reader had collapsed the fingerprint's **two placements**
+into one flat key set: `ContextHelper.isFingerprintKey` accepted both `fingerprint` and
+`_fingerprint` at every site, so the unprefixed inner key was reserved out in the object
+body where the model's own keys live.
+
+- **Placement discipline (the fix).** `FINGERPRINT_READ_KEYS` now holds **inner** keys only;
+  the PLAIN sibling form is derived per key through `TypeConfig.toPlainKey`.
+  `isFingerprintKey` is gone, replaced by `isInnerFingerprintKey` (inside a STRUCTURED type
+  object) and `isPlainFingerprintKey` (sibling of the type key). The object body accepts
+  `_fingerprint` only; a reference entry keeps the unprefixed inner key, because spec
+  10 §1.2.1 mandates exactly that shape and the writer emits it.
+- **Model-first, as for `$ref`.** Where a reserved key can still collide with data —
+  the inner key in a reference entry, or a feature actually named `_fingerprint` — a declared
+  structural feature takes the key back. `ReferenceDeserializationEntry.modelOwnsRefKey` was
+  generalised to `modelOwnsKey(key)` and now also guards the fingerprint;
+  `CodecEObjectDeserializer.modelOwnsKey(key, candidates...)` does the same for the object
+  body, checking both feature names and configured `key` annotations.
+- **The residual case is loud, not silent.** A sibling key arriving before the type is
+  resolved, with no caller hint, cannot be asked of the model without reintroducing the §8.5
+  cycle. `reportFingerprintKeyShadowing` re-checks once the class *is* known and warns,
+  naming the key and the EClass. Only reachable for a feature literally named `_fingerprint`
+  or a colliding caller-configured `fingerprintKey`.
+- **No REST change needed.** The REST layer only forwards `codec.fingerprintKey` into
+  `CodecResource`; the fix sits below it, and the workaround it was reached for is no longer
+  necessary.
+- **Spec:** 06 §8.4 retitled *Read: Liberal, but Placement-Bound* with the placement table and
+  the model-first rule (the old "wherever it appears" is what licensed the flat key set);
+  10 §1.2.1 gained the matching note. Anchor updated in 06 §8.3 and 13 §2.10.
+- **Guard:** `FingerprintKeyShadowingTest` (codec, 7) — all seven red first.
+- **Verified:** full `./gradlew build` green (1637 tests in `org.eclipse.fennec.codec` alone).
 
 **Session Summary (2026-09-11) — issues #213, #214, #215: three jsonschema writer defects:**
 
