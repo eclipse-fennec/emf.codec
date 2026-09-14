@@ -265,6 +265,9 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         String seenTypeValue = null;
         String pendingTypeProperty = null;
         String streamFingerprint = null;
+        // The sibling key the fingerprint came from, kept only to check it against the class
+        // once that is known - see reportFingerprintKeyShadowing (issue #217).
+        String streamFingerprintKey = null;
 
         // Read properties
         while (TokenLoops.hasNextField(parser)) {
@@ -277,9 +280,14 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 continue;
             }
 
-            // In-band EPackage fingerprint (B.1): read liberally, wherever it appears.
-            if (ContextHelper.isFingerprintKey(ctxt, propertyName)) {
+            // In-band EPackage fingerprint (B.1): read liberally, but only in the placement it
+            // belongs to. Here that is the PLAIN sibling of the type key, so only the
+            // "_"-prefixed form is reserved - the unprefixed one is an inner key of the
+            // STRUCTURED type object and out here it is ordinary model data (issue #217).
+            if (ContextHelper.isPlainFingerprintKey(ctxt, propertyName)
+                    && !modelOwnsKey(propertyName, resolvedEClass, hintEClass)) {
                 streamFingerprint = parser.getString();
+                streamFingerprintKey = propertyName;
                 continue;
             }
 
@@ -304,6 +312,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 resolvedEClass = resolveTypeFromValue(pendingTypeValue, state, hintEClass,
                         schemaValue, ctxt, emfContext, streamFingerprint);
                 state.setResolvedEClass(resolvedEClass);
+                reportFingerprintKeyShadowing(streamFingerprintKey, resolvedEClass, ctxt, parser);
                 typeFieldProcessed = true;
                 if (resolvedEClass != null) {
                     eObject = state.createEObject();
@@ -335,6 +344,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             resolvedEClass = resolveTypeFromValue(pendingTypeValue, state, hintEClass,
                     schemaValue, ctxt, emfContext, streamFingerprint);
             state.setResolvedEClass(resolvedEClass);
+            reportFingerprintKeyShadowing(streamFingerprintKey, resolvedEClass, ctxt, parser);
             typeFieldProcessed = true;
             if (resolvedEClass != null) {
                 eObject = state.createEObject();
@@ -575,6 +585,67 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         return null;
     }
 
+    /**
+     * Tells whether a key the codec reserves for itself is in fact a feature of the class
+     * being read - in which case the model wins and the key carries data (issue #217).
+     * <p>
+     * The same rule {@code ReferenceDeserializationEntry} applies to the reference key for
+     * OpenAPI's {@code $ref}: a name the model declares was never the codec's to take. The
+     * class may not be known yet when a reserved key arrives, since the type context can
+     * still be pending - then only the caller's hint can answer, and the reserved reading
+     * stands. That is the same limit the fingerprint's chicken-and-egg break lives with
+     * (spec 06 §8.5) and it costs nothing in practice: the keys reachable here are
+     * {@code _}-prefixed, which model features effectively never are.
+     * </p>
+     *
+     * @param propertyName the key found in the document
+     * @param candidates the classes that may declare it, in order of confidence; nulls skipped
+     * @return true if one of them declares a feature under that key
+     */
+    private boolean modelOwnsKey(String propertyName, EClass... candidates) {
+        for (EClass eClass : candidates) {
+            if (eClass == null) {
+                continue;
+            }
+            if (eClass.getEStructuralFeature(propertyName) != null) {
+                return true;
+            }
+            // The key may be configured on a feature rather than being its name
+            for (EStructuralFeature feature : eClass.getEAllStructuralFeatures()) {
+                FeatureConfig featureConfig = config.resolveFeatureConfig(feature);
+                if (featureConfig != null && propertyName.equals(featureConfig.getKey())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Reports a fingerprint sibling that turned out to name a feature of the class after all.
+     * <p>
+     * {@link #modelOwnsKey} can only answer once a class is known, and the fingerprint has to
+     * be read <i>before</i> the type is resolved - that is the chicken-and-egg break of spec
+     * 06 §8.5 seen from the data side. For the default key this never bites, because the
+     * sibling placement reserves {@code _fingerprint} only and models do not name features
+     * that way; a caller who configures a colliding {@code fingerprintKey} gets told here
+     * instead of silently losing the value (issue #217).
+     * </p>
+     */
+    private void reportFingerprintKeyShadowing(String fingerprintKey, EClass resolvedEClass,
+            DeserializationContext ctxt, JsonParser parser) {
+        if (fingerprintKey == null || resolvedEClass == null
+                || !modelOwnsKey(fingerprintKey, resolvedEClass)) {
+            return;
+        }
+        String msg = "Key '" + fingerprintKey + "' was read as the in-band EPackage fingerprint, "
+                + "but EClass " + resolvedEClass.getName() + " declares a feature under it; "
+                + "the value did not reach the model. Configure a different codec.fingerprintKey "
+                + "for this load, or rename the feature.";
+        LOGGER.warning(msg);
+        ContextHelper.addWarning(ctxt, msg, parser, "CodecEObjectDeserializer");
+    }
+
     /** The diagnostic for a value that names a real feature EMF cannot set. */
     private String unsettableMessage(String propertyName, EClass eClass) {
         return "Feature '" + propertyName + "' of EClass " + eClass.getName()
@@ -723,8 +794,9 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 typeValue = parser.getString();
             } else if (schemaKey.equals(fieldName)) {
                 schemaValue = parser.getString();
-            } else if (ContextHelper.isFingerprintKey(ctxt, fieldName)) {
-                // In-band EPackage fingerprint (B.1): read liberally, wherever it appears
+            } else if (ContextHelper.isInnerFingerprintKey(ctxt, fieldName)) {
+                // In-band EPackage fingerprint (B.1): inside the type object the unprefixed
+                // key is the carrier - no model feature can appear here
                 fingerprint = parser.getString();
             } else if ("classifier".equals(fieldName)) {
                 classifierValue = parser.currentToken() == JsonToken.VALUE_NUMBER_INT

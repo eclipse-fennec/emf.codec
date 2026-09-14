@@ -89,11 +89,15 @@ public final class ContextHelper {
     public static final String FINGERPRINT_PINS = "CODEC_FINGERPRINT_PINS";
 
     /**
-     * Context attribute key holding the set of field names accepted as the in-band
+     * Context attribute key holding the set of <b>inner</b> key names accepted as the in-band
      * fingerprint while reading (issue #73, B.1).
      * <p>
+     * Inner keys only: the PLAIN sibling form of each is derived from it, so that the two
+     * placements of spec §8.2 stay distinguishable while reading (issue #217).
+     * </p>
+     * <p>
      * Value: {@code Set<String>}, seeded from <b>caller-side</b> configuration only, always
-     * including the default keys. This attribute is what makes the chicken-and-egg break of
+     * including the default key. This attribute is what makes the chicken-and-egg break of
      * spec §8.5 structural rather than merely documented: reading has to know the key before
      * the model version is selected, so the read key can never come from the model. The
      * deserializer sees this set and has no path back to an annotation.
@@ -486,58 +490,87 @@ public final class ContextHelper {
     }
 
     /**
-     * The fingerprint keys accepted by every reader regardless of configuration: the inner
-     * form used inside a STRUCTURED type object and its PLAIN sibling.
+     * The inner fingerprint key accepted by every reader regardless of configuration: the
+     * form used <i>inside</i> a STRUCTURED type object.
      * <p>
      * Always accepted <b>in addition</b> to any caller-configured key, so a document written
      * with the defaults stays readable by a caller who configured something else.
      * </p>
      */
-    public static final Set<String> DEFAULT_FINGERPRINT_KEYS = Set.of(
-            ConfigProperty.FINGERPRINT_KEY.getDefaultValue(),
-            TypeConfig.toPlainKey(ConfigProperty.FINGERPRINT_KEY.getDefaultValue()));
+    public static final Set<String> DEFAULT_FINGERPRINT_INNER_KEYS =
+            Set.of((String) ConfigProperty.FINGERPRINT_KEY.getDefaultValue());
 
     /**
-     * Builds the set of field names a reader accepts as the in-band fingerprint: the always
-     * accepted defaults plus, if configured, a caller-supplied key in both placements.
+     * Builds the set of <b>inner</b> key names a reader accepts as the in-band fingerprint:
+     * the always accepted default plus, if configured, the caller-supplied key.
+     * <p>
+     * One value, two placements (spec 06 §8.2): the PLAIN sibling form is derived from each
+     * inner key by {@link TypeConfig#toPlainKey}, never stored alongside it. Keeping the two
+     * apart is what stops a model attribute named {@code fingerprint} from being read as the
+     * carrier (issue #217) - in the sibling placement only {@code _fingerprint} is reserved.
+     * </p>
      *
-     * @param configuredKey the caller-configured inner key, or {@code null} for defaults only
-     * @return the accepted key set, never empty
+     * @param configuredKey the caller-configured inner key, or {@code null} for the default only
+     * @return the accepted inner key set, never empty
      */
     public static Set<String> fingerprintReadKeys(String configuredKey) {
         if (configuredKey == null || configuredKey.isBlank()) {
-            return DEFAULT_FINGERPRINT_KEYS;
+            return DEFAULT_FINGERPRINT_INNER_KEYS;
         }
-        Set<String> keys = new HashSet<>(DEFAULT_FINGERPRINT_KEYS);
+        Set<String> keys = new HashSet<>(DEFAULT_FINGERPRINT_INNER_KEYS);
         keys.add(configuredKey);
-        keys.add(TypeConfig.toPlainKey(configuredKey));
         return Set.copyOf(keys);
     }
 
     /**
-     * Gets the field names accepted as the in-band fingerprint for this load.
+     * Gets the inner key names accepted as the in-band fingerprint for this load.
      *
      * @param ctxt the deserialization context, may be {@code null}
-     * @return the accepted key set, falling back to {@link #DEFAULT_FINGERPRINT_KEYS}
+     * @return the accepted inner key set, falling back to {@link #DEFAULT_FINGERPRINT_INNER_KEYS}
      */
     @SuppressWarnings("unchecked")
     public static Set<String> getFingerprintReadKeys(DeserializationContext ctxt) {
         if (ctxt == null) {
-            return DEFAULT_FINGERPRINT_KEYS;
+            return DEFAULT_FINGERPRINT_INNER_KEYS;
         }
         Object value = ctxt.getAttribute(FINGERPRINT_READ_KEYS);
-        return value instanceof Set ? (Set<String>) value : DEFAULT_FINGERPRINT_KEYS;
+        return value instanceof Set ? (Set<String>) value : DEFAULT_FINGERPRINT_INNER_KEYS;
     }
 
     /**
-     * Reports whether a field name carries the in-band fingerprint.
+     * Reports whether a field name carries the in-band fingerprint <i>inside</i> a STRUCTURED
+     * type object, where it sits next to {@code type} and {@code schema} and no model feature
+     * can reach.
      *
      * @param ctxt the deserialization context, may be {@code null}
      * @param fieldName the JSON field name
-     * @return true if the field is the fingerprint carrier
+     * @return true if the field is the fingerprint carrier in the inner placement
      */
-    public static boolean isFingerprintKey(DeserializationContext ctxt, String fieldName) {
+    public static boolean isInnerFingerprintKey(DeserializationContext ctxt, String fieldName) {
         return fieldName != null && getFingerprintReadKeys(ctxt).contains(fieldName);
+    }
+
+    /**
+     * Reports whether a field name carries the in-band fingerprint in the <b>PLAIN sibling</b>
+     * placement - next to the type key of an object, or next to {@code _ref} in a reference
+     * object - where it shares the namespace with the model's own keys.
+     * <p>
+     * Only the {@code _}-prefixed form counts here (spec 06 §8.2). The unprefixed form belongs
+     * to the inner placement, and reserving it here would swallow a model attribute of that
+     * name (issue #217).
+     * </p>
+     *
+     * @param ctxt the deserialization context, may be {@code null}
+     * @param fieldName the JSON field name
+     * @return true if the field is the fingerprint carrier in the sibling placement
+     */
+    public static boolean isPlainFingerprintKey(DeserializationContext ctxt, String fieldName) {
+        if (fieldName == null) {
+            return false;
+        }
+        return getFingerprintReadKeys(ctxt).stream()
+                .map(TypeConfig::toPlainKey)
+                .anyMatch(fieldName::equals);
     }
 
     /**
