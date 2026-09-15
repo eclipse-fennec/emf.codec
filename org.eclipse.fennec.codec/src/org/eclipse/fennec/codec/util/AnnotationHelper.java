@@ -16,6 +16,7 @@ import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EModelElement;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.fennec.codec.constants.AnnotationSources;
 
 /**
  * Helper class for extracting metadata from EMF EAnnotations.
@@ -83,6 +84,36 @@ public final class AnnotationHelper {
             }
         }
         return null;
+    }
+
+    /**
+     * Tells whether an EClass declares a feature under the given JSON key, and so owns that
+     * key wherever the codec would otherwise reserve it (issue #217).
+     * <p>
+     * A declared feature beats a reserved key - the rule the reference key already follows for
+     * OpenAPI's {@code $ref}. Both sides of the codec have to answer this question the same
+     * way: the reader, to hand the value to the model rather than to the fingerprint carrier,
+     * and the writer, to leave the key to the model rather than colliding with it.
+     * </p>
+     * <p>
+     * The key may be a feature's name or its configured {@code key} - the two are the same
+     * question to a document.
+     * </p>
+     *
+     * @param eClass the type in question, may be {@code null}
+     * @param key the JSON key the codec would reserve, may be {@code null}
+     * @return true if the type declares a feature under that key
+     */
+    public static boolean declaresKey(EClass eClass, String key) {
+        if (eClass == null || key == null || key.isEmpty()) {
+            return false;
+        }
+        if (eClass.getEStructuralFeature(key) != null) {
+            return true;
+        }
+        return eClass.getEAllStructuralFeatures().stream()
+                .map(feature -> getAnnotationDetail(feature, AnnotationSources.CODEC, "key"))
+                .anyMatch(key::equals);
     }
 
     /**

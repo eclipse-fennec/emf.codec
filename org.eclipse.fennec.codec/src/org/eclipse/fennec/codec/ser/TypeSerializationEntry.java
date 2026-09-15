@@ -24,6 +24,7 @@ import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
+import org.eclipse.fennec.codec.util.AnnotationHelper;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
@@ -199,7 +200,9 @@ public class TypeSerializationEntry implements SerializationEntry {
             }
             gen.writeStringProperty(config.getTypeKey(), effectiveValue);
         }
-        writeFingerprintIfDue(gen, ctxt, config.getPlainFingerprintKey());
+        // The sibling placement shares the object body with the model's own keys, so a
+        // declared feature of that name contests it (issue #217).
+        writeFingerprintIfDue(gen, ctxt, config.getPlainFingerprintKey(), true);
     }
 
     /**
@@ -215,14 +218,21 @@ public class TypeSerializationEntry implements SerializationEntry {
      * @param gen the JSON generator
      * @param ctxt the serialization context holding the per-save pins
      * @param key the key to write under (PLAIN sibling form or STRUCTURED inner form)
+     * @param sharedNamespace whether the key sits where the model's own keys live, so that a
+     *        declared feature of that name contests it
+     * @throws IllegalStateException if the model declares a feature under the carrier's key
      */
-    private void writeFingerprintIfDue(JsonGenerator gen, SerializationContext ctxt, String key) {
+    private void writeFingerprintIfDue(JsonGenerator gen, SerializationContext ctxt, String key,
+            boolean sharedNamespace) {
         if (!config.isFingerprintWriteEnabled() || ctxt == null) {
             return;
         }
         EPackage ePackage = eClass.getEPackage();
         if (ePackage == null) {
             return;
+        }
+        if (sharedNamespace) {
+            failOnContestedKey(key);
         }
         if (!ContextHelper.getFingerprintPins(ctxt).isDue(ePackage)) {
             return;
@@ -231,6 +241,31 @@ public class TypeSerializationEntry implements SerializationEntry {
         if (fingerprint != null && !fingerprint.isEmpty()) {
             gen.writeStringProperty(key, fingerprint);
         }
+    }
+
+    /**
+     * Refuses the save when the class declares a feature under the carrier's key (issue #217).
+     * <p>
+     * The two would have to share one JSON key, and nothing in the document could tell the
+     * package version from the model's own value. Writing either one silently is worse than
+     * not writing at all, so the caller is made to choose a key instead - the same key their
+     * reader will have to supply, under the caller-side rule of spec 06 §8.5.
+     * </p>
+     *
+     * @param key the key the carrier would be written under
+     * @throws IllegalStateException if a declared feature contests the key
+     */
+    private void failOnContestedKey(String key) {
+        if (!AnnotationHelper.declaresKey(eClass, key)) {
+            return;
+        }
+        throw new IllegalStateException(String.format(
+                "Cannot write the in-band fingerprint for EClass %s: it declares a feature under "
+                + "the key '%s', so the carrier and the model's own value would collide. Set "
+                + "codec.fingerprintKey to a key the model does not declare, and supply that "
+                + "same key to the load that reads the document (spec 06 §8.5); or turn the "
+                + "carrier off with codec.fingerprintMode=NONE.",
+                eClass.getName(), key));
     }
 
     /**
@@ -332,8 +367,9 @@ public class TypeSerializationEntry implements SerializationEntry {
                 break;
         }
 
-        // Version identity belongs next to the type identity, before the supertype.
-        writeFingerprintIfDue(gen, ctxt, config.getFingerprintKey());
+        // Version identity belongs next to the type identity, before the supertype. Inside
+        // the type object the key is the codec's alone - no model feature reaches in here.
+        writeFingerprintIfDue(gen, ctxt, config.getFingerprintKey(), false);
 
         // Include supertype inside the _type object when STRUCTURED format
         serializeSuperTypeInStructured(gen);

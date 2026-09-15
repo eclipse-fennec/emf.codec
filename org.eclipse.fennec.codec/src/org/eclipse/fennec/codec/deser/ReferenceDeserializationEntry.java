@@ -29,12 +29,12 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.config.FeatureConfig;
-import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
 import org.eclipse.fennec.codec.deser.DeserializationState.UnresolvedReference;
 import org.eclipse.fennec.codec.jackson.CodecJsonReadContext;
+import org.eclipse.fennec.codec.util.AnnotationHelper;
 import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.util.EMapHelper;
 import org.eclipse.fennec.codec.util.PackageResolver;
@@ -290,20 +290,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      * @return true if the referenced type declares a feature under that key
      */
     private boolean modelOwnsKey(String key) {
-        EClass declaredType = reference.getEReferenceType();
-        if (declaredType == null) {
-            return false;
-        }
-        if (declaredType.getEStructuralFeature(key) != null) {
-            return true;
-        }
-        // The key may be configured on a feature rather than being its name - OpenAPI names
-        // the attribute "ref" and annotates it with key="$ref"
-        return declaredType.getEAllStructuralFeatures().stream()
-                .map(feature -> feature.getEAnnotation(AnnotationSources.CODEC))
-                .filter(Objects::nonNull)
-                .map(annotation -> annotation.getDetails().get("key"))
-                .anyMatch(key::equals);
+        // The same rule the writer applies before it reserves a key, so the two sides cannot
+        // drift apart and produce a document the codec can write but not read (issue #217).
+        return AnnotationHelper.declaresKey(reference.getEReferenceType(), key);
     }
 
     /**
