@@ -12,9 +12,12 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.resource;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -34,6 +37,7 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,11 +72,15 @@ class FingerprintKeyShadowingTest {
     private static final String AUDIT_TYPE = NS_AUDIT + "#//AuditRecord";
     private static final String NS_VERSIONED = "http://example.org/versioned/1.0";
     private static final String VERSIONED_TYPE = NS_VERSIONED + "#//Entity";
+    private static final String NS_HOLDER = "http://example.org/holder/1.0";
+    private static final Map<String, Object> WRITE_FINGERPRINT =
+            Map.of(CodecOptions.CODEC_FINGERPRINT_MODE, "FIRST_TOUCH");
 
     private MetadataWhiteboard metadataService;
     private EPackage auditPackage;
     private EPackage versionedV1;
     private EPackage versionedV2;
+    private EPackage holderPackage;
     private String fingerprintV2;
 
     @BeforeEach
@@ -86,6 +94,9 @@ class FingerprintKeyShadowingTest {
         versionedV2 = buildVersionedPackage("valueV2");
         metadataService.registerPackage(versionedV1).orElseThrow();
         fingerprintV2 = metadataService.registerPackage(versionedV2).orElseThrow().getModelFingerprint();
+
+        holderPackage = buildHolderPackage((EClass) versionedV2.getEClassifier("Entity"));
+        metadataService.registerPackage(holderPackage).orElseThrow();
     }
 
     /**
@@ -143,6 +154,31 @@ class FingerprintKeyShadowingTest {
         return backWithResource(pkg);
     }
 
+    /**
+     * A package of its own holding a non-containment reference into the versioned package, so
+     * that the reference entry is that package's <i>first touch</i> in the document - the one
+     * site where the writer has to announce the target's version (issue #73, B.3).
+     */
+    private static EPackage buildHolderPackage(EClass targetType) {
+        EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+        pkg.setName("holder");
+        pkg.setNsPrefix("holder");
+        pkg.setNsURI(NS_HOLDER);
+
+        EClass holder = EcoreFactory.eINSTANCE.createEClass();
+        holder.setName("Holder");
+        pkg.getEClassifiers().add(holder);
+        holder.getEStructuralFeatures().add(attribute("name"));
+
+        EReference target = EcoreFactory.eINSTANCE.createEReference();
+        target.setName("target");
+        target.setEType(targetType);
+        target.setContainment(false);
+        holder.getEStructuralFeatures().add(target);
+
+        return backWithResource(pkg);
+    }
+
     private static EAttribute attribute(String name) {
         EAttribute attribute = EcoreFactory.eINSTANCE.createEAttribute();
         attribute.setName(name);
@@ -162,17 +198,25 @@ class FingerprintKeyShadowingTest {
     }
 
     private String save(List<EObject> roots) throws IOException {
+        return save(roots, Map.of());
+    }
+
+    private String save(List<EObject> roots, Map<String, Object> options) throws IOException {
         CodecResource resource = newResource("save");
         resource.getContents().addAll(roots);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        resource.save(out, Map.of());
+        resource.save(out, options);
         return out.toString(StandardCharsets.UTF_8);
     }
 
     private CodecResource loadInto(String json) throws IOException {
+        return loadInto(json, Map.of());
+    }
+
+    private CodecResource loadInto(String json, Map<String, Object> options) throws IOException {
         CodecResource resource = newResource("load");
-        resource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), Map.of());
+        resource.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), options);
         return resource;
     }
 
@@ -304,5 +348,175 @@ class FingerprintKeyShadowingTest {
                     "the sibling of the same name is still the model's attribute");
             assertEquals("v", valueOf(loaded, "valueV2"));
         }
+    }
+
+    /** An Entity of the given version, whose own {@code fingerprint} attribute carries data. */
+    private EObject newEntity(EPackage version, String valueFeature, String fingerprintValue,
+            String value) {
+        EClass entity = (EClass) version.getEClassifier("Entity");
+        EObject instance = version.getEFactoryInstance().create(entity);
+        instance.eSet(entity.getEStructuralFeature("fingerprint"), fingerprintValue);
+        instance.eSet(entity.getEStructuralFeature(valueFeature), value);
+        return instance;
+    }
+
+    // ========================================================================
+    // Section 3: Both ways - what the codec writes, the codec reads back
+    // ========================================================================
+
+    /**
+     * Sections 1 and 2 read hand-written documents, which proves the reader but says nothing
+     * about the pair. Here the carrier is switched on at save time and the codec's <i>own</i>
+     * output is loaded into a fresh resource: the attribute has to survive the trip and the
+     * version still has to be decided by the document, with no caller-side option helping.
+     */
+    @Nested
+    @DisplayName("3. The codec reads back what it wrote, with the carrier on")
+    class WrittenDocumentRoundTrips {
+
+        @Test
+        @DisplayName("3.1 PLAIN: the '_fingerprint' sibling carries, the 'fingerprint' key is data")
+        void plainRoundTripsWithCarrierEnabled() throws IOException {
+            String json = save(List.of(newEntity(versionedV2, "valueV2", "data", "v")),
+                    WRITE_FINGERPRINT);
+
+            assertTrue(json.contains("\"_fingerprint\":\"" + fingerprintV2 + "\""),
+                    "the carrier takes the prefixed sibling form: " + json);
+            assertTrue(json.contains("\"fingerprint\":\"data\""),
+                    "the model attribute keeps its own name: " + json);
+
+            EObject loaded = load(json).get(0);
+            assertSame(versionedV2, loaded.eClass().getEPackage(),
+                    "the written carrier must still select the version: " + json);
+            assertEquals("data", valueOf(loaded, "fingerprint"),
+                    "the attribute must survive its own document: " + json);
+            assertEquals("v", valueOf(loaded, "valueV2"));
+        }
+
+        @Test
+        @DisplayName("3.2 STRUCTURED: the inner key carries, the sibling of the same name is data")
+        void structuredRoundTripsWithCarrierEnabled() throws IOException {
+            Map<String, Object> structured = Map.of(
+                    CodecOptions.CODEC_FINGERPRINT_MODE, "FIRST_TOUCH",
+                    CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED");
+            String json = save(List.of(newEntity(versionedV2, "valueV2", "data", "v")), structured);
+
+            assertTrue(json.contains("\"fingerprint\":\"" + fingerprintV2 + "\""),
+                    "inside the type object the carrier is unprefixed: " + json);
+            assertTrue(json.contains("\"fingerprint\":\"data\""),
+                    "the model attribute keeps the same name outside it: " + json);
+
+            EObject loaded = loadInto(json, Map.of(CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED"))
+                    .getContents().get(0);
+            assertSame(versionedV2, loaded.eClass().getEPackage(), json);
+            assertEquals("data", valueOf(loaded, "fingerprint"), json);
+            assertEquals("v", valueOf(loaded, "valueV2"));
+        }
+
+        @Test
+        @DisplayName("3.3 the carrier refuses to share a key with the model, and the save fails")
+        void saveFailsWhenTheModelDeclaresTheCarrierKey() {
+            // The reference entry carries the unprefixed inner key (spec 10 §1.2.1) in the same
+            // object as projected attributes, and the referenced type declares a feature called
+            // 'fingerprint'. One key cannot mean both, so the save is refused: writing either
+            // meaning silently would be worse than not writing.
+            CodecResource writer = newResource("save");
+            writer.getContents().addAll(holderWithTarget());
+
+            Exception failure = assertThrows(Exception.class,
+                    () -> writer.save(new ByteArrayOutputStream(), WRITE_FINGERPRINT));
+
+            String message = rootCause(failure).getMessage();
+            assertTrue(message.contains("Entity") && message.contains("fingerprint"),
+                    "the refusal has to name the type and the contested key, was: " + message);
+            assertTrue(message.contains("codec.fingerprintKey"),
+                    "and the remedy, was: " + message);
+        }
+
+        @Test
+        @DisplayName("3.3b an attribute named 'fingerprint' does not contest the PLAIN sibling")
+        void plainSiblingIsNotContestedByTheInnerName() throws IOException {
+            // Placement is what separates them: the sibling key is '_fingerprint', so the same
+            // model that cannot be referenced under the default key saves and round-trips
+            // perfectly well on its own (3.1). The refusal is narrow by design.
+            CodecResource writer = newResource("save");
+            writer.getContents().add(newEntity(versionedV2, "valueV2", "data", "v"));
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            assertDoesNotThrow(() -> writer.save(out, WRITE_FINGERPRINT));
+
+            String json = out.toString(StandardCharsets.UTF_8);
+            assertTrue(json.contains("\"_fingerprint\":\"" + fingerprintV2 + "\""), json);
+            assertTrue(json.contains("\"fingerprint\":\"data\""), json);
+        }
+
+        @Test
+        @DisplayName("3.4 a fingerprintKey the model does not own round-trips the same document")
+        void configuredKeyClearsTheCollision() throws IOException {
+            // Spec 06 §8.5: the read key can never come from the model, so a caller whose model
+            // uses the default key configures another one - on both sides of the trip.
+            Map<String, Object> writeOptions = Map.of(
+                    CodecOptions.CODEC_FINGERPRINT_MODE, "FIRST_TOUCH",
+                    CodecOptions.CODEC_FINGERPRINT_KEY, "_fingerprint");
+            CodecResource writer = newResource("save");
+            writer.getContents().addAll(holderWithTarget());
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            writer.save(out, writeOptions);
+            String json = out.toString(StandardCharsets.UTF_8);
+
+            assertTrue(writer.getWarnings().isEmpty(),
+                    "nothing is contested any more, was: " + writer.getWarnings());
+            assertTrue(json.contains("\"_fingerprint\":\"" + fingerprintV2 + "\""),
+                    "the reference entry carries the target's version: " + json);
+            assertTrue(json.contains("\"fingerprint\":\"targetData\""),
+                    "and the attribute keeps its own name: " + json);
+
+            List<EObject> roots = loadInto(json,
+                    Map.of(CodecOptions.CODEC_FINGERPRINT_KEY, "_fingerprint")).getContents();
+
+            assertEquals(2, roots.size(), json);
+            EObject loadedTarget = roots.get(1);
+            assertSame(versionedV2, loadedTarget.eClass().getEPackage(),
+                    "the referenced object comes back under the version the document names: "
+                            + json);
+            assertEquals("targetData", valueOf(loadedTarget, "fingerprint"),
+                    "and its own attribute is still data: " + json);
+        }
+
+        @Test
+        @DisplayName("3.5 a feature named '_fingerprint' contests the PLAIN sibling the same way")
+        void siblingKeyIsContestedToo() {
+            EClass shadowClass = (EClass) auditPackage.getEClassifier("ShadowRecord");
+            EObject shadow = auditPackage.getEFactoryInstance().create(shadowClass);
+            shadow.eSet(shadowClass.getEStructuralFeature("_fingerprint"), "mine");
+
+            CodecResource writer = newResource("save");
+            writer.getContents().add(shadow);
+
+            Exception failure = assertThrows(Exception.class,
+                    () -> writer.save(new ByteArrayOutputStream(), WRITE_FINGERPRINT));
+
+            String message = rootCause(failure).getMessage();
+            assertTrue(message.contains("ShadowRecord") && message.contains("_fingerprint"),
+                    "was: " + message);
+        }
+
+        /** A holder cross-referencing a versioned Entity, both as roots, holder first. */
+        private List<EObject> holderWithTarget() {
+            EClass holderClass = (EClass) holderPackage.getEClassifier("Holder");
+            EObject target = newEntity(versionedV2, "valueV2", "targetData", "t");
+            EObject holder = holderPackage.getEFactoryInstance().create(holderClass);
+            holder.eSet(holderClass.getEStructuralFeature("name"), "h");
+            holder.eSet(holderClass.getEStructuralFeature("target"), target);
+            return List.of(holder, target);
+        }
+
+        private Throwable rootCause(Throwable throwable) {
+            Throwable cause = throwable;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            return cause;
+        }
+
     }
 }

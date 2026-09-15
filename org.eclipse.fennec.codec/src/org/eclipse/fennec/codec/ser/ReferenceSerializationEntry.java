@@ -34,6 +34,7 @@ import org.eclipse.fennec.codec.config.effective.EffectiveCodecConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.CodecWriteContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
+import org.eclipse.fennec.codec.util.AnnotationHelper;
 import org.eclipse.fennec.codec.util.EMapHelper;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
@@ -499,7 +500,25 @@ public class ReferenceSerializationEntry implements SerializationEntry {
             return;
         }
         EPackage ePackage = target.eClass().getEPackage();
-        if (ePackage == null || !ContextHelper.getFingerprintPins(ctxt).isDue(ePackage)) {
+        if (ePackage == null) {
+            return;
+        }
+        // A reference entry carries the unprefixed inner key in the same object as projected
+        // attributes, so a declared feature of that name contests it - the reader gives that
+        // key to the model (issue #217), which would make the carrier unreadable here. The
+        // save is refused rather than written into a key nothing could interpret.
+        String fingerprintKey = typeConfig.getFingerprintKey();
+        if (AnnotationHelper.declaresKey(target.eClass(), fingerprintKey)) {
+            throw new IllegalStateException(String.format(
+                    "Cannot write the in-band fingerprint at the reference '%s' to EClass %s: "
+                    + "that type declares a feature under the key '%s', so the carrier and a "
+                    + "projected value would collide in the reference entry. Set "
+                    + "codec.fingerprintKey to a key the model does not declare, and supply "
+                    + "that same key to the load that reads the document (spec 06 §8.5); or "
+                    + "turn the carrier off with codec.fingerprintMode=NONE.",
+                    reference.getName(), target.eClass().getName(), fingerprintKey));
+        }
+        if (!ContextHelper.getFingerprintPins(ctxt).isDue(ePackage)) {
             return;
         }
         MetadataService metadataService = codecConfig.getMetadataService();
@@ -508,7 +527,7 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         }
         PackageMetadata metadata = metadataService.getPackageMetadata(ePackage).orElse(null);
         if (metadata != null && metadata.getModelFingerprint() != null) {
-            gen.writeStringProperty(typeConfig.getFingerprintKey(), metadata.getModelFingerprint());
+            gen.writeStringProperty(fingerprintKey, metadata.getModelFingerprint());
         }
     }
 

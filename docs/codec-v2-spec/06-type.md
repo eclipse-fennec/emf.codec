@@ -1825,6 +1825,27 @@ the type context on purpose rather than as an optimization:
 A document produced this way is not self-describing; callers needing that must leave the type
 context in place, or answer the version question out-of-band with `codec.rootFingerprint`.
 
+**A contested key fails the save.** At the sites where the carrier's key shares an object with
+the model's own keys, a declared feature of that name makes the key ambiguous: nothing in the
+document could then tell the package version from the model's value. The save is **refused**
+rather than resolved in either direction. Two sites can be contested:
+
+| Site | Key | Contested by a feature named |
+|---|---|---|
+| PLAIN sibling of the type key | `_fingerprint` | `_fingerprint` |
+| Inside a STRUCTURED reference entry ([10 §1.2.1](10-reference.md#121-version-identity-in-a-reference-entry)) | `fingerprint` | `fingerprint` |
+
+The inner key of a STRUCTURED type object is never contested — no model feature reaches inside
+it — so a model with an attribute called `fingerprint` writes and reads perfectly well in the
+object body, where the sibling key is `_fingerprint`. The refusal is as narrow as the clash.
+
+The error names the class, the contested key and the remedy: **a `fingerprintKey` the model
+does not declare**, set on the save *and* supplied to the load under the caller-side rule of
+[§8.5](#85--the-fingerprintkey-chicken-and-egg-problem) — or `fingerprintMode=NONE`, which
+writes no carrier and leaves such an attribute ordinary data. Refusing is deliberate: a
+warning would leave the caller with a document whose version is silently unrecorded, and the
+collision is not something a later reader can repair.
+
 ### 8.4 Read: Liberal, but Placement-Bound
 
 Reading is deliberately more permissive than writing: a reader accepts a fingerprint

@@ -2,7 +2,56 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-09-14
+**Last Updated:** 2026-09-15
+
+**Session Summary (2026-09-15) — issue #217 follow-up: a contested fingerprint key now fails the save:**
+
+The #217 fix taught the **reader** that a declared feature owns a contested key. Round-trip
+tests for the *pair* (new `FingerprintKeyShadowingTest` §3 — save with
+`codec.fingerprintMode=FIRST_TOUCH`, load the codec's own output) showed the **writer** had
+never learned it, and that the two sides disagreeing produced documents the codec could not
+read, or worse, read wrongly.
+
+- **The case that corrupts.** `ReferenceSerializationEntry` emitted the carrier under the
+  unprefixed inner key (spec 10 §1.2.1) while the reader's `isFingerprintEntryKey` gives that
+  key to the model whenever the referenced type declares a feature of that name. With two
+  versions registered the load failed with `Ambiguous nsURI …` (a regression — verified against
+  `HEAD~1`, where the same document loaded and ate the attribute instead). With **one** version
+  registered nothing failed: the reader took the carrier as projection data, wrote the package
+  hash into the model's own `fingerprint` attribute and stopped recognising the entry as a
+  reference (`Unknown feature '_ref'`).
+- **Decision: refuse, don't reconcile.** One key cannot mean both, and no later reader can
+  repair it, so both writer sites now **throw** when the class declares a feature under the
+  carrier's key — `TypeSerializationEntry.failOnContestedKey` for the PLAIN sibling, and the
+  same check in `ReferenceSerializationEntry`. The message names the class, the key and the
+  remedy. An earlier iteration skipped-and-warned; refusing was chosen because a warning still
+  hands back a document whose version is silently unrecorded.
+- **The refusal is as narrow as the clash.** Only two sites are contested: `_fingerprint` in
+  the PLAIN sibling, `fingerprint` inside a reference entry. A model with an attribute called
+  `fingerprint` still saves and round-trips normally in the object body — the sibling key is
+  `_fingerprint` — which is what §3.1, §3.2 and §3.3b pin down. Erroring on the *name* rather
+  than the *collision* would break cases that work correctly.
+- **The rule, shared.** `AnnotationHelper.declaresKey(EClass, String)` is now the single answer
+  to "does the model own this key" — name or configured `key`, the `$ref` rule.
+  `ReferenceDeserializationEntry.modelOwnsKey` delegates to it, so reader and writer cannot
+  drift apart again.
+- **Read side, measured, unchanged.** A document written with a custom key and read without it
+  already fails where it matters: with two versions registered the load reports
+  `Ambiguous nsURI … pass codec.rootFingerprint`. With the right key it loads; a default-key
+  document read with a custom key still loads (§8.5 keeps the default always accepted). The one
+  case that does *not* fail is a single registered version, where the key is simply an unknown
+  field and the result is correct anyway; `deserializationMode=STRICT` does not fail it either
+  (that option is type-resolution strictness). Open question for a follow-up, not a defect.
+- **Also learned:** `ContextHelper.addWarning(SerializationContext, …)` cannot work in `ser` —
+  `CodecResource.doSave` attaches no `DIAGNOSTIC_COLLECTOR` to the writer (both wiring sites
+  are load paths). An interim version of this change warned through it and the warning silently
+  never fired. Moot now that the case throws, but worth knowing before adding save-side
+  diagnostics.
+- **Spec:** 06 §8.3 gained *A contested key fails the save*, with the two-site table and the
+  remedy.
+- **Guard:** `FingerprintKeyShadowingTest` §3 (6 tests: PLAIN and STRUCTURED round trips with
+  the carrier on, the two refusals, the narrowness check, and the configured-key remedy).
+- **Verified:** codec, api, metadata, cbor, yaml and bson suites green from scratch.
 
 **Session Summary (2026-09-14) — issue #217: a model attribute named `fingerprint` was eaten on read:**
 
