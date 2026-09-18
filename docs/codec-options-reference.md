@@ -57,9 +57,17 @@ are accepted in the options map. **EAnnotation details** always use the short ke
 The `CodecOptions` constants use the prefixed form and are the recommended way to pass
 options in code.
 
-Those two are the *only* accepted spellings: a key the resolver does not recognise is dropped
-without a warning, so a near-miss behaves exactly like an option that was never set. One
-EAnnotation detail key departs from its option key — `serializeDefaults` (plural) sets the
+Those two are the *only* accepted spellings, and a key the codec does not read is ignored — a
+near-miss otherwise behaves exactly like an option that was never set. Since issue #220 such a
+key is **reported as a warning** when it sits in the `codec.` namespace, naming the key, the
+source it came from and the known key it was probably meant to be. Keys outside the namespace
+are a caller's own and are never judged, and so are format-namespaced keys
+(`codec.<format>.<name>`), which belong to a format bundle.
+
+A format bundle whose key does not fit that namespace can declare it with
+`KnownOptionKeys.register(...)` so it is not reported.
+
+One EAnnotation detail key departs from its option key — `serializeDefaults` (plural) sets the
 option `codec.serializeDefault` (singular); see spec §11.
 
 ---

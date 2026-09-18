@@ -71,9 +71,32 @@ everything that is not `"true"`, so an unparseable value inverted the caller's i
 being no value at all. Case is not judged: `typeStrategy="name"` resolves to `NAME` silently, as
 intended.
 
-Not judged: **unknown keys**. A property map legitimately carries runtime options that are not
-`ConfigProperty` keys, and separating those from typos is the caller's job (`CodecResource` does
-it for load and save options).
+#### Layer 2b: Unknown `codec.` Keys (issue #220)
+
+Runs in the same pass, over the same sources. A key outside the `codec.` namespace is still
+**not judged** — a property map legitimately carries a caller's own runtime options, and
+separating those from typos is not the codec's job. A `codec.` prefix, however, is the caller
+asserting that the codec owns the key, which narrows it to a question the codec can answer: it
+either reads that key or it does not.
+
+One it does not read is reported as a WARNING, naming the key, its source and — when a known key
+is within a small edit distance — the key that was probably meant:
+
+```
+Unknown option key 'codec.serializeDefaults' (load/save options). Nothing reads it,
+so the value is ignored; did you mean 'codec.serializeDefault'?
+```
+
+This is not hypothetical: `codec.serializeDefaults` sat in `CodecOptions` being read by nobody,
+so `@CodecConfig(serializeDefaultValues = true)` did nothing at all and said nothing (#220).
+
+Known keys are derived from `ConfigProperty` and the `codec.`-prefixed constants of
+`CodecOptions`, read off the class rather than copied — a hand-kept list drifting from the
+constants it mirrors is the very bug being reported.
+
+Not judged: **format-namespaced keys** (`codec.<format>.<name>`, e.g. `codec.ods.styleHeader`),
+which belong to a format bundle that codec.api cannot see. A format key that predates that
+convention is declared through `KnownOptionKeys.register(...)`.
 
 ### Layer 3: Cross-Config Validation
 

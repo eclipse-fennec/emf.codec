@@ -26,9 +26,16 @@ import java.util.Map;
  * </p>
  * <p>
  * This validator answers one question per configured key - would this value be dropped? - and
- * says so once, naming the property, the offending value and the legal values. It deliberately
- * does <b>not</b> report unknown keys: a property map legitimately carries runtime options that
- * are not {@link ConfigProperty} keys, and telling those apart is the caller's job.
+ * says so once, naming the property, the offending value and the legal values.
+ * </p>
+ * <p>
+ * It also reports a key in the {@code codec.} namespace that nothing reads (issue #220). That
+ * was left out at first, because a property map legitimately carries runtime options which are
+ * not {@link ConfigProperty} keys and telling those apart is the caller's job - but a
+ * {@code codec.} prefix is the caller asserting the codec owns the key, which narrows it to a
+ * question this bundle can answer. Keys outside the namespace are still none of its business.
+ * The gap was not hypothetical: {@code codec.serializeDefaults} sat in {@code CodecOptions}
+ * being read by nobody, and a caller passing it got the default behaviour with nothing said.
  * </p>
  */
 final class ConfigValueValidator {
@@ -90,6 +97,11 @@ final class ConfigValueValidator {
 
             ConfigProperty property = ConfigProperty.byKey(strip(key));
             if (property == null) {
+                // A key in the codec's own namespace that nothing reads is a typo or a stale
+                // spelling, not a caller's runtime option (issue #220).
+                if (!KnownOptionKeys.isKnown(key)) {
+                    problems.add(describeUnknownKey(key, sourceName, scope));
+                }
                 // A nested map under a class or feature name (the name-keyed patterns), or a
                 // runtime option that is not a ConfigProperty at all. Descend into the former;
                 // the latter has no property values to judge.
@@ -138,6 +150,24 @@ final class ConfigValueValidator {
         message.append(". The value is ignored, so a wider scope or the default (")
                 .append(String.valueOf(property.<Object>getDefaultValue()))
                 .append(") applies.");
+        return message.toString();
+    }
+
+    private static String describeUnknownKey(String key, String sourceName, String scope) {
+        StringBuilder message = new StringBuilder("Unknown option key '")
+                .append(key)
+                .append("'");
+        if (!scope.isEmpty()) {
+            message.append(" on ").append(scope);
+        }
+        message.append(" (").append(sourceName)
+                .append("). Nothing reads it, so the value is ignored");
+
+        KnownOptionKeys.suggest(key)
+                .ifPresent(suggestion -> message.append("; did you mean '").append(suggestion).append("'?"));
+        if (message.charAt(message.length() - 1) != '?') {
+            message.append('.');
+        }
         return message.toString();
     }
 
