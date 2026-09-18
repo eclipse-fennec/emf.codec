@@ -20,14 +20,24 @@ Global settings that apply to all features unless overridden:
 
 | Annotation Key | Property Key | Global | ERef | EAttr | Default | Description |
 |----------------|--------------|:------:|:----:|:-----:|---------|-------------|
-| `serializeDefaults` | `codec.serializeDefaults` | ✅ | ✅ | ✅ | `false` | Include fields with default values |
+| `serializeDefaults` | `codec.serializeDefault` | ✅ | ✅ | ✅ | `false` | Include fields with default values |
 | `serializeNull` | `codec.serializeNull` | ✅ | ✅ | ✅ | `false` | Include fields with explicit null values |
 | `serializeEmpty` | `codec.serializeEmpty` | ✅ | ✅ | ✅ | `false` | Include empty collections |
+
+> **`serializeDefaults` vs `codec.serializeDefault` (issue #220).** The two spellings are not a
+> typo. The ecore annotation detail key is plural, matching the `FeatureCodecAspect`
+> attribute it sets; the option key, the property key and the builder method are singular,
+> matching `ConfigProperty.SERIALIZE_DEFAULT` and the two siblings above. The bridge
+> (`AspectToPropertiesConverter`) translates between them, so an annotation needs the plural and
+> a property map needs the singular. Until issue #220 `CodecOptions.CODEC_SERIALIZE_DEFAULTS`
+> held the plural, which no resolver reads, so callers using it were ignored in silence. Pass
+> `CodecOptions.CODEC_SERIALIZE_DEFAULT`; the old constant remains as a deprecated alias of the
+> same key.
 
 **Java Builder (Codec-Wide):**
 ```java
 CodecConfiguration config = CodecConfiguration.builder()
-    .serializeDefaults(false)  // Default: omit default values
+    .serializeDefault(false)  // Default: omit default values
     .serializeNull(false)      // Default: omit null values
     .serializeEmpty(false)     // Default: omit empty collections
     .build();
@@ -138,7 +148,7 @@ Override codec-wide settings for individual features:
 | Annotation Key | Property Key | ERef | EAttr | Default | Description |
 |----------------|--------------|:----:|:-----:|---------|-------------|
 | `serializeNull` | `codec.serializeNull` | ✅ | ✅ | `false` | Include null values in output |
-| `serializeDefaults` | `codec.serializeDefaults` | ✅ | ✅ | `false` | Include default values in output |
+| `serializeDefaults` | `codec.serializeDefault` | ✅ | ✅ | `false` | Include default values in output |
 | `serializeEmpty` | `codec.serializeEmpty` | ✅ | ✅ | `false` | Include empty collections in output |
 
 **Semantics:** `true` = include in output, `false` = omit from output. Feature-level overrides codec-wide.
@@ -175,7 +185,7 @@ FeatureConfigBuilder.forFeature("middleName")
 
 // Skip default values for specific feature
 FeatureConfigBuilder.forFeature("counter")
-    .serializeDefaults(false)
+    .serializeDefault(false)
     .build();
 ```
 
@@ -485,7 +495,7 @@ The deserializer tries name lookup first, then falls back to literal lookup, so 
 | Force Read | `codec.forceRead` | `false` |
 | Force Write | `codec.forceWrite` | `false` |
 | Serialize Null | `codec.serializeNull` | `false` |
-| Serialize Defaults | `codec.serializeDefaults` | `false` |
+| Serialize Defaults | `codec.serializeDefault` | `false` |
 | Serialize Empty | `codec.serializeEmpty` | `false` |
 | Enum Serialization | `codec.enumSerialization` | `LITERAL` |
 | Use Names From ExtendedMetaData | `codec.useNamesFromExtendedMetadata` | `false` |

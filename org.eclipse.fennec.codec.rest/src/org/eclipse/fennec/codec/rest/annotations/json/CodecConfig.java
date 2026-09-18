@@ -54,7 +54,7 @@ public @interface CodecConfig {
 	/**
 	 * Whether to serialize default values.
 	 * @return true to serialize default values
-	 * @see CodecOptions#CODEC_SERIALIZE_DEFAULTS
+	 * @see CodecOptions#CODEC_SERIALIZE_DEFAULT
 	 */
 	boolean serializeDefaultValues() default false;
 

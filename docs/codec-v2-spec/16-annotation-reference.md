@@ -1407,7 +1407,7 @@ Deserialization:
 | `key` | `codec.key` | ❌ | ❌ | ❌ | ✅ | ✅ | Custom JSON property name |
 | `serializeNull` | `codec.serializeNull` | ✅ | ❌ | ❌ | ✅ | ✅ | Include null values (**default:** `false`) |
 | `serializeEmpty` | `codec.serializeEmpty` | ✅ | ❌ | ❌ | ✅ | ✅ | Include empty collections (**default:** `false`) |
-| `serializeDefaults` | `codec.serializeDefaults` | ✅ | ❌ | ❌ | ✅ | ✅ | Include default values (**default:** `false`) |
+| `serializeDefaults` | `codec.serializeDefault` | ✅ | ❌ | ❌ | ✅ | ✅ | Include default values (**default:** `false`) |
 | `enumSerialization` | `codec.enumSerialization` | ✅ | ❌ | ❌ | ❌ | ✅ | How to serialize enum values |
 | `valueReaderName` | `codec.valueReaderName` | ❌ | ❌ | ❌ | ✅ | ✅ | Custom value reader service name |
 | `valueWriterName` | `codec.valueWriterName` | ❌ | ❌ | ❌ | ✅ | ✅ | Custom value writer service name |
@@ -1494,7 +1494,7 @@ This section summarizes all global-level runtime options. Most are described in 
 | `codec.ignoreFeatures` | `.ignoreFeatures(...)` | — | [Feature Visibility Control](#feature-visibility-control) |
 | `codec.serializeNull` | `.serializeNull(...)` | `false` | [Feature Serialization Options](#feature-serialization-options) |
 | `codec.serializeEmpty` | `.serializeEmpty(...)` | `false` | [Feature Serialization Options](#feature-serialization-options) |
-| `codec.serializeDefaults` | `.serializeDefaults(...)` | `false` | [Feature Serialization Options](#feature-serialization-options) |
+| `codec.serializeDefault` | `.serializeDefault(...)` | `false` | [Feature Serialization Options](#feature-serialization-options) |
 | `codec.enumSerialization` | `.enumSerialization(...)` | `LITERAL` | [Feature Serialization Options](#feature-serialization-options) |
 | `codec.strictOnUnknown` | `.strictOnUnknown(...)` | `false` | [Feature Strictness](#feature-strictness) |
 | `codec.strictOnMissing` | `.strictOnMissing(...)` | `false` | [Feature Strictness](#feature-strictness) |

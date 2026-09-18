@@ -147,7 +147,7 @@ class CodecAnnotationConverterTest {
 			CodecConfig config = AnnotationHelper.codecConfig(b -> b.serializeDefaultValues(true));
 			Map<Object, Object> options = new HashMap<>();
 			converter.convertAnnotation(config, true, options);
-			assertEquals(true, options.get(CodecOptions.CODEC_SERIALIZE_DEFAULTS));
+			assertEquals(true, options.get(CodecOptions.CODEC_SERIALIZE_DEFAULT));
 		}
 
 		@Test
@@ -494,7 +494,7 @@ class CodecAnnotationConverterTest {
 			converter.convertAnnotation(config, true, options);
 
 			// Booleans with false defaults
-			assertEquals(false, options.get(CodecOptions.CODEC_SERIALIZE_DEFAULTS));
+			assertEquals(false, options.get(CodecOptions.CODEC_SERIALIZE_DEFAULT));
 			assertEquals(false, options.get(CodecOptions.CODEC_SERIALIZE_EMPTY));
 			assertEquals(false, options.get(CodecOptions.CODEC_SERIALIZE_NULL));
 			assertEquals(false, options.get(CodecOptions.CODEC_ID_ON_TOP));
@@ -569,7 +569,7 @@ class CodecAnnotationConverterTest {
 
 			// Feature
 			assertEquals("yyyy-MM-dd'T'HH:mm:ss'Z'", options.get(CodecOptions.CODEC_DATE_FORMAT));
-			assertEquals(true, options.get(CodecOptions.CODEC_SERIALIZE_DEFAULTS));
+			assertEquals(true, options.get(CodecOptions.CODEC_SERIALIZE_DEFAULT));
 			assertEquals(true, options.get(CodecOptions.CODEC_SERIALIZE_EMPTY));
 			assertEquals(true, options.get(CodecOptions.CODEC_SERIALIZE_NULL));
 			assertEquals("NAME", options.get(CodecOptions.CODEC_ENUM_SERIALIZATION));
@@ -604,6 +604,59 @@ class CodecAnnotationConverterTest {
 
 			// Global
 			assertEquals(true, options.get(CodecOptions.CODEC_SMART_COMPRESSION));
+		}
+	}
+
+	/**
+	 * Putting a key in the map is not the same as the codec reading it. The codec resolves an
+	 * option by the {@code ConfigProperty} key optionally carrying the {@code codec.} prefix, so
+	 * a converter that emits any other spelling produces an annotation that is decoration:
+	 * {@code serializeDefaultValues} was emitted under {@code codec.serializeDefaults} while the
+	 * resolver reads {@code codec.serializeDefault}, so the annotation did nothing at all.
+	 * <p>
+	 * The canonical keys are spelled out here rather than read from {@code ConfigProperty},
+	 * which cannot initialise on this bundle's test path; {@code CodecOptionsValueGateKeyTest}
+	 * in codec.api ties those same constants to the properties the resolver reads, so the two
+	 * tests together cover the path from annotation to value gate.
+	 */
+	@Nested
+	@DisplayName("emitted keys are the canonical option keys")
+	class EmittedKeysAreCanonical {
+
+		private Map<Object, Object> convert(CodecConfig config) {
+			Map<Object, Object> options = new HashMap<>();
+			converter.convertAnnotation(config, true, options);
+			return options;
+		}
+
+		private void assertEmitsKey(CodecConfig config, String canonicalKey, String setting) {
+			Map<Object, Object> options = convert(config);
+
+			assertEquals(Boolean.TRUE, options.get(canonicalKey),
+					() -> "@CodecConfig(" + setting + " = true) must be emitted as '" + canonicalKey
+							+ "', the key the resolver reads; it emitted " + options.keySet()
+							+ " and a key the resolver does not know is dropped in silence");
+		}
+
+		@Test
+		@DisplayName("serializeDefaultValues is emitted as codec.serializeDefault")
+		void serializeDefaultValuesIsCanonical() {
+			assertEmitsKey(AnnotationHelper.codecConfig(b -> b.serializeDefaultValues(true)),
+					"codec.serializeDefault", "serializeDefaultValues");
+		}
+
+		@Test
+		@DisplayName("serializeEmptyValues is emitted as codec.serializeEmpty")
+		void serializeEmptyValuesIsCanonical() {
+			assertEmitsKey(AnnotationHelper.codecConfig(b -> b.serializeEmptyValues(true)),
+					"codec.serializeEmpty", "serializeEmptyValues");
+		}
+
+		@Test
+		@DisplayName("serializeNullValues is emitted as codec.serializeNull")
+		void serializeNullValuesIsCanonical() {
+			assertEmitsKey(AnnotationHelper.codecConfig(b -> b.serializeNullValues(true)),
+					"codec.serializeNull", "serializeNullValues");
 		}
 	}
 }
