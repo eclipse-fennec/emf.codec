@@ -553,10 +553,29 @@ public final class CodecOptions {
     public static final String CODEC_SERIALIZE_EMPTY = "codec.serializeEmpty";
 
     /**
+     * Whether to serialize values that equal the feature's default.
+     * <p>Default: false</p>
+     * <p>
+     * The key is singular, matching {@code ConfigProperty.SERIALIZE_DEFAULT} and the two
+     * siblings above. The ecore annotation detail key is plural ({@code serializeDefaults},
+     * after the {@code FeatureCodecAspect} attribute it sets) and is bridged onto this one -
+     * an EAnnotation needs the plural, a property map this singular key.
+     * </p>
+     */
+    public static final String CODEC_SERIALIZE_DEFAULT = "codec.serializeDefault";
+
+    /**
      * Whether to serialize default values.
      * <p>Default: false</p>
+     *
+     * @deprecated Misnamed, and until issue #220 it also held the wrong key
+     *             ({@code codec.serializeDefaults}, plural), which no resolver reads - so
+     *             every caller passing this constant was ignored in silence. It is now an
+     *             alias of {@link #CODEC_SERIALIZE_DEFAULT} and carries the same value; use
+     *             that one.
      */
-    public static final String CODEC_SERIALIZE_DEFAULTS = "codec.serializeDefaults";
+    @Deprecated
+    public static final String CODEC_SERIALIZE_DEFAULTS = CODEC_SERIALIZE_DEFAULT;
 
     /**
      * Enum serialization strategy.

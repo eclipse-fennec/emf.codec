@@ -69,7 +69,7 @@ public class CodecAnnotationConverter implements AnnotationConverter {
 	private void convertCodecConfig(CodecConfig config, Map<Object, Object> options) {
 		// Feature Configuration
 		putIfNotBlank(options, CodecOptions.CODEC_DATE_FORMAT, config.dateFormat());
-		options.put(CodecOptions.CODEC_SERIALIZE_DEFAULTS, config.serializeDefaultValues());
+		options.put(CodecOptions.CODEC_SERIALIZE_DEFAULT, config.serializeDefaultValues());
 		options.put(CodecOptions.CODEC_SERIALIZE_EMPTY, config.serializeEmptyValues());
 		options.put(CodecOptions.CODEC_SERIALIZE_NULL, config.serializeNullValues());
 		options.put(CodecOptions.CODEC_ENUM_SERIALIZATION, config.enumSerialization());

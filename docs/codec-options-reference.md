@@ -57,6 +57,11 @@ are accepted in the options map. **EAnnotation details** always use the short ke
 The `CodecOptions` constants use the prefixed form and are the recommended way to pass
 options in code.
 
+Those two are the *only* accepted spellings: a key the resolver does not recognise is dropped
+without a warning, so a near-miss behaves exactly like an option that was never set. One
+EAnnotation detail key departs from its option key — `serializeDefaults` (plural) sets the
+option `codec.serializeDefault` (singular); see spec §11.
+
 ---
 
 ## Core options
@@ -110,7 +115,7 @@ These options apply to every format. Java constants are in
 |---|---|---|---|---|
 | `codec.serializeNull` | `CODEC_SERIALIZE_NULL` | Boolean | `false` | Write features whose value is `null`. |
 | `codec.serializeEmpty` | `CODEC_SERIALIZE_EMPTY` | Boolean | `false` | Write many-valued features that are empty collections. |
-| `codec.serializeDefaults` | `CODEC_SERIALIZE_DEFAULTS` | Boolean | `false` | Write features whose value equals the EAttribute default. |
+| `codec.serializeDefault` | `CODEC_SERIALIZE_DEFAULT` | Boolean | `false` | Write features whose value equals the EAttribute default. `CODEC_SERIALIZE_DEFAULTS` is a deprecated alias of the same key — use the singular constant. |
 | `codec.enumSerialization` | `CODEC_ENUM_SERIALIZATION` | String | `LITERAL` | How enum values are written. Values: `LITERAL` (name string), `VALUE` (integer ordinal), `NAME` (EMF name). |
 | `codec.dateFormat` | `CODEC_DATE_FORMAT` | String | none | `SimpleDateFormat` pattern for `java.util.Date` attributes, written as string; a configured pattern also keeps the instant-like `java.time` types (`Instant`, `LocalDateTime`, `LocalDate`) on their ISO-8601 string form. Without a pattern, formats with a native date-time type (BSON) store these types natively as epoch milliseconds (zone-less types use the UTC convention); other formats fall back to ISO-8601 `toString()` for `java.time` and to `Date.toString()` for `Date` (the latter is write-only — not parseable on load, configure a pattern for string round-trips). Zoned/offset types always stay on the ISO string path. |
 | `codec.fieldOrder` | `CODEC_FIELD_ORDER` | String | `DECLARATION` | Column/field ordering for tabular formats. Values: `DECLARATION`, `ALPHABETICAL`. |
