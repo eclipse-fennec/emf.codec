@@ -2,7 +2,34 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-09-15
+**Last Updated:** 2026-09-22
+
+**Session Summary (2026-09-22) — issue #223: the `Codec-Options` header spoke two key conventions:**
+
+`CoreOverridableCodecOptions` published **bare** keys (`ConfigProperty.getKey()`), every format
+contribution published **prefixed** ones, and the filter matched a header key verbatim. So one
+header mixed conventions, and `CodecOptions.CODEC_SERIALIZE_DEFAULT` — the constant a caller
+actually has — named a key the allow-list did not hold. 200 OK, option dropped, wrong output, no
+diagnostic. All three suggestions on the issue, cheapest first:
+
+- **`ClientCodecOptionsFilter.resolveKey`** looks the header key up verbatim, then under its other
+  `codec.` spelling, and stores the value under the **contributed** key (the one the module's
+  resolver reads). The key as sent wins, so a whitelist holding both spellings stays unambiguous.
+  This does not widen the allow-list — a key contributed in neither spelling is still dropped.
+- **Dropped keys are logged**: one `WARNING` per request through `describeDropped`, naming the keys
+  and pointing at the SPI. The keys are remote input, so the record is bounded (≤10 keys, each ≤64
+  chars, control characters replaced) and values are never logged.
+- **`CoreOverridableCodecOptions` publishes `getPropertyKey()`**, so every contribution speaks one
+  convention and the published key *is* the public constant. Backward compatible by the first
+  change; `ConfigMergeHelper` has read both spellings since #13, so nothing downstream moved.
+- **Tests:** `ClientCodecOptionsFilterTest` (+7: both spellings, exact-match precedence, no
+  widening, drops reported, report bounded) and the new `CoreOverridableCodecOptionsTest` in
+  `codec` (keys prefixed, each a `ConfigProperty` property key with that property's type, nothing
+  with a blast radius on the list). Docs: `codec-rest-client-overridable-options.md` §14,
+  `codec-options-reference.md`.
+- **Not done, on purpose:** no 400 on an unknown key (a header is a hint; the log makes it
+  diagnosable), and the filter does not consult `KnownOptionKeys` (#220) — `codec.rest` cannot
+  initialise `ConfigProperty` on its test path, and the distinction changes nothing it does.
 
 **Session Summary (2026-09-15) — issue #217 follow-up: a contested fingerprint key now fails the save:**
 

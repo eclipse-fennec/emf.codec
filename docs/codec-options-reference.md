@@ -438,6 +438,16 @@ The `ClientCodecOptionsFilter` in `codec.rest` collects whitelists from all regi
 declared type, and merges the result into the save/load options map.
 **Client values win over annotation-based options.**
 
+**The `codec.` prefix is optional** (issue #223), on the wire as in the options map: a header key
+is matched against the allow-list verbatim and, failing that, under its other spelling, so
+`serializeDefault` and `codec.serializeDefault` both arrive. The value is stored under the key the
+contributing module published — the core options publish the prefixed form, which is what the
+public `CodecOptions.CODEC_*` constants carry. Normalising a spelling does not widen the list: a
+key no module contributed is still dropped, in either spelling.
+
+**A dropped key is logged**, one `WARNING` per request naming the keys (bounded, values never
+logged) — an override that is ignored used to be visible only as wrong output.
+
 > **Server-side per-request options:** the request property the filter fills
 > (`JakartaRestConstants.CLIENT_CODEC_OPTIONS`, a `Map<String, Object>`) is the general per-request
 > channel, not a client-only one. An endpoint whose options are known only at runtime may write it

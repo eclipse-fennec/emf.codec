@@ -16,8 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,5 +120,111 @@ class ClientCodecOptionsFilterTest {
         Map<String, Object> merged = ClientCodecOptionsFilter.mergeClientOptions("not a map", client);
 
         assertEquals(client, merged);
+    }
+
+    // ------------------------------------------------------------------
+    // The codec. prefix is optional on either side (issue #223)
+    // ------------------------------------------------------------------
+
+    /** A whitelist spelled the way every module contribution spells it. */
+    private static final Map<String, Class<?>> PREFIXED_WHITELIST = Map.of(
+            "codec.tabular.referenceMode", String.class,
+            "codec.serializeDefault", Boolean.class);
+
+    @Test
+    @DisplayName("a prefixed client key matches a bare whitelist entry")
+    void prefixedKeyAgainstBareWhitelist() {
+        // CodecOptions.CODEC_SERIALIZE_DEFAULT is what a caller has in hand; the entry is bare.
+        Map<String, Object> opts = ClientCodecOptionsFilter.parseClientOptions(WHITELIST,
+                List.of("codec.serializeDefault=true"));
+
+        assertEquals(Boolean.TRUE, opts.get("serializeDefault"), "stored under the whitelist's own key");
+        assertEquals(1, opts.size());
+    }
+
+    @Test
+    @DisplayName("a bare client key matches a prefixed whitelist entry")
+    void bareKeyAgainstPrefixedWhitelist() {
+        Map<String, Object> opts = ClientCodecOptionsFilter.parseClientOptions(PREFIXED_WHITELIST,
+                List.of("serializeDefault=true, tabular.referenceMode=SQL_TABLES"));
+
+        assertEquals(Boolean.TRUE, opts.get("codec.serializeDefault"));
+        assertEquals("SQL_TABLES", opts.get("codec.tabular.referenceMode"));
+        assertEquals(2, opts.size());
+    }
+
+    @Test
+    @DisplayName("normalising the prefix does not widen the allow-list")
+    void normalisationDoesNotWiden() {
+        Map<String, Object> opts = ClientCodecOptionsFilter.parseClientOptions(PREFIXED_WHITELIST,
+                List.of("codec.typeStrategy=NONE, expand=address, codec.expand=address, codec.=x"));
+
+        assertTrue(opts.isEmpty(), "a key whitelisted in neither spelling stays out: " + opts);
+    }
+
+    @Test
+    @DisplayName("an exact match wins over the alternate spelling")
+    void exactMatchWins() {
+        // Both spellings whitelisted with different types: the key as sent decides.
+        Map<String, Class<?>> both = Map.of(
+                "serializeDefault", Boolean.class,
+                "codec.serializeDefault", String.class);
+
+        Map<String, Object> opts = ClientCodecOptionsFilter.parseClientOptions(both,
+                List.of("codec.serializeDefault=true"));
+
+        assertEquals("true", opts.get("codec.serializeDefault"));
+        assertFalse(opts.containsKey("serializeDefault"));
+    }
+
+    // ------------------------------------------------------------------
+    // A dropped key is reported, not swallowed (issue #223)
+    // ------------------------------------------------------------------
+
+    @Test
+    @DisplayName("keys no module offers are reported to the caller-supplied collector")
+    void dropsAreReported() {
+        List<String> dropped = new ArrayList<>();
+
+        ClientCodecOptionsFilter.parseClientOptions(PREFIXED_WHITELIST,
+                List.of("codec.serializeDefault=true, expandDepth=3, typeStrategy=NONE"), dropped::add);
+
+        assertEquals(List.of("expandDepth", "typeStrategy"), dropped);
+    }
+
+    @Test
+    @DisplayName("a key that only needed its prefix normalised is not reported")
+    void normalisedKeyIsNotReported() {
+        List<String> dropped = new ArrayList<>();
+
+        ClientCodecOptionsFilter.parseClientOptions(PREFIXED_WHITELIST,
+                List.of("serializeDefault=true"), dropped::add);
+
+        assertTrue(dropped.isEmpty(), "reported: " + dropped);
+    }
+
+    @Test
+    @DisplayName("the report names the keys and points at the allow-list")
+    void reportNamesTheKeys() {
+        String message = ClientCodecOptionsFilter.describeDropped(List.of("typeStrategy", "expandDepth"));
+
+        assertTrue(message.contains("typeStrategy"), message);
+        assertTrue(message.contains("expandDepth"), message);
+        assertTrue(message.contains("RestOverridableCodecOptions"), message);
+    }
+
+    @Test
+    @DisplayName("the report is bounded: control characters out, long keys and long lists cut")
+    void reportIsBounded() {
+        String message = ClientCodecOptionsFilter.describeDropped(List.of("in\njected: X-Evil"));
+        assertFalse(message.contains("\n"), "a header value must not break the log line: " + message);
+
+        String longKey = "k".repeat(200);
+        assertFalse(ClientCodecOptionsFilter.describeDropped(List.of(longKey)).contains(longKey));
+
+        List<String> many = IntStream.range(0, 40).mapToObj(i -> "key" + i).toList();
+        String bounded = ClientCodecOptionsFilter.describeDropped(many);
+        assertFalse(bounded.contains("key39"), bounded);
+        assertTrue(bounded.contains("30 more"), bounded);
     }
 }

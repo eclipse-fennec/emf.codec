@@ -1,6 +1,7 @@
 # Client-overridable codec options over REST — design & implementation plan
 
-**Status:** implemented (2026-06-02) — see §12 for the as-built notes
+**Status:** implemented (2026-06-02) — see §12 for the as-built notes, §13 for the shared request
+property (#170) and §14 for the key spelling (#223)
 **Author:** Ilenia Salvadori
 **Date:** 2026-06-02
 **Module(s):** `org.eclipse.fennec.codec.rest`, `org.eclipse.fennec.codec.api`, plus a small contribution in each format bundle (`csv`, `ods`, `xlsx`, `rlang`, …)
@@ -158,7 +159,7 @@ public class CoreOverridableOptions implements RestOverridableCodecOptions {
             ConfigProperty.ENUM_SERIALIZATION.getKey(), String.class,
             ConfigProperty.FIELD_ORDER.getKey(),        String.class,
             ConfigProperty.ID_ON_TOP.getKey(),          Boolean.class
-        );
+        );   // getKey() as sketched here is what #223 fixed - see §14, it is getPropertyKey()
     }
 }
 ```
@@ -339,9 +340,9 @@ bundles and jakarta.
     hook to read the request property via their injected `ContainerRequestContext`.
 - **Per-module contributors** (`@Component implements RestOverridableCodecOptions`, own constants):
   `codec` → `options/CoreOverridableCodecOptions` (serializeNull/Empty/Default, enumSerialization,
-  fieldOrder, idOnTop, dateFormat); `codec.csv` → `CsvOverridableCodecOptions` (referenceMode +
-  CSV dialect + dataTypeInSecondRow); `codec.ods` / `codec.xlsx` / `codec.rlang` → their rendering
-  knobs + referenceMode.
+  fieldOrder, idOnTop, dateFormat — published bare until #223, prefixed since; see §14);
+  `codec.csv` → `CsvOverridableCodecOptions` (referenceMode + CSV dialect + dataTypeInSecondRow);
+  `codec.ods` / `codec.xlsx` / `codec.rlang` → their rendering knobs + referenceMode.
 - **Tests:** `ClientCodecOptionsFilterTest` (whitelist filtering, typing, tolerant parsing,
   secure-by-default). Full `./gradlew build` green.
 - No new dependency between `codec.rest` and the format bundles; no jakarta dependency added to any
@@ -393,3 +394,50 @@ different policy, not a second slot.
 
 **Tests:** `ClientCodecOptionsFilterTest` (merge semantics), `ClientCodecOptionsFilterOSGiTest`
 (registration shape, application selector).
+
+---
+
+## 14. The `codec.` prefix is optional on either side (issue #223)
+
+A codec option has two spellings — the bare property key (`serializeDefault`) and the same key
+under the codec namespace (`codec.serializeDefault`) — and `ConfigMergeHelper` has accepted both
+since issue #13. The allow-list did not: it matched the header key against the contributed key
+**verbatim**, and the contributions were not uniform about which spelling they published.
+
+- every format contribution published prefixed keys, because its constants are written that way
+  (`CodecTabularOptions.OPTION_REFERENCE_MODE = "codec.tabular.referenceMode"`);
+- `CoreOverridableCodecOptions` published **bare** keys, because it asked `ConfigProperty.getKey()`.
+
+So one header mixed both conventions, and the constant a caller naturally reaches for —
+`CodecOptions.CODEC_SERIALIZE_DEFAULT`, which *is* `"codec.serializeDefault"` — named a key the
+filter did not hold. The request returned 200, the option was dropped before it ever reached the
+codec, and the only symptom was output that silently ignored it. Three changes, none of which
+breaks a header that worked before:
+
+1. **The filter normalises the prefix.** `resolveKey` looks the header key up verbatim first and,
+   failing that, under its other spelling. A match stores the value under the **contributed** key —
+   the one the module's resolver reads — so a module whose key only works exactly (every
+   `codec.<format>.*` key) is unaffected. The key as sent wins, so a whitelist holding both
+   spellings under different types stays unambiguous.
+   **Normalising is not widening:** a key contributed in neither spelling is still dropped, and
+   `codec.typeStrategy` is no more overridable than `typeStrategy` was.
+2. **A dropped key is logged.** One `WARNING` per request, naming the keys, pointing at the SPI.
+   The keys come from a remote caller, so the record is bounded — at most 10 keys, each cut to 64
+   characters with its control characters replaced — and values are never logged. Silence was the
+   actual defect: an ignored option is invisible until someone reads the output closely.
+3. **The core contribution publishes prefixed keys** (`ConfigProperty.getPropertyKey()`), so every
+   contribution now speaks one convention and the published key is the public constant. The bare
+   spelling a client sent before still arrives, by way of (1).
+
+**Tests:** `ClientCodecOptionsFilterTest` (both spellings resolve to the contributed key, exact
+match wins, normalisation does not widen, drops are reported, the report is bounded);
+`CoreOverridableCodecOptionsTest` in `codec` (every published key is prefixed, is a
+`ConfigProperty` property key, declares that property's type, and nothing with a blast radius
+joined the list).
+
+**Not done, deliberately.** The filter does not reject an unknown key with a 400. A header is a
+hint, not a command, and one stale key would fail a request that is otherwise serviceable; the log
+record makes the choice diagnosable, which is what #223 asked for. Nor does the filter consult
+`KnownOptionKeys` (#220) to tell "not overridable" from "not an option at all" — `codec.rest`
+cannot initialise `ConfigProperty` on its test path, and the distinction does not change what the
+filter does with the key.
