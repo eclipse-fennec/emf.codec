@@ -14,9 +14,14 @@
 package org.eclipse.fennec.codec.rest.jakartas.filter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.eclipse.fennec.codec.config.RestOverridableCodecOptions;
 import org.eclipse.fennec.codec.rest.common.CodecOptionValues;
@@ -51,6 +56,17 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
  * Attaches to the same applications as the codec's message body handlers ({@code emf=true} or
  * {@code .default}), so the header works by default wherever the handlers do. The selector is a
  * component property and can be widened through Config Admin.
+ * <p>
+ * <strong>Key spelling (issue #223).</strong> A codec option answers to two spellings - its bare
+ * key and the same key under the {@code codec.} namespace - and the contributions are not uniform
+ * about which one they publish. A header key is therefore looked up verbatim first and, failing
+ * that, under its other spelling; a match stores the value under the <em>contributed</em> key,
+ * which is the one the module's resolver reads. Normalising a spelling never widens the allow-list:
+ * a key whitelisted in neither form is still dropped.
+ * <p>
+ * A dropped key is logged (one record per request, naming the keys) instead of vanishing. Silence
+ * was the real defect behind #223: the request succeeded, the option was ignored, and the only
+ * symptom was wrong output.
  *
  * @since 1.0
  */
@@ -59,6 +75,15 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 @JakartarsName("ClientCodecOptionsFilter")
 @JakartarsApplicationSelect("(|(emf=true)(" + JakartarsWhiteboardConstants.JAKARTA_RS_NAME + "=.default))")
 public class ClientCodecOptionsFilter implements ContainerRequestFilter {
+
+	private static final Logger LOGGER = Logger.getLogger(ClientCodecOptionsFilter.class.getName());
+
+	/** The namespace a codec option key may carry; both spellings reach the option resolver. */
+	private static final String CODEC_PREFIX = "codec.";
+
+	/** How many dropped keys a single log record names, and how long each may be. */
+	static final int MAX_REPORTED_KEYS = 10;
+	static final int MAX_REPORTED_KEY_LENGTH = 64;
 
 	/** All modules' contributions; the union of their keys forms the allow-list. */
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
@@ -101,11 +126,25 @@ public class ClientCodecOptionsFilter implements ContainerRequestFilter {
 	}
 
 	/**
-	 * Parses the {@code Codec-Options} header value(s) into a map of whitelisted, typed options.
-	 * Comma-separated {@code key=value} pairs; keys not in {@code whitelist} are ignored. Package
-	 * visible for testing.
+	 * Parses the {@code Codec-Options} header value(s) into a map of whitelisted, typed options,
+	 * reporting every dropped key to the log. Package visible for testing.
 	 */
 	static Map<String, Object> parseClientOptions(Map<String, Class<?>> whitelist, List<String> headerValues) {
+		List<String> dropped = new ArrayList<>();
+		Map<String, Object> clientOptions = parseClientOptions(whitelist, headerValues, dropped::add);
+		if (!dropped.isEmpty() && LOGGER.isLoggable(Level.WARNING)) {
+			LOGGER.warning(() -> describeDropped(dropped));
+		}
+		return clientOptions;
+	}
+
+	/**
+	 * Parses the {@code Codec-Options} header value(s) into a map of whitelisted, typed options.
+	 * Comma-separated {@code key=value} pairs; a key the allow-list does not hold in either
+	 * spelling is dropped and handed to {@code onDropped} instead. Package visible for testing.
+	 */
+	static Map<String, Object> parseClientOptions(Map<String, Class<?>> whitelist, List<String> headerValues,
+			Consumer<String> onDropped) {
 		Map<String, Object> clientOptions = new HashMap<>();
 		if (whitelist.isEmpty() || headerValues == null) {
 			return clientOptions;
@@ -121,14 +160,56 @@ public class ClientCodecOptionsFilter implements ContainerRequestFilter {
 				}
 				String key = pair.substring(0, eq).trim();
 				String raw = pair.substring(eq + 1).trim();
-				Class<?> type = whitelist.get(key);
-				if (type != null) {
-					clientOptions.put(key, CodecOptionValues.parse(raw, type));
+				String whitelisted = resolveKey(whitelist, key);
+				if (whitelisted != null) {
+					clientOptions.put(whitelisted, CodecOptionValues.parse(raw, whitelist.get(whitelisted)));
+				} else {
+					// Never forwarded to the codec - but said out loud, see describeDropped.
+					onDropped.accept(key);
 				}
-				// Non-whitelisted keys are silently ignored — never forwarded to the codec.
 			}
 		}
 		return clientOptions;
+	}
+
+	/**
+	 * Returns the allow-list entry a client key stands for, or {@code null} when no module offers
+	 * it. The key as sent wins; only when it is unknown is its other {@code codec.} spelling tried,
+	 * so a whitelist holding both spellings under different types stays unambiguous. Package
+	 * visible for testing.
+	 */
+	static String resolveKey(Map<String, Class<?>> whitelist, String key) {
+		if (whitelist.containsKey(key)) {
+			return key;
+		}
+		String alternate = key.startsWith(CODEC_PREFIX) ? key.substring(CODEC_PREFIX.length())
+				: CODEC_PREFIX + key;
+		return whitelist.containsKey(alternate) ? alternate : null;
+	}
+
+	/**
+	 * Builds the log record for the keys this request lost. The keys come from a remote caller, so
+	 * the record is bounded in both directions: at most {@link #MAX_REPORTED_KEYS} keys, each cut
+	 * to {@link #MAX_REPORTED_KEY_LENGTH} characters with its control characters replaced, so a
+	 * crafted header cannot forge or flood log lines. Values are never logged. Package visible for
+	 * testing.
+	 */
+	static String describeDropped(List<String> droppedKeys) {
+		String named = droppedKeys.stream().limit(MAX_REPORTED_KEYS)
+				.map(ClientCodecOptionsFilter::sanitize)
+				.collect(Collectors.joining(", "));
+		if (droppedKeys.size() > MAX_REPORTED_KEYS) {
+			named = named + ", ... (" + (droppedKeys.size() - MAX_REPORTED_KEYS) + " more)";
+		}
+		return "Codec-Options: ignoring key(s) no module offers for client override: " + named
+				+ ". Only a key contributed by a RestOverridableCodecOptions service can be set per"
+				+ " request; the 'codec.' prefix is optional on either side.";
+	}
+
+	private static String sanitize(String key) {
+		String safe = key.replaceAll("\\p{Cntrl}", "?");
+		return safe.length() <= MAX_REPORTED_KEY_LENGTH ? safe
+				: safe.substring(0, MAX_REPORTED_KEY_LENGTH) + "...";
 	}
 
 	private Map<String, Class<?>> collectWhitelist() {

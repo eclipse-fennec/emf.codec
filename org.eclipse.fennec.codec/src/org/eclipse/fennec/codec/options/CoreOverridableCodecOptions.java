@@ -22,6 +22,14 @@ import org.osgi.service.component.annotations.Component;
  * Exposes the harmless, presentational core codec options for REST client override: which values
  * are written (null/default/empty), enum serialization strategy, field ordering, and id-on-top.
  * These apply across all formats (JSON and the tabular exporters).
+ * <p>
+ * The keys are published in their prefixed form ({@code codec.serializeDefault}, …), the same
+ * spelling every format contribution uses and the same spelling the public
+ * {@code CodecOptions.CODEC_*} constants carry, so a caller assembling a {@code Codec-Options}
+ * header out of those constants is understood (issue #223). Both spellings reach the resolver -
+ * {@code ConfigMergeHelper} looks a property up under its bare and its prefixed key alike - and the
+ * REST filter accepts either on the wire, so the bare form a client sent before keeps working.
+ * </p>
  *
  * @since 1.0
  */
@@ -31,12 +39,12 @@ public class CoreOverridableCodecOptions implements RestOverridableCodecOptions 
     @Override
     public Map<String, Class<?>> overridableKeys() {
         return Map.of(
-                ConfigProperty.SERIALIZE_NULL.getKey(), Boolean.class,
-                ConfigProperty.SERIALIZE_EMPTY.getKey(), Boolean.class,
-                ConfigProperty.SERIALIZE_DEFAULT.getKey(), Boolean.class,
-                ConfigProperty.ENUM_SERIALIZATION.getKey(), String.class,
-                ConfigProperty.FIELD_ORDER.getKey(), String.class,
-                ConfigProperty.ID_ON_TOP.getKey(), Boolean.class,
-                ConfigProperty.DATE_FORMAT.getKey(), String.class);
+                ConfigProperty.SERIALIZE_NULL.getPropertyKey(), Boolean.class,
+                ConfigProperty.SERIALIZE_EMPTY.getPropertyKey(), Boolean.class,
+                ConfigProperty.SERIALIZE_DEFAULT.getPropertyKey(), Boolean.class,
+                ConfigProperty.ENUM_SERIALIZATION.getPropertyKey(), String.class,
+                ConfigProperty.FIELD_ORDER.getPropertyKey(), String.class,
+                ConfigProperty.ID_ON_TOP.getPropertyKey(), Boolean.class,
+                ConfigProperty.DATE_FORMAT.getPropertyKey(), String.class);
     }
 }

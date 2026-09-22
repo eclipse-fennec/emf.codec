@@ -29,6 +29,14 @@ import java.util.Map;
  * {@code CodecCsvOptions.OPTION_DELIMITER}) so the allow-list cannot drift from the keys the
  * module's option resolver actually reads.
  * <p>
+ * <strong>Key spelling:</strong> publish the key in its prefixed form — {@code codec.serializeDefault},
+ * {@code codec.csv.delimiter} — which is the spelling the public option constants carry and the one
+ * a caller assembling the header has in hand. For a {@link ConfigProperty} that is
+ * {@link ConfigProperty#getPropertyKey()}, not {@link ConfigProperty#getKey()}. The REST filter
+ * accepts a client key in either spelling and stores the value under the key contributed here
+ * (issue #223), so the convention costs a caller nothing; publishing it consistently is what keeps
+ * the allow-list readable.
+ * <p>
  * <strong>Security note:</strong> only expose keys that change <em>how</em> data is rendered, not
  * <em>what</em> or <em>how much</em>. Keep options with a real blast radius (e.g. reference
  * expansion, type strategy, custom value reader/writer names) out of the contributed set.
