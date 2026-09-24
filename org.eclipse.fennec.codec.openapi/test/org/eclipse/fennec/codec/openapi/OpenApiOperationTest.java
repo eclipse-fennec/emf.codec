@@ -119,6 +119,35 @@ class OpenApiOperationTest {
 			assertFalse(savedJson.contains("\"method\""),
 					"method field should not be serialized. JSON: " + savedJson);
 		}
+
+		@Test
+		@DisplayName("method is not written for non-default methods either (ignoreWrite in the model, #222)")
+		void methodNotSerializedForNonDefaultMethods() throws IOException {
+			// GET is the enum default and never written anyway; the others carry a value
+			String json = """
+				{
+					"openapi": "3.0.3",
+					"info": { "title": "Test", "version": "1.0.0" },
+					"paths": {
+						"/test": {
+							"post": { "operationId": "testPost" },
+							"put": { "operationId": "testPut" },
+							"delete": { "operationId": "testDelete" }
+						}
+					}
+				}
+				""";
+
+			OpenApiResourceImpl resource = createResource();
+			resource.load(toInputStream(json), loadOptions());
+
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			resource.save(out, null);
+			String savedJson = out.toString(StandardCharsets.UTF_8);
+
+			assertFalse(savedJson.contains("\"method\""),
+					"method field should not be serialized. JSON: " + savedJson);
+		}
 	}
 
 	@Nested

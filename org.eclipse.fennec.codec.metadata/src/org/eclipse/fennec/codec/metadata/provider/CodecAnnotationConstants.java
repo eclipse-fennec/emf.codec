@@ -586,14 +586,6 @@ public final class CodecAnnotationConstants {
     public static final String KEY_VALUE_WRITER_NAME = "valueWriterName";
 
     /**
-     * Detail key for whether to serialize this feature.
-     * Value: "true" or "false". Default: "true".
-     * @deprecated Use {@link #KEY_IGNORE} instead. serialize=false maps to ignore=true.
-     */
-    @Deprecated()
-    public static final String KEY_SERIALIZE = "serialize";
-
-    /**
      * Detail key for whether to serialize null values for this feature.
      * Value: "true" or "false". Default: "false" (codec default).
      */

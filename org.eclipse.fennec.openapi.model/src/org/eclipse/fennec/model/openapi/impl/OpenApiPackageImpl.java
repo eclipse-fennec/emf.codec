@@ -3805,7 +3805,7 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 		  (getOperation_Method(),
 		   source,
 		   new String[] {
-			   "serialize", "false"
+			   "ignoreWrite", "true"
 		   });
 		addAnnotation
 		  (getOperation_Security(),

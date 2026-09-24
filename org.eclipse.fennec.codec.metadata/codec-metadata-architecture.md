@@ -246,7 +246,7 @@ Configuration is specified entirely through detail key-value pairs. All config t
 | ID | `id*` | EClass | `idStrategy`, `idKey`, `idFeatures`, `idFormat`, `idKeyMode` |
 | SuperType | `superType*` | EClass | `superTypeSerialize`, `superTypeKey`, `superTypeStrategy` |
 | Reference | `ref*` | EReference | `refFormat`, `refKey` |
-| Feature | (no prefix) | EAttribute, EReference | `key`, `transient`, `serialize`, `serializeNull`, `serializeEmpty` |
+| Feature | (no prefix) | EAttribute, EReference | `key`, `ignore`, `ignoreRead`, `ignoreWrite`, `forceRead`, `forceWrite`, `serializeNull`, `serializeEmpty` |
 | Expand | `expand` | EReference | `expand` |
 | Enum | `enumSerialization` | EAttribute | `enumSerialization` |
 
@@ -390,7 +390,6 @@ public final class CodecAnnotationConstants {
 
     // Feature keys
     public static final String KEY_KEY = "key";
-    public static final String KEY_SERIALIZE = "serialize";
     public static final String KEY_SERIALIZE_NULL = "serializeNull";
     public static final String KEY_SERIALIZE_EMPTY = "serializeEmpty";
     public static final String KEY_SERIALIZE_DEFAULTS = "serializeDefaults";
@@ -484,7 +483,7 @@ While building the profile entry, CodecAspectProvider:
    - **FeatureConfigs**: One `FeatureSerializationConfig` per feature
 3. For each feature:
    - `key` from aspect's `effectiveKey` or feature name
-   - `serialize`, `serializeNull`, `serializeEmpty`, `serializeDefaults` from aspect
+   - `ignore*`/`force*`, `serializeNull`, `serializeEmpty`, `serializeDefaults` from aspect
    - For EReferences: copies `referenceConfig`, `typeConfig`, `expand` from ReferenceCodecAspect
 
 This profile represents the **annotation-layer resolved state** (levels 5+6 in the configuration hierarchy). At runtime, the ConfigurationResolver merges dynamic overrides (levels 1-4) on top.

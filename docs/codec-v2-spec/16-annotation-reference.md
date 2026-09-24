@@ -1423,12 +1423,13 @@ Deserialization:
 
 ### Migration from `transient` and `serialize`
 
-Previous versions used `transient` and `serialize` properties. These are now **deprecated** in favor of the directional `ignore*` and `force*` properties:
+Previous versions used `transient` and `serialize` properties. Both were **removed** (#222) in favor of the directional `ignore*` and `force*` properties, which are the only way to express this:
 
 | Old Property | New Equivalent | Notes |
 |--------------|----------------|-------|
 | `transient=true` | `ignoreWrite=true` | Codec-level, serialization only |
 | `serialize=false` | `ignoreWrite=true` | Same as transient |
+| `serialize=true` (overriding `transient`) | `forceWrite=true` | Writes a feature that would otherwise be skipped |
 | `forceSerialize` | `forceWrite=true` | Now per-feature, directional |
 
 **Why the change:**
@@ -1859,7 +1860,6 @@ explicit `false` at the feature scope overrides a `true` from a wider one.
 | Property | Annotation Constant | EMF Model | AspectProvider | Codec v2 | Tests | Spec |
 |----------|:-------------------:|:---------:|:--------------:|:--------:|:-----:|:----:|
 | `key` | ✅ `KEY_KEY` | ✅ `BaseFeatureConfig.key` | ✅ | ✅ | ✅ | ✅ |
-| `serialize` | ✅ `KEY_SERIALIZE` | ✅ `BaseFeatureConfig.serialize` | ✅ | ✅ | ✅ | 🔶 deprecated |
 | `ignore` | ✅ `KEY_IGNORE` | ✅ `FeatureCodecAspect.ignore` | ✅ | ❌ | ✅ | ✅ |
 | `ignoreRead` | ✅ `KEY_IGNORE_READ` | ✅ `FeatureCodecAspect.ignoreRead` | ✅ | ❌ | ✅ | ✅ |
 | `ignoreWrite` | ✅ `KEY_IGNORE_WRITE` | ✅ `FeatureCodecAspect.ignoreWrite` | ✅ | ❌ | ✅ | ✅ |
