@@ -4,6 +4,36 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-24
 
+**Session Summary (2026-09-24, late) — spec 17 and the #222 annotation-constant follow-up:**
+
+- **Spec 17 rewritten (§1–§7).** It described a stream abstraction that was never built
+  (`CodecStreamReader`/`Writer`, `CodecLocation`, `CodecToken`, format adapters incl. a query-string
+  adapter, `CodecFormatRegistry`, a migration path). It now documents what exists:
+  `CodecFormatProvider` + `FormatReaderDelegate`/`FormatDelegate` + `TokenType`, the Jackson bridge
+  (`FormatDelegateParser`/`-Generator`, `getDelegate()` for native capabilities), the providers
+  (Jackson for JSON/CBOR/YAML, BSON, write-only tabular), native types, OSGi resource factories
+  (table from the real service properties) and the read limits. §8+ (GeoJSON, JSON Schema, OpenAPI)
+  unchanged, renumbered sequentially (the old numbering jumped 12 → 13 → 14).
+- **Annotation constants, step by step with the user:**
+  - Removed `KEY_TYPE_DISCRIMINATOR_PREFIX`, `KEY_INLINE_MAPPING_PREFIX` and five helpers - an old
+    dialect of prefixed keys (`typeDiscriminator.X`, `inlineMapping.X`) that nothing reads; mappings
+    live in their own sources (`…/typeMapping/{mapId}`, `…/inlineMapping`). Spec 16 had it backwards
+    (prefix "implemented", dedicated source "proposed").
+  - Removed `KEY_SUPERTYPE_WRITER_NAME` (`"superTypeWriterName"`, wrong name, no parser, no model
+    field). `superTypeValueWriterName` is an option only - allowed: the pair rule requires an option
+    for every annotation, not the reverse.
+  - The annotation key is now **`serializeDefault`**, like its option (#220 had aligned only the
+    option side). The plural `serializeDefaults` was removed **without an alias**, so a model still
+    using it loses the setting silently - there is no unknown-annotation-key warning yet (the
+    options side has one since #220). The internal `codec.ecore` attribute keeps its plural name.
+  - Removed the LoRaWAN sample models (`lorawan-uplink`, `dragino`, `blubio`, `em310udl`) from
+    `codec.metadata/model`: shipped but used by nothing, and written with unrecognised sources
+    (`codec`, `codec.type.<id>`), so none of their annotations was ever read. This also corrects the
+    #222 docs that cited them as users of `inherit`.
+- **Open:** an unknown-annotation-key warning (analogue of #220); whether the deprecated option
+  alias `CodecOptions.CODEC_SERIALIZE_DEFAULTS` goes too; `AnnotationParseHelper.extractSuffix` is
+  unused as well (kept as a generic helper).
+
 **Session Summary (2026-09-24, night) — issue #232: read limits, secure by default, for every format:**
 
 Started as "`codec.maxPayloadSize` is documented but read by nothing" and was widened after
