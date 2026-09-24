@@ -128,7 +128,8 @@ These options apply to every format. Java constants are in
 | `codec.dateFormat` | `CODEC_DATE_FORMAT` | String | none | `SimpleDateFormat` pattern for `java.util.Date` attributes, written as string; a configured pattern also keeps the instant-like `java.time` types (`Instant`, `LocalDateTime`, `LocalDate`) on their ISO-8601 string form. Without a pattern, formats with a native date-time type (BSON) store these types natively as epoch milliseconds (zone-less types use the UTC convention); other formats fall back to ISO-8601 `toString()` for `java.time` and to `Date.toString()` for `Date` (the latter is write-only — not parseable on load, configure a pattern for string round-trips). Zoned/offset types always stay on the ISO string path. |
 | `codec.fieldOrder` | `CODEC_FIELD_ORDER` | String | `DECLARATION` | Column/field ordering for tabular formats. Values: `DECLARATION`, `ALPHABETICAL`. |
 | `codec.key` | `CODEC_KEY` | String | feature name | Override the JSON property name for a specific feature (annotation or per-feature scope only). |
-| `codec.transient` | `CODEC_TRANSIENT` | Boolean | `false` | Mark a feature as not serialized/deserialized. |
+| `codec.ignore` | — (`ConfigProperty.IGNORE`) | Boolean | `false` | Leave a feature out of both writing and reading. At feature or class scope (`"ClassName.featureName"` / `"ClassName"` maps), or as the `ignore` annotation detail. |
+| `codec.ignoreRead` / `codec.ignoreWrite` | — (`ConfigProperty.IGNORE_READ` / `IGNORE_WRITE`) | Boolean | `false` | The same for one direction only. `codec.transient`, which never had a reader, was removed in favour of these (#222). |
 
 ### SuperType
 

@@ -485,17 +485,14 @@ public class BinaryValueWriter implements CodecValueWriter<byte[], EAttribute> {
 
 ### 7.1 Format Selection
 
-The format is typically determined by:
+The format is determined by the resource factory the resource came from, which is selected by:
 
 1. **File extension**: `.json`, `.bson`, `.csv`
 2. **Content type**: `application/json`, `application/bson`
-3. **Explicit option**: `CODEC_FORMAT` option in load/save options
 
-```java
-Map<String, Object> options = new HashMap<>();
-options.put(CodecOptions.CODEC_FORMAT, "bson");
-resource.save(outputStream, options);
-```
+There is no load/save option that switches the format of an existing resource. An earlier draft
+named a `CODEC_FORMAT` option for this; it was never implemented, and the constant was removed
+(#222).
 
 ### 7.2 Format Adapter Registry
 

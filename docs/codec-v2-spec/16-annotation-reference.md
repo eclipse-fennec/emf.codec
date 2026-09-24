@@ -1859,7 +1859,6 @@ explicit `false` at the feature scope overrides a `true` from a wider one.
 | Property | Annotation Constant | EMF Model | AspectProvider | Codec v2 | Tests | Spec |
 |----------|:-------------------:|:---------:|:--------------:|:--------:|:-----:|:----:|
 | `key` | ✅ `KEY_KEY` | ✅ `BaseFeatureConfig.key` | ✅ | ✅ | ✅ | ✅ |
-| `transient` | ✅ `KEY_TRANSIENT` | — (maps to serialize) | ✅ | ✅ | ✅ | 🔶 deprecated |
 | `serialize` | ✅ `KEY_SERIALIZE` | ✅ `BaseFeatureConfig.serialize` | ✅ | ✅ | ✅ | 🔶 deprecated |
 | `ignore` | ✅ `KEY_IGNORE` | ✅ `FeatureCodecAspect.ignore` | ✅ | ❌ | ✅ | ✅ |
 | `ignoreRead` | ✅ `KEY_IGNORE_READ` | ✅ `FeatureCodecAspect.ignoreRead` | ✅ | ❌ | ✅ | ✅ |

@@ -26,6 +26,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * A key in the {@code codec.} namespace claims the codec owns it, so one the codec does not
@@ -92,6 +94,20 @@ class UnknownOptionKeyTest {
 
             assertTrue(messages().stream().anyMatch(m -> m.contains("codec.thisIsNotAnOption")),
                     () -> "an unknown codec. key must be reported, was: " + messages());
+        }
+
+        /**
+         * Constants nothing read used to make their keys look known, so passing one was silent
+         * (issue #222). With the constants gone, the key is reported like any other.
+         */
+        @ParameterizedTest(name = "{0}")
+        @ValueSource(strings = { "codec.transient", "codec.format", "codec.useNumericIds" })
+        @DisplayName("a removed, never-read option key is reported, not silently dropped")
+        void removedDeadKeyIsReported(String key) {
+            resolveWith(Map.of(key, Boolean.TRUE));
+
+            assertTrue(messages().stream().anyMatch(m -> m.contains(key)),
+                    () -> key + " is read by nothing and must be reported, was: " + messages());
         }
 
         @Test
