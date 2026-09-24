@@ -4,6 +4,29 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-24
 
+**Session Summary (2026-09-24, wave/cleanup) — #236 and the last #222 leftovers:**
+
+- **#236 - unknown annotation keys are reported** (the annotation-side counterpart of #220).
+  `UnknownAnnotationKeys` (codec.metadata, package-private), called from `CodecAspectProvider` for
+  EPackage (onto the package profile entry), EClass, EAttribute and EReference:
+  - a detail key of the main codec annotation that is no `CodecAnnotationConstants.KEY_*` value →
+    WARNING "…nothing reads it", with the nearest known key suggested (edit budget like
+    `KnownOptionKeys.suggest`: at most 2, fewer for short keys). The known set is read off the
+    constants by reflection - no second list. A known key on the wrong element stays with the
+    placement checks.
+  - a `typeMapping/{mapId}` key close to a configuration key (e.g. `typeDiscriminatorPth`) →
+    WARNING; other keys are discriminator entries. Inline mappings are not checked (all entries).
+  - a look-alike source (`codec`, `codec.type.<id>`, `codec/…`) → WARNING; this is what made the
+    removed LoRaWAN samples inert.
+  - Scanned every model in the repo first: no false positives. Spec 15 already listed an
+    "Unknown annotation key" row that was never implemented; it now matches the code.
+- Removed the deprecated `CodecOptions.CODEC_SERIALIZE_DEFAULTS` alias and the unused
+  `AnnotationParseHelper.extractSuffix` (with its spec 20 example).
+- **Open issues after this wave:** #206 (prefix readers after the object is complete), #205
+  (built-in container key, `writeIdOf`/`writeReferenceTo`), #46 (release preparation).
+- **Working agreement:** collect issues on a wave branch and open one PR when asked, not one PR
+  per issue.
+
 **Session Summary (2026-09-24, late) — spec 17 and the #222 annotation-constant follow-up:**
 
 - **Spec 17 rewritten (§1–§7).** It described a stream abstraction that was never built
