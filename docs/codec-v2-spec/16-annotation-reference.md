@@ -571,7 +571,7 @@ Values for the `typeStrategy` annotation key. These control **what information**
 |----------------|--------------|:------:|------|---------|--------|
 | `inherit` | `codec.inherit` | ✅ | Boolean | `true` | Parsed into `ClassCodecAspect.inheritFromParent`, **no code acts on it** |
 
-**Example** (as in the shipped blubio/dragino models):
+**Example:**
 ```xml
 <eClassifiers xsi:type="ecore:EClass" name="Employee" eSuperTypes="#//Person">
   <eAnnotations source="http://eclipse.org/fennec/codec">

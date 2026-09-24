@@ -138,16 +138,17 @@ No switch changes this today.
 | `inherit` | `codec.inherit` | EClass | Boolean | `true` | Parsed, **no effect** |
 
 ```xml
-<eClassifiers xsi:type="ecore:EClass" name="BlubIOUplink" eSuperTypes=".../lorawan-uplink.ecore#//UplinkMessage">
+<eClassifiers xsi:type="ecore:EClass" name="Employee" eSuperTypes="#//Person">
   <eAnnotations source="http://eclipse.org/fennec/codec">
     <details key="inherit" value="true"/>
   </eAnnotations>
 </eClassifiers>
 ```
 
-The annotation is read into `ClassCodecAspect.inheritFromParent` and is used by shipped models
-(blubio, dragino), which is why it stays. `codec.inherit` is its option pair, as every annotation
-key has one; nothing reads the option yet. Neither changes the behavior in §2.1 — `inherit="false"`
+The annotation is read into `ClassCodecAspect.inheritFromParent`. It stays because every
+annotation key has its option pair, and `codec.inherit` is that pair; nothing reads the option yet.
+(The LoRaWAN sample models once cited as its users were removed: they used annotation sources the
+codec does not recognise, so none of their annotations was ever read.) Neither changes the behavior in §2.1 — `inherit="false"`
 does **not** stop the type-config inheritance (issue #222).
 
 > **Earlier design, not implemented.** A previous version of this section described
