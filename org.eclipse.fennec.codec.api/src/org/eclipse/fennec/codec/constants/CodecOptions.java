@@ -669,21 +669,68 @@ public final class CodecOptions {
     // SECURITY / LIMITS
     // ========================================================================
 
+    // Read limits (issue #232): secure by default, raised per load by whoever needs more -
+    // per call, or for a whole ResourceSet through ResourceSet.getLoadOptions(). Every
+    // readable format maps them onto its own mechanism (JSON/CBOR: StreamReadConstraints,
+    // YAML: StreamReadConstraints and the code point limit, BSON: read limit and a check of
+    // the raw document before decoding). Values: a positive Number, or its decimal String;
+    // anything else fails the load.
+
     /**
-     * Maximum payload size in bytes for format providers that buffer the entire
-     * input stream in memory (e.g., BSON).
-     * <p>
-     * Prevents denial-of-service attacks via oversized payloads that would cause
-     * {@code OutOfMemoryError}.
-     * </p>
-     * <p>Value: {@code Long} or {@code Integer}, default: 104,857,600 (100 MB)</p>
+     * Load option: maximum size of one document, in bytes (in code points for YAML).
+     * <p>Default: {@link #DEFAULT_MAX_PAYLOAD_SIZE} (16 MiB).</p>
      */
     public static final String CODEC_MAX_PAYLOAD_SIZE = "codec.maxPayloadSize";
 
     /**
-     * Default maximum payload size: 100 MB.
+     * Default maximum document size: 16 MiB, the largest BSON document MongoDB accepts.
      */
-    public static final long DEFAULT_MAX_PAYLOAD_SIZE = 100L * 1024 * 1024;
+    public static final long DEFAULT_MAX_PAYLOAD_SIZE = 16L * 1024 * 1024;
+
+    /**
+     * Load option: maximum nesting depth of objects and arrays.
+     * <p>Default: {@link #DEFAULT_MAX_NESTING_DEPTH}.</p>
+     */
+    public static final String CODEC_MAX_NESTING_DEPTH = "codec.maxNestingDepth";
+
+    /** Default maximum nesting depth: 500. */
+    public static final int DEFAULT_MAX_NESTING_DEPTH = 500;
+
+    /**
+     * Load option: maximum length of a single string value, in characters.
+     * <p>Default: {@link #DEFAULT_MAX_STRING_LENGTH}.</p>
+     */
+    public static final String CODEC_MAX_STRING_LENGTH = "codec.maxStringLength";
+
+    /** Default maximum string length: 10,000,000 characters. */
+    public static final int DEFAULT_MAX_STRING_LENGTH = 10_000_000;
+
+    /**
+     * Load option: maximum length of a property name, in characters.
+     * <p>Default: {@link #DEFAULT_MAX_NAME_LENGTH}.</p>
+     */
+    public static final String CODEC_MAX_NAME_LENGTH = "codec.maxNameLength";
+
+    /** Default maximum property name length: 10,000 characters. */
+    public static final int DEFAULT_MAX_NAME_LENGTH = 10_000;
+
+    /**
+     * Load option: maximum number of elements the codec collects into one untyped collection
+     * (an {@code EJavaObject} value, or a value read before its type is known). Further
+     * elements are skipped with a warning.
+     * <p>Default: {@link #DEFAULT_MAX_COLLECTION_SIZE}.</p>
+     */
+    public static final String CODEC_MAX_COLLECTION_SIZE = "codec.maxCollectionSize";
+
+    /** Default maximum untyped collection size: 100,000 elements. */
+    public static final int DEFAULT_MAX_COLLECTION_SIZE = 100_000;
+
+    /**
+     * Internal: the resolved read limits of one load, as a Jackson
+     * {@code StreamReadConstraints}, handed to a format provider through
+     * {@code CodecFormatProvider.createReader(source, loadOptions)}. Not a user option.
+     */
+    public static final String INTERNAL_STREAM_READ_CONSTRAINTS = "codec.internal.streamReadConstraints";
 
     /**
      * Save option: how to react when a format provider's

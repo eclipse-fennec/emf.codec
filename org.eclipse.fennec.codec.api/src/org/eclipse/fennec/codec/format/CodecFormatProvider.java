@@ -13,6 +13,9 @@
 package org.eclipse.fennec.codec.format;
 
 import java.io.IOException;
+import java.util.Map;
+
+import org.eclipse.fennec.codec.constants.CodecOptions;
 
 /**
  * Factory interface for creating format-specific reader and writer delegates.
@@ -156,6 +159,29 @@ public interface CodecFormatProvider<S, T> {
      * @throws IOException if the delegate cannot be created
      */
     FormatReaderDelegate<S> createReader(S source) throws IOException;
+
+    /**
+     * Creates a new reader delegate with access to the load options (issue #232).
+     * <p>
+     * The counterpart of {@code createWriter(…, saveOptions)}. {@code CodecResource} passes the
+     * merged load options, and under {@link CodecOptions#INTERNAL_STREAM_READ_CONSTRAINTS} the
+     * resolved read limits of this load as a Jackson {@code StreamReadConstraints}. A provider
+     * that parses with its own machinery maps them onto its format's own settings - document
+     * size, nesting depth, string and name length - so every format is bounded the same way.
+     * </p>
+     * <p>
+     * The default implementation ignores the options and delegates to
+     * {@link #createReader(Object)}, keeping every existing provider working unchanged.
+     * </p>
+     *
+     * @param source the input source
+     * @param loadOptions the load options, never {@code null} (may be empty)
+     * @return a new reader delegate, never null
+     * @throws IOException if the delegate cannot be created, or the input exceeds a limit
+     */
+    default FormatReaderDelegate<S> createReader(S source, Map<String, Object> loadOptions) throws IOException {
+        return createReader(source);
+    }
 
     /**
      * Returns the file extensions associated with this format.

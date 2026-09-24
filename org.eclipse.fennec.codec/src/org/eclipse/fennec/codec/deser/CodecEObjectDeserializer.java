@@ -115,10 +115,11 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
      * during recursive value reading (readArrayAsList, readObjectAsMap).
      * Protects against OutOfMemoryError from payloads with millions of elements.
      * <p>
-     * Security: CWE-400 (Resource Exhaustion), CWE-770 (Allocation Without Limits).
+     * Security: CWE-400 (Resource Exhaustion), CWE-770 (Allocation Without Limits). This is the
+     * default; a load sets its own through {@code codec.maxCollectionSize} (issue #232).
      * </p>
      */
-    static final int MAX_COLLECTION_SIZE = 100_000;
+    static final int MAX_COLLECTION_SIZE = CodecOptions.DEFAULT_MAX_COLLECTION_SIZE;
 
     private final EffectiveCodecConfig config;
     private final CodecEntryContext entryContext;
@@ -1024,10 +1025,11 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     private Map<String, Object> readObjectAsMap(JsonParser parser, DeserializationContext ctxt, int depth) {
         Map<String, Object> result = new LinkedHashMap<>();
         boolean limitExceeded = false;
+        int maxCollectionSize = ContextHelper.getMaxCollectionSize(ctxt);
 
         while (TokenLoops.hasNextField(parser)) {
-            if (!limitExceeded && result.size() >= MAX_COLLECTION_SIZE) {
-                String msg = "Object exceeds maximum size: " + MAX_COLLECTION_SIZE;
+            if (!limitExceeded && result.size() >= maxCollectionSize) {
+                String msg = "Object exceeds maximum size: " + maxCollectionSize;
                 LOGGER.warning(msg);
                 ContextHelper.addWarning(ctxt, msg, parser, "CodecEObjectDeserializer");
                 limitExceeded = true;
@@ -1057,10 +1059,11 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     private List<Object> readArrayAsList(JsonParser parser, DeserializationContext ctxt, int depth) {
         List<Object> result = new ArrayList<>();
         boolean limitExceeded = false;
+        int maxCollectionSize = ContextHelper.getMaxCollectionSize(ctxt);
 
         while (TokenLoops.hasNextElement(parser)) {
-            if (!limitExceeded && result.size() >= MAX_COLLECTION_SIZE) {
-                String msg = "Array exceeds maximum size: " + MAX_COLLECTION_SIZE;
+            if (!limitExceeded && result.size() >= maxCollectionSize) {
+                String msg = "Array exceeds maximum size: " + maxCollectionSize;
                 LOGGER.warning(msg);
                 ContextHelper.addWarning(ctxt, msg, parser, "CodecEObjectDeserializer");
                 limitExceeded = true;
