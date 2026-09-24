@@ -1792,7 +1792,7 @@ This section tracks the implementation status of features documented in this ref
 | `superTypeSchemaKey` | ❌ removed | ❌ removed | ❌ | ❌ | ❌ | ✅ inherits from TypeConfig |
 | `superTypeNameKey` | ❌ removed | ❌ removed | ❌ | ❌ | ❌ | ✅ superTypeKey has format-dependent default |
 | `superTypeValueReaderName` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `superTypeValueWriterName` | ✅ `KEY_SUPERTYPE_WRITER_NAME` | ❌ | ❌ | ❌ | ❌ | 🔶 |
+| `superTypeValueWriterName` | ❌ option only (`codec.superTypeValueWriterName`); the unread `KEY_SUPERTYPE_WRITER_NAME` constant was removed (#222) | ❌ | ❌ | ❌ | ❌ | 🔶 |
 
 ### ID Configuration
 

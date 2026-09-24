@@ -492,11 +492,6 @@ public final class CodecAnnotationConstants {
     public static final String KEY_SUPERTYPE_SEPARATOR = "superTypeSeparator";
 
     /**
-     * Detail key for custom supertype value writer name.
-     */
-    public static final String KEY_SUPERTYPE_WRITER_NAME = "superTypeWriterName";
-
-    /**
      * Detail key for supertype serialization format.
      * Values: "PLAIN", "STRUCTURED". Default: "PLAIN".
      */
