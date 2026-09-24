@@ -84,20 +84,4 @@ class CodecOptionsValueGateKeyTest {
                 CodecOptions.CODEC_SERIALIZE_DEFAULT,
                 "the two spellings of one option must agree");
     }
-
-    /**
-     * The misnamed constant stays as a source-compatible alias. An alias that drifts is worse
-     * than no alias - a caller on the old name would be silently ignored again - so it is
-     * pinned to the same value rather than to a string of its own.
-     */
-    @Test
-    @DisplayName("the deprecated constant is an alias, not a second spelling")
-    @SuppressWarnings("deprecation")
-    void deprecatedConstantIsAnAlias() {
-        assertEquals(CodecOptions.CODEC_SERIALIZE_DEFAULT, CodecOptions.CODEC_SERIALIZE_DEFAULTS,
-                "CODEC_SERIALIZE_DEFAULTS must carry the same key as CODEC_SERIALIZE_DEFAULT");
-
-        assertResolves("serializeDefault (deprecated alias)",
-                CodecOptions.CODEC_SERIALIZE_DEFAULTS, ConfigProperty.SERIALIZE_DEFAULT);
-    }
 }

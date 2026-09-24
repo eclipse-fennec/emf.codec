@@ -28,8 +28,8 @@ Global settings that apply to all features unless overridden:
 > the option key, the property key and the builder method are all singular, matching
 > `ConfigProperty.SERIALIZE_DEFAULT`. The annotation key used to be the plural `serializeDefaults`,
 > after the `FeatureCodecAspect` attribute it sets; it was renamed without an alias, so a model that
-> still writes the plural loses the setting. `CodecOptions.CODEC_SERIALIZE_DEFAULTS` remains a
-> deprecated alias of the singular option key (#220).
+> still writes the plural loses the setting. The Java constant `CodecOptions.CODEC_SERIALIZE_DEFAULTS`,
+> a deprecated alias since #220, was removed as well.
 
 **Java Builder (Codec-Wide):**
 ```java

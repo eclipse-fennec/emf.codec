@@ -552,19 +552,6 @@ public final class CodecOptions {
     public static final String CODEC_SERIALIZE_DEFAULT = "codec.serializeDefault";
 
     /**
-     * Whether to serialize default values.
-     * <p>Default: false</p>
-     *
-     * @deprecated Misnamed, and until issue #220 it also held the wrong key
-     *             ({@code codec.serializeDefaults}, plural), which no resolver reads - so
-     *             every caller passing this constant was ignored in silence. It is now an
-     *             alias of {@link #CODEC_SERIALIZE_DEFAULT} and carries the same value; use
-     *             that one.
-     */
-    @Deprecated
-    public static final String CODEC_SERIALIZE_DEFAULTS = CODEC_SERIALIZE_DEFAULT;
-
-    /**
      * Enum serialization strategy.
      * <p>Values: "LITERAL" (default), "VALUE", "NAME"</p>
      */
