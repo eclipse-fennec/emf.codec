@@ -365,8 +365,14 @@
         <details key="serializeEmpty" value="true"/>
       </eAnnotations>
     </eStructuralFeatures>
-    <!-- serializeDefaults=true -->
+    <!-- serializeDefault=true - singular, like the option codec.serializeDefault (#222) -->
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="defaultValueField" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="0">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="serializeDefault" value="true"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <!-- the former plural spelling is no longer read -->
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pluralDefaultField" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt" defaultValueLiteral="0">
       <eAnnotations source="http://eclipse.org/fennec/codec">
         <details key="serializeDefaults" value="true"/>
       </eAnnotations>

@@ -20,19 +20,16 @@ Global settings that apply to all features unless overridden:
 
 | Annotation Key | Property Key | Global | ERef | EAttr | Default | Description |
 |----------------|--------------|:------:|:----:|:-----:|---------|-------------|
-| `serializeDefaults` | `codec.serializeDefault` | ✅ | ✅ | ✅ | `false` | Include fields with default values |
+| `serializeDefault` | `codec.serializeDefault` | ✅ | ✅ | ✅ | `false` | Include fields with default values |
 | `serializeNull` | `codec.serializeNull` | ✅ | ✅ | ✅ | `false` | Include fields with explicit null values |
 | `serializeEmpty` | `codec.serializeEmpty` | ✅ | ✅ | ✅ | `false` | Include empty collections |
 
-> **`serializeDefaults` vs `codec.serializeDefault` (issue #220).** The two spellings are not a
-> typo. The ecore annotation detail key is plural, matching the `FeatureCodecAspect`
-> attribute it sets; the option key, the property key and the builder method are singular,
-> matching `ConfigProperty.SERIALIZE_DEFAULT` and the two siblings above. The bridge
-> (`AspectToPropertiesConverter`) translates between them, so an annotation needs the plural and
-> a property map needs the singular. Until issue #220 `CodecOptions.CODEC_SERIALIZE_DEFAULTS`
-> held the plural, which no resolver reads, so callers using it were ignored in silence. Pass
-> `CodecOptions.CODEC_SERIALIZE_DEFAULT`; the old constant remains as a deprecated alias of the
-> same key.
+> **`serializeDefault`, annotation and option alike (issues #220, #222).** The annotation detail key,
+> the option key, the property key and the builder method are all singular, matching
+> `ConfigProperty.SERIALIZE_DEFAULT`. The annotation key used to be the plural `serializeDefaults`,
+> after the `FeatureCodecAspect` attribute it sets; it was renamed without an alias, so a model that
+> still writes the plural loses the setting. `CodecOptions.CODEC_SERIALIZE_DEFAULTS` remains a
+> deprecated alias of the singular option key (#220).
 
 **Java Builder (Codec-Wide):**
 ```java
@@ -43,7 +40,7 @@ CodecConfiguration config = CodecConfiguration.builder()
     .build();
 ```
 
-**Default Behavior (serializeDefaults=false, serializeNull=false, serializeEmpty=false):**
+**Default Behavior (serializeDefault=false, serializeNull=false, serializeEmpty=false):**
 ```json
 {
   "_type": "http://example.org/person/1.0#//Person",
@@ -148,7 +145,7 @@ Override codec-wide settings for individual features:
 | Annotation Key | Property Key | ERef | EAttr | Default | Description |
 |----------------|--------------|:----:|:-----:|---------|-------------|
 | `serializeNull` | `codec.serializeNull` | ✅ | ✅ | `false` | Include null values in output |
-| `serializeDefaults` | `codec.serializeDefault` | ✅ | ✅ | `false` | Include default values in output |
+| `serializeDefault` | `codec.serializeDefault` | ✅ | ✅ | `false` | Include default values in output |
 | `serializeEmpty` | `codec.serializeEmpty` | ✅ | ✅ | `false` | Include empty collections in output |
 
 **Semantics:** `true` = include in output, `false` = omit from output. Feature-level overrides codec-wide.
@@ -166,7 +163,7 @@ Override codec-wide settings for individual features:
 <!-- Skip default values for this feature -->
 <eStructuralFeatures xsi:type="ecore:EAttribute" name="counter">
   <eAnnotations source="http://eclipse.org/fennec/codec">
-    <details key="serializeDefaults" value="false"/>
+    <details key="serializeDefault" value="false"/>
   </eAnnotations>
 </eStructuralFeatures>
 ```
@@ -223,7 +220,7 @@ Map<String, Object> options = Map.of(
 
 ### 1.5 Deserialization Behavior
 
-The `serializeNull`, `serializeDefaults`, and `serializeEmpty` settings are **serialization-only** configurations. They control what is written to JSON but do **NOT** affect how JSON is read.
+The `serializeNull`, `serializeDefault`, and `serializeEmpty` settings are **serialization-only** configurations. They control what is written to JSON but do **NOT** affect how JSON is read.
 
 Deserialization follows these rules:
 
@@ -267,7 +264,7 @@ EAttribute active;      // EBoolean, defaultValueLiteral="true"
 1. **Explicit `null` for object types** → Feature is set to `null`
 2. **Explicit `null` for primitive types** → Feature is reset to EMF default (via `eSet(attr, null)`)
 3. **Missing field** → Feature retains its EMF default value (same effect as `null` for primitives)
-4. **`serializeNull`/`serializeDefaults` do NOT affect deserialization** - these are output controls only
+4. **`serializeNull`/`serializeDefault` do NOT affect deserialization** - these are output controls only
 5. **Multi-valued features** → JSON `null` is ignored; missing field results in empty list
 
 **Rationale:**
@@ -1195,7 +1192,7 @@ INPUT: EObject, EStructuralFeature, effective config (annotations + save options
 │                                                                             │
 │    4c. DEFAULT CHECK (single-valued features only)                          │
 │        Is value equal to the feature's default value?                       │
-│        ├─ YES → Is serializeDefaults=true?                                  │
+│        ├─ YES → Is serializeDefault=true?                                   │
 │        │        ├─ YES → continue (write the default)                       │
 │        │        └─ NO  → SKIP (omit from output) ─────────→ DONE ✗        │
 │        └─ NO  → continue                                                   │
@@ -1261,7 +1258,7 @@ The feature serialization pipeline has **two levels of gating**:
 | Gate | When | What | Decides |
 |------|------|------|---------|
 | **Visibility Gate** (step 1) | Build-time (entry creation) | ignore, ignoreWrite, ignoreFeatures, transient/volatile + forceWrite | Whether feature participates at all |
-| **Value Gate** (step 4) | Runtime (per-object) | null/empty/default + serializeNull/serializeEmpty/serializeDefaults | Whether this specific value is written |
+| **Value Gate** (step 4) | Runtime (per-object) | null/empty/default + serializeNull/serializeEmpty/serializeDefault | Whether this specific value is written |
 
 > **Design rationale:** The two-level gate separates structural decisions (which features exist) from value decisions (which values are interesting). This means the entry map is built once per EClass, while value checks run per object instance.
 

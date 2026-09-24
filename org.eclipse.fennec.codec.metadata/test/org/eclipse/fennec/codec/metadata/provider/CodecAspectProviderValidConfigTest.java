@@ -776,10 +776,13 @@ class CodecAspectProviderValidConfigTest {
             assertTrue(aspect.isSerializeEmpty());
         }
 
-        /** @VALID @SPEC(11-feature.md) Tests serializeDefaults=true. */
+        /**
+         * @VALID @SPEC(11-feature.md) Tests serializeDefault=true - the singular key, matching the
+         * option {@code codec.serializeDefault} (issue #222).
+         */
         @Test
-        @DisplayName("serializeDefaults=true")
-        void validConfig_serializeDefaults_parsedCorrectly() {
+        @DisplayName("serializeDefault=true")
+        void validConfig_serializeDefault_parsedCorrectly() {
             EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSerializeOptions");
             EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "defaultValueField");
 
@@ -787,6 +790,18 @@ class CodecAspectProviderValidConfigTest {
             FeatureCodecAspect aspect = (FeatureCodecAspect) entry.getContent();
 
             assertTrue(aspect.isSerializeDefaults());
+        }
+
+        /** The plural spelling serializeDefaults was removed without an alias (issue #222). */
+        @Test
+        @DisplayName("the former plural serializeDefaults is no longer read")
+        void validConfig_pluralSerializeDefaults_notRead() {
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "EntityWithSerializeOptions");
+            EAttribute attr = (EAttribute) EcoreHelper.getFeature(entityClass, "pluralDefaultField");
+
+            AspectEntry entry = featureEntry(attr);
+
+            assertFalse(entry != null && ((FeatureCodecAspect) entry.getContent()).isSerializeDefaults());
         }
 
         /** @VALID @SPEC(11-feature.md) Tests custom key on attribute. */

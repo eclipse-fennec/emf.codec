@@ -392,7 +392,7 @@ public final class CodecAnnotationConstants {
     public static final String KEY_KEY = "key";
     public static final String KEY_SERIALIZE_NULL = "serializeNull";
     public static final String KEY_SERIALIZE_EMPTY = "serializeEmpty";
-    public static final String KEY_SERIALIZE_DEFAULTS = "serializeDefaults";
+    public static final String KEY_SERIALIZE_DEFAULT = "serializeDefault";
     public static final String KEY_VALUE_WRITER = "valueWriter";
     public static final String KEY_VALUE_READER = "valueReader";
 
