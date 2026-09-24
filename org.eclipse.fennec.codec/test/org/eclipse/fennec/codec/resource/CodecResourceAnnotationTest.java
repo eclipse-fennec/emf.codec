@@ -283,7 +283,7 @@ class CodecResourceAnnotationTest {
 
             String json = serialize(product);
 
-            // internalCode should NOT be in JSON due to codec.transient annotation
+            // internalCode should NOT be in JSON due to its codec ignore annotation
             assertFalse(json.contains("\"internalCode\""), "Transient feature should not be serialized");
             assertFalse(json.contains("INTERNAL-SECRET-CODE"), "Transient value should not appear in JSON");
 

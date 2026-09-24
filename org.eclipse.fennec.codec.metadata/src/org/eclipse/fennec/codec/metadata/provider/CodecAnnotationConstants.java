@@ -139,14 +139,6 @@ public final class CodecAnnotationConstants {
     // ------------------------------------------------------------------------
 
     /**
-     * Detail key for marking a feature as transient (not serialized).
-     * Value: "true" or "false". Default: "false".
-     * @deprecated Use {@link #KEY_IGNORE} instead for bidirectional control.
-     */
-    @Deprecated()
-    public static final String KEY_TRANSIENT = "transient";
-
-    /**
      * Detail key for ignoring a feature in both serialization and deserialization.
      * Value: "true" or "false". Default: "false".
      */

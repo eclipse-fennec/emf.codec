@@ -390,7 +390,6 @@ public final class CodecAnnotationConstants {
 
     // Feature keys
     public static final String KEY_KEY = "key";
-    public static final String KEY_TRANSIENT = "transient";
     public static final String KEY_SERIALIZE = "serialize";
     public static final String KEY_SERIALIZE_NULL = "serializeNull";
     public static final String KEY_SERIALIZE_EMPTY = "serializeEmpty";

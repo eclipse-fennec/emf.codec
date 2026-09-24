@@ -529,12 +529,6 @@ public final class CodecOptions {
     public static final String CODEC_KEY = "codec.key";
 
     /**
-     * Mark feature as transient (not serialized).
-     * <p>Default: false</p>
-     */
-    public static final String CODEC_TRANSIENT = "codec.transient";
-
-    /**
      * Whether to serialize this feature.
      * <p>Default: true</p>
      */
@@ -646,18 +640,6 @@ public final class CodecOptions {
     // ========================================================================
     // CODEC-WIDE DEFAULTS
     // ========================================================================
-
-    /**
-     * Codec-wide default serialization format.
-     * <p>Values: "PLAIN" (default), "STRUCTURED"</p>
-     */
-    public static final String CODEC_FORMAT = "codec.format";
-
-    /**
-     * Use numeric classifier IDs instead of names.
-     * <p>Default: false</p>
-     */
-    public static final String CODEC_USE_NUMERIC_IDS = "codec.useNumericIds";
 
     /**
      * Maximum depth for nested reference expansion.
