@@ -4,6 +4,46 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-24
 
+**Session Summary (2026-09-24, night) — issue #232: read limits, secure by default, for every format:**
+
+Started as "`codec.maxPayloadSize` is documented but read by nothing" and was widened after
+measuring each format with the factories the codec actually uses (probes, not assumptions):
+- `maxDocumentLength` is enforced by the JSON and CBOR parsers; the YAML parser ignores it and has
+  its own fixed 3 MiB `codePointLimit`.
+- The codec's parser limits (depth 500, string 10 MB, name 10 KB) reached **only** the default JSON
+  path: `JacksonFormatProvider` parses with its own `new CBORFactory()`/`new YAMLFactory()`, so a
+  12 MB string loaded through CBOR. Spec 15 §9.6 claimed otherwise.
+- BSON (not Jackson) had only the payload check: no string limit, and **no nesting limit** - the
+  recursive BSON decoder overflowed the stack on a 120 KB document with 10 000 nested levels, and
+  the `StackOverflowError` escaped #225's `IOException` translation.
+
+Decided with the user - "security by default demands sensible defaults; whoever needs more
+overrides per option":
+- Five load options, `CodecOptions.CODEC_MAX_*` + `DEFAULT_MAX_*`: payload **16 MiB** (was 100 MB,
+  BSON only; 16 MiB = MongoDB's BSON maximum), nesting 500, string 10 MB, name 10 KB, untyped
+  collection 100 000. Positive `Number` or decimal `String`; anything else fails the load.
+- `ReadLimits` (codec, package-private record) resolves them once per load. JSON default path:
+  `CodecJsonFactory.streamReadConstraints`. Format path: the `IOContext` plus the new
+  `CodecFormatProvider.createReader(source, loadOptions)` default method (mirrors
+  `createWriter(…, saveOptions)`), limits under `INTERNAL_STREAM_READ_CONSTRAINTS`.
+  `JacksonFormatProvider` rebuilds its factory per load (`limitedFactory` hook); `YamlFormatProvider`
+  also maps the size onto `LoadSettings.codePointLimit`; `BsonFormatProvider` reads exactly up to the
+  size and runs `BsonLimitCheck` - an iterative walk with `BsonBinaryReader` (own stack) over the raw
+  bytes - before the recursive decode. Collection size goes through the context attribute
+  `ContextHelper.MAX_COLLECTION_SIZE` into the four deserializer loops.
+- `CodecResource.doLoad` translates a `StackOverflowError` into an `IOException` as a last line
+  of defence.
+- **Gotcha for tests:** Jackson checks `maxDocumentLength` only when it refills its ~8 KB input
+  buffer - a 3 KB document never trips a 2 KB limit. Test with documents well past one buffer.
+- **Behaviour change:** documents above 16 MiB now need `codec.maxPayloadSize`; YAML goes from a
+  fixed 3 MiB to the common 16 MiB.
+- Docs: spec 15 §9.0 (new: options + per-format mapping), §9.2/§9.4/§9.6 (with a correction note),
+  §1.1 table, §10; options reference (rows + BSON section).
+- **Tests:** `ReadLimitsTest` (22, JSON default + provider path), `CborReadLimitsTest` /
+  `YamlReadLimitsTest` (8 each), `BsonReadLimitsTest` (10).
+- **Not done:** CSV/ODS/XLSX/RData cannot be read yet; ODS/XLSX (zip) will need an
+  expansion-ratio guard when reading comes.
+
 **Session Summary (2026-09-24, close) — issue #222: `codec.` constants that nothing reads:**
 
 Worked piece by piece; each decision was the user's.
