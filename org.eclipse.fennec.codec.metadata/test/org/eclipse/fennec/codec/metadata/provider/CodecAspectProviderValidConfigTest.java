@@ -1119,6 +1119,21 @@ class CodecAspectProviderValidConfigTest {
 
             assertTrue(aspect.isInheritFromParent());
         }
+
+        /**
+         * @VALID inherit="false" is parsed. {@code true} is the model default, so only this value
+         * proves the parse runs at all; every other inherit test passes without it (issue #222).
+         */
+        @Test
+        @DisplayName("inherit=false annotation")
+        void validConfig_inheritFalseAnnotation_parsedCorrectly() {
+            EClass entityClass = EcoreHelper.getEClass(testPackage, "NonInheritingEntity");
+
+            AspectEntry entry = classEntry(entityClass);
+            ClassCodecAspect aspect = (ClassCodecAspect) entry.getContent();
+
+            assertFalse(aspect.isInheritFromParent());
+        }
     }
 
     // ========================================================================

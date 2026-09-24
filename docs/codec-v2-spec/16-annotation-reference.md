@@ -565,32 +565,26 @@ Values for the `typeStrategy` annotation key. These control **what information**
 | `typeFormatScope` via EAnnotation | WARNING | Runtime-only (🔧), annotation is ignored |
 | Any `type*` key on EAttribute | ERROR | Type config not applicable to attributes |
 
-### Annotation-Only Directive: `inherit`
+### Class Key: `inherit` — accepted, no effect yet
 
-The `inherit` key controls how codec annotations are inherited across the EClass hierarchy. It is an **annotation-only directive** - it does NOT have a property equivalent and is consumed during annotation parsing.
+| Annotation Key | Property Key | EClass | Type | Default | Status |
+|----------------|--------------|:------:|------|---------|--------|
+| `inherit` | `codec.inherit` | ✅ | Boolean | `true` | Parsed into `ClassCodecAspect.inheritFromParent`, **no code acts on it** |
 
-| Annotation Key | Global | EClass | Default | Description |
-|----------------|:------:|:------:|---------|-------------|
-| `inherit` | ✅ | ✅ | `DIRECT` | Annotation inheritance level |
-
-**Values:**
-
-| Value | Description |
-|-------|-------------|
-| `DIRECT` **(default)** | Inherit from immediate parent EClass only |
-| `ALL` | Inherit from full hierarchy up to EObject |
-| `NONE` | No inheritance, use only this EClass's annotations |
-
-**Example:**
+**Example** (as in the shipped blubio/dragino models):
 ```xml
 <eClassifiers xsi:type="ecore:EClass" name="Employee" eSuperTypes="#//Person">
   <eAnnotations source="http://eclipse.org/fennec/codec">
-    <details key="inherit" value="ALL"/>
+    <details key="inherit" value="true"/>
   </eAnnotations>
 </eClassifiers>
 ```
 
-> **Note:** `inherit` affects how `CodecAspectProvider` resolves annotations when building AspectConfig. It is NOT a runtime property and does NOT participate in the property resolution matrix. See [12-polymorphism.md](12-polymorphism.md#2-annotation-inheritance-levels) for details.
+> **Note:** Like every annotation key, `inherit` has its option pair `codec.inherit`; nothing reads
+> the option yet either. Type configuration is always inherited through the full hierarchy, other
+> configuration never, whatever the flag says. The inheritance *levels* `DIRECT`/`ALL`/`NONE` of an
+> earlier design were never implemented. See [12-polymorphism.md](12-polymorphism.md#2-annotation-inheritance)
+> (issue #222).
 
 ---
 

@@ -149,6 +149,7 @@ These options apply to every format. Java constants are in
 | `codec.deserializationMode` | `CODEC_DESERIALIZATION_MODE` | String | `LENIENT` | Type-resolution failure handling. `STRICT` throws; `LENIENT` records a warning and continues. |
 | `codec.throwOnValidationWarnings` | `CODEC_THROW_ON_VALIDATION_WARNINGS` | Boolean | `false` | Turn validation warnings (e.g. URI/option mismatch) into exceptions. |
 | `codec.maxPayloadSize` | `CODEC_MAX_PAYLOAD_SIZE` | Long | `104857600` | Maximum bytes read from an input stream (100 MB default). Protects against DoS via oversized payloads. |
+| `codec.inherit` | `CODEC_INHERIT` | Boolean | `true` | Option pair of the class-level `inherit` annotation. **Accepted, no effect yet** (#222): type configuration is always inherited through the full hierarchy, other configuration never. See spec 12 §2. |
 
 ### Runtime (load/save only)
 

@@ -120,6 +120,15 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
 
+  <!-- @VALID: inherit="false" - the only value that differs from the default, so the only one
+       that proves the flag is actually parsed (issue #222) -->
+  <eClassifiers xsi:type="ecore:EClass" name="NonInheritingEntity">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="inherit" value="false"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+
   <!-- Class with discriminator value (using typeMapping/lorawan-dynamic source) -->
   <eClassifiers xsi:type="ecore:EClass" name="DraginoDevice">
     <eAnnotations source="http://eclipse.org/fennec/codec/typeMapping/lorawan-dynamic">
