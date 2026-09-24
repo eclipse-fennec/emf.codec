@@ -14,7 +14,7 @@ package org.eclipse.fennec.codec.geojson;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -31,6 +31,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
+import org.geojson.Feature;
 import org.geojson.GeoJsonPackage;
 import org.geojson.MultiPolygon;
 import org.junit.jupiter.api.AfterEach;
@@ -165,20 +166,33 @@ class GeoJsonRoundTripMatrixTest {
     }
 
     /**
-     * {@code bbox} has {@code lowerBound=1} in the model. The required-feature check skips what
-     * is not deserialized, and {@code forceRead} keeps {@code bbox} deserialized whether it is
-     * derived or not - so {@code strictOnMissing} still demands it, exactly as before.
+     * {@code bbox} is optional (RFC 7946 §5, common.models#32). The required-feature check reads
+     * the model's multiplicity, so {@code strictOnMissing} accepts a geometry without one - and
+     * still takes one that has it.
      */
     @Test
-    @DisplayName("strictOnMissing treats the derived bbox as required, as before")
-    void strictOnMissingStillRequiresBbox() throws IOException {
+    @DisplayName("strictOnMissing accepts a geometry without bbox")
+    void strictOnMissingAcceptsMissingBbox() throws IOException {
         Map<String, Object> strict = Map.of("codec.strictOnMissing", true);
 
-        IOException failure = assertThrows(IOException.class,
-                () -> load("{\"type\":\"Point\",\"coordinates\":[1.5,2.5]}", strict));
+        EObject withoutBbox = load("{\"type\":\"Point\",\"coordinates\":[1.5,2.5]}", strict);
         load("{\"type\":\"Point\",\"bbox\":[1.5,2.5,1.5,2.5],\"coordinates\":[1.5,2.5]}", strict);
 
-        assertTrue(failure.getMessage().contains("bbox"), failure::getMessage);
+        assertFalse(withoutBbox.eIsSet(GeoJsonPackage.Literals.GEO_JSON_OBJECT__BBOX));
+    }
+
+    /**
+     * {@code Feature.id} is optional (RFC 7946 §3.2, common.models#33).
+     */
+    @Test
+    @DisplayName("strictOnMissing accepts a Feature without id")
+    void strictOnMissingAcceptsMissingFeatureId() throws IOException {
+        Map<String, Object> strict = Map.of("codec.strictOnMissing", true);
+
+        Feature feature = (Feature) load(
+                "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[1.5,2.5]}}", strict);
+
+        assertNull(feature.getId());
     }
 
     // ========================================================================
