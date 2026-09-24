@@ -4,6 +4,33 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-24
 
+**Session Summary (2026-09-24, later) — issue #228: RFC 7946 members, and the model rounds behind it:**
+
+- **Required members are written when empty.** `GeoJsonResourceImpl` sets per-feature
+  `serializeNull` for `Feature.geometry`/`properties` and `serializeEmpty` for
+  `FeatureCollection.features`, `GeometryCollection.geometries` and the list-valued `data` of
+  MultiPoint and LineString, through `EREFERENCE_CONFIG`/`EATTRIBUTE_CONFIG` in the resolver's
+  resource properties. Point, MultiLineString and MultiPolygon hold their coordinates in an array,
+  which the value gate never drops. **Builder trap:** `ConfigurationResolver.Builder.resourceProperties(map)`
+  replaces the map the convenience setters (`typeKey`, `typeStrategy`, …) write into, so it has to
+  come first in the chain - otherwise the GeoJSON keys silently fall back to `_type`/`data`.
+- **A number into a string attribute becomes its text** (`AttributeDeserializationEntry`): a
+  GeoJSON `"id": 42` (RFC 7946 §3.2) failed with a `ClassCastException`. Integers keep every digit;
+  floats may arrive normalised (`1.50` → `"1.5"`). Silent, like string → number always was.
+  Spec 11 §2c documents it; `NumberIntoStringAttributeTest` in `codec`.
+- **Model side, all released on the snapshot:** common.models#32/#33 (bbox, boundingBox and
+  `Feature.id` optional - the pinned `strictOnMissing` test flipped), #34 (empty polygon `[]`),
+  #36 (empty Point loads, `setData` replaces instead of appending, clear errors for invalid
+  positions and bbox lengths). #36 came from one full sweep of `GeoJsonHelper` - 27 edge cases
+  through the codec - after the fixes had trickled in one at a time; each model round costs a
+  model build, PR builds and a snapshot wait. It was verified against the locally built jar
+  (`org.geojson.model/generated/`, copied over the `~/.m2` snapshot) before merging.
+- **Known, not changed:** `properties` with members is dropped with a warning unless
+  `CODEC_FEATURE_TYPE_HINTS` names a class (the model types it as `EObject`), and `{}` becomes
+  `null`; foreign members (RFC §6.1) are skipped in LENIENT.
+- **Tests:** `GeoJsonRequiredMembersTest` (23), `NumberIntoStringAttributeTest` (6); the Feature
+  inputs of `GeoJsonRoundTripMatrixTest` now carry `"properties": null`.
+
 **Session Summary (2026-09-24) — issues #225 and #226: unchecked failures on load/save, GeoJSON on the new model:**
 
 Both came from building OGC API – Features on the codec (eclipse-fennec/emf.ogc.features).
