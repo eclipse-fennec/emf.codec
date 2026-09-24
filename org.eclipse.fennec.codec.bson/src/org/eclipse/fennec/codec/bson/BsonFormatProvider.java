@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 import org.bson.BsonBinaryReader;
 import org.bson.BsonBinaryWriter;
@@ -32,6 +33,8 @@ import org.eclipse.fennec.codec.format.FormatDelegate;
 import org.eclipse.fennec.codec.format.FormatReaderDelegate;
 import org.eclipse.fennec.codec.format.TokenType;
 
+import tools.jackson.core.StreamReadConstraints;
+
 /**
  * {@link CodecFormatProvider} implementation for BSON format.
  * <p>
@@ -40,10 +43,12 @@ import org.eclipse.fennec.codec.format.TokenType;
  * with {@link BsonDocument} as the in-memory representation, and converting
  * to/from binary BSON for stream I/O.
  * <p>
- * The maximum payload size for reading is configurable via
- * {@link CodecOptions#CODEC_MAX_PAYLOAD_SIZE} and defaults to
- * {@link CodecOptions#DEFAULT_MAX_PAYLOAD_SIZE} (100 MB). This prevents
- * denial-of-service attacks via oversized BSON payloads.
+ * Reading is bounded by the read limits of the load (issue #232): the document size
+ * ({@link CodecOptions#CODEC_MAX_PAYLOAD_SIZE}, default 16 MiB) bounds the bytes read, and
+ * nesting depth, string length and name length are checked on the raw document by an
+ * iterative walk before the recursive BSON decoder runs. Through {@code CodecResource} the
+ * limits come from the load options; used directly, the provider applies the defaults with
+ * the payload size given to its constructor.
  * <p>
  * Usage:
  * <pre>
@@ -66,7 +71,7 @@ public class BsonFormatProvider implements CodecFormatProvider<InputStream, Outp
     private final long maxPayloadSize;
 
     /**
-     * Creates a provider with the default maximum payload size (100 MB).
+     * Creates a provider with the default maximum payload size (16 MiB).
      */
     public BsonFormatProvider() {
         this(CodecOptions.DEFAULT_MAX_PAYLOAD_SIZE);
@@ -98,7 +103,28 @@ public class BsonFormatProvider implements CodecFormatProvider<InputStream, Outp
 
     @Override
     public FormatReaderDelegate<InputStream> createReader(InputStream source) throws IOException {
-        return new BsonStreamReader(source, maxPayloadSize);
+        return new BsonStreamReader(source, ownLimits());
+    }
+
+    /**
+     * Creates a reader bounded by the read limits {@code CodecResource} resolved for this load
+     * (issue #232); without them, by the defaults and this provider's payload size.
+     */
+    @Override
+    public FormatReaderDelegate<InputStream> createReader(InputStream source, Map<String, Object> loadOptions)
+            throws IOException {
+        Object limits = loadOptions == null ? null : loadOptions.get(CodecOptions.INTERNAL_STREAM_READ_CONSTRAINTS);
+        return new BsonStreamReader(source,
+                limits instanceof StreamReadConstraints constraints ? constraints : ownLimits());
+    }
+
+    private StreamReadConstraints ownLimits() {
+        return StreamReadConstraints.builder()
+                .maxDocumentLength(maxPayloadSize)
+                .maxNestingDepth(CodecOptions.DEFAULT_MAX_NESTING_DEPTH)
+                .maxStringLength(CodecOptions.DEFAULT_MAX_STRING_LENGTH)
+                .maxNameLength(CodecOptions.DEFAULT_MAX_NAME_LENGTH)
+                .build();
     }
 
     @Override
@@ -265,14 +291,17 @@ public class BsonFormatProvider implements CodecFormatProvider<InputStream, Outp
         private InputStream source;
         private final BsonFormatReaderDelegate delegate;
 
-        BsonStreamReader(InputStream source, long maxPayloadSize) throws IOException {
+        BsonStreamReader(InputStream source, StreamReadConstraints limits) throws IOException {
             this.source = source;
+            long maxPayloadSize = limits.getMaxDocumentLength();
             int readLimit = (int) Math.min(maxPayloadSize, Integer.MAX_VALUE);
             byte[] bytes = source.readNBytes(readLimit);
             if (bytes.length == readLimit && source.read() != -1) {
-                throw new IOException(
-                        "BSON payload exceeds maximum allowed size: " + maxPayloadSize + " bytes");
+                throw new IOException("BSON payload exceeds maximum allowed size: " + maxPayloadSize
+                        + " bytes (from " + CodecOptions.CODEC_MAX_PAYLOAD_SIZE + ")");
             }
+            // Iteratively, before the recursive decode below can overflow the stack
+            BsonLimitCheck.check(bytes, limits);
             try (BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(bytes))) {
                 BsonDocument document = CODEC.decode(reader, DecoderContext.builder().build());
                 this.delegate = new BsonFormatReaderDelegate(document);

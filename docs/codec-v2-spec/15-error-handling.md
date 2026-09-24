@@ -141,6 +141,8 @@ resource boundary:
 | Malformed syntax (`JacksonException`, e.g. `UnexpectedEndOfInputException`) | `Resource.IOWrappedException`, cause = the Jackson exception | ERROR with line/column |
 | STRICT violation or any other unchecked exception while reading or writing | `Resource.IOWrappedException`, cause = the exception | ERROR, unless the throwing entry reported it already |
 | STRICT load that completed with errors | `IOException`, cause = `CodecDiagnosticException` | the collected errors |
+| Read limit exceeded (§9.0) or an unusable limit option | `IOException` | ERROR |
+| `StackOverflowError` while loading (last line of defence, issue #232) | `IOException`, cause = the error | ERROR |
 
 - **Malformed syntax fails in every mode.** Strictness governs tolerance toward *data* the codec
   can read (§2.1); a document that does not parse offers no data to be tolerant about, and the
@@ -637,6 +639,40 @@ See [Custom Values](14-custom-values.md) (section 4) for complete context API.
 
 The codec enforces built-in limits to protect against denial-of-service attacks via malicious input.
 
+### 9.0 Read Limit Options (issue #232)
+
+The limits on what one document may cost are **load options**, secure by default and raised by
+whoever needs more - per `load` call, or for a whole `ResourceSet` through
+`ResourceSet.getLoadOptions()`. A value is a positive `Number` or its decimal `String`; anything
+else fails the load with an `IOException` naming the option, instead of falling back silently.
+
+| Option | Default | Bounds |
+|--------|---------|--------|
+| `codec.maxPayloadSize` | 16 MiB | one document (bytes; YAML: code points) |
+| `codec.maxNestingDepth` | 500 | nesting of objects and arrays |
+| `codec.maxStringLength` | 10,000,000 | one string value (characters) |
+| `codec.maxNameLength` | 10,000 | one property name (characters) |
+| `codec.maxCollectionSize` | 100,000 | one untyped collection (§9.2) |
+
+Every readable format maps them onto its own mechanism:
+
+| Format | Document size | Nesting / string / name |
+|--------|---------------|-------------------------|
+| JSON (default path and `JacksonFormatProvider`) | `StreamReadConstraints.maxDocumentLength` | `StreamReadConstraints` |
+| CBOR | `maxDocumentLength` on the provider's factory | `StreamReadConstraints` on the provider's factory |
+| YAML | `LoadSettings.codePointLimit` (the parser ignores `maxDocumentLength`) | `StreamReadConstraints` on the provider's factory |
+| BSON | read limit before decoding (exact) | `BsonLimitCheck`: an iterative walk of the raw document before the recursive BSON decoder runs |
+
+`CodecResource` resolves the limits once per load and hands them to a format provider through
+`CodecFormatProvider.createReader(source, loadOptions)` (under
+`CodecOptions.INTERNAL_STREAM_READ_CONSTRAINTS`); the default method ignores them, so providers
+that do not parse with their own machinery need no change. CSV, ODS, XLSX and RData cannot be
+read yet; when reading is added, the two zip-based formats (ODS, XLSX) will also need an
+expansion-ratio guard.
+
+A `StackOverflowError` while loading is translated into an `IOException` as a last line of
+defence - the nesting limit is meant to stop a document long before that.
+
 ### 9.1 Nesting Depth Limit
 
 | Property | Value |
@@ -663,8 +699,8 @@ The limit protects two deserialization paths:
 
 | Property | Value |
 |----------|-------|
-| **Constant** | `CodecEObjectDeserializer.MAX_COLLECTION_SIZE` |
-| **Default** | 100,000 |
+| **Option** | `codec.maxCollectionSize` (`CodecOptions.CODEC_MAX_COLLECTION_SIZE`, §9.0) |
+| **Default** | 100,000 (`CodecOptions.DEFAULT_MAX_COLLECTION_SIZE`) |
 | **Scope** | All collection-accumulating loops during recursive value reading |
 | **Recovery** | Remaining elements skipped, WARNING diagnostic added, truncated collection returned |
 
@@ -701,16 +737,23 @@ The `URI` strategy (default) is not affected — full URIs are always unambiguou
 
 > **Deserialization requirement:** When using `NAME`, `CLASS`, or `NUMERIC` strategy, always provide a schema hint via `CODEC_ROOT_SCHEMA` or `CODEC_ROOT_TYPE` load option.
 
-### 9.4 BSON Payload Size Limit
+### 9.4 Document Size Limit
 
 | Property | Value |
 |----------|-------|
-| **Constant** | `CodecOptions.CODEC_MAX_PAYLOAD_SIZE` |
-| **Default** | 100 MB |
-| **Scope** | BSON format provider |
-| **Recovery** | `IOException` thrown before decoding |
+| **Option** | `codec.maxPayloadSize` (`CodecOptions.CODEC_MAX_PAYLOAD_SIZE`, §9.0) |
+| **Default** | 16 MiB (`CodecOptions.DEFAULT_MAX_PAYLOAD_SIZE`) - the largest BSON document MongoDB accepts |
+| **Scope** | Every readable format (JSON, CBOR, YAML, BSON) |
+| **Recovery** | The load fails with an `IOException` |
 
-See the Security Analysis for details.
+Until issue #232 this was a BSON-only limit of 100 MB, and the documented option was read by
+nothing: the value came from the `BsonFormatProvider` constructor. The input is counted in
+input bytes, and a document typically takes several times its size in memory once decoded -
+which is why the default is 16 MiB, not 100 MB.
+
+Precision differs by format: BSON reads exactly up to the limit; Jackson checks
+`maxDocumentLength` when it refills its input buffer, so a JSON or CBOR document may overshoot
+by up to one buffer (~8 KB) before it is refused; YAML counts code points, not bytes.
 
 ### 9.5 Reflection Allowlist for Type Conversion
 
@@ -723,21 +766,31 @@ See the Security Analysis for details.
 
 When deserializing array attributes with custom component types (e.g., `Date[]`, `UUID[]`), the codec uses reflection to invoke `String` constructors or `valueOf`/`parse` static methods. Only types on the `SAFE_REFLECTION_TARGETS` allowlist are permitted. All other types are rejected with a warning diagnostic. `BigDecimal`, `BigInteger`, `UUID`, and `Date` are handled by direct code paths before the allowlist check. The allowlist contains: `URI`, `URL`, and 11 `java.time` types (`Instant`, `LocalDate`, `LocalTime`, `LocalDateTime`, `OffsetDateTime`, `ZonedDateTime`, `Duration`, `Period`, `Year`, `YearMonth`, `MonthDay`).
 
-### 9.6 Jackson StreamReadConstraints
+### 9.6 Parser Limits: Nesting, String and Name Length
 
 | Property | Value |
 |----------|-------|
-| **Constant** | `CodecResource.STREAM_READ_CONSTRAINTS` |
-| **Max nesting depth** | 500 (Jackson default: 1000) — backstop above codec's own 200 limit |
+| **Options** | `codec.maxNestingDepth`, `codec.maxStringLength`, `codec.maxNameLength` (§9.0) |
+| **Max nesting depth** | 500 (Jackson default: 1000) — backstop above codec's own 200 limit (§9.1) |
 | **Max string length** | 10 MB (Jackson default: 20 MB) |
 | **Max field name length** | 10 KB (Jackson default: 50 KB) |
-| **Scope** | All JSON/YAML/CBOR/BSON parsing via `CodecResource` |
-| **Recovery** | Jackson throws before codec processing; the load fails with `Resource.IOWrappedException` ([§1.1](#11-aborted-operations-issue-225)) |
+| **Defaults** | `CodecResource.STREAM_READ_CONSTRAINTS` (with the 16 MiB document size of §9.4) |
+| **Scope** | Every readable format, mapped as in §9.0 |
+| **Recovery** | The parser (or `BsonLimitCheck`) refuses before the codec processes the value; the load fails with an `IOException` ([§1.1](#11-aborted-operations-issue-225)) |
 
-The codec configures Jackson's `StreamReadConstraints` with tighter limits than the 3.1.0 defaults. These limits are applied at the Jackson parser level, providing a first line of defense before the codec's own limits (nesting depth, collection size) are checked. The constraints are applied to:
-- Default JSON path (via `CodecJsonFactory` builder)
-- Format provider load path (`doLoadWithFormat`)
-- Format provider save path (`doSaveWithFormat`)
+These limits are applied at the parser level, providing a first line of defense before the
+codec's own limits (nesting depth, collection size) are checked. Each load resolves its own
+values from the options, applied to:
+- the default JSON path (`CodecJsonFactory` builder),
+- the format provider load path: the `IOContext` of `doLoadWithFormat` **and** the provider's own
+  parser, handed over through `createReader(source, loadOptions)`,
+- the format provider save path (`doSaveWithFormat`), with the defaults.
+
+> **Correction (issue #232).** This section used to claim the limits reached every format. They
+> reached only the default JSON path: `JacksonFormatProvider` parses with its own factory, so CBOR
+> and YAML ran on Jackson's defaults (a 12 MB string loaded through CBOR), and BSON, which is not
+> parsed by Jackson at all, had no nesting limit - a 120 KB document with 10,000 nested levels
+> overflowed the stack of the recursive BSON decoder.
 
 **CWE reference:** CWE-400 (Resource Exhaustion).
 
@@ -753,6 +806,11 @@ The codec configures Jackson's `StreamReadConstraints` with tighter limits than 
 | `codec.suppressWarningSources` | `Set<String>` | empty | Suppress warnings by source |
 | `codec.diagnosticHandler` | `DiagnosticHandler` | null | Custom handler |
 | `codec.deserializationMode` | `DeserializationMode` | `LENIENT` | Strictness level (see section 2.1) |
+| `codec.maxPayloadSize` | `Long` | 16 MiB | Maximum document size (§9.4) |
+| `codec.maxNestingDepth` | `Integer` | 500 | Maximum nesting depth (§9.6) |
+| `codec.maxStringLength` | `Integer` | 10,000,000 | Maximum string value length (§9.6) |
+| `codec.maxNameLength` | `Integer` | 10,000 | Maximum property name length (§9.6) |
+| `codec.maxCollectionSize` | `Integer` | 100,000 | Maximum untyped collection size (§9.2) |
 
 ---
 

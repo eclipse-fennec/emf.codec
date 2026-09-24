@@ -148,7 +148,11 @@ These options apply to every format. Java constants are in
 | `codec.fallbackStrategy` | `CODEC_FALLBACK_STRATEGY` | String | `SKIP` | What to do when a discriminator value cannot be resolved. Values: `SKIP`, `FALLBACK`, `ERROR`. |
 | `codec.deserializationMode` | `CODEC_DESERIALIZATION_MODE` | String | `LENIENT` | Type-resolution failure handling. `STRICT` throws; `LENIENT` records a warning and continues. |
 | `codec.throwOnValidationWarnings` | `CODEC_THROW_ON_VALIDATION_WARNINGS` | Boolean | `false` | Turn validation warnings (e.g. URI/option mismatch) into exceptions. |
-| `codec.maxPayloadSize` | `CODEC_MAX_PAYLOAD_SIZE` | Long | `104857600` | Maximum bytes read from an input stream (100 MB default). Protects against DoS via oversized payloads. |
+| `codec.maxPayloadSize` | `CODEC_MAX_PAYLOAD_SIZE` | Long | 16 MiB | Maximum size of one document, in every readable format (bytes; YAML: code points). Load option, raise it per load or via `ResourceSet.getLoadOptions()`. Spec 15 §9.0/§9.4. |
+| `codec.maxNestingDepth` | `CODEC_MAX_NESTING_DEPTH` | Integer | `500` | Maximum nesting depth of objects and arrays, in every readable format. |
+| `codec.maxStringLength` | `CODEC_MAX_STRING_LENGTH` | Integer | `10000000` | Maximum length of one string value, in every readable format. |
+| `codec.maxNameLength` | `CODEC_MAX_NAME_LENGTH` | Integer | `10000` | Maximum length of one property name, in every readable format. |
+| `codec.maxCollectionSize` | `CODEC_MAX_COLLECTION_SIZE` | Integer | `100000` | Maximum number of elements collected into one untyped collection (`EJavaObject`, values read before their type); further elements are skipped with a warning. |
 | `codec.inherit` | `CODEC_INHERIT` | Boolean | `true` | Option pair of the class-level `inherit` annotation. **Accepted, no effect yet** (#222): type configuration is always inherited through the full hierarchy, other configuration never. See spec 12 §2. |
 
 ### Runtime (load/save only)
@@ -222,14 +226,17 @@ Pretty-printing is not currently exposed as a save option.
 
 **Bundle:** `org.eclipse.fennec.codec.bson` · **Extension:** `.bson` · **Content-Type:** `application/bson`
 
-BSON has no load/save option keys of its own. The only BSON-specific tuning is the
-**maximum payload size**, which is set at construction time on `BsonFormatProvider` and
-cannot be changed per-operation:
+BSON has no load/save option keys of its own. Reading is bounded by the general read limits
+(`codec.maxPayloadSize`, `codec.maxNestingDepth`, `codec.maxStringLength`,
+`codec.maxNameLength`), which are checked on the raw document before it is decoded:
 
 ```java
-// 50 MB limit instead of the default 100 MB
-BsonFormatProvider provider = new BsonFormatProvider(50L * 1024 * 1024);
+// a 50 MiB limit instead of the default 16 MiB, for this load
+resource.load(input, Map.of(CodecOptions.CODEC_MAX_PAYLOAD_SIZE, 50L * 1024 * 1024));
 ```
+
+The constructor argument of `BsonFormatProvider(long)` only applies when the provider is used
+directly, outside `CodecResource`.
 
 BSON does not support array-root resources (`supportsArrayRoot()` returns `false`);
 a resource with more than one root object cannot be serialized to BSON.

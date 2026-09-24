@@ -73,7 +73,7 @@ class BsonFormatProviderTest {
     class PayloadSizeLimit {
 
         @Test
-        @DisplayName("default provider uses 100MB limit")
+        @DisplayName("default provider uses the 16 MiB limit")
         void defaultLimit() {
             BsonFormatProvider provider = new BsonFormatProvider();
             assertNotNull(provider);
@@ -127,9 +127,9 @@ class BsonFormatProviderTest {
         }
 
         @Test
-        @DisplayName("default max payload size constant is 100MB")
+        @DisplayName("default max payload size constant is 16 MiB (issue #232)")
         void defaultConstant() {
-            assertEquals(100L * 1024 * 1024, CodecOptions.DEFAULT_MAX_PAYLOAD_SIZE);
+            assertEquals(16L * 1024 * 1024, CodecOptions.DEFAULT_MAX_PAYLOAD_SIZE);
         }
 
         private static byte[] createSmallBsonDocument() {

@@ -13,7 +13,10 @@
 package org.eclipse.fennec.codec.yaml;
 
 import org.eclipse.fennec.codec.format.jackson.JacksonFormatProvider;
+import org.snakeyaml.engine.v2.api.LoadSettings;
 
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.TokenStreamFactory;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 
 /**
@@ -43,5 +46,24 @@ public class YamlFormatProvider extends JacksonFormatProvider {
         super("yaml", new YAMLFactory(),
                 new String[] { "yaml", "yml" },
                 new String[] { "application/yaml", "text/yaml" });
+    }
+
+    /**
+     * Maps the document size limit onto YAML's code point limit (issue #232).
+     * <p>
+     * The YAML parser does not enforce {@code maxDocumentLength}; it bounds a document by
+     * {@code LoadSettings.codePointLimit} instead, which was left at the library's fixed 3 MiB.
+     * The limit is counted in code points rather than bytes, which is close enough for a guard.
+     * </p>
+     */
+    @Override
+    protected TokenStreamFactory limitedFactory(StreamReadConstraints constraints) {
+        LoadSettings settings = LoadSettings.builder()
+                .setCodePointLimit((int) Math.min(constraints.getMaxDocumentLength(), Integer.MAX_VALUE))
+                .build();
+        return ((YAMLFactory) getFactory()).rebuild()
+                .streamReadConstraints(constraints)
+                .loadSettings(settings)
+                .build();
     }
 }

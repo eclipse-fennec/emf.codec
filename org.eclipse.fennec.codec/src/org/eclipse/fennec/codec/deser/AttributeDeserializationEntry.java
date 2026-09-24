@@ -1073,10 +1073,11 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     private List<Object> readJsonArrayAsCollection(JsonParser parser, DeserializationContext ctxt, int depth) {
         List<Object> list = new ArrayList<>();
         boolean limitExceeded = false;
+        int maxCollectionSize = ContextHelper.getMaxCollectionSize(ctxt);
 
         while (TokenLoops.hasNextElement(parser)) {
-            if (!limitExceeded && list.size() >= MAX_COLLECTION_SIZE) {
-                String msg = "Array exceeds maximum size: " + MAX_COLLECTION_SIZE;
+            if (!limitExceeded && list.size() >= maxCollectionSize) {
+                String msg = "Array exceeds maximum size: " + maxCollectionSize;
                 LOGGER.warning(msg);
                 ContextHelper.addWarning(ctxt, msg, parser, "AttributeDeserializationEntry");
                 limitExceeded = true;
@@ -1101,10 +1102,11 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
     private Map<String, Object> readJsonObjectAsMap(JsonParser parser, DeserializationContext ctxt, int depth) {
         Map<String, Object> map = new LinkedHashMap<>();
         boolean limitExceeded = false;
+        int maxCollectionSize = ContextHelper.getMaxCollectionSize(ctxt);
 
         while (TokenLoops.hasNextField(parser)) {
-            if (!limitExceeded && map.size() >= MAX_COLLECTION_SIZE) {
-                String msg = "Object exceeds maximum size: " + MAX_COLLECTION_SIZE;
+            if (!limitExceeded && map.size() >= maxCollectionSize) {
+                String msg = "Object exceeds maximum size: " + maxCollectionSize;
                 LOGGER.warning(msg);
                 ContextHelper.addWarning(ctxt, msg, parser, "AttributeDeserializationEntry");
                 limitExceeded = true;

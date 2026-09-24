@@ -19,7 +19,9 @@ import org.eclipse.fennec.codec.format.impl.JacksonStreamFormatDelegate;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.format.FormatDelegate;
 import org.eclipse.fennec.codec.format.FormatReaderDelegate;
@@ -29,6 +31,7 @@ import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.ObjectReadContext;
 import tools.jackson.core.ObjectWriteContext;
+import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.TokenStreamFactory;
 
 /**
@@ -117,8 +120,40 @@ public class JacksonFormatProvider implements CodecFormatProvider<InputStream, O
 
     @Override
     public FormatReaderDelegate<InputStream> createReader(InputStream source) throws IOException {
-        JsonParser parser = factory.createParser(
-                ObjectReadContext.empty(), source);
+        return createReader(factory, source);
+    }
+
+    /**
+     * Creates a reader bounded by the read limits of this load (issue #232).
+     * <p>
+     * The parser comes from this provider's own factory, so the limits {@code CodecResource}
+     * resolved never reached it before: CBOR and YAML ran on Jackson's defaults. The factory is
+     * rebuilt with the handed-over {@code StreamReadConstraints} for this one reader.
+     * </p>
+     */
+    @Override
+    public FormatReaderDelegate<InputStream> createReader(InputStream source, Map<String, Object> loadOptions)
+            throws IOException {
+        Object limits = loadOptions == null ? null : loadOptions.get(CodecOptions.INTERNAL_STREAM_READ_CONSTRAINTS);
+        TokenStreamFactory readFactory = limits instanceof StreamReadConstraints constraints
+                ? limitedFactory(constraints) : factory;
+        return createReader(readFactory, source);
+    }
+
+    /**
+     * Returns a factory like this provider's, bounded by the given limits. A format whose parser
+     * enforces a limit through its own setting overrides this to map it there as well - YAML
+     * bounds the document size by its code point limit, not by {@code maxDocumentLength}.
+     *
+     * @param constraints the read limits of this load
+     * @return the factory to parse this load with
+     */
+    protected TokenStreamFactory limitedFactory(StreamReadConstraints constraints) {
+        return factory.rebuild().streamReadConstraints(constraints).build();
+    }
+
+    private static FormatReaderDelegate<InputStream> createReader(TokenStreamFactory readFactory, InputStream source) {
+        JsonParser parser = readFactory.createParser(ObjectReadContext.empty(), source);
         JacksonStreamFormatReaderDelegate delegate = new JacksonStreamFormatReaderDelegate(parser);
         delegate.setSource(source);
         return delegate;

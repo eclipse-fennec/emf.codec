@@ -20,6 +20,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.config.TypeConfig;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
@@ -50,6 +51,12 @@ public final class ContextHelper {
 
     /** Context attribute key for the diagnostic collector */
     public static final String DIAGNOSTIC_COLLECTOR = "CODEC_DIAGNOSTIC_COLLECTOR";
+
+    /**
+     * Context attribute key for the maximum size of an untyped collection of this load
+     * ({@code codec.maxCollectionSize}, issue #232). Absent means the default.
+     */
+    public static final String MAX_COLLECTION_SIZE = "CODEC_MAX_COLLECTION_SIZE";
 
     /**
      * Context attribute key for suppressing type serialization.
@@ -828,6 +835,23 @@ public final class ContextHelper {
      *
      * @param ctxt the deserialization context, may be null where no context is in play
      * @return the diagnostic collector, or null if not set
+     */
+    /**
+     * Gets the maximum size of an untyped collection for this load.
+     *
+     * @param ctxt the deserialization context (may be {@code null})
+     * @return the configured limit, or {@code CodecOptions.DEFAULT_MAX_COLLECTION_SIZE}
+     */
+    public static int getMaxCollectionSize(DeserializationContext ctxt) {
+        Object value = ctxt == null ? null : ctxt.getAttribute(MAX_COLLECTION_SIZE);
+        return value instanceof Integer size ? size : CodecOptions.DEFAULT_MAX_COLLECTION_SIZE;
+    }
+
+    /**
+     * Gets the diagnostic collector from the deserialization context.
+     *
+     * @param ctxt the deserialization context
+     * @return the collector, or {@code null} if none is set
      */
     public static DiagnosticCollector getDiagnosticCollector(DeserializationContext ctxt) {
         if (ctxt == null) {

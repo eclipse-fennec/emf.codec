@@ -142,23 +142,23 @@ public class CodecResource extends ResourceImpl {
     public static final String CODEC_ROOT_FINGERPRINT = CodecOptions.CODEC_ROOT_FINGERPRINT;
 
     /**
-     * Hardened Jackson stream read constraints for all codec parsing.
+     * The default read limits as Jackson stream read constraints - the limits of a load that
+     * sets no {@code codec.max*} option.
      * <p>
-     * Security: CWE-400 (S-6). Tighter than Jackson 3.1.0 defaults:
+     * Security: CWE-400 (S-6). Tighter than Jackson's defaults:
      * <ul>
+     *   <li>Max document size: 16 MiB (Jackson default: unlimited)</li>
      *   <li>Max nesting depth: 500 (Jackson default: 1000) — higher than codec's own
      *       {@code MAX_NESTING_DEPTH} (200) so the codec's graceful recovery (skipChildren +
      *       warning diagnostic) triggers first; Jackson acts as a hard backstop.</li>
      *   <li>Max string length: 10 MB (Jackson default: 20 MB)</li>
      *   <li>Max field name length: 10 KB (Jackson default: 50 KB)</li>
      * </ul>
+     * Each load resolves its own limits from the load options (issue #232), see
+     * {@link ReadLimits}; the save side keeps these defaults.
      * </p>
      */
-    static final StreamReadConstraints STREAM_READ_CONSTRAINTS = StreamReadConstraints.builder()
-            .maxNestingDepth(500)
-            .maxStringLength(10_000_000)
-            .maxNameLength(10_000)
-            .build();
+    static final StreamReadConstraints STREAM_READ_CONSTRAINTS = ReadLimits.DEFAULTS.constraints();
 
     private final MetadataService metadataService;
     private final ConfigurationResolver resolver;
@@ -405,6 +405,12 @@ public class CodecResource extends ResourceImpl {
             loadContents(inputStream, options, diagnosticCollector);
         } catch (RuntimeException e) {
             throw operationFailure(e, diagnosticCollector);
+        } catch (StackOverflowError e) {
+            // Last line of defence (issue #232): the nesting limit should stop a document long
+            // before this, but an Error would escape every caller catching IOException.
+            String message = "Load of " + getURI() + " exceeded the stack - the document nests too deeply";
+            diagnosticCollector.addError(message, "CodecResource");
+            throw new IOException(message, e);
         } finally {
             diagnosticCollector.addToResource(this);
         }
@@ -427,6 +433,9 @@ public class CodecResource extends ResourceImpl {
 
         Map<String, Object> mergedOptions = (Map<String, Object>) mergeOptions(effectiveOptions);
 
+        // The read limits of this load (issue #232), checked before anything is parsed
+        ReadLimits limits = ReadLimits.resolve(mergedOptions);
+
         // Enrich resolver with load options (highest priority in config hierarchy)
         ConfigurationResolver operationResolver = enrichWithOptions(resolver, mergedOptions);
 
@@ -434,7 +443,7 @@ public class CodecResource extends ResourceImpl {
                 diagnosticCollector);
 
         if (formatProvider != null) {
-            doLoadWithFormat(inputStream, mergedOptions, rootEClassHint, operationResolver,
+            doLoadWithFormat(inputStream, mergedOptions, limits, rootEClassHint, operationResolver,
                     packageResolver, diagnosticCollector);
             return;
         }
@@ -450,7 +459,7 @@ public class CodecResource extends ResourceImpl {
 
         CodecJsonFactory codecFactory = (CodecJsonFactory) CodecJsonFactory.builder()
         		.effectiveConfig(effectiveConfig)
-                .streamReadConstraints(STREAM_READ_CONSTRAINTS)                
+                .streamReadConstraints(limits.constraints())
                 .build();
 
         List<UnresolvedReference> unresolvedReferences = new ArrayList<>();
@@ -458,6 +467,7 @@ public class CodecResource extends ResourceImpl {
         var reader = mapper.readerFor(EObject.class)
                 .withAttribute(ContextHelper.UNRESOLVED_REFERENCES, unresolvedReferences)
                 .withAttribute(ContextHelper.DIAGNOSTIC_COLLECTOR, diagnosticCollector)
+                .withAttribute(ContextHelper.MAX_COLLECTION_SIZE, limits.maxCollectionSize())
                 .withAttribute(ContextHelper.PACKAGE_RESOLVER, packageResolver)
                 // B.1/K7: the read-side fingerprint key comes from caller-side options only.
                 // Seeding it here, instead of letting the deserializer resolve it from the
@@ -687,15 +697,19 @@ public class CodecResource extends ResourceImpl {
 
     @SuppressWarnings("unchecked")
     private <S> void doLoadWithFormat(InputStream inputStream, Map<String, Object> mergedOptions,
-            EClass rootEClassHint, ConfigurationResolver operationResolver,
+            ReadLimits limits, EClass rootEClassHint, ConfigurationResolver operationResolver,
             PackageResolver packageResolver, DiagnosticCollector diagnosticCollector)
             throws IOException {
 
         CodecFormatProvider<S, ?> provider = (CodecFormatProvider<S, ?>) formatProvider;
-        FormatReaderDelegate<S> delegate = provider.createReader((S) inputStream);
+        // The provider parses with its own machinery, so it gets the limits handed over and
+        // maps them onto its format's own settings (issue #232)
+        Map<String, Object> readerOptions = new HashMap<>(mergedOptions);
+        readerOptions.put(CodecOptions.INTERNAL_STREAM_READ_CONSTRAINTS, limits.constraints());
+        FormatReaderDelegate<S> delegate = provider.createReader((S) inputStream, readerOptions);
 
         IOContext ioCtxt = new IOContext(
-                STREAM_READ_CONSTRAINTS,
+                limits.constraints(),
                 StreamWriteConstraints.defaults(),
                 ErrorReportConfiguration.defaults(),
                 new BufferRecycler(),
@@ -706,6 +720,7 @@ public class CodecResource extends ResourceImpl {
         var reader = mapper.readerFor(EObject.class)
                 .withAttribute(ContextHelper.UNRESOLVED_REFERENCES, unresolvedReferences)
                 .withAttribute(ContextHelper.DIAGNOSTIC_COLLECTOR, diagnosticCollector)
+                .withAttribute(ContextHelper.MAX_COLLECTION_SIZE, limits.maxCollectionSize())
                 .withAttribute(ContextHelper.RESOURCE, this)
                 .withAttribute(ContextHelper.PACKAGE_RESOLVER, packageResolver)
                 // B.1/K7: the read-side fingerprint key comes from caller-side options only.
