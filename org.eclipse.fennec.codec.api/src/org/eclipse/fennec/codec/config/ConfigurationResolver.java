@@ -161,17 +161,28 @@ public final class ConfigurationResolver {
     private final Set<EStructuralFeature> forceReadFeatures;
 
     private ConfigurationResolver(Builder builder) {
-        this.optionsProperties = builder.optionsProperties;
-        this.resourceProperties = builder.resourceProperties;
-        this.factoryProperties = builder.factoryProperties;
-        this.moduleProperties = builder.moduleProperties;
-        this.annotationProperties = builder.annotationProperties;
+        // Own copies: neither the builder nor a toBuilder() derived from this resolver may change
+        // it after it is built - its config caches would go stale (issue #230)
+        this.optionsProperties = frozenCopy(builder.optionsProperties);
+        this.resourceProperties = frozenCopy(builder.resourceProperties);
+        this.factoryProperties = frozenCopy(builder.factoryProperties);
+        this.moduleProperties = frozenCopy(builder.moduleProperties);
+        this.annotationProperties = frozenCopy(builder.annotationProperties);
         this.forceWriteFeatures = builder.forceWriteFeatures != null
                 ? Set.copyOf(builder.forceWriteFeatures)
                 : Set.of();
         this.forceReadFeatures = builder.forceReadFeatures != null
                 ? Set.copyOf(builder.forceReadFeatures)
                 : Set.of();
+    }
+
+    /**
+     * An unmodifiable copy that keeps {@code null} values ({@code Map.copyOf} rejects them), or
+     * {@code null} for an absent level. The copy is shallow: nested maps, like the
+     * {@code eReferenceConfig} entries, are shared.
+     */
+    private static Map<String, Object> frozenCopy(Map<String, Object> source) {
+        return source == null ? null : Collections.unmodifiableMap(new HashMap<>(source));
     }
 
     /**
@@ -1373,42 +1384,67 @@ public final class ConfigurationResolver {
         private Builder() {}
 
         /**
-         * Sets load/save options properties (highest priority).
+         * Adds load/save options properties (highest priority).
+         * <p>
+         * The entries are copied into a map this builder owns, so the caller's map is never
+         * written to and call order only matters for the same key: the later call wins, whether
+         * it is this one or a convenience setter. {@code null} changes nothing (issue #230).
+         * </p>
          */
         public Builder optionsProperties(Map<String, Object> optionsProperties) {
-            this.optionsProperties = optionsProperties;
+            this.optionsProperties = copyInto(this.optionsProperties, optionsProperties);
             return this;
         }
 
         /**
-         * Sets resource-level properties.
+         * Adds resource-level properties.
+         * <p>
+         * The entries are copied into a map this builder owns, so the caller's map is never
+         * written to and call order only matters for the same key: the later call wins, whether
+         * it is this one or a convenience setter. {@code null} changes nothing (issue #230).
+         * </p>
          */
         public Builder resourceProperties(Map<String, Object> resourceProperties) {
-            this.resourceProperties = resourceProperties;
+            this.resourceProperties = copyInto(this.resourceProperties, resourceProperties);
             return this;
         }
 
         /**
-         * Sets factory-level properties.
+         * Adds factory-level properties.
+         * <p>
+         * The entries are copied into a map this builder owns, so the caller's map is never
+         * written to and call order only matters for the same key: the later call wins, whether
+         * it is this one or a convenience setter. {@code null} changes nothing (issue #230).
+         * </p>
          */
         public Builder factoryProperties(Map<String, Object> factoryProperties) {
-            this.factoryProperties = factoryProperties;
+            this.factoryProperties = copyInto(this.factoryProperties, factoryProperties);
             return this;
         }
 
         /**
-         * Sets module-level properties.
+         * Adds module-level properties.
+         * <p>
+         * The entries are copied into a map this builder owns, so the caller's map is never
+         * written to and call order only matters for the same key: the later call wins, whether
+         * it is this one or a convenience setter. {@code null} changes nothing (issue #230).
+         * </p>
          */
         public Builder moduleProperties(Map<String, Object> moduleProperties) {
-            this.moduleProperties = moduleProperties;
+            this.moduleProperties = copyInto(this.moduleProperties, moduleProperties);
             return this;
         }
 
         /**
-         * Sets annotation-derived properties (from EAnnotations).
+         * Adds annotation-derived properties (from EAnnotations).
+         * <p>
+         * The entries are copied into a map this builder owns, so the caller's map is never
+         * written to and call order only matters for the same key: the later call wins, whether
+         * it is this one or a convenience setter. {@code null} changes nothing (issue #230).
+         * </p>
          */
         public Builder annotationProperties(Map<String, Object> annotationProperties) {
-            this.annotationProperties = annotationProperties;
+            this.annotationProperties = copyInto(this.annotationProperties, annotationProperties);
             return this;
         }
 
@@ -2132,6 +2168,15 @@ public final class ConfigurationResolver {
         // ====================================================================
         // Helper Methods
         // ====================================================================
+
+        private static Map<String, Object> copyInto(Map<String, Object> target, Map<String, Object> source) {
+            if (source == null) {
+                return target;
+            }
+            Map<String, Object> owned = target != null ? target : new HashMap<>();
+            owned.putAll(source);
+            return owned;
+        }
 
         private void ensureResourceProperties() {
             if (resourceProperties == null) {
