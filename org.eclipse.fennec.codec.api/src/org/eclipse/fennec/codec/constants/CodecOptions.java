@@ -529,12 +529,6 @@ public final class CodecOptions {
     public static final String CODEC_KEY = "codec.key";
 
     /**
-     * Whether to serialize this feature.
-     * <p>Default: true</p>
-     */
-    public static final String CODEC_SERIALIZE = "codec.serialize";
-
-    /**
      * Whether to serialize null values.
      * <p>Default: false</p>
      */

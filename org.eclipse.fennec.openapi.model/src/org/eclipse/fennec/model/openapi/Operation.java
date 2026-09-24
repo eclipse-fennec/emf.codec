@@ -65,7 +65,7 @@ public interface Operation extends EObject {
 	 * @see org.eclipse.fennec.model.openapi.HttpMethod
 	 * @see #setMethod(HttpMethod)
 	 * @see org.eclipse.fennec.model.openapi.OpenApiPackage#getOperation_Method()
-	 * @model annotation="http://eclipse.org/fennec/codec serialize='false'"
+	 * @model annotation="http://eclipse.org/fennec/codec ignoreWrite='true'"
 	 * @generated
 	 */
 	HttpMethod getMethod();

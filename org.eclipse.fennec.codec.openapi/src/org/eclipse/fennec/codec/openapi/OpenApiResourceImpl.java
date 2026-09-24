@@ -59,7 +59,6 @@ public class OpenApiResourceImpl extends CodecResource {
 	private static ConfigurationResolver createResolver() {
 		return ConfigurationResolver.builder()
 				.typeInclude(false)  // OpenAPI doesn't use _type for root
-				.globalIgnore("method")  // Set by OperationValueReader, not serialized
 				.build();
 	}
 }

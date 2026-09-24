@@ -172,7 +172,7 @@
         <details key="documentation" value="HTTP method of this operation. Set by deserializer based on PathItem key, not serialized."/>
       </eAnnotations>
       <eAnnotations source="http://eclipse.org/fennec/codec">
-        <details key="serialize" value="false"/>
+        <details key="ignoreWrite" value="true"/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="tags" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>

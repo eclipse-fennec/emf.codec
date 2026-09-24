@@ -285,8 +285,6 @@ Each annotation key should have a test verifying it's parsed correctly.
 | Annotation Key | Test Method | Status |
 |----------------|-------------|--------|
 | `key` | `testBuildAttributeAspectWithCustomKey`, `testBuildReferenceAspectWithCustomKey` | ✅ |
-| `transient` | `testBuildAttributeAspectWithTransient`, `testBuildReferenceAspectWithTransient` | ✅ |
-| `serialize` | `testBuildAttributeAspectWithExplicitSerialize`, `testBuildAttributeAspectWithSerializeFalse`, `testBuildAttributeAspectSerializeOverridesTransient` | ✅ |
 | `serializeNull` | `testBuildAttributeAspectWithSerializeNull` | ✅ |
 | `serializeEmpty` | `testBuildAttributeAspectWithSerializeEmpty` | ✅ |
 | `serializeDefaults` | `testBuildAttributeAspectWithSerializeDefaults` | ✅ |
