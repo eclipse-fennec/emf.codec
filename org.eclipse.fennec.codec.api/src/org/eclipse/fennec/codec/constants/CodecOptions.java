@@ -544,10 +544,9 @@ public final class CodecOptions {
      * Whether to serialize values that equal the feature's default.
      * <p>Default: false</p>
      * <p>
-     * The key is singular, matching {@code ConfigProperty.SERIALIZE_DEFAULT} and the two
-     * siblings above. The ecore annotation detail key is plural ({@code serializeDefaults},
-     * after the {@code FeatureCodecAspect} attribute it sets) and is bridged onto this one -
-     * an EAnnotation needs the plural, a property map this singular key.
+     * The key is singular, matching {@code ConfigProperty.SERIALIZE_DEFAULT}, the two siblings
+     * above and the ecore annotation detail key {@code serializeDefault} (singular since
+     * issue #222; the former plural {@code serializeDefaults} is no longer read).
      * </p>
      */
     public static final String CODEC_SERIALIZE_DEFAULT = "codec.serializeDefault";

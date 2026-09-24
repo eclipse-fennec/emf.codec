@@ -67,8 +67,9 @@ are a caller's own and are never judged, and so are format-namespaced keys
 A format bundle whose key does not fit that namespace can declare it with
 `KnownOptionKeys.register(...)` so it is not reported.
 
-One EAnnotation detail key departs from its option key — `serializeDefaults` (plural) sets the
-option `codec.serializeDefault` (singular); see spec §11.
+Every EAnnotation detail key matches its option key. The last exception, the plural annotation
+key `serializeDefaults`, became `serializeDefault` like its option (#222); the plural is no longer
+read.
 
 ---
 

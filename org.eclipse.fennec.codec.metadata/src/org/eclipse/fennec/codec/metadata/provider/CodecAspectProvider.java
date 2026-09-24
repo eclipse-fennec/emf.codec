@@ -42,7 +42,7 @@ import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstant
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_REF_FORMAT;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_REF_KEY;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_REF_TYPE_KEY;
-import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_SERIALIZE_DEFAULTS;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_SERIALIZE_DEFAULT;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_SERIALIZE_EMPTY;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_SERIALIZE_NULL;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_METADATA_KEY;
@@ -684,10 +684,10 @@ public class CodecAspectProvider implements MetadataHandler {
             AnnotationParseHelper.ifBooleanPresent(details, KEY_FORCE_READ, aspect::setForceRead);
             AnnotationParseHelper.ifBooleanPresent(details, KEY_FORCE_WRITE, aspect::setForceWrite);
 
-            // Parse serializeNull, serializeEmpty, serializeDefaults
+            // Parse serializeNull, serializeEmpty, serializeDefault
             AnnotationParseHelper.ifBooleanPresent(details, KEY_SERIALIZE_NULL, aspect::setSerializeNull);
             AnnotationParseHelper.ifBooleanPresent(details, KEY_SERIALIZE_EMPTY, aspect::setSerializeEmpty);
-            AnnotationParseHelper.ifBooleanPresent(details, KEY_SERIALIZE_DEFAULTS, aspect::setSerializeDefaults);
+            AnnotationParseHelper.ifBooleanPresent(details, KEY_SERIALIZE_DEFAULT, aspect::setSerializeDefaults);
 
             // Parse value writer/reader names
             AnnotationParseHelper.ifStringPresent(details, KEY_VALUE_WRITER_NAME, aspect::setValueWriterName);

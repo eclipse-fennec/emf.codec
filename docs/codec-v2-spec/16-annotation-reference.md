@@ -1401,12 +1401,12 @@ Deserialization:
 | `key` | `codec.key` | ❌ | ❌ | ❌ | ✅ | ✅ | Custom JSON property name |
 | `serializeNull` | `codec.serializeNull` | ✅ | ❌ | ❌ | ✅ | ✅ | Include null values (**default:** `false`) |
 | `serializeEmpty` | `codec.serializeEmpty` | ✅ | ❌ | ❌ | ✅ | ✅ | Include empty collections (**default:** `false`) |
-| `serializeDefaults` | `codec.serializeDefault` | ✅ | ❌ | ❌ | ✅ | ✅ | Include default values (**default:** `false`) |
+| `serializeDefault` | `codec.serializeDefault` | ✅ | ❌ | ❌ | ✅ | ✅ | Include default values (**default:** `false`) |
 | `enumSerialization` | `codec.enumSerialization` | ✅ | ❌ | ❌ | ❌ | ✅ | How to serialize enum values |
 | `valueReaderName` | `codec.valueReaderName` | ❌ | ❌ | ❌ | ✅ | ✅ | Custom value reader service name |
 | `valueWriterName` | `codec.valueWriterName` | ❌ | ❌ | ❌ | ✅ | ✅ | Custom value writer service name |
 
-**Implementation:** `CodecAnnotationConstants.KEY_KEY`, `KEY_IGNORE`, `KEY_IGNORE_READ`, `KEY_IGNORE_WRITE`, `KEY_FORCE_READ`, `KEY_FORCE_WRITE`, `KEY_SERIALIZE_NULL`, `KEY_SERIALIZE_EMPTY`, `KEY_SERIALIZE_DEFAULTS`, `KEY_VALUE_READER_NAME`, `KEY_VALUE_WRITER_NAME`, `KEY_ENUM_SERIALIZATION`
+**Implementation:** `CodecAnnotationConstants.KEY_KEY`, `KEY_IGNORE`, `KEY_IGNORE_READ`, `KEY_IGNORE_WRITE`, `KEY_FORCE_READ`, `KEY_FORCE_WRITE`, `KEY_SERIALIZE_NULL`, `KEY_SERIALIZE_EMPTY`, `KEY_SERIALIZE_DEFAULT`, `KEY_VALUE_READER_NAME`, `KEY_VALUE_WRITER_NAME`, `KEY_ENUM_SERIALIZATION`
 
 ### EnumSerialization Values
 | Value | Description |
@@ -1861,7 +1861,7 @@ explicit `false` at the feature scope overrides a `true` from a wider one.
 | `forceWrite` | ✅ `KEY_FORCE_WRITE` | ✅ `FeatureCodecAspect.forceWrite` | ✅ | ❌ | ✅ | ✅ |
 | `serializeNull` | ✅ `KEY_SERIALIZE_NULL` | ✅ `BaseFeatureConfig.serializeNull` | ✅ | ✅ | ✅ | ✅ |
 | `serializeEmpty` | ✅ `KEY_SERIALIZE_EMPTY` | ✅ `BaseFeatureConfig.serializeEmpty` | ✅ | ✅ | ✅ | ✅ |
-| `serializeDefaults` | ✅ `KEY_SERIALIZE_DEFAULTS` | ✅ `BaseFeatureConfig.serializeDefaults` | ✅ | ✅ | ✅ | ✅ |
+| `serializeDefault` | ✅ `KEY_SERIALIZE_DEFAULT` (plural removed, #222) | ✅ `BaseFeatureConfig.serializeDefaults` | ✅ | ✅ | ✅ | ✅ |
 | `enumSerialization` | ✅ `KEY_ENUM_SERIALIZATION` | ✅ `BaseFeatureConfig.enumSerialization` | ✅ | ✅ | ✅ | ✅ |
 | `valueReaderName` | ✅ `KEY_VALUE_READER_NAME` | ✅ `FeatureSerializationConfig.valueReaderName` | ✅ | ✅ | ✅ | ✅ |
 | `valueWriterName` | ✅ `KEY_VALUE_WRITER_NAME` | ✅ `FeatureSerializationConfig.valueWriterName` | ✅ | ✅ | ✅ | ✅ |

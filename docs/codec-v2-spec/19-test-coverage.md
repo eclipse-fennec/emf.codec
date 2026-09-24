@@ -287,7 +287,7 @@ Each annotation key should have a test verifying it's parsed correctly.
 | `key` | `testBuildAttributeAspectWithCustomKey`, `testBuildReferenceAspectWithCustomKey` | ✅ |
 | `serializeNull` | `testBuildAttributeAspectWithSerializeNull` | ✅ |
 | `serializeEmpty` | `testBuildAttributeAspectWithSerializeEmpty` | ✅ |
-| `serializeDefaults` | `testBuildAttributeAspectWithSerializeDefaults` | ✅ |
+| `serializeDefault` | `validConfig_serializeDefault_parsedCorrectly`, `validConfig_pluralSerializeDefaults_notRead` | ✅ |
 | `enumSerialization` | `testBuildAttributeAspectWithEnumLiteralStrategy`, `testBuildAttributeAspectWithEnumValueStrategy`, `testBuildAttributeAspectWithEnumNameStrategy` | ✅ |
 | `valueReaderName` | `testBuildAttributeAspectWithValueReader`, `testBuildAttributeAspectWithBothReaderAndWriter` | ✅ |
 | `valueWriterName` | `testBuildAttributeAspectWithValueWriter`, `testBuildAttributeAspectWithBothReaderAndWriter` | ✅ |

@@ -567,8 +567,12 @@ public final class CodecAnnotationConstants {
     /**
      * Detail key for whether to serialize default values for this feature.
      * Value: "true" or "false". Default: "false" (codec default).
+     * <p>
+     * Singular, like its option pair {@code codec.serializeDefault}. The former plural
+     * {@code serializeDefaults} was removed without an alias (issue #222).
+     * </p>
      */
-    public static final String KEY_SERIALIZE_DEFAULTS = "serializeDefaults";
+    public static final String KEY_SERIALIZE_DEFAULT = "serializeDefault";
 
     /**
      * Detail key for enum serialization strategy on enum-typed features.
