@@ -98,7 +98,7 @@ Extending the codec and practical examples.
 
 ### [17 - Format Abstraction](17-format-abstraction.md)
 
-The codec's format-agnostic architecture that enables JSON, BSON, CSV, and custom formats. Covers the stream abstraction interfaces (CodecStreamReader/Writer), token model, format adapters, JSON Schema integration, and the OpenAPI extension example.
+How JSON, CBOR, YAML, BSON and the tabular formats plug in under the codec: `CodecFormatProvider` with its reader/writer delegates, the token model, the Jackson bridge (`FormatDelegateParser`/`-Generator`), native types, resource factories and read limits - plus the GeoJSON, JSON Schema and OpenAPI extensions.
 
 ### [18 - Configuration Scenarios](18-scenarios.md)
 

@@ -2121,7 +2121,7 @@ All tests pass with 0 failures, 0 errors, 0 skipped.
 | `12-feature-serialization.md` | Feature visibility model, gates |
 | `15-error-handling.md` | Diagnostics, validation rules |
 | `16-annotation-reference.md` | Complete property reference |
-| `17-format-abstraction.md` | PLAIN vs STRUCTURED formats |
+| `17-format-abstraction.md` | Format providers, Jackson bridge, resource factories, extensions |
 
 ### 4.2 Architecture Documents
 

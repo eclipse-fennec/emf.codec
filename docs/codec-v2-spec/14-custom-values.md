@@ -932,7 +932,7 @@ CodecConfiguration config = CodecConfiguration.builder()
 
 The `schemas` object is automatically converted to an `EPackage` with an `EClass` named "Person".
 
-**For complete OpenAPI support documentation, see [Chapter 17: OpenAPI Support](17-format-abstraction.md).**
+**For complete OpenAPI support documentation, see [Chapter 17 §12: OpenAPI Integration Example](17-format-abstraction.md).**
 
 ---
 
