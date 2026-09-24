@@ -152,11 +152,10 @@ class ForceWriteTest {
             assertNotNull(dataValue, "Point.data should return array");
             assertTrue(dataValue instanceof double[], "data should be double[]");
             double[] data = (double[]) dataValue;
-            // GeoJSON model always returns [lon, lat, elevation] even when elevation not set (defaults to 0.0)
-            assertEquals(3, data.length, "coordinates should have 3 elements (lon, lat, elevation)");
+            // The model writes the elevation only when it is set (common.models#26, RFC 7946 §3.1.1)
+            assertEquals(2, data.length, "coordinates without elevation have 2 elements (lon, lat)");
             assertEquals(8.6821, data[0], 0.0001, "longitude");
             assertEquals(50.1109, data[1], 0.0001, "latitude");
-            assertEquals(0.0, data[2], 0.0001, "elevation (default)");
 
             // Create resolver with forceWrite for volatile features
             List<EStructuralFeature> allVolatile = new ArrayList<>();
