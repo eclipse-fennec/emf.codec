@@ -86,7 +86,6 @@ public class GeoJsonResourceImpl extends CodecResource {
 	private static ConfigurationResolver createGeoJsonResolver() {
 		List<EStructuralFeature> volatileFeatures = collectVolatileFeatures();
 
-		// First: resourceProperties replaces the map the convenience setters below write into
 		return ConfigurationResolver.builder()
 				.resourceProperties(createRequiredMemberProperties())
 				.typeKey("type")

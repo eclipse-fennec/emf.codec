@@ -4,6 +4,20 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-24
 
+**Session Summary (2026-09-24, end) — issue #230: builder property maps are copied:**
+
+- `ConfigurationResolver.Builder.{options,resource,factory,module,annotation}Properties(map)`
+  adopted the caller's map by reference - the same map the convenience setters (`typeKey`,
+  `serializeNull`, …) `put` into. A setter called before it was silently lost, the caller's map was
+  written to (`Map.of` → `UnsupportedOperationException`), and `toBuilder()` handed a built
+  resolver's maps to a new builder that changed the original behind its config caches.
+- Now each setter copies into a builder-owned map (`putAll`; later call wins per key; `null` is a
+  no-op), and the constructor stores unmodifiable copies (`frozenCopy`, keeps `null` values;
+  shallow - nested maps like `eReferenceConfig` entries are still shared). The `toBuilder()` callers
+  (`CodecResource.enrichWithOptions`, `JsonSchemaResourceImpl.enrichWithSaveOptions`) already pass
+  the merged superset, so they behave the same. The order comment in `GeoJsonResourceImpl` is gone.
+- **Tests:** `BuilderPropertyMapsTest` (9) in `codec.api`.
+
 **Session Summary (2026-09-24, later) — issue #228: RFC 7946 members, and the model rounds behind it:**
 
 - **Required members are written when empty.** `GeoJsonResourceImpl` sets per-feature
@@ -11,9 +25,8 @@ This document provides context for continuing codec development across sessions.
   `FeatureCollection.features`, `GeometryCollection.geometries` and the list-valued `data` of
   MultiPoint and LineString, through `EREFERENCE_CONFIG`/`EATTRIBUTE_CONFIG` in the resolver's
   resource properties. Point, MultiLineString and MultiPolygon hold their coordinates in an array,
-  which the value gate never drops. **Builder trap:** `ConfigurationResolver.Builder.resourceProperties(map)`
-  replaces the map the convenience setters (`typeKey`, `typeStrategy`, …) write into, so it has to
-  come first in the chain - otherwise the GeoJSON keys silently fall back to `_type`/`data`.
+  which the value gate never drops. The builder trap met here
+  (`resourceProperties(map)` replacing what the convenience setters wrote) is fixed by #230.
 - **A number into a string attribute becomes its text** (`AttributeDeserializationEntry`): a
   GeoJSON `"id": 42` (RFC 7946 §3.2) failed with a `ClassCastException`. Integers keep every digit;
   floats may arrive normalised (`1.50` → `"1.5"`). Silent, like string → number always was.
