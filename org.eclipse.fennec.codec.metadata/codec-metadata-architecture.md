@@ -405,7 +405,6 @@ public final class CodecAnnotationConstants {
     // Helper methods
     public static boolean isTypeMapAnnotation(String source);
     public static String extractMapId(String source);
-    public static String extractStaticDiscriminatorValue(String key);
 }
 ```
 

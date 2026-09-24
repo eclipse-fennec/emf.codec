@@ -1886,7 +1886,7 @@ explicit `false` at the feature scope overrides a `true` from a wider one.
 | `typeMapId` | ✅ `KEY_TYPE_MAP_ID` | ✅ `TypeSerializationConfig.mapId` | ✅ | ✅ | ✅ | ✅ |
 | `typeDiscriminator` | ✅ `KEY_TYPE_DISCRIMINATOR` | ✅ `TypeSerializationConfig.discriminatorValue` | ✅ | ✅ | ✅ | ✅ |
 | `typeDiscriminatorPath` | ✅ `KEY_TYPE_DISCRIMINATOR_PATH` | ✅ `TypeSerializationConfig.discriminatorPath` | ✅ | ✅ | ✅ | ✅ |
-| `typeDiscriminator.*` (prefix) | ✅ `KEY_TYPE_DISCRIMINATOR_PREFIX` | ✅ | ✅ | ✅ | ✅ | 🔶 |
+| `typeMapping/{mapId}` source | ✅ `TYPE_MAPPING_SOURCE_PREFIX` | ✅ | ✅ `parseTypeMappingAnnotations` | ✅ | ✅ | ✅ |
 | `fallbackStrategy` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `fallbackEClass` | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 
@@ -1894,10 +1894,13 @@ explicit `false` at the feature scope overrides a `true` from a wider one.
 
 | Property | Annotation Constant | EMF Model | AspectProvider | Codec v2 | Tests | Spec |
 |----------|:-------------------:|:---------:|:--------------:|:--------:|:-----:|:----:|
-| `inlineMapping.*` (prefix) | ✅ `KEY_INLINE_MAPPING_PREFIX` | ✅ `InlineTypeMapping` | ✅ | ✅ | ✅ | 🔶 |
-| Dedicated annotation source | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Dedicated annotation source (on EReference) | ✅ `INLINE_MAPPING_SOURCE` | ✅ `InlineTypeMapping` | ✅ `TypeDiscriminatorService` | ✅ | ✅ | ✅ |
 
-**Note:** Document proposes dedicated `http://eclipse.org/fennec/codec/inlineMapping` source, but implementation uses prefix-based `inlineMapping.*` in main source.
+**Note:** Inline mappings live in their own source, `http://eclipse.org/fennec/codec/inlineMapping`,
+and type mappings in `http://eclipse.org/fennec/codec/typeMapping/{mapId}`. An earlier dialect put
+them into the main codec source as prefixed keys (`inlineMapping.friend`,
+`typeDiscriminator.Dragino_LSE01`); nothing reads those keys, and their constants and helpers were
+removed (#222).
 
 ### Load/Save Options
 
