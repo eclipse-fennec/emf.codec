@@ -148,8 +148,8 @@ if (AnnotationParseHelper.hasAllKeys(details, "key1", "key2")) { ... }
 
 #### Prefix Extraction
 ```java
-// Extract suffix from prefixed key (e.g., "inlineMapping.friend" -> "friend")
-String suffix = AnnotationParseHelper.extractSuffix(key, "inlineMapping.");
+// Extract suffix from prefixed key (e.g., "prefix.value" -> "value")
+String suffix = AnnotationParseHelper.extractSuffix(key, "prefix.");
 ```
 
 ### 3.5 When to Extract a Helper

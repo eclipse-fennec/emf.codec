@@ -360,21 +360,6 @@ public final class CodecAnnotationConstants {
     public static final String KEY_TYPE_DISCRIMINATOR_PATH = "typeDiscriminatorPath";
 
     /**
-     * Detail key prefix for static type discriminator mappings.
-     * <p>
-     * Used to define complete type mappings upfront on the base class.
-     * Format: typeDiscriminator.{value} = {EClass URI}
-     * </p>
-     *
-     * <h3>Example</h3>
-     * <pre>{@code
-     * <details key="typeDiscriminator.temp-sensor" value="http://example.org#//TemperatureSensor"/>
-     * <details key="typeDiscriminator.humidity-sensor" value="http://example.org#//HumiditySensor"/>
-     * }</pre>
-     */
-    public static final String KEY_TYPE_DISCRIMINATOR_PREFIX = KEY_TYPE_DISCRIMINATOR + ".";
-
-    /**
      * Detail key for custom type value reader name.
      */
     public static final String KEY_TYPE_VALUE_READER_NAME = "typeValueReaderName";
@@ -549,25 +534,6 @@ public final class CodecAnnotationConstants {
      */
     public static final String KEY_EXPAND = "expand";
 
-    /**
-     * Detail key prefix for inline type mappings on references.
-     * <p>
-     * Used to define discriminator-to-EClass mappings directly on an EReference.
-     * Format: inlineMapping.{discriminatorValue} = {EClass URI}
-     * </p>
-     *
-     * <h3>Example</h3>
-     * <pre>{@code
-     * <eStructuralFeatures xsi:type="ecore:EReference" name="contacts">
-     *   <eAnnotations source="http://eclipse.org/fennec/codec">
-     *     <details key="inlineMapping.friend" value="http://example.org#//Friend"/>
-     *     <details key="inlineMapping.enemy" value="http://example.org#//Enemy"/>
-     *   </eAnnotations>
-     * </eStructuralFeatures>
-     * }</pre>
-     */
-    public static final String KEY_INLINE_MAPPING_PREFIX = "inlineMapping.";
-
     // ------------------------------------------------------------------------
     // Feature configuration detail keys
     // ------------------------------------------------------------------------
@@ -692,7 +658,7 @@ public final class CodecAnnotationConstants {
      *   <li>{@link #KEY_TYPE_MAP_ID} - identifies the mapping context</li>
      *   <li>{@link #KEY_TYPE_DISCRIMINATOR_PATH} - which field contains the discriminator (base class)</li>
      *   <li>{@link #KEY_TYPE_DISCRIMINATOR} - the discriminator value (concrete classes)</li>
-     *   <li>{@link #KEY_TYPE_DISCRIMINATOR_PREFIX} - static mappings (base class)</li>
+     *   <li>{@link #TYPE_MAPPING_SOURCE_PREFIX} + map id - the annotation source that carries them</li>
      * </ul>
      * <p>
      * The MetadataService builds a reverse lookup map from discriminator values
@@ -733,74 +699,6 @@ public final class CodecAnnotationConstants {
      * </p>
      */
     public static final String STRATEGY_SUPERTYPE_SINGLE = "SINGLE";
-
-    // ========================================================================
-    // HELPER METHODS
-    // ========================================================================
-
-    /**
-     * Checks if an annotation source is the codec source.
-     *
-     * @param source the annotation source to check
-     * @return true if the source equals {@link #CODEC_SOURCE}
-     */
-    public static boolean isCodecAnnotation(String source) {
-        return CODEC_SOURCE.equals(source);
-    }
-
-    /**
-     * Extracts the discriminator value from a static type discriminator key.
-     * <p>
-     * For example, given {@code "typeDiscriminator.Dragino_LSE01"}, returns {@code "Dragino_LSE01"}.
-     * </p>
-     *
-     * @param key the detail key (e.g., "typeDiscriminator.Dragino_LSE01")
-     * @return the discriminator value, or null if the key is not a static discriminator key
-     */
-    public static String extractStaticDiscriminatorValue(String key) {
-        if (key == null || !key.startsWith(KEY_TYPE_DISCRIMINATOR_PREFIX)) {
-            return null;
-        }
-        String value = key.substring(KEY_TYPE_DISCRIMINATOR_PREFIX.length());
-        return value.isEmpty() ? null : value;
-    }
-
-    /**
-     * Extracts the discriminator value from an inline mapping key.
-     * <p>
-     * For example, given {@code "inlineMapping.friend"}, returns {@code "friend"}.
-     * </p>
-     *
-     * @param key the detail key (e.g., "inlineMapping.friend")
-     * @return the discriminator value, or null if the key is not an inline mapping key
-     */
-    public static String extractInlineMappingValue(String key) {
-        if (key == null || !key.startsWith(KEY_INLINE_MAPPING_PREFIX)) {
-            return null;
-        }
-        String value = key.substring(KEY_INLINE_MAPPING_PREFIX.length());
-        return value.isEmpty() ? null : value;
-    }
-
-    /**
-     * Checks if the given key is an inline mapping key.
-     *
-     * @param key the detail key to check
-     * @return true if the key starts with "inlineMapping."
-     */
-    public static boolean isInlineMappingKey(String key) {
-        return key != null && key.startsWith(KEY_INLINE_MAPPING_PREFIX);
-    }
-
-    /**
-     * Checks if the given key is a static discriminator key.
-     *
-     * @param key the detail key to check
-     * @return true if the key starts with "typeDiscriminator."
-     */
-    public static boolean isStaticDiscriminatorKey(String key) {
-        return key != null && key.startsWith(KEY_TYPE_DISCRIMINATOR_PREFIX);
-    }
 
     // ========================================================================
     // Dedicated annotation source helpers
