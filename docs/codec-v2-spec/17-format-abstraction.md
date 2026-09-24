@@ -14,17 +14,20 @@ This chapter defines how the codec supports multiple serialization formats beyon
 
 ## 1. Overview
 
-The codec is designed to be **format-agnostic** at its core, with format-specific adapters for different backends:
+The codec logic - type, ID, reference, attribute handling, configuration, diagnostics - is written
+once against **Jackson's streaming API** (`JsonParser` / `JsonGenerator`). Other formats plug in
+underneath by presenting themselves as a Jackson parser and generator, so the codec logic never
+sees which format it reads or writes.
 
-| Format | Backend | Use Cases |
-|--------|---------|-----------|
-| JSON | Jackson native | REST APIs, file storage, configuration |
-| BSON | MongoDB driver | MongoDB persistence |
-| CSV/Query String | Custom parser | HTTP query parameters, simple key-value |
-| EcoWitt | Custom parser | Weather station device protocol |
-| JSON Schema | Jackson | Schema generation/parsing |
+| Format | Bundle | Backend | Read | Write |
+|--------|--------|---------|:----:|:-----:|
+| JSON | `codec` | Jackson (default path, or `JacksonFormatProvider`) | ✅ | ✅ |
+| CBOR | `codec.cbor` | Jackson CBOR via `JacksonFormatProvider` | ✅ | ✅ |
+| YAML | `codec.yaml` | Jackson YAML via `JacksonFormatProvider` | ✅ | ✅ |
+| BSON | `codec.bson` | `org.mongodb.bson`, via `BsonDocument` | ✅ | ✅ |
+| CSV, ODS, XLSX, RData | `codec.csv`, `codec.ods`, `codec.xlsx`, `codec.rlang` | tabular renderers (`codec.tabular`) | — | ✅ |
 
-**Design Goal:** The serialization/deserialization logic (type handling, ID strategies, references) should be implemented once and work across all formats.
+Format-specific *resources* build on this: GeoJSON, JSON Schema and OpenAPI (§11).
 
 ---
 
@@ -33,362 +36,223 @@ The codec is designed to be **format-agnostic** at its core, with format-specifi
 ### 2.1 Layered Design
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                     Application Layer                                │
-│         (EMF Resource, load/save operations)                        │
-└───────────────────────────────┬─────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│  CodecResource (EMF Resource: load / save)                           │
+└───────────────────────────────┬──────────────────────────────────────┘
                                 │
-┌───────────────────────────────▼─────────────────────────────────────┐
-│                     Codec Logic Layer                                │
-│    (Serialization/Deserialization Entries, Type/ID/Reference)       │
-│                                                                      │
-│  - TypeSerializationEntry / TypeDeserializationEntry                │
-│  - IdSerializationEntry / IdDeserializationEntry                    │
-│  - ReferenceSerializationEntry / ReferenceDeserializationEntry      │
-│  - AttributeSerializationEntry / AttributeDeserializationEntry      │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │
-┌───────────────────────────────▼─────────────────────────────────────┐
-│                   Value Transformation Layer                         │
-│              (CodecValueReader / CodecValueWriter)                   │
-│                                                                      │
-│  - Format-agnostic value transformation                             │
-│  - Date formatting, Base64 encoding, custom ID schemes              │
-│  - Pluggable via configuration                                      │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │
-┌───────────────────────────────▼─────────────────────────────────────┐
-│                   Stream Abstraction Layer                           │
-│              (CodecStreamReader / CodecStreamWriter)                 │
-│                                                                      │
-│  - Abstract token-based read/write operations                       │
-│  - Hides format-specific details                                    │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │
-         ┌──────────────────────┼──────────────────────┐
-         │                      │                      │
-         ▼                      ▼                      ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│  JSON Adapter   │  │  BSON Adapter   │  │  CSV Adapter    │
-│  (Jackson)      │  │  (MongoDB)      │  │  (Query String) │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
+┌───────────────────────────────▼──────────────────────────────────────┐
+│  Codec logic (Jackson databind)                                      │
+│  CodecEObjectSerializer / CodecEObjectDeserializer and the entries:  │
+│  Type*, Id*, Reference*, Attribute* (De)SerializationEntry           │
+│  Value transformation: CodecValueReader / CodecValueWriter           │
+└───────────────────────────────┬──────────────────────────────────────┘
+                                │ JsonParser / JsonGenerator
+          ┌─────────────────────┴───────────────────────┐
+          │                                             │
+┌─────────▼──────────────┐              ┌───────────────▼─────────────────────┐
+│ Default JSON path      │              │ Format provider path                │
+│ CodecJsonFactory       │              │ FormatDelegateParser / -Generator   │
+│ (no format provider)   │              │   adapt a FormatReaderDelegate /    │
+└────────────────────────┘              │   FormatDelegate to Jackson         │
+                                        └───────────────┬─────────────────────┘
+                                                        │ CodecFormatProvider
+                              ┌─────────────────────────┼──────────────────────────┐
+                              ▼                         ▼                          ▼
+                    JacksonFormatProvider      BsonFormatProvider        tabular providers
+                    (JSON, CBOR, YAML)         (BsonDocument)            (CSV, ODS, XLSX, RData;
+                                                                          write only)
 ```
+
+`CodecResource` takes the default JSON path when it has no format provider, and the provider path
+otherwise (`doLoadWithFormat` / `doSaveWithFormat`).
 
 ### 2.2 Token Model
 
-All formats are abstracted to a common token stream model:
+A `FormatReaderDelegate` reports its position as a `TokenType`
+(`org.eclipse.fennec.codec.format`), which `FormatDelegateParser` maps onto Jackson's
+`JsonToken`:
 
 ```java
-public enum CodecToken {
-    // Structure tokens
-    START_OBJECT,
-    END_OBJECT,
-    START_ARRAY,
-    END_ARRAY,
-
-    // Content tokens
-    PROPERTY_NAME,
-
-    // Value tokens
-    VALUE_STRING,
-    VALUE_NUMBER_INT,
-    VALUE_NUMBER_FLOAT,
-    VALUE_TRUE,
-    VALUE_FALSE,
-    VALUE_NULL,
-    VALUE_BINARY,        // For formats with native binary support (BSON)
-    VALUE_EMBEDDED,      // For format-specific embedded types
-
-    // Special
+public enum TokenType {
+    START_OBJECT, END_OBJECT, START_ARRAY, END_ARRAY,
+    FIELD_NAME,
+    VALUE_STRING, VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT, VALUE_BOOLEAN, VALUE_NULL,
+    VALUE_BINARY,        // native binary (BSON); surfaces as VALUE_EMBEDDED_OBJECT
     NOT_AVAILABLE
 }
 ```
 
 ---
 
-## 3. Stream Abstraction Interfaces
+## 3. Format Interfaces
 
-### 3.1 CodecStreamReader
+All in `org.eclipse.fennec.codec.format` (bundle `codec.api`).
 
-Abstract interface for reading from any format:
+### 3.1 CodecFormatProvider
+
+The factory of one format: it creates the reader and writer delegates for a source or target.
 
 ```java
-public interface CodecStreamReader extends Closeable {
+public interface CodecFormatProvider<S, T> {
+    String getFormatId();
+    String[] getFileExtensions();                 // default: { getFormatId() }
+    String[] getContentTypes();                   // default: none
 
-    // Token navigation
-    CodecToken currentToken();
-    CodecToken nextToken();
+    FormatReaderDelegate<S> createReader(S source) throws IOException;
+    default FormatReaderDelegate<S> createReader(S source, Map<String, Object> loadOptions); // #232
 
-    // Property access
-    String currentName();
+    FormatDelegate<T> createWriter(T target) throws IOException;
+    default FormatDelegate<T> createWriter(T target, EObject root, Map<String, Object> saveOptions);
+    default FormatDelegate<T> createWriter(T target, List<? extends EObject> roots,
+            Map<String, Object> saveOptions);
+    default FormatDelegate<T> createWriter(T target, List<? extends EObject> roots,
+            Map<String, Object> saveOptions, ConfigurationResolver resolver);
 
-    // Value access - primitives
-    String getString();
-    int getIntValue();
-    long getLongValue();
-    double getDoubleValue();
-    boolean getBooleanValue();
-
-    // Value access - complex
-    byte[] getBinaryValue();
-    BigDecimal getDecimalValue();
-    BigInteger getBigIntegerValue();
-
-    // Format-specific value access
-    <T> T getNativeValue(Class<T> type);
-
-    // Location for diagnostics
-    CodecLocation currentLocation();
-
-    // Structure navigation
-    void skipChildren();
-
-    // Context
-    int getCurrentDepth();
-    boolean isInArray();
-    boolean isInObject();
+    default boolean supportsArrayRoot();          // default true; BSON: false
+    default boolean supportsInBandFingerprint();  // default true; column formats: false
+    default List<String> validateSaveOptions(URI uri, Map<String, Object> options);
 }
 ```
 
-### 3.2 CodecStreamWriter
+The richer `createWriter` / `createReader` overloads default to the plain ones, so a provider only
+overrides what it needs: the tabular providers use the resolver overload to walk the model
+themselves, and the read-limit mapping (§7.3) uses `createReader(source, loadOptions)`.
 
-Abstract interface for writing to any format:
+### 3.2 FormatReaderDelegate
 
 ```java
-public interface CodecStreamWriter extends Closeable, Flushable {
-
-    // Structure
-    void writeStartObject();
-    void writeEndObject();
-    void writeStartArray();
-    void writeEndArray();
-
-    // Property name
-    void writePropertyName(String name);
-
-    // Values - primitives
-    void writeString(String value);
-    void writeNumber(int value);
-    void writeNumber(long value);
-    void writeNumber(double value);
-    void writeNumber(BigDecimal value);
-    void writeBoolean(boolean value);
-    void writeNull();
-
-    // Values - complex
-    void writeBinary(byte[] data);
-
-    // Format-specific value writing
-    <T> void writeNativeValue(T value);
-
-    // Raw output (for pre-formatted content)
-    void writeRaw(String raw);
+public interface FormatReaderDelegate<S> {
+    void setSource(S source);
+    S getSource();
+    TokenType nextToken() throws IOException;
+    TokenType currentToken();
+    String currentName() throws IOException;
+    void skipChildren() throws IOException;
+    String readString() throws IOException;
+    int readInt() throws IOException;
+    long readLong() throws IOException;
+    float readFloat() throws IOException;
+    double readDouble() throws IOException;
+    BigInteger readBigInteger() throws IOException;
+    BigDecimal readBigDecimal() throws IOException;
+    boolean readBoolean() throws IOException;
+    byte[] readBinary() throws IOException;
+    default boolean supportsNativeObjectId();     // default false
+    default Object readObjectId() throws IOException; // default readString()
+    void close() throws IOException;
 }
 ```
 
-### 3.3 CodecLocation
-
-Location information for diagnostics:
+### 3.3 FormatDelegate
 
 ```java
-public interface CodecLocation {
-    long getCharOffset();    // -1 if not available
-    int getLineNr();         // -1 if not available
-    int getColumnNr();       // -1 if not available
-    String getSourceRef();   // Resource URI or input description
+public interface FormatDelegate<T> {
+    void setTarget(T target);
+    T getTarget();
+    void writeStartObject() throws IOException;
+    void writeEndObject() throws IOException;
+    void writeStartArray() throws IOException;
+    void writeEndArray() throws IOException;
+    void writeName(String name) throws IOException;
+    void writeString(String value) throws IOException;
+    void writeInt(int value) throws IOException;
+    void writeLong(long value) throws IOException;
+    void writeFloat(float value) throws IOException;
+    void writeDouble(double value) throws IOException;
+    void writeBigInteger(BigInteger value) throws IOException;
+    void writeBigDecimal(BigDecimal value) throws IOException;
+    void writeBoolean(boolean value) throws IOException;
+    void writeNull() throws IOException;
+    void writeBinary(byte[] data) throws IOException;
+    default boolean supportsNativeObjectId();     // default false
+    default void writeObjectId(Object value) throws IOException;
+    default boolean supportsNativeDateTime();     // default false
+    default void writeDateTime(long epochMillis) throws IOException;
+    void flush() throws IOException;
+    void close() throws IOException;
 }
 ```
+
+### 3.4 The Jackson Bridge
+
+`FormatDelegateParser` (a `JsonParser`) and `FormatDelegateGenerator` (a `JsonGenerator`), in
+`org.eclipse.fennec.codec.format.jackson`, wrap a delegate so the unchanged codec logic reads and
+writes through it. `getDelegate()` returns the wrapped delegate for code that needs a native
+capability (§6).
 
 ---
 
 ## 4. Value Reader/Writer Abstraction
 
-### 4.1 Current Design (Jackson-coupled)
+> **See also:** [Custom Values](14-custom-values.md) for the complete interface definitions.
 
-The current interfaces are tightly coupled to Jackson:
-
-```java
-// Current - Jackson specific
-public interface CodecValueReader<T, F extends EStructuralFeature> {
-    T read(JsonParser parser, F feature, DeserializationContext ctxt) throws IOException;
-}
-
-public interface CodecValueWriter<T, F extends EStructuralFeature> {
-    void write(T value, F feature, JsonGenerator gen, SerializationContext ctxt) throws IOException;
-}
-```
-
-### 4.2 Current Design (Context-based)
-
-> **See also:** [Custom Values](14-custom-values.md) for the complete interface definitions including `getName()` and context APIs.
-
-The current interfaces provide context wrappers that include configuration access:
+Value readers and writers work on Jackson's parser and generator through a context:
 
 ```java
-// Current design - see 14-custom-values.md for complete definitions
 public interface CodecValueReader<T, F extends EStructuralFeature> {
-    String getName();  // For registry registration
+    String getName();                              // registry name
     T read(CodecReaderContext ctx, F feature) throws IOException;
 }
 
 public interface CodecValueWriter<T, F extends EStructuralFeature> {
-    String getName();  // For registry registration
+    String getName();
     void write(T value, F feature, CodecWriterContext ctx) throws IOException;
 }
-```
 
-### 4.3 Context Interfaces
-
-The context interfaces provide access to the underlying parser/generator, configuration, and diagnostics:
-
-```java
 public interface CodecReaderContext {
-    JsonParser getParser();                    // Jackson parser
-    DeserializationContext getJacksonContext(); // Jackson context
-    EffectiveCodecConfig getConfig();          // Resolved configuration
-    DiagnosticCollector getDiagnostics();      // Error/warning collector
-    void addWarning(String message);           // Convenience method
-    void addError(String message);             // Convenience method
+    JsonParser getParser();
+    DeserializationContext getJacksonContext();
+    EffectiveCodecConfig getConfig();
+    DiagnosticCollector getDiagnostics();
+    default void addWarning(String message);
+    default void addError(String message);
 }
 
 public interface CodecWriterContext {
-    JsonGenerator getGenerator();              // Jackson generator
-    SerializationContext getJacksonContext();  // Jackson context
-    EffectiveCodecConfig getConfig();          // Resolved configuration
-    DiagnosticCollector getDiagnostics();      // Error/warning collector
-    void addWarning(String message);           // Convenience method
-    void addError(String message);             // Convenience method
+    JsonGenerator getGenerator();
+    SerializationContext getJacksonContext();
+    EffectiveCodecConfig getConfig();
+    DiagnosticCollector getDiagnostics();
+    default void addWarning(String message);
+    default void addError(String message);
 }
 ```
+
+Because every format is a `JsonParser` / `JsonGenerator` to the codec, a value reader or writer
+works across formats unchanged. On the provider path the parser is a `FormatDelegateParser` and
+the generator a `FormatDelegateGenerator`.
 
 > **See also:** [Error Handling](15-error-handling.md) for diagnostic reporting from custom readers/writers.
 
-### 4.4 Future: Format-Agnostic Stream Abstraction
-
-For non-Jackson formats (BSON, CSV), stream adapters can wrap the context:
-
-```java
-public class JacksonStreamReader implements CodecStreamReader {
-    private final JsonParser parser;
-
-    public JacksonStreamReader(JsonParser parser) {
-        this.parser = parser;
-    }
-
-    @Override
-    public CodecToken currentToken() {
-        return mapToken(parser.currentToken());
-    }
-
-    @Override
-    public String getString() {
-        return parser.getString();
-    }
-
-    // ... delegate all methods to JsonParser
-}
-
-public class JacksonStreamWriter implements CodecStreamWriter {
-    private final JsonGenerator generator;
-
-    // ... delegate all methods to JsonGenerator
-}
-```
-
 ---
 
-## 5. Format Adapters
+## 5. Format Providers
 
-### 5.1 JSON Adapter (Jackson Native)
+### 5.1 JacksonFormatProvider (JSON, CBOR, YAML)
 
-The default adapter using Jackson's built-in JSON support:
-
-```java
-public class JsonCodecAdapter implements CodecFormatAdapter {
-
-    @Override
-    public CodecStreamReader createReader(InputStream input, CodecReadContext ctxt) {
-        JsonFactory factory = ctxt.getJsonFactory();
-        JsonParser parser = factory.createParser(input);
-        return new JacksonStreamReader(parser);
-    }
-
-    @Override
-    public CodecStreamWriter createWriter(OutputStream output, CodecWriteContext ctxt) {
-        JsonFactory factory = ctxt.getJsonFactory();
-        JsonGenerator generator = factory.createGenerator(output);
-        return new JacksonStreamWriter(generator);
-    }
-}
-```
-
-### 5.2 BSON Adapter (MongoDB)
-
-Adapter wrapping MongoDB's BSON reader/writer:
+Wraps a Jackson `TokenStreamFactory`. `CborFormatProvider` and `YamlFormatProvider` are thin
+subclasses with a `CBORFactory` / `YAMLFactory`:
 
 ```java
-public class BsonCodecAdapter implements CodecFormatAdapter {
-
-    @Override
-    public CodecStreamReader createReader(InputStream input, CodecReadContext ctxt) {
-        BsonReader bsonReader = new BsonBinaryReader(ByteBuffer.wrap(readBytes(input)));
-        return new BsonStreamReader(bsonReader);
-    }
-
-    @Override
-    public CodecStreamWriter createWriter(OutputStream output, CodecWriteContext ctxt) {
-        BsonWriter bsonWriter = new BsonBinaryWriter(output);
-        return new BsonStreamWriter(bsonWriter);
-    }
-}
-
-public class BsonStreamReader implements CodecStreamReader {
-    private final BsonReader reader;
-
-    @Override
-    public <T> T getNativeValue(Class<T> type) {
-        // Support BSON-specific types
-        if (type == ObjectId.class) {
-            return type.cast(reader.readObjectId());
-        }
-        if (type == Decimal128.class) {
-            return type.cast(reader.readDecimal128());
-        }
-        return null;
-    }
-
-    // ... map BSON types to CodecToken
-}
+new JacksonFormatProvider("json", new JsonFactory());
+new CborFormatProvider();
+new YamlFormatProvider();
 ```
 
-### 5.3 Query String Adapter (CSV/EcoWitt)
+JSON can also be read and written without a provider, on the default path (`CodecJsonFactory`).
 
-Adapter for simple key-value formats:
+### 5.2 BsonFormatProvider
 
-```java
-public class QueryStringCodecAdapter implements CodecFormatAdapter {
+Reads the input into a `BsonDocument` and streams it through `BsonFormatReaderDelegate`; writes
+through `BsonFormatDelegate` into a `BsonDocument` that is encoded at the end. It supports native
+ObjectId, date-time and binary values (§6) and no array root.
 
-    @Override
-    public CodecStreamReader createReader(InputStream input, CodecReadContext ctxt) {
-        Map<String, String> data = QueryStringParser.parse(input);
-        return new MapStreamReader(data);
-    }
+### 5.3 Tabular Providers (CSV, ODS, XLSX, RData)
 
-    @Override
-    public CodecStreamWriter createWriter(OutputStream output, CodecWriteContext ctxt) {
-        return new QueryStringStreamWriter(output);
-    }
-}
-
-public class MapStreamReader implements CodecStreamReader {
-    private final Map<String, String> data;
-    private final Iterator<Map.Entry<String, String>> iterator;
-    private State state = State.BEGIN;
-
-    // Simulates object structure from flat map:
-    // START_OBJECT -> (PROPERTY_NAME, VALUE_STRING)* -> END_OBJECT
-}
-```
+Write only - `createReader` throws `UnsupportedOperationException`. They use the
+`createWriter(…, resolver)` overload and render through `codec.tabular`
+(`TabularDocumentBuilder`), because a table is not a token stream. They validate save options
+against the URI (`validateSaveOptions`); CSV, ODS and XLSX do not carry an in-band fingerprint.
 
 ---
 
@@ -400,9 +264,9 @@ Some formats have native types that don't exist in JSON:
 
 | Format | Native Types | Handling |
 |--------|--------------|----------|
-| BSON | ObjectId, Decimal128, BsonBinary, DateTime | `getNativeValue(Class)` / `writeNativeValue(Object)` |
-| JSON | - | All values as JSON primitives |
-| CSV | - | All values as strings |
+| BSON | ObjectId, DateTime, Binary | `supportsNativeObjectId()` / `writeObjectId` / `readObjectId`, `supportsNativeDateTime()` / `writeDateTime`, `writeBinary` / `readBinary` |
+| JSON, CBOR, YAML | - (CBOR: binary) | values as the format's primitives; binary through Jackson (`writeBinary`: Base64 in JSON) |
+| CSV, ODS, XLSX, RData | - | cell values, rendered by `codec.tabular` |
 
 **Native date-time (built-in).** The format delegate declares a native date-time
 type via `supportsNativeDateTime()` (default `false`) and writes it via
@@ -428,56 +292,38 @@ Covered temporal types and their epoch-millisecond mapping:
 All other `java.time` types (`LocalTime`, `Duration`, `Period`, `Year`, `YearMonth`,
 …) stay on the ISO string path unconditionally.
 
-### 6.2 Custom Value Writers for Format-Specific Types
+### 6.2 Native Values in a Custom Value Writer or Reader
+
+A value writer reaches the format through the generator. On the provider path it is a
+`FormatDelegateGenerator`, whose delegate reports its capabilities:
 
 ```java
-// MongoDB ObjectId writer
 public class ObjectIdValueWriter implements CodecValueWriter<String, EAttribute> {
 
     @Override
-    public void write(String value, EAttribute attr, CodecStreamWriter writer, CodecWriteContext ctxt) {
-        if (writer instanceof BsonStreamWriter bsonWriter) {
-            // Use native ObjectId
-            bsonWriter.writeNativeValue(new ObjectId(value));
-        } else {
-            // Fall back to string representation
-            writer.writeString(value);
-        }
+    public String getName() {
+        return "objectId";
     }
-}
-
-// MongoDB Decimal128 reader
-public class Decimal128ValueReader implements CodecValueReader<BigDecimal, EAttribute> {
 
     @Override
-    public BigDecimal read(CodecStreamReader reader, EAttribute attr, CodecReadContext ctxt) {
-        Decimal128 native = reader.getNativeValue(Decimal128.class);
-        if (native != null) {
-            return native.bigDecimalValue();
+    public void write(String value, EAttribute attr, CodecWriterContext ctx) throws IOException {
+        if (ctx.getGenerator() instanceof FormatDelegateGenerator<?> gen
+                && gen.getDelegate().supportsNativeObjectId()) {
+            gen.getDelegate().writeObjectId(value);      // native ObjectId (BSON)
+        } else {
+            ctx.getGenerator().writeString(value);       // every other format
         }
-        // Fall back to string parsing
-        return new BigDecimal(reader.getString());
     }
 }
 ```
+
+A value reader does the same through `FormatDelegateParser.getDelegate()` (e.g. `readObjectId()`).
 
 ### 6.3 Binary Data Handling
 
-```java
-// Base64 encoding for JSON, native binary for BSON
-public class BinaryValueWriter implements CodecValueWriter<byte[], EAttribute> {
-
-    @Override
-    public void write(byte[] value, EAttribute attr, CodecStreamWriter writer, CodecWriteContext ctxt) {
-        if (writer.supportsNativeBinary()) {
-            writer.writeBinary(value);
-        } else {
-            // Encode as Base64 string
-            writer.writeString(Base64.getEncoder().encodeToString(value));
-        }
-    }
-}
-```
+Binary needs no custom writer: the codec writes `byte[]` through `JsonGenerator.writeBinary`,
+which JSON encodes as Base64 and `FormatDelegateGenerator` hands to `FormatDelegate.writeBinary`
+(native binary in BSON). On read, a native binary value surfaces as `VALUE_EMBEDDED_OBJECT`.
 
 ---
 
@@ -494,112 +340,48 @@ There is no load/save option that switches the format of an existing resource. A
 named a `CODEC_FORMAT` option for this; it was never implemented, and the constant was removed
 (#222).
 
-### 7.2 Format Adapter Registry
+### 7.2 Resource Factories
+
+There is no central format registry. Each format bundle registers an OSGi `Resource.Factory`
+component whose service properties carry the file extension and content type
+(`EMFNamespaces.EMF_MODEL_FILE_EXT`, `EMFNamespaces.EMF_MODEL_CONTENT_TYPE`); EMF's OSGi
+integration picks the factory by those properties.
+
+| Component | Bundle | Extensions | Content types |
+|-----------|--------|------------|---------------|
+| `CodecResourceFactoryComponent` | `codec` | `json` | `application/json` |
+| `BsonResourceFactoryComponent` | `codec.bson` | `bson` | `application/bson` |
+| `CborResourceFactoryComponent` | `codec.cbor` | `cbor` | `application/cbor` |
+| `YamlResourceFactoryComponent` | `codec.yaml` | `yaml`, `yml` | `application/yaml`, `text/yaml` |
+| `CsvResourceFactoryComponent` | `codec.csv` | `csv`, `csvz` | `text/csv`, `application/x-csv-zip` |
+| `OdsResourceFactoryComponent` | `codec.ods` | `ods` | `application/vnd.oasis.opendocument.spreadsheet` |
+| `XlsxResourceFactoryComponent` | `codec.xlsx` | `xlsx` | — |
+| `RLangResourceFactoryComponent` | `codec.rlang` | `RData`, `rdataz` | `application/x-rdata`, `application/x-rdata-zip` |
+
+Outside OSGi, `CodecFormatResourceFactory` creates `CodecResource`s for a given provider:
 
 ```java
-public interface CodecFormatRegistry {
-    void registerAdapter(String format, CodecFormatAdapter adapter);
-    CodecFormatAdapter getAdapter(String format);
-    CodecFormatAdapter getAdapterForExtension(String extension);
-    CodecFormatAdapter getAdapterForContentType(String contentType);
-}
+CodecFormatResourceFactory factory =
+        new CodecFormatResourceFactory(metadataService, new CborFormatProvider());
+Resource resource = factory.createResource(URI.createURI("data.cbor"));
 ```
 
-Default registrations:
+### 7.3 Read Limits
 
-| Format ID | Extensions | Content Types |
-|-----------|------------|---------------|
-| `json` | `.json` | `application/json`, `text/json` |
-| `bson` | `.bson` | `application/bson` |
-| `csv` | `.csv` | `text/csv` |
-| `querystring` | - | `application/x-www-form-urlencoded` |
+The read limits of a load (`codec.maxPayloadSize`, `maxNestingDepth`, `maxStringLength`,
+`maxNameLength`, `maxCollectionSize`) reach a provider through
+`createReader(source, loadOptions)`, which maps them onto the format's own settings - see
+[Error Handling §9.0](15-error-handling.md).
 
----
-
-## 8. Migration Path
-
-### 8.1 Phase 1: Introduce Abstractions (Non-Breaking)
-
-1. Add `CodecStreamReader`, `CodecStreamWriter`, `CodecToken` interfaces
-2. Add `JacksonStreamReader`, `JacksonStreamWriter` adapters
-3. Keep existing `CodecValueReader`/`CodecValueWriter` with Jackson types
-4. Add overloaded methods accepting stream abstractions
-
-### 8.2 Phase 2: Update Entry Classes
-
-1. Refactor `*SerializationEntry` to use `CodecStreamWriter`
-2. Refactor `*DeserializationEntry` to use `CodecStreamReader`
-3. Update custom value readers/writers to use abstractions
-
-### 8.3 Phase 3: Add Format Adapters
-
-1. Implement `BsonCodecAdapter`
-2. Implement `QueryStringCodecAdapter`
-3. Integrate with existing V1 parser/generator infrastructure
+> **Earlier design, not implemented.** A previous version of this document described a stream
+> abstraction (`CodecStreamReader`, `CodecStreamWriter`, `CodecLocation`, `CodecToken`), format
+> adapters (including a query-string adapter), a `CodecFormatRegistry` / `CodecFormatAdapter`
+> and a three-phase migration path towards them. None of these exist; the Jackson bridge (§3.4)
+> took their place.
 
 ---
 
-## 9. Example: Multi-Format Value Reader
-
-A value reader that works with the current Jackson-based implementation:
-
-```java
-public class ISO8601DateReader implements CodecValueReader<Date, EAttribute> {
-
-    private static final SimpleDateFormat FORMAT =
-        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
-    @Override
-    public String getName() {
-        return "isoDate";
-    }
-
-    @Override
-    public Date read(CodecReaderContext ctx, EAttribute attr) throws IOException {
-        JsonParser parser = ctx.getParser();
-        JsonToken token = parser.currentToken();
-
-        switch (token) {
-            case VALUE_STRING:
-                // Parse ISO8601 string
-                try {
-                    return FORMAT.parse(parser.getText());
-                } catch (ParseException e) {
-                    ctx.addError("Invalid ISO8601 date: " + parser.getText());
-                    return null;
-                }
-
-            case VALUE_NUMBER_INT:
-                // Unix timestamp
-                return new Date(parser.getLongValue());
-
-            default:
-                ctx.addWarning("Unexpected token for date: " + token);
-                return null;
-        }
-    }
-}
-```
-
-**Future:** When stream abstraction is implemented, the same reader can work across formats by using `CodecStreamReader` instead of `JsonParser`.
-
----
-
-## 10. Open Questions
-
-1. **Streaming vs Buffering**: Should the abstraction support streaming for large documents, or is buffering acceptable?
-
-2. **Schema Information**: Should the stream abstraction carry schema/type hints for formats that support them?
-
-3. **Pretty Printing**: How to handle format-specific pretty printing options?
-
-4. **Error Recovery**: Should the abstraction support error recovery / partial parsing?
-
-5. **Async Support**: Should we consider async/reactive stream interfaces for future scalability?
-
----
-
-## 11. Format Extension Projects
+## 8. Format Extension Projects
 
 The following projects provide pre-configured resources for specific formats:
 
@@ -610,7 +392,7 @@ The following projects provide pre-configured resources for specific formats:
 
 **Note:** Most format extensions extend `CodecResource` for standard EObject serialization. JSON Schema is special because it's a **meta-format** that converts the schema itself (EPackage), not instances.
 
-### 11.1 GeoJSON Extension
+### 8.1 GeoJSON Extension
 
 **Project:** `org.eclipse.fennec.codec.geojson`
 
@@ -648,7 +430,7 @@ GeoJsonResourceImpl resource = new GeoJsonResourceImpl(
     metadataService);
 ```
 
-### 11.2 JSON Schema Extension
+### 8.2 JSON Schema Extension
 
 **Project:** `org.eclipse.fennec.codec.jsonschema`
 
@@ -667,7 +449,7 @@ Therefore, the JSON Schema extension provides **two integration patterns**:
 | **Standalone** | `.jsonschema` files, schema generation | `JsonSchemaResourceImpl` (extends `ResourceImpl`) |
 | **Embedded** | OpenAPI `components/schemas`, AI structured output | `EPackageValueReader` / `EPackageValueWriter` |
 
-#### 11.2.1 Standalone Mode
+#### 8.2.1 Standalone Mode
 
 For standalone JSON Schema files, use `JsonSchemaResourceImpl` directly:
 
@@ -697,7 +479,7 @@ resource.save(outputStream, options);
 
 **Note:** `JsonSchemaResourceImpl` extends `ResourceImpl` directly, not `CodecResource`, because it performs meta-format conversion rather than standard EObject serialization.
 
-#### 11.2.2 Embedded Mode
+#### 8.2.2 Embedded Mode
 
 For JSON Schema embedded within other formats (e.g., OpenAPI), use the value handlers that integrate with codec v2's value transformation layer:
 
@@ -739,7 +521,7 @@ CodecResource resource = new CodecResource(
 | `EPackageValueWriter(schemaFeature)` | Specific feature key |
 | `EPackageValueWriter(schemaFeature, embedInFeature)` | If `true`, output only definitions content |
 
-#### 11.2.3 JSON Schema Features
+#### 8.2.3 JSON Schema Features
 
 The converters support these JSON Schema features:
 
@@ -779,7 +561,7 @@ The converters support these JSON Schema features:
 | `EReference (containment)` | Nested object |
 | `EReference (non-containment)` | `$ref` |
 
-#### 11.2.4 Example: OpenAPI Integration
+#### 8.2.4 Example: OpenAPI Integration
 
 ```java
 // OpenAPI document with embedded schemas
@@ -802,7 +584,7 @@ The converters support these JSON Schema features:
 
 With registered value handlers, the `components.schemas` object is automatically converted to/from an `EPackage` containing the `Person` EClass.
 
-### 11.3 Creating Custom Format Extensions
+### 8.3 Creating Custom Format Extensions
 
 To create a custom format extension:
 
@@ -847,11 +629,11 @@ public class MyFormatResourceFactoryImpl extends ResourceFactoryImpl {
 
 ---
 
-## 12. JSON Schema Version Support and Feature Coverage
+## 9. JSON Schema Version Support and Feature Coverage
 
 This section provides a comprehensive reference for JSON Schema support in the codec.
 
-### 12.1 Supported JSON Schema Versions
+### 9.1 Supported JSON Schema Versions
 
 The JSON Schema converter supports multiple draft versions:
 
@@ -865,9 +647,9 @@ The JSON Schema converter supports multiple draft versions:
 
 **Note:** The converter auto-detects the definitions key (`definitions` vs `$defs`) or uses the explicitly specified `OPTION_SCHEMA_FEATURE`.
 
-### 12.2 Complete Feature Matrix
+### 9.2 Complete Feature Matrix
 
-#### 12.2.1 Core Keywords
+#### 9.2.1 Core Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -880,7 +662,7 @@ The JSON Schema converter supports multiple draft versions:
 | `$dynamicAnchor` | - | ❌ | ❌ | Draft 2020-12, not supported |
 | `$vocabulary` | - | ❌ | ❌ | Meta-schema feature |
 
-#### 12.2.2 Type Keywords
+#### 9.2.2 Type Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -893,7 +675,7 @@ The JSON Schema converter supports multiple draft versions:
 | `type: "null"` | - | ⚠️ | ⚠️ | Handled via nullability |
 | `type: ["string", "integer"]` | Union class | ✅ | ✅ | Creates artificial base + variants |
 
-#### 12.2.3 Object Keywords
+#### 9.2.3 Object Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -908,7 +690,7 @@ The JSON Schema converter supports multiple draft versions:
 | `dependentRequired` | - | ❌ | ❌ | Not mappable to EMF |
 | `dependentSchemas` | - | ❌ | ❌ | Not mappable to EMF |
 
-#### 12.2.4 Array Keywords
+#### 9.2.4 Array Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -922,7 +704,7 @@ The JSON Schema converter supports multiple draft versions:
 | `maxContains` | - | ❌ | ❌ | Not mappable to EMF |
 | `unevaluatedItems` | - | ❌ | ❌ | Draft 2020-12 |
 
-#### 12.2.5 Composition Keywords
+#### 9.2.5 Composition Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -932,7 +714,7 @@ The JSON Schema converter supports multiple draft versions:
 | `not` | - | ❌ | ❌ | Not mappable to EMF |
 | `if` / `then` / `else` | - | ❌ | ❌ | Conditional schemas not mappable |
 
-#### 12.2.6 String Validation Keywords
+#### 9.2.6 String Validation Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -965,7 +747,7 @@ The JSON Schema converter supports multiple draft versions:
 | `relative-json-pointer` | ✅ | |
 | `regex` | ✅ | |
 
-#### 12.2.7 Numeric Validation Keywords
+#### 9.2.7 Numeric Validation Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -975,7 +757,7 @@ The JSON Schema converter supports multiple draft versions:
 | `exclusiveMaximum` | EAnnotation | ✅ | ✅ | |
 | `multipleOf` | EAnnotation | ✅ | ✅ | |
 
-#### 12.2.8 Annotation Keywords
+#### 9.2.8 Annotation Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -988,7 +770,7 @@ The JSON Schema converter supports multiple draft versions:
 | `writeOnly` | EAnnotation | ✅ | ✅ | |
 | `$comment` | EAnnotation | ✅ | ✅ | Preserved as "comment" annotation |
 
-#### 12.2.9 Content Keywords
+#### 9.2.9 Content Keywords
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
@@ -996,14 +778,14 @@ The JSON Schema converter supports multiple draft versions:
 | `contentMediaType` | EAnnotation | ✅ | ✅ | e.g., "image/png" |
 | `contentSchema` | - | ❌ | ❌ | Complex, not mappable |
 
-#### 12.2.10 Enum and Const
+#### 9.2.10 Enum and Const
 
 | Keyword | EMF Mapping | Read | Write | Notes |
 |---------|-------------|:----:|:-----:|-------|
 | `enum` | `EEnum` | ✅ | ✅ | String enums become EEnum |
 | `const` | EAnnotation | ✅ | ✅ | Fixed value preserved |
 
-### 12.3 Feature Legend
+### 9.3 Feature Legend
 
 | Symbol | Meaning |
 |--------|---------|
@@ -1011,7 +793,7 @@ The JSON Schema converter supports multiple draft versions:
 | ⚠️ | Partially supported (preserved as annotation, may not round-trip perfectly) |
 | ❌ | Not supported |
 
-### 12.4 EMF Limitations
+### 9.4 EMF Limitations
 
 The following JSON Schema features have **no natural EMF equivalent** and cannot be represented:
 
@@ -1024,7 +806,7 @@ The following JSON Schema features have **no natural EMF equivalent** and cannot
 7. **Dynamic References** (`$dynamicRef`, `$dynamicAnchor`): Complex recursive patterns
 8. **Content Schema** (`contentSchema`): Complex embedded schema for content validation
 
-### 12.5 Annotations Source
+### 9.5 Annotations Source
 
 All JSON Schema metadata is preserved in EMF EAnnotations with these sources:
 
@@ -1034,9 +816,9 @@ All JSON Schema metadata is preserved in EMF EAnnotations with these sources:
 | `http://www.eclipse.org/emf/2002/GenModel` | Documentation (description) |
 | `http:///org/eclipse/emf/ecore/util/ExtendedMetaData` | Original names |
 
-### 12.6 Special Patterns
+### 9.6 Special Patterns
 
-#### 12.6.1 Discriminated Unions
+#### 9.6.1 Discriminated Unions
 
 When JSON Schema uses the pattern:
 ```json
@@ -1056,27 +838,27 @@ This creates:
 - Concrete subclasses for each option with `discriminatorKey` annotation
 - Type mapping annotations for codec deserialization
 
-#### 12.6.2 Context-Specific Variants (oneOf without discriminator)
+#### 9.6.2 Context-Specific Variants (oneOf without discriminator)
 
 When `oneOf` has multiple complete schemas with overlapping properties:
 - Creates abstract base class with `commonBase=true` annotation
 - Extracts common properties to base class
 - Creates variant subclasses with `variant=<title>` annotation
 
-#### 12.6.3 Namespace Paths
+#### 9.6.3 Namespace Paths
 
 Nested definition structures like `definitions/configs/kafka` are handled:
 - Intermediate nodes without schema keywords are organizational namespaces
 - EClassifiers get `namespacePath` annotation (e.g., `configs`)
 - `$ref` paths resolve correctly across namespaces
 
-### 12.7 Diagnostic Warnings
+### 9.7 Diagnostic Warnings
 
 > **See also:** [Error Handling](15-error-handling.md) for the general codec diagnostics mechanism.
 
 The JSON Schema converter reports issues through EMF's standard diagnostics mechanism. After loading a schema, check `resource.getWarnings()` for any conversion warnings.
 
-#### 12.7.1 Accessing Diagnostics
+#### 9.7.1 Accessing Diagnostics
 
 ```java
 // Load schema
@@ -1099,7 +881,7 @@ for (JsonSchemaConversionDiagnostic diag : converter.getDiagnostics()) {
 }
 ```
 
-#### 12.7.2 Diagnostic Codes
+#### 9.7.2 Diagnostic Codes
 
 | Code | Description | Example Keywords |
 |------|-------------|------------------|
@@ -1108,7 +890,7 @@ for (JsonSchemaConversionDiagnostic diag : converter.getDiagnostics()) {
 | `COMPLEX_ANYOF` | Complex `anyOf` with different schemas detected | - |
 | `UNRESOLVED_REFERENCE` | A `$ref` could not be resolved | - |
 
-#### 12.7.3 Warning Messages
+#### 9.7.3 Warning Messages
 
 | Condition | Warning Message |
 |-----------|-----------------|
@@ -1117,7 +899,7 @@ for (JsonSchemaConversionDiagnostic diag : converter.getDiagnostics()) {
 | Complex `anyOf` | "Complex anyOf with different schemas detected. May require manual modeling." |
 | Unresolved `$ref` | "Could not resolve reference: {path}" |
 
-#### 12.7.4 Helper Class: JsonSchemaKeywords
+#### 9.7.4 Helper Class: JsonSchemaKeywords
 
 The `JsonSchemaKeywords` utility class provides programmatic access to keyword support information:
 
@@ -1137,7 +919,7 @@ boolean isSupported = JsonSchemaKeywords.isFullySupported("allOf");     // true
 boolean isUnsupported = JsonSchemaKeywords.isUnsupported("prefixItems"); // true
 ```
 
-### 12.8 Round-Trip Fidelity
+### 9.8 Round-Trip Fidelity
 
 **Round-trip guaranteed** for:
 - Basic types (string, number, integer, boolean)
@@ -1156,11 +938,11 @@ boolean isUnsupported = JsonSchemaKeywords.isUnsupported("prefixItems"); // true
 - Deeply nested namespace paths
 - `patternProperties` (preserved but not semantically mapped)
 
-### 12.9 Schema Reference Methods: `$anchor` vs JSON Pointer
+### 9.9 Schema Reference Methods: `$anchor` vs JSON Pointer
 
 JSON Schema supports two methods for referencing definitions within a schema:
 
-#### 12.9.1 JSON Pointer References (Default)
+#### 9.9.1 JSON Pointer References (Default)
 
 JSON Pointer references use the path syntax `#/definitions/Name`:
 
@@ -1188,7 +970,7 @@ JSON Pointer references use the path syntax `#/definitions/Name`:
 - Self-documenting - shows the exact path to the definition
 - Default behavior - no special configuration needed
 
-#### 12.9.2 Anchor-Based References
+#### 9.9.2 Anchor-Based References
 
 Anchor-based references use `$anchor` to define a short name and `#anchorName` to reference it:
 
@@ -1217,7 +999,7 @@ Anchor-based references use `$anchor` to define a short name and `#anchorName` t
 - References survive definition moves/renames
 - Introduced in JSON Schema 2019-09
 
-#### 12.9.3 Serialization Options
+#### 9.9.3 Serialization Options
 
 When converting EPackage to JSON Schema, the default is JSON Pointer references. To generate anchor-based references, use the `OPTION_USE_ANCHOR_REFS` option:
 
@@ -1235,7 +1017,7 @@ writer.convert(ePackage, outputStream, "definitions", true, options);
 // Output: "$anchor": "address" and "$ref": "#address"
 ```
 
-#### 12.9.4 Round-Trip Behavior
+#### 9.9.4 Round-Trip Behavior
 
 | Input Schema | Output without option | Output with `OPTION_USE_ANCHOR_REFS` |
 |--------------|----------------------|--------------------------------------|
@@ -1245,7 +1027,7 @@ writer.convert(ePackage, outputStream, "definitions", true, options);
 
 **Note:** Existing `$anchor` annotations from the input schema are always preserved, regardless of the option setting.
 
-#### 12.9.5 Per-Class Override
+#### 9.9.5 Per-Class Override
 
 You can also enable anchors for specific classes via EAnnotation:
 
@@ -1261,11 +1043,11 @@ This generates `$anchor` for that class and uses anchor refs when referencing it
 
 ---
 
-## 13. Working with Generated EPackages
+## 10. Working with Generated EPackages
 
 Once you've converted a JSON Schema to an EPackage, you can use it for deserializing JSON data that conforms to the schema.
 
-### 13.1 Example: Simple Schema
+### 10.1 Example: Simple Schema
 
 ```java
 // Step 1: Load JSON Schema and convert to EPackage
@@ -1288,7 +1070,7 @@ EClass meterReadingClass = (EClass) ePackage.getEClassifier("MeterReading");
 // (requires codec v2 CodecResource with proper configuration)
 ```
 
-### 13.2 Important: EPackage Registration
+### 10.2 Important: EPackage Registration
 
 When working with dynamically generated EPackages, you must register them in:
 
@@ -1302,7 +1084,7 @@ When working with dynamically generated EPackages, you must register them in:
    metadataService.registerPackage(ePackage);
    ```
 
-### 13.3 Limitations with oneOf / Union Types
+### 10.3 Limitations with oneOf / Union Types
 
 JSON Schema's `oneOf` construct creates challenges for deserialization:
 
@@ -1336,11 +1118,11 @@ Type mapping based solely on property name presence (discriminating based on whi
 
 ---
 
-## 14. Future Work
+## 11. Future Work
 
 The following features are planned but not yet implemented. See the linked documents for implementation details.
 
-### 14.1 Tuple Validation (`prefixItems`)
+### 11.1 Tuple Validation (`prefixItems`)
 
 JSON Schema's `prefixItems` keyword for arrays with typed positional elements (tuples).
 
@@ -1348,7 +1130,7 @@ JSON Schema's `prefixItems` keyword for arrays with typed positional elements (t
 
 **Details:** [todo/jsonschema-prefixItems-implementation.md](todo/jsonschema-prefixItems-implementation.md)
 
-### 14.2 Format-to-EDataType Mapping
+### 11.2 Format-to-EDataType Mapping
 
 Map JSON Schema `format` values to proper EMF EDataTypes instead of just preserving as annotations.
 
@@ -1367,11 +1149,11 @@ Map JSON Schema `format` values to proper EMF EDataTypes instead of just preserv
 
 ---
 
-## 15. OpenAPI Integration Example
+## 12. OpenAPI Integration Example
 
 This section demonstrates a complete real-world integration: embedding JSON Schema handling within OpenAPI documents using the value reader/writer pattern.
 
-### 15.1 Overview
+### 12.1 Overview
 
 OpenAPI 3.x documents embed JSON Schema definitions in `components/schemas`. The Fennec codec handles this by:
 
@@ -1380,7 +1162,7 @@ OpenAPI 3.x documents embed JSON Schema definitions in `components/schemas`. The
 
 This is implemented using the `ReferenceValueReader/Writer` pattern described in [Custom Values](14-custom-values.md).
 
-### 15.2 Architecture
+### 12.2 Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -1401,7 +1183,7 @@ This is implemented using the `ReferenceValueReader/Writer` pattern described in
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 15.3 Model Definition
+### 12.3 Model Definition
 
 The OpenAPI model defines the `schemas` reference as a containment to `EPackage`:
 
@@ -1424,9 +1206,9 @@ Key points:
 - `containment="true"` means the schemas are owned by the Components object
 - Codec annotations specify the reader/writer names in the registry
 
-### 15.4 Resource Configuration
+### 12.4 Resource Configuration
 
-#### 15.4.1 OpenApiResourceImpl
+#### 12.4.1 OpenApiResourceImpl
 
 ```java
 public class OpenApiResourceImpl extends CodecResource {
@@ -1448,7 +1230,7 @@ public class OpenApiResourceImpl extends CodecResource {
 }
 ```
 
-#### 15.4.2 Factory Registration
+#### 12.4.2 Factory Registration
 
 ```java
 public class OpenApiResourceFactoryImpl implements Resource.Factory {
@@ -1460,9 +1242,9 @@ public class OpenApiResourceFactoryImpl implements Resource.Factory {
 }
 ```
 
-### 15.5 Value Reader/Writer Implementation
+### 12.5 Value Reader/Writer Implementation
 
-#### 15.5.1 EPackageValueReader
+#### 12.5.1 EPackageValueReader
 
 ```java
 public class EPackageValueReader implements ReferenceValueReader<EPackage> {
@@ -1484,7 +1266,7 @@ public class EPackageValueReader implements ReferenceValueReader<EPackage> {
 }
 ```
 
-#### 15.5.2 EPackageValueWriter
+#### 12.5.2 EPackageValueWriter
 
 ```java
 public class EPackageValueWriter implements ReferenceValueWriter<EPackage> {
@@ -1513,9 +1295,9 @@ public class EPackageValueWriter implements ReferenceValueWriter<EPackage> {
 }
 ```
 
-### 15.6 Usage Example
+### 12.6 Usage Example
 
-#### 15.6.1 Loading an OpenAPI Document
+#### 12.6.1 Loading an OpenAPI Document
 
 ```java
 // Register factory
@@ -1544,7 +1326,7 @@ EClass petClass = (EClass) schemas.getEClassifier("Pet");
 EAttribute nameAttr = (EAttribute) petClass.getEStructuralFeature("name");
 ```
 
-#### 15.6.2 Creating and Saving
+#### 12.6.2 Creating and Saving
 
 ```java
 // Create OpenAPI programmatically
@@ -1578,7 +1360,7 @@ resource.getContents().add(openApi);
 resource.save(null);
 ```
 
-### 15.7 Roundtrip Behavior
+### 12.7 Roundtrip Behavior
 
 Most schemas are preserved through roundtrip:
 
@@ -1594,7 +1376,7 @@ Most schemas are preserved through roundtrip:
 
 **Artificial Schemas:** Some schemas are marked as "artificial" during conversion (e.g., inline object definitions). These are expanded inline during serialization and not recreated as top-level schemas.
 
-### 15.8 Real-World Test Results
+### 12.8 Real-World Test Results
 
 | File | Size | Schemas | After Roundtrip | Preservation |
 |------|------|---------|-----------------|--------------|
@@ -1603,7 +1385,7 @@ Most schemas are preserved through roundtrip:
 | sevdesk.json | 678 KB | 234 | 199 | 85% |
 | kubernetes-api.json | 1.9 MB | 286 | 286 | 100% |
 
-### 15.9 Limitations
+### 12.9 Limitations
 
 1. **Swagger 2.0**: Only OpenAPI 3.x is supported. Swagger 2.0 uses `definitions` instead of `components/schemas` and has different structure.
 
