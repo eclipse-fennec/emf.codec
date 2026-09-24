@@ -1509,8 +1509,10 @@ For each JSON field (whether from Phase 2 replay or Phase 3 normal processing), 
 │ │       │                          │ Multi-valued → no-op (ignored)   │ │   │
 │ │       │ VALUE_STRING             │ convertFromString(dataType)      │ │   │
 │ │       │ VALUE_NUMBER_INT         │ EEnum? → enum by ordinal         │ │   │
+│ │       │                          │ EString → the number's text      │ │   │
 │ │       │                          │ else → convertFromInteger(class) │ │   │
-│ │       │ VALUE_NUMBER_FLOAT       │ convertFromFloat(class)          │ │   │
+│ │       │ VALUE_NUMBER_FLOAT       │ EString → the number's text      │ │   │
+│ │       │                          │ else → convertFromFloat(class)   │ │   │
 │ │       │ VALUE_TRUE / VALUE_FALSE │ Boolean conversion               │ │   │
 │ │       │ START_ARRAY              │ Array EDataType → Java array     │ │   │
 │ │       │                          │ (double[], int[], nested, etc.)  │ │   │

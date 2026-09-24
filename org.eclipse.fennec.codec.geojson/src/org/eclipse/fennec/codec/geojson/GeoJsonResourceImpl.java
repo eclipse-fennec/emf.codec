@@ -20,9 +20,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.fennec.codec.config.ConfigProperty;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.constants.RootOptions;
@@ -83,7 +86,9 @@ public class GeoJsonResourceImpl extends CodecResource {
 	private static ConfigurationResolver createGeoJsonResolver() {
 		List<EStructuralFeature> volatileFeatures = collectVolatileFeatures();
 
+		// First: resourceProperties replaces the map the convenience setters below write into
 		return ConfigurationResolver.builder()
+				.resourceProperties(createRequiredMemberProperties())
 				.typeKey("type")
 				.typeStrategy(TypeStrategy.NAME)
 				.useNamesFromExtendedMetaData(true)
@@ -92,6 +97,38 @@ public class GeoJsonResourceImpl extends CodecResource {
 				.forceWrite(volatileFeatures.toArray(new EStructuralFeature[0]))
 				.forceRead(volatileFeatures.toArray(new EStructuralFeature[0]))
 				.build();
+	}
+
+	/**
+	 * Members RFC 7946 requires even when they carry no value (issue #228). The codec drops
+	 * {@code null} values and empty lists by default, which would make a Feature without
+	 * geometry, an empty collection or an empty geometry invalid GeoJSON.
+	 * <ul>
+	 *   <li>{@code geometry} and {@code properties} of a Feature: {@code null} (§3.2)</li>
+	 *   <li>{@code features} of a FeatureCollection: {@code []} (§3.3)</li>
+	 *   <li>{@code geometries} of a GeometryCollection: {@code []} (§3.1.8)</li>
+	 *   <li>{@code coordinates} of an empty MultiPoint or LineString: {@code []} (§3.1) - the
+	 *   other geometries hold their coordinates in an array, which is never dropped</li>
+	 * </ul>
+	 */
+	private static Map<String, Object> createRequiredMemberProperties() {
+		Map<String, Object> writeNull = Map.of(ConfigProperty.SERIALIZE_NULL.getKey(), Boolean.TRUE);
+		Map<String, Object> writeEmpty = Map.of(ConfigProperty.SERIALIZE_EMPTY.getKey(), Boolean.TRUE);
+
+		Map<EReference, Map<String, Object>> references = new HashMap<>();
+		references.put(GeoJsonPackage.Literals.FEATURE__GEOMETRY, writeNull);
+		references.put(GeoJsonPackage.Literals.FEATURE__PROPERTIES, writeNull);
+		references.put(GeoJsonPackage.Literals.FEATURE_COLLECTION__FEATURES, writeEmpty);
+		references.put(GeoJsonPackage.Literals.GEOMETRY_COLLECTION__GEOMETRIES, writeEmpty);
+
+		Map<EAttribute, Map<String, Object>> attributes = new HashMap<>();
+		attributes.put(GeoJsonPackage.Literals.MULTI_POINT__DATA, writeEmpty);
+		attributes.put(GeoJsonPackage.Literals.SIMPLE_LINE_STRING__DATA, writeEmpty);
+
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(ConfigProperty.EREFERENCE_CONFIG.getKey(), references);
+		properties.put(ConfigProperty.EATTRIBUTE_CONFIG.getKey(), attributes);
+		return properties;
 	}
 
 	/**

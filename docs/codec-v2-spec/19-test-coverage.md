@@ -887,6 +887,9 @@ GeoJSON geometry types.
 |----------|--------------|-------|
 | **Geometries** | GeoJsonResourceTest | Point, LineString, Polygon, Multi*, BoundingBox |
 | **Force Write** | ForceWriteTest | Volatile feature handling |
+| **Round Trip** | GeoJsonRoundTripMatrixTest | Every geometry type, 2D/3D, with/without bbox; `EcoreUtil.equals` on reload; optional bbox and id under `strictOnMissing` (#226) |
+| **RFC 7946 Members** | GeoJsonRequiredMembersTest | `geometry`/`properties` null, `features`/`geometries`/`coordinates` empty, number ids (#228) |
+| **Malformed Input** | GeoJsonMalformedInputTest | Truncated document → `IOException` (#225) |
 
 ### 10.3 Test Quality Assessment (Code Review 2026-02-08)
 

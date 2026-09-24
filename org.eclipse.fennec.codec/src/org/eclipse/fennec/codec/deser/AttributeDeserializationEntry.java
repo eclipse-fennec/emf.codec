@@ -844,6 +844,11 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
      * Converts an integer value to the target type.
      */
     private Object convertFromInteger(JsonParser parser, Class<?> instanceClass) {
+        if (instanceClass == String.class) {
+            // A number into a string attribute, e.g. a GeoJSON id (RFC 7946 §3.2 allows both):
+            // its text keeps every digit, a Long would fail the eSet (issue #228)
+            return parser.getString();
+        }
         if (instanceClass == Integer.class || instanceClass == int.class) {
             return parser.getIntValue();
         }
@@ -924,6 +929,9 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
      * Converts a float value to the target type.
      */
     private Object convertFromFloat(JsonParser parser, Class<?> instanceClass) {
+        if (instanceClass == String.class) {
+            return parser.getString();
+        }
         if (instanceClass == Double.class || instanceClass == double.class) {
             return parser.getDoubleValue();
         }

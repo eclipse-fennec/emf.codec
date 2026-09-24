@@ -116,15 +116,15 @@ class GeoJsonRoundTripMatrixTest {
                         {"type":"Point","coordinates":[1.5,2.5]},\
                         {"type":"LineString","coordinates":[[1.5,2.5],[3.5,4.5]]}]}"""),
                 Arguments.of("Feature", """
-                        {"type":"Feature","id":"f1","geometry":{"type":"Point","coordinates":[1.5,2.5]}}"""),
+                        {"type":"Feature","id":"f1","geometry":{"type":"Point","coordinates":[1.5,2.5]},"properties":null}"""),
                 Arguments.of("Feature with bbox", """
                         {"type":"Feature","bbox":[1.5,2.5,1.5,2.5],"id":"f1",\
-                        "geometry":{"type":"Point","coordinates":[1.5,2.5]}}"""),
+                        "geometry":{"type":"Point","coordinates":[1.5,2.5]},"properties":null}"""),
                 Arguments.of("FeatureCollection", """
                         {"type":"FeatureCollection","features":[\
-                        {"type":"Feature","id":"f1","geometry":{"type":"Point","coordinates":[1.5,2.5]}},\
+                        {"type":"Feature","id":"f1","geometry":{"type":"Point","coordinates":[1.5,2.5]},"properties":null},\
                         {"type":"Feature","id":"f2","geometry":{"type":"MultiPolygon","coordinates":[\
-                        [[[0.5,0.5],[4.5,0.5],[4.5,4.5],[0.5,0.5]]]]}}]}"""));
+                        [[[0.5,0.5],[4.5,0.5],[4.5,4.5],[0.5,0.5]]]]},"properties":null}]}"""));
     }
 
     @ParameterizedTest(name = "{0}")
