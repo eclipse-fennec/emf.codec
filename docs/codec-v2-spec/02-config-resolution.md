@@ -550,22 +550,18 @@ These keys are valid only in EAnnotations and control how annotations are proces
 
 | Annotation Key | Levels | Default | Description |
 |----------------|--------|---------|-------------|
-| `inherit` | G, C | `DIRECT` | Controls EAnnotation inheritance across EClass hierarchy |
+| `inherit` | C | `true` | Whether a class inherits codec configuration from its parent. Boolean. Accepted, **no effect yet** (see note) |
 
-**`inherit` values:**
-- `DIRECT` (default): Inherit from immediate parent EClass only
-- `ALL`: Inherit from full hierarchy up to EObject
-- `NONE`: No inheritance, use only this EClass's annotations
-
-> **Note:** `inherit` affects how `CodecAspectProvider` resolves annotations when building AspectConfig. It is consumed during annotation parsing, not during runtime property resolution.
+> **Note:** `inherit` is parsed by `CodecAspectProvider` into `ClassCodecAspect.inheritFromParent`
+> during annotation parsing. Its option pair `codec.inherit` exists but is not read.
 
 > **⚠ Not yet implemented (code reality, 2026-07-24).** Annotation inheritance across the EClass hierarchy
 > is currently applied **only to type configuration** (`ConfigurationResolver.resolveTypeConfig` walks
 > `EClass.getEAllSuperTypes()`, parents-first, child-overrides). It is **not** applied to id / feature /
-> reference / class / discriminator config. The `inherit` **modes** `DIRECT` and `NONE` are **not honored**
-> — the only behavior in code is the full transitive walk (equivalent to `ALL`), and the `codec.inherit`
-> option constant has no consumers. Treat the `inherit=DIRECT|NONE` semantics and non-type-config
-> inheritance as a documented future capability, not current behavior (convention as 99 §2.1).
+> reference / class / discriminator config. The `inherit` flag does **not** change this — neither
+> `inherit="false"` nor the `codec.inherit` option has an effect (issue #222). The inheritance *levels*
+> `DIRECT`/`ALL`/`NONE` of an earlier design were never implemented; inheritance control and
+> non-type-config inheritance are future capabilities, not current behavior (convention as 99 §2.1).
 
 ### 11.8 Discriminator Mapping Properties
 

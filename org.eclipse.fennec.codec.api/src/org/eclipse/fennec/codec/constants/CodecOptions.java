@@ -654,8 +654,14 @@ public final class CodecOptions {
     public static final String CODEC_SMART_COMPRESSION = "codec.smartCompression";
 
     /**
-     * Enable cross-package annotation inheritance.
-     * <p>Default: false</p>
+     * Whether a class inherits codec configuration from its parent EClass. The option pair of the
+     * {@code inherit} annotation. Boolean, default {@code true}.
+     * <p>
+     * <b>Accepted, not yet evaluated</b> (issue #222): the flag is parsed into
+     * {@code ClassCodecAspect.inheritFromParent}, but no code acts on it. Type configuration is
+     * always inherited through the full EClass hierarchy (child overrides parent); id, feature,
+     * reference, class and discriminator configuration are never inherited - whatever the flag says.
+     * </p>
      */
     public static final String CODEC_INHERIT = "codec.inherit";
 

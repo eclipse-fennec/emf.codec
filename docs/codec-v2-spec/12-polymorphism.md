@@ -117,91 +117,58 @@ Map<String, Object> options = Map.of(
 
 ---
 
-## 2. Annotation Inheritance Levels
+## 2. Annotation Inheritance
 
-Controls how codec annotations are inherited across the EClass hierarchy.
+How codec configuration is inherited across the EClass hierarchy.
 
-### 2.1 Configuration
+### 2.1 What the codec does (code reality)
 
-| Annotation Key | Property Key | Global | EClass | Default | Description |
-|----------------|--------------|:------:|:------:|---------|-------------|
-| `inherit` | `codec.inherit` | ✅ | ✅ | `DIRECT` | Annotation inheritance level |
+- **Type configuration** (`typeStrategy`, `typeKey`, …) is inherited through the **full** EClass
+  hierarchy: `ConfigurationResolver.resolveTypeConfig` walks `EClass.getEAllSuperTypes()`,
+  parents first, and the child overrides.
+- **All other configuration** (id, feature, reference, class, discriminator) is **not**
+  inherited.
 
-**Inheritance Level Values:**
+No switch changes this today.
 
-| Level | Description | Inherits From |
-|-------|-------------|---------------|
-| `DIRECT` **(default)** | Only direct parent | Immediate superclass/interface |
-| `ALL` | Full hierarchy | All ancestors up to EObject |
-| `NONE` | No inheritance | Only concrete class annotations |
+### 2.2 The `inherit` key — accepted, not yet evaluated
 
-**Rationale for DIRECT as default:**
-- Avoids accidentally inheriting annotations from external library base classes
-- Predictable behavior - only looks one level up
-- Matches OSGi DS component annotation inheritance semantics
-
-### 2.2 EAnnotation (on EClass)
+| Annotation Key | Property Key | Level | Type | Default | Status |
+|----------------|--------------|:-----:|------|---------|--------|
+| `inherit` | `codec.inherit` | EClass | Boolean | `true` | Parsed, **no effect** |
 
 ```xml
-<!-- Force inheritance from parent even if parent is from different EPackage -->
-<eClassifiers xsi:type="ecore:EClass" name="Employee" eSuperTypes="#//Person">
+<eClassifiers xsi:type="ecore:EClass" name="BlubIOUplink" eSuperTypes=".../lorawan-uplink.ecore#//UplinkMessage">
   <eAnnotations source="http://eclipse.org/fennec/codec">
-    <details key="inherit" value="ALL"/>
+    <details key="inherit" value="true"/>
   </eAnnotations>
 </eClassifiers>
 ```
 
-### 2.3 Java Builder (Runtime Override)
+The annotation is read into `ClassCodecAspect.inheritFromParent` and is used by shipped models
+(blubio, dragino), which is why it stays. `codec.inherit` is its option pair, as every annotation
+key has one; nothing reads the option yet. Neither changes the behavior in §2.1 — `inherit="false"`
+does **not** stop the type-config inheritance (issue #222).
 
-```java
-// Global setting
-CodecConfiguration config = CodecConfiguration.builder()
-    .inherit(AnnotationInheritance.DIRECT)  // Default
-    .build();
-
-// Per-class override
-ClassConfigBuilder.forEClass(EmployeePackage.Literals.EMPLOYEE)
-    .inherit(AnnotationInheritance.ALL)
-    .build();
-```
-
-**Property Map:**
-```java
-Map<String, Object> options = Map.of(
-    "codec.inherit", "DIRECT"
-);
-```
-
-### 2.4 Example Hierarchy
-
-```
-EObject (EMF base)
-  └── Entity (library class, has idStrategy annotation)
-        └── Person (your model, has typeStrategy annotation)
-              └── Employee (your model, no annotations)
-```
-
-| Inheritance Level | Employee sees annotations from |
-|-------------------|--------------------------------|
-| `NONE` | Employee only (none) |
-| `DIRECT` | Employee + Person (typeStrategy) |
-| `ALL` | Employee + Person + Entity (typeStrategy, idStrategy) |
+> **Earlier design, not implemented.** A previous version of this section described
+> inheritance *levels* `DIRECT` (default) / `ALL` / `NONE`, a `CodecConfiguration.inherit(...)`
+> builder and a `ClassConfigBuilder`. None of these exist. If inheritance control is built, it is
+> a new feature and gets its own specification.
 
 ---
 
 ## 3. Inheritance Resolution Order
 
-When the same annotation exists at multiple levels, the most specific (closest to concrete class) wins:
+For type configuration (the only inherited configuration, §2.1), the most specific setting wins:
 
 1. Concrete class annotations (highest priority)
-2. Direct parent annotations
-3. Grandparent annotations (only if `inherit=ALL`)
-4. Global codec defaults (lowest priority)
+2. Parent annotations, nearer ancestors before farther ones - the whole hierarchy
+3. Global codec defaults (lowest priority)
 
-### 3.1 `inherit=ALL` Across Package Boundaries
+### 3.1 Inheritance Across Package Boundaries
 
-`inherit=ALL` is the only setting that walks *out of* the concrete class's own package, and that
-has a consequence worth stating: the inherited configuration comes from the **base package
+The walk over the full hierarchy also leaves the concrete class's own package, and that has a
+consequence worth stating: the inherited configuration comes from the **base package
 version that the instance chain actually points at** — the concrete `EClass` instances reachable
 through `eSuperTypes` — not from whichever version of that base `nsURI` happens to be resolved
 elsewhere in the load.
@@ -223,7 +190,7 @@ read time is what makes that safe — see
 | Setting | Property Key | Default Value |
 |---------|--------------|---------------|
 | Serialize Instance Type | `codec.serializeInstanceType` | `true` |
-| Annotation Inheritance | `codec.inherit` | `DIRECT` |
+| Annotation Inheritance | `codec.inherit` | `true` (accepted, no effect yet - §2.2) |
 
 ---
 

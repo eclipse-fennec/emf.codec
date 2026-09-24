@@ -629,7 +629,7 @@ CodecResource resource = new CodecResource(uri, contentType, metadataService,
 7. ✅ Test coverage (179+ tests passing)
 
 ### Next Steps:
-1. **EClass hierarchy inheritance** - Implement `inherit=DIRECT/ALL/NONE` across parent EClasses in profile building
+1. **EClass hierarchy inheritance** - Honour the `inherit` flag (parsed, no effect yet - #222) and inherit beyond type config; the earlier `DIRECT/ALL/NONE` levels were never implemented
 2. **Runtime ConfigurationResolver** - Merge dynamic overrides (levels 1-4) on top of profile (levels 5+6)
 3. **Codec V2 integration** - Wire profiles into the new codec serialization pipeline
 4. **Custom value readers/writers** - Implement ValueReader/ValueWriter registry and resolution

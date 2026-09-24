@@ -169,8 +169,14 @@ public final class CodecAnnotationConstants {
     public static final String KEY_FORCE_WRITE = "forceWrite";
 
     /**
-     * Detail key for enabling cross-package annotation inheritance.
-     * Value: "true" or "false". Default: "false".
+     * Detail key for whether a class inherits codec configuration from its parent EClass.
+     * Value: "true" or "false". Default: "true".
+     * <p>
+     * <b>Accepted, not yet evaluated</b> (issue #222): the flag is parsed into
+     * {@code ClassCodecAspect.inheritFromParent}, but no code acts on it. Type configuration is
+     * always inherited through the full EClass hierarchy (child overrides parent); id, feature,
+     * reference, class and discriminator configuration are never inherited - whatever the flag says.
+     * </p>
      */
     public static final String KEY_INHERIT = "inherit";
 
