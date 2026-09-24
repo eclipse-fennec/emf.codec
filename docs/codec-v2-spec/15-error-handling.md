@@ -128,6 +128,30 @@ See [Section 6](#6-complete-error-scenarios) for comprehensive error scenarios.
 - All diagnostics are also logged via the standard logging mechanism
 - The `DeserializationMode` setting affects how strictly errors are enforced
 
+### 1.1 Aborted Operations (issue #225)
+
+`Resource.load` and `Resource.save` declare `IOException`, and a caller catching exactly that
+must see every failure that ends the operation. Jackson 3 exceptions are unchecked, as are the
+exceptions the STRICT deserializer entries throw, so `CodecResource` translates them at the
+resource boundary:
+
+| Failure | Thrown to the caller | Diagnostic |
+|---------|---------------------|------------|
+| I/O failure of the stream (Jackson's `JacksonIOException`) | The original `IOException` | ERROR |
+| Malformed syntax (`JacksonException`, e.g. `UnexpectedEndOfInputException`) | `Resource.IOWrappedException`, cause = the Jackson exception | ERROR with line/column |
+| STRICT violation or any other unchecked exception while reading or writing | `Resource.IOWrappedException`, cause = the exception | ERROR, unless the throwing entry reported it already |
+| STRICT load that completed with errors | `IOException`, cause = `CodecDiagnosticException` | the collected errors |
+
+- **Malformed syntax fails in every mode.** Strictness governs tolerance toward *data* the codec
+  can read (§2.1); a document that does not parse offers no data to be tolerant about, and the
+  parser cannot resynchronise after a syntax error. LENIENT therefore does not turn it into a
+  warning, and never returns a partially read document as a successful load.
+- **Diagnostics survive the abort.** Everything collected up to the failure is transferred to
+  `getErrors()`/`getWarnings()` before the exception leaves `load`/`save`.
+- **Caller option errors are not translated.** `codec.throwOnValidationWarnings` answers a save
+  option mismatch with an `IllegalStateException`, as documented; that check runs before
+  anything is written.
+
 ---
 
 ## 2. Error Severity
@@ -708,7 +732,7 @@ When deserializing array attributes with custom component types (e.g., `Date[]`,
 | **Max string length** | 10 MB (Jackson default: 20 MB) |
 | **Max field name length** | 10 KB (Jackson default: 50 KB) |
 | **Scope** | All JSON/YAML/CBOR/BSON parsing via `CodecResource` |
-| **Recovery** | Jackson throws exception before codec processing |
+| **Recovery** | Jackson throws before codec processing; the load fails with `Resource.IOWrappedException` ([§1.1](#11-aborted-operations-issue-225)) |
 
 The codec configures Jackson's `StreamReadConstraints` with tighter limits than the 3.1.0 defaults. These limits are applied at the Jackson parser level, providing a first line of defense before the codec's own limits (nesting depth, collection size) are checked. The constraints are applied to:
 - Default JSON path (via `CodecJsonFactory` builder)

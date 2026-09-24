@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -68,6 +69,7 @@ import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
 import tools.jackson.core.ErrorReportConfiguration;
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonEncoding;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -75,6 +77,8 @@ import tools.jackson.core.ObjectReadContext;
 import tools.jackson.core.ObjectWriteContext;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.StreamWriteConstraints;
+import tools.jackson.core.TokenStreamLocation;
+import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.core.io.ContentReference;
 import tools.jackson.core.io.IOContext;
 import tools.jackson.core.util.BufferRecycler;
@@ -323,13 +327,28 @@ public class CodecResource extends ResourceImpl {
                 }
                 validationCollector.addToResource(this);
             }
-            doSaveWithFormat(outputStream, effectiveOptions, operationResolver);
-            saveDiagnostics.addToResource(this);
-            LOGGER.fine(() -> String.format("Saved %s to %s (format: %s)",
-                    eClass.getName(), getURI(), formatProvider.getFormatId()));
-            return;
         }
 
+        // The option validation above stays outside: its IllegalStateException is the
+        // documented answer to a caller asking for it. What fails while writing is not.
+        try {
+            if (formatProvider != null) {
+                doSaveWithFormat(outputStream, effectiveOptions, operationResolver);
+            } else {
+                doSaveJson(outputStream, effectiveOptions, rootObject);
+            }
+        } catch (RuntimeException e) {
+            throw operationFailure(e, saveDiagnostics);
+        } finally {
+            saveDiagnostics.addToResource(this);
+        }
+
+        LOGGER.fine(() -> String.format("Saved %s to %s%s", eClass.getName(), getURI(),
+                formatProvider != null ? " (format: " + formatProvider.getFormatId() + ")" : ""));
+    }
+
+    private void doSaveJson(OutputStream outputStream, Map<String, Object> effectiveOptions,
+            EObject rootObject) {
         // Check if we have custom value writer configurations
         Object valueWriterInstancesOption = effectiveOptions.get(CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES);
         // Deprecated key, still honoured: this is its implementation, not a use of it.
@@ -370,9 +389,6 @@ public class CodecResource extends ResourceImpl {
         } else {
             mapper.writeValue(outputStream, getContents().toArray(new EObject[0]));
         }
-
-        saveDiagnostics.addToResource(this);
-        LOGGER.fine(() -> String.format("Saved %s to %s", eClass.getName(), getURI()));
     }
 
     // ========================================================================
@@ -381,6 +397,21 @@ public class CodecResource extends ResourceImpl {
 
     @Override
     protected void doLoad(InputStream inputStream, Map<?, ?> options) throws IOException {
+        // Created before the mapper: the module's serializers and deserializers report config
+        // problems into it (issue #182). Drained into this resource however the load ends, so
+        // the diagnostics gathered up to a failure are not lost with it (issue #225).
+        DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+        try {
+            loadContents(inputStream, options, diagnosticCollector);
+        } catch (RuntimeException e) {
+            throw operationFailure(e, diagnosticCollector);
+        } finally {
+            diagnosticCollector.addToResource(this);
+        }
+    }
+
+    private void loadContents(InputStream inputStream, Map<?, ?> options,
+            DiagnosticCollector diagnosticCollector) throws IOException {
         Map<?, ?> effectiveOptions = isNull(options) ? Collections.emptyMap() : options;
 
         EClass rootEClassHint = helper.resolveRootType(effectiveOptions);
@@ -399,11 +430,7 @@ public class CodecResource extends ResourceImpl {
         // Enrich resolver with load options (highest priority in config hierarchy)
         ConfigurationResolver operationResolver = enrichWithOptions(resolver, mergedOptions);
 
-        // Created before the mapper: the module's serializers and deserializers report config
-        // problems into it, and it is drained into this resource at the end (issue #182).
-        DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
-
-        mapper = createObjectMapper(mergedOptions, operationResolver, packageResolver,
+        mapper =createObjectMapper(mergedOptions, operationResolver, packageResolver,
                 diagnosticCollector);
 
         if (formatProvider != null) {
@@ -527,12 +554,11 @@ public class CodecResource extends ResourceImpl {
                     ReferenceUriPolicy.from(operationResolver));
         }
 
-        diagnosticCollector.addToResource(this);
         failIfStrict(diagnosticCollector, mergedOptions);
 
         LOGGER.fine(() -> String.format("Loaded %d objects from %s (errors=%d, warnings=%d)",
             getContents().size(), getURI(),
-            getErrors().size(), getWarnings().size()));
+            diagnosticCollector.getErrorCount(), diagnosticCollector.getWarningCount()));
     }
 
     // ========================================================================
@@ -766,12 +792,11 @@ public class CodecResource extends ResourceImpl {
                     ReferenceUriPolicy.from(operationResolver));
         }
 
-        diagnosticCollector.addToResource(this);
         failIfStrict(diagnosticCollector, mergedOptions);
 
         LOGGER.fine(() -> String.format("Loaded %d objects from %s (format: %s, errors=%d, warnings=%d)",
             getContents().size(), getURI(), formatProvider.getFormatId(),
-            getErrors().size(), getWarnings().size()));
+            diagnosticCollector.getErrorCount(), diagnosticCollector.getWarningCount()));
     }
 
     /**
@@ -805,6 +830,39 @@ public class CodecResource extends ResourceImpl {
         String message = String.format("Load of %s failed in STRICT mode with %d error(s): %s",
                 getURI(), errors.size(), errors.get(0).getMessage());
         throw new IOException(message, new CodecDiagnosticException(message, errors));
+    }
+
+    /**
+     * Turns an unchecked failure of a load or save into the {@link IOException} that
+     * {@code Resource.load}/{@code save} declare (issue #225).
+     * <p>
+     * Jackson 3 exceptions are unchecked, and so are the ones the STRICT entries throw, so
+     * neither reached a caller catching {@code IOException}. An I/O failure of the stream,
+     * which Jackson wraps into its unchecked {@link JacksonIOException}, is handed back as the
+     * original {@code IOException}; everything else - malformed syntax included, in every mode -
+     * is wrapped into an {@link IOWrappedException}.
+     * </p>
+     * <p>
+     * The failure is recorded as an ERROR, with the parser position where Jackson knows it,
+     * unless the code that threw has reported it already.
+     * </p>
+     *
+     * @param failure the unchecked exception that ended the operation
+     * @param diagnostics the diagnostics of this operation
+     * @return the exception to throw
+     */
+    private IOException operationFailure(RuntimeException failure, DiagnosticCollector diagnostics) {
+        String message = failure instanceof JacksonException je ? je.getOriginalMessage() : failure.getMessage();
+        boolean reported = diagnostics.getErrors().stream()
+                .anyMatch(d -> Objects.equals(d.getMessage(), message));
+        if (!reported) {
+            TokenStreamLocation location = failure instanceof JacksonException je ? je.getLocation() : null;
+            diagnostics.addError(String.valueOf(message), location, "CodecResource");
+        }
+        if (failure instanceof JacksonIOException jio && nonNull(jio.getCause())) {
+            return jio.getCause();
+        }
+        return new IOWrappedException(failure);
     }
 
     // ========================================================================
