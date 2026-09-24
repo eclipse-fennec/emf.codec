@@ -2,7 +2,38 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-09-22
+**Last Updated:** 2026-09-24
+
+**Session Summary (2026-09-24) — issues #225 and #226: unchecked failures on load/save, GeoJSON on the new model:**
+
+Both came from building OGC API – Features on the codec (eclipse-fennec/emf.ogc.features).
+
+- **#225 — every failure that ends a load or save is an `IOException`.** Jackson 3 exceptions are
+  unchecked, and so are the STRICT entries' `IllegalStateException`s, so a truncated document or a
+  strict violation escaped a caller catching what `Resource.load` declares. Worse, the diagnostics
+  collected up to that point were lost: `addToResource` ran only after a successful parse.
+  `CodecResource.doLoad` now owns the collector, delegates to `loadContents` and drains the
+  collector in a `finally`; the save's write step is wrapped the same way. `operationFailure`
+  hands a stream failure (`JacksonIOException`) back as the original `IOException` and wraps
+  everything else into `IOWrappedException`, recording an ERROR (with line/column for Jackson)
+  unless the throwing entry already reported that message.
+- **Decisions.** Malformed syntax fails in **every** mode — LENIENT is tolerance toward readable
+  data (spec 13 §5.1, spec 15 §2.1), and a partial document returned as a success is the #131 gap
+  again. `codec.throwOnValidationWarnings` keeps its documented `IllegalStateException`: it is a
+  caller option error, checked before anything is written. Spec 15 gained §1.1 *Aborted
+  Operations*; §9.6 names the resulting exception.
+- **#226 — GeoJSON on common.models#27/#30/#31** (`data`/`bbox` derived, `MultiPolygon.polygons`
+  transient). No codec change was needed, as the issue predicted: `forceWrite`/`forceRead` win over
+  the derived skip. `GeoJsonRoundTripMatrixTest` pins it — 18 documents (all geometry types, 2D/3D,
+  with/without bbox): output equals input, the reload is `EcoreUtil.equals` (only possible since
+  #27), no `polygons` key, polygon count stable. `strictOnMissing` still demands `bbox`
+  (`lowerBound=1`), unchanged — although RFC 7946 §5 makes bbox optional; that belongs to the model.
+- **Side effect of common.models#26** (elevation written only when set): `ForceWriteTest` expected
+  `Point.data` to always have 3 elements; it now asserts 2 without elevation. The next `snapshot`
+  CI run would have failed on it regardless of this PR.
+- **Tests:** `FailuresSurfaceAsIOExceptionTest` (14: syntax on the JSON and format paths, LENIENT,
+  position, strict diagnostics reach the resource once, stream failures unwrapped on load/save),
+  `GeoJsonMalformedInputTest` (the issue's reproduction), `GeoJsonRoundTripMatrixTest` (37).
 
 **Session Summary (2026-09-22) — issue #223: the `Codec-Options` header spoke two key conventions:**
 
