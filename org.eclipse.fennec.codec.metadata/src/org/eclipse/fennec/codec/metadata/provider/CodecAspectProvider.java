@@ -205,13 +205,21 @@ public class CodecAspectProvider implements MetadataHandler {
         AspectEntry entry = newEntry(aspect);
         EList<MetadataDiagnostic> diagnostics = entry.getDiagnostics();
 
+        String element = "EClass '" + eClass.getName() + "'";
         EAnnotation codecAnnotation = eClass.getEAnnotation(CODEC_SOURCE);
         if (codecAnnotation != null) {
             parseClassAnnotation(aspect, diagnostics, codecAnnotation, eClass);
+            UnknownAnnotationKeys.checkCodecKeys(diagnostics, codecAnnotation.getDetails().map(), element);
         }
 
         // Scan for typeMapping/{mapId} dedicated annotation sources
         parseTypeMappingAnnotations(aspect, eClass);
+        for (EAnnotation annotation : eClass.getEAnnotations()) {
+            if (CodecAnnotationConstants.extractMapIdFromSource(annotation.getSource()) != null) {
+                UnknownAnnotationKeys.checkTypeMappingKeys(diagnostics, annotation.getDetails().map(), element);
+            }
+        }
+        UnknownAnnotationKeys.checkSources(diagnostics, eClass, element);
 
         // Misconfig: inlineMapping annotation on EClass → WARNING
         EAnnotation inlineMappingOnClass = eClass.getEAnnotation(CodecAnnotationConstants.INLINE_MAPPING_SOURCE);
@@ -264,7 +272,9 @@ public class CodecAspectProvider implements MetadataHandler {
             checkForReferenceOnlyKeysOnAttribute(diagnostics, details, attribute);
             checkForStrictnessKeysOnFeature(diagnostics, details, attribute);
             checkForMetadataMergeKeysOnFeature(diagnostics, details, attribute);
+            UnknownAnnotationKeys.checkCodecKeys(diagnostics, details, featureDescription(attribute));
         }
+        UnknownAnnotationKeys.checkSources(diagnostics, attribute, featureDescription(attribute));
 
         return entry;
     }
@@ -281,9 +291,11 @@ public class CodecAspectProvider implements MetadataHandler {
         populateFeatureAspect(aspect, reference);
 
         // Reference-specific parsing
+        UnknownAnnotationKeys.checkSources(diagnostics, reference, featureDescription(reference));
         EAnnotation codecAnnotation = reference.getEAnnotation(CODEC_SOURCE);
         if (codecAnnotation != null) {
             Map<String, String> details = codecAnnotation.getDetails().map();
+            UnknownAnnotationKeys.checkCodecKeys(diagnostics, details, featureDescription(reference));
 
             // Check for class-only keys and add diagnostics (keys are ignored but logged)
             checkForClassOnlyKeys(diagnostics, details, reference);
@@ -374,7 +386,14 @@ public class CodecAspectProvider implements MetadataHandler {
             pkgProfile.getClassProfiles().add(classProfile);
         }
 
-        return newEntry(pkgProfile);
+        AspectEntry entry = newEntry(pkgProfile);
+        EPackage ePackage = packageMetadata.getEPackage();
+        if (ePackage != null) {
+            String element = "EPackage '" + ePackage.getName() + "'";
+            UnknownAnnotationKeys.checkCodecKeys(entry.getDiagnostics(), codecAnnotationDetails(ePackage), element);
+            UnknownAnnotationKeys.checkSources(entry.getDiagnostics(), ePackage, element);
+        }
+        return entry;
     }
 
     // ========================================================================
@@ -1537,6 +1556,11 @@ public class CodecAspectProvider implements MetadataHandler {
                 || KEY_ID_SEPARATOR_KEY.equals(key)
                 || KEY_ID_VALUE_KEY.equals(key);
         // NOTE: KEY_ID_FORMAT and KEY_ID_KEY are NOT class-only - valid on EReference
+    }
+
+    private static String featureDescription(EStructuralFeature feature) {
+        return (feature instanceof EReference ? "EReference '" : "EAttribute '")
+                + feature.getEContainingClass().getName() + "." + feature.getName() + "'";
     }
 
     /**

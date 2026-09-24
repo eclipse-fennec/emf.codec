@@ -27,10 +27,12 @@ Validation happens at **four distinct layers**, each with different timing and s
 
 Occurs when an EPackage is registered with the MetadataService. Validates:
 - Annotation keys are at correct level (e.g., `typeMapId` only on EClass, not EReference)
+- Annotation keys are known at all, with the nearest known key suggested (issue #236)
+- Annotation sources that look like codec sources but are none (`codec`, `codec.type.<id>`)
 - Enum values are valid
 - Boolean values are valid
 
-**Implementation:** `CodecAspectProvider.checkForClassOnlyKeys()` in `codec.metadata` project.
+**Implementation:** `CodecAspectProvider.checkForClassOnlyKeys()` and `UnknownAnnotationKeys` in `codec.metadata` project.
 
 See [Section 6.10](#610-annotation-parsing-errors-metadata-layer) for error scenarios.
 
@@ -434,7 +436,9 @@ These errors occur during EPackage registration when the `codec.metadata` layer 
 |----------|----------|------------------|----------|
 | Annotation key at wrong level | WARNING | `Annotation key '{key}' is not valid on {elementType}, ignored` | Key ignored, not applied to Aspect |
 | `idKey` / `idFormat` on a non-containment EReference | WARNING | `Annotation key '{key}' has no effect on non-containment EReference '{name}', ignored (…containment only…)` | Key ignored, no id config on the reference aspect (issue #189) |
-| Unknown annotation key | WARNING | `Unknown annotation key '{key}' on {element}` | Key ignored |
+| Unknown annotation key (issue #236; known = the `CodecAnnotationConstants.KEY_*` values) | WARNING | `Unknown codec annotation key '{key}' on {element}; nothing reads it - did you mean '{nearest}'?` | Key ignored |
+| `typeMapping/{mapId}` key close to a configuration key | WARNING | `Type mapping key '{key}' on {element} looks like '{nearest}'; nothing reads it as such - it is taken as a discriminator value mapped to an EClass` | Kept as a mapping entry |
+| Look-alike annotation source (`codec`, `codec.type.<id>`, `codec/…`) | WARNING | `Annotation source '{source}' on {element} is not a codec annotation source, none of its details is read; …` | Annotation ignored |
 | Invalid enum value | WARNING | `Invalid value '{value}' for enum {enumType}, using default` | Default value used |
 | Invalid boolean value | WARNING | `Invalid boolean value '{value}' for key '{key}'` | Default value used |
 
@@ -444,8 +448,12 @@ These errors occur during EPackage registration when the `codec.metadata` layer 
 WARNING: Annotation key 'typeMapId' is not valid on EReference, ignored
 WARNING: Annotation key 'typeDiscriminatorPath' is not valid on EReference, ignored
 WARNING: Annotation key 'idStrategy' is not valid on EAttribute, ignored
-WARNING: Unknown annotation key 'fooBar' on EClass 'Person'
+WARNING: Unknown codec annotation key 'serializeDefaults' on EAttribute 'Person.age'; nothing reads it - did you mean 'serializeDefault'?
+WARNING: Unknown codec annotation key 'fooBar' on EClass 'Person'; nothing reads it
 ```
+
+A known key on the wrong element is reported by the placement check, not as unknown. Inline
+mapping annotations are not checked for unknown keys: every detail there is a mapping entry.
 
 **Diagnostic Collection Pattern:**
 

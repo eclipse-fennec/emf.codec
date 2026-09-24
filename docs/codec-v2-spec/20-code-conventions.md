@@ -146,12 +146,6 @@ if (AnnotationParseHelper.hasAnyKey(details, "key1", "key2", "key3")) { ... }
 if (AnnotationParseHelper.hasAllKeys(details, "key1", "key2")) { ... }
 ```
 
-#### Prefix Extraction
-```java
-// Extract suffix from prefixed key (e.g., "prefix.value" -> "value")
-String suffix = AnnotationParseHelper.extractSuffix(key, "prefix.");
-```
-
 ### 3.5 When to Extract a Helper
 
 Extract to a helper class when you see:
