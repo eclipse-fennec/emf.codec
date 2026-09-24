@@ -231,28 +231,4 @@ public final class AnnotationParseHelper {
         return true;
     }
 
-    // ========================================================================
-    // Prefix Extraction
-    // ========================================================================
-
-    /**
-     * Extracts a suffix from a key that matches the given prefix.
-     * <p>
-     * For example, with prefix "inlineMapping." and key "inlineMapping.friend",
-     * this returns "friend".
-     * </p>
-     *
-     * @param key the key to check
-     * @param prefix the prefix to match
-     * @return the suffix after the prefix, or null if key doesn't start with prefix
-     */
-    public static String extractSuffix(String key, String prefix) {
-        Objects.requireNonNull(prefix, "prefix must not be null");
-
-        if (key == null || !key.startsWith(prefix)) {
-            return null;
-        }
-        String suffix = key.substring(prefix.length());
-        return suffix.isEmpty() ? null : suffix;
-    }
 }
