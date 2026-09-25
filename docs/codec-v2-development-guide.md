@@ -2,7 +2,30 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-09-24
+**Last Updated:** 2026-09-25
+
+**Session Summary (2026-09-25, wave/discriminator-fallback) — #238, #239 filed:**
+
+- **#238 - untargeted discriminator lookup applies no fallback.** `TypeDiscriminatorService.resolveFromAny`
+  applied the fallback strategy of the first non-`SKIP` registry (map iteration order) when no
+  registry mapped the value, so a class without a mapping failed with an unrelated registry's `ERROR`
+  or was re-typed with its `fallbackEClass`. Now only a direct match counts; fallbacks stay with the
+  targeted `resolve(mapId, …)`. Spec 08 §7.3 says so. The `eClassResolver` parameter is kept for
+  the interface, although it is now unused.
+  - Reproduces only across packages: in one package, smart compression (step 2, context schema)
+    finds the name first. `CodecResourceInlineMappingTest$UnmappedClassIgnoresUnrelatedFallbacks`
+    builds two resource-backed packages (`drawing` → `shapes`) next to the ERROR/FALLBACK registries.
+  - **Not changed, on purpose:** `NAME`/`CLASS` search only the context schema's package; the hint
+    class's package is used only when there is no context schema. A class from a foreign package
+    (GeoJSON `Geometry` under a CQL2 root) therefore does not resolve by `NAME`. Widening the search
+    was discussed and rejected (S-4, a single user); the intended way is #239.
+- **#239 filed - type mappings from EClass options are a GAP.** `DiscriminatorConfig` parses
+  `codec.typeMapId`/`typeDiscriminatorPath`/`typeMappings`/`fallbackStrategy`/`fallbackEClass`, but the
+  read side consumes only `getTypeMapId()`; the registries come from annotations only. An option-supplied
+  mapId points to no registry. Fix: a per-load registry view (not the shared model registries, 08 §7.4).
+- **Context (emf.ogc.features):** `cql2.GeometryLiteral.geometry` is typed `org.geojson.model#//Geometry`;
+  the CQL2 JSON encoding writes the bare geometry into `Operation.args`. Workarounds until #239:
+  `typeStrategy=URI` for `Geometry`, or set the context schema around the nested read.
 
 **Session Summary (2026-09-24, wave/cleanup) — #236 and the last #222 leftovers:**
 
