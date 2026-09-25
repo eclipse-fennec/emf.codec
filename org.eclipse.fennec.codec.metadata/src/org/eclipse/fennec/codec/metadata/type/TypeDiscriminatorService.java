@@ -892,26 +892,19 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
     }
 
     /**
-     * Resolves an EClass from a discriminator value, searching all registries with
-     * fallback-aware resolution.
+     * Resolves an EClass from a discriminator value, searching all registries.
      * <p>
-     * Unlike {@link #getEClassFromAny(String)} which only does direct lookup,
-     * this method applies each registry's fallback strategy (SKIP, ERROR, FALLBACK)
-     * when the discriminator is not found in that registry.
-     * </p>
-     * <p>
-     * The resolution order is:
-     * <ol>
-     *   <li>Direct lookup across all registries (returns immediately on match)</li>
-     *   <li>If no direct match, apply fallback strategy of the first registry
-     *       that has a non-SKIP fallback configured</li>
-     * </ol>
+     * This is the untargeted lookup, used when the expected class belongs to no registry.
+     * Only a direct match counts: a fallback strategy (ERROR, FALLBACK) belongs to the
+     * registry it is configured on and is applied only by the targeted
+     * {@link #resolve(String, String, Function)}. Applying some registry's fallback here would
+     * let an unrelated mapping fail or re-type a class it does not cover (issue #238); on no
+     * match the caller continues with the type strategy (spec 08 §7.3).
      * </p>
      *
      * @param discriminatorValue the discriminator value to resolve
      * @param eClassResolver function that resolves EClass URI strings to EClass instances
-     * @return the resolved EClass, or null if not found and all strategies are SKIP
-     * @throws IllegalStateException if ERROR strategy is active, or FALLBACK with missing fallbackEClass
+     * @return the resolved EClass, or null if no registry maps the value
      */
     @Override
     public EClass resolveFromAny(String discriminatorValue, Function<String, EClass> eClassResolver) {
@@ -919,23 +912,12 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
             return null;
         }
 
-        // Phase 1: direct lookup across all registries
         for (TypeDiscriminatorRegistry registry : registries.values()) {
             EClass eClass = registry.getEClass(discriminatorValue);
             if (eClass != null) {
                 return eClass;
             }
         }
-
-        // Phase 2: no direct match — apply fallback strategy
-        // Find the first registry with a non-SKIP fallback strategy
-        for (TypeDiscriminatorRegistry registry : registries.values()) {
-            if (registry.getFallbackStrategy() != FallbackStrategy.SKIP) {
-                return registry.resolve(discriminatorValue, withOwnLookup(eClassResolver));
-            }
-        }
-
-        // No registry with fallback configured — return null (default SKIP behavior)
         return null;
     }
 

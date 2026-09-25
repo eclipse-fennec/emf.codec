@@ -26,11 +26,17 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EcoreFactory;
+import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
@@ -723,6 +729,132 @@ class CodecResourceInlineMappingTest {
     }
 
     // ========================================================================
+    // Unmapped classes next to ERROR/FALLBACK registries (issue #238)
+    // ========================================================================
+
+    /**
+     * A class that belongs to no discriminator registry, in a package other than the root's,
+     * next to the ERROR and FALLBACK registries of the test model. The situation of issue #238:
+     * a GeoJSON geometry inside a CQL2 expression. Because the type name is not found in the
+     * root's context schema, resolution reaches the untargeted registry lookup, which must not
+     * apply an unrelated registry's fallback: neither fail the load (ERROR) nor re-type the
+     * object (FALLBACK).
+     * <p>
+     * That {@code NAME} then finds {@code Circle} in the foreign package is not covered here:
+     * {@code NAME} searches the context schema's package only. A caller limits and resolves
+     * such types through a class-scoped type mapping from options (#239).
+     * </p>
+     */
+    @Nested
+    @DisplayName("Unmapped Class Ignores Unrelated Fallbacks")
+    class UnmappedClassIgnoresUnrelatedFallbacks {
+
+        private static final String SHAPES_NS = "http://test.example.org/shapes/1.0";
+        private static final String DRAWING_NS = "http://test.example.org/drawing/1.0";
+
+        private EPackage shapesPackage;
+        private EPackage drawingPackage;
+        private EClass shapeClass;
+        private EClass circleClass;
+        private EClass drawingClass;
+        private Map<String, Object> options;
+
+        @BeforeEach
+        void setUpShapes() {
+            EcoreFactory factory = EcoreFactory.eINSTANCE;
+
+            shapesPackage = createPackage("shapes", SHAPES_NS);
+            shapeClass = factory.createEClass();
+            shapeClass.setName("Shape");
+            shapeClass.getEStructuralFeatures().add(createAttribute("label", EcorePackage.Literals.ESTRING));
+            circleClass = factory.createEClass();
+            circleClass.setName("Circle");
+            circleClass.getESuperTypes().add(shapeClass);
+            circleClass.getEStructuralFeatures().add(createAttribute("radius", EcorePackage.Literals.EDOUBLE));
+            shapesPackage.getEClassifiers().add(shapeClass);
+            shapesPackage.getEClassifiers().add(circleClass);
+
+            drawingPackage = createPackage("drawing", DRAWING_NS);
+            drawingClass = factory.createEClass();
+            drawingClass.setName("Drawing");
+            drawingClass.getEStructuralFeatures().add(createAttribute("title", EcorePackage.Literals.ESTRING));
+            EReference shapes = factory.createEReference();
+            shapes.setName("shapes");
+            shapes.setEType(shapeClass);
+            shapes.setContainment(true);
+            shapes.setUpperBound(-1);
+            drawingClass.getEStructuralFeatures().add(shapes);
+            drawingPackage.getEClassifiers().add(drawingClass);
+
+            for (EPackage pkg : List.of(shapesPackage, drawingPackage)) {
+                EPackage.Registry.INSTANCE.put(pkg.getNsURI(), pkg);
+                metadataService.registerPackage(pkg);
+            }
+
+            // Class-scoped type config without annotations, as a caller hands it in
+            Map<String, Object> shapeConfig = Map.of(
+                    CodecOptions.CODEC_TYPE_KEY, "type",
+                    CodecOptions.CODEC_TYPE_STRATEGY, "NAME");
+            options = new HashMap<>();
+            options.put(CodecOptions.CODEC_ECLASS_CONFIG,
+                    Map.of(shapeClass, shapeConfig, circleClass, shapeConfig));
+        }
+
+        @AfterEach
+        void tearDownShapes() {
+            EPackage.Registry.INSTANCE.remove(SHAPES_NS);
+            EPackage.Registry.INSTANCE.remove(DRAWING_NS);
+        }
+
+        @Test
+        @DisplayName("an unrelated registry's fallback does not decide a contained unmapped class")
+        @SuppressWarnings("unchecked")
+        void unrelatedFallbackDoesNotDecide() throws IOException {
+            String json = """
+                {
+                    "title": "Sketch",
+                    "shapes": [
+                        {
+                            "type": "Circle",
+                            "label": "c1",
+                            "radius": 2.5
+                        }
+                    ]
+                }
+                """;
+
+            EObject result = deserialize(json, drawingClass, options);
+
+            assertNotNull(result);
+            EReference shapesRef = (EReference) drawingClass.getEStructuralFeature("shapes");
+            List<EObject> shapes = (List<EObject>) result.eGet(shapesRef);
+            assertEquals(1, shapes.size());
+            EObject shape = shapes.get(0);
+            assertTrue(shapeClass.isSuperTypeOf(shape.eClass()),
+                    "An unrelated registry's FALLBACK must not re-type an unmapped class, was "
+                            + shape.eClass().getName());
+            assertEquals("c1", shape.eGet(shapeClass.getEStructuralFeature("label")));
+        }
+
+        private EPackage createPackage(String name, String nsUri) {
+            EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
+            pkg.setName(name);
+            pkg.setNsPrefix(name);
+            pkg.setNsURI(nsUri);
+            // Resource-backed, so EcoreUtil.getURI yields nsURI#//Class
+            new ResourceImpl(URI.createURI(nsUri)).getContents().add(pkg);
+            return pkg;
+        }
+
+        private EAttribute createAttribute(String name, EDataType type) {
+            EAttribute attribute = EcoreFactory.eINSTANCE.createEAttribute();
+            attribute.setName(name);
+            attribute.setEType(type);
+            return attribute;
+        }
+    }
+
+    // ========================================================================
     // Helper Methods
     // ========================================================================
 
@@ -737,9 +869,14 @@ class CodecResourceInlineMappingTest {
     }
 
     private EObject deserialize(String json, EClass rootEClass) throws IOException {
+        return deserialize(json, rootEClass, Map.of());
+    }
+
+    private EObject deserialize(String json, EClass rootEClass, Map<String, Object> extraOptions)
+            throws IOException {
         CodecResource resource = createResource();
 
-        Map<String, Object> options = new HashMap<>();
+        Map<String, Object> options = new HashMap<>(extraOptions);
         options.put(CodecResource.CODEC_ROOT_TYPE, rootEClass);
 
         ByteArrayInputStream in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));

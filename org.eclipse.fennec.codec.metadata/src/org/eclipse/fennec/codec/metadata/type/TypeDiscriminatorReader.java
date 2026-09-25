@@ -102,12 +102,16 @@ public interface TypeDiscriminatorReader {
     EClass resolve(String mapId, String discriminatorValue, Function<String, EClass> eClassResolver);
 
     /**
-     * Resolves an EClass from a discriminator value, searching all registries with
-     * fallback-aware resolution.
+     * Resolves an EClass from a discriminator value, searching all registries.
+     * <p>
+     * Untargeted: only a direct match counts. No registry's fallback strategy is applied,
+     * since the expected class belongs to none of them; on no match the caller continues
+     * with the type strategy.
+     * </p>
      *
      * @param discriminatorValue the discriminator value to resolve
      * @param eClassResolver function that resolves EClass URI strings to EClass instances
-     * @return the resolved EClass, or null if not found and all strategies are SKIP
+     * @return the resolved EClass, or null if no registry maps the value
      */
     EClass resolveFromAny(String discriminatorValue, Function<String, EClass> eClassResolver);
 
