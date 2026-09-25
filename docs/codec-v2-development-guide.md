@@ -4,6 +4,18 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-25
 
+**Session Summary (2026-09-25, wave/embedded-packages) — #244 answered, no code change:**
+
+- **#244** (NAME does not find a class of an embedded foreign package): deliberate, S-4 - the
+  context schema is per load, the hint package is used only without one. Spec 06 §6.4.7 names
+  the two ways: a type mapping from options on the embedded base class (preferred; targeted,
+  closed set, ERROR on unknown) and switching the context schema around a nested
+  `findRootValueDeserializer` read (restore afterwards). A hint-package-first lookup was
+  discussed twice (#238, #244) and not built.
+- `CodecResourceOptionTypeMappingTest$EmbeddedThroughValueReader` reproduces the emf.ogc.features
+  delegation (`ReferenceValueReader` via `CODEC_FEATURE_VALUE_READER_INSTANCES`): NAME alone fails,
+  both ways resolve.
+
 **Session Summary (2026-09-25, wave/spec-drift) — #242 spec/code drift:**
 
 - **Constants:** 14 `CodecOptions` constants for properties that are read but had none
