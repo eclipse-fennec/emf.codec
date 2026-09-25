@@ -399,14 +399,15 @@ The following projects provide pre-configured resources for specific formats:
 Pre-configured `CodecResource` for [GeoJSON](https://geojson.org/) format:
 
 ```java
-// Configuration applied automatically
-CodecConfiguration.builder()
+// Configuration applied automatically (GeoJsonResourceImpl)
+ConfigurationResolver.builder()
     .typeKey("type")                          // GeoJSON uses "type" not "_type"
     .typeStrategy(TypeStrategy.NAME)          // Simple names: Point, Feature, etc.
     .useNamesFromExtendedMetaData(true)       // Maps "coordinates" correctly
-    .forceSerialize("data", "bbox")           // Volatile attributes
-    .idKeyMode(IdKeyMode.NONE)                // Feature.id is a regular property
-    .serializeType(true)
+    .useId(false)                             // Feature.id is a regular property
+    .typeInclude(true)
+    .forceWrite(volatileFeatures)             // Volatile "data" and "bbox" attributes
+    .forceRead(volatileFeatures)
     .build();
 ```
 
@@ -593,7 +594,7 @@ To create a custom format extension:
 ```java
 public class MyFormatResourceImpl extends CodecResource {
 
-    public static final CodecConfiguration MY_FORMAT_CONFIG = CodecConfiguration.builder()
+    public static final ConfigurationResolver MY_FORMAT_CONFIG = ConfigurationResolver.builder()
         .typeKey("@type")
         .typeStrategy(TypeStrategy.URI)
         // ... format-specific settings
@@ -1098,17 +1099,18 @@ JSON Schema's `oneOf` construct creates challenges for deserialization:
 Provide explicit type mapping via load options:
 
 ```java
-Map<String, Object> options = CodecOptionsBuilder.create()
-    .rootObject(rootEClass)
-    .forClass(inputNodeClass)
-        .typeKey("_type")
-        .typeStrategy("NAME")
-        .typeMap(Map.of(
-            "kafka", "KafkaInputNode",
-            "file", "FileInputNode"
-        ))
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_ROOT_TYPE, rootEClass,
+    CodecOptions.CODEC_ECLASS_CONFIG, Map.of(inputNodeClass, Map.of(
+        CodecOptions.CODEC_TYPE_KEY, "_type",
+        CodecOptions.CODEC_TYPE_MAP_ID, "inputNodes",
+        CodecOptions.CODEC_TYPE_DISCRIMINATOR_PATH, "_type",
+        CodecOptions.CODEC_TYPE_MAPPINGS, Map.of(
+            "kafka", kafkaInputNodeClass,
+            "file", fileInputNodeClass))));
 ```
+
+(Type mappings from options: 08 §4.4.)
 
 **Known Limitation:**
 

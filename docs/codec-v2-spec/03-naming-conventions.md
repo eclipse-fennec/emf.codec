@@ -8,7 +8,7 @@
 
 The codec uses special JSON keys to represent metadata (type, schema, supertype, id, references). This chapter describes the **JSON output keys** and their configuration.
 
-> **Note:** For configuration key naming conventions (EAnnotations, property maps, Builder API), see [Annotation Reference](16-annotation-reference.md) (Naming Convention).
+> **Note:** For configuration key naming conventions (EAnnotations, property maps), see [Annotation Reference](16-annotation-reference.md) (Naming Convention).
 
 **Key Principle:**
 - **PLAIN format**: Keys use `_` prefix and appear at root level
@@ -192,7 +192,7 @@ Metadata is grouped into container objects, inner keys have no prefix:
 
 ## 5. Key Configuration Options
 
-All keys are configurable via EAnnotations, property maps, or CodecConfiguration Builder.
+All keys are configurable via EAnnotations or property maps.
 
 > **See also:** [Annotation Reference](16-annotation-reference.md) for complete configuration key reference.
 
@@ -211,18 +211,17 @@ All keys are configurable via EAnnotations, property maps, or CodecConfiguration
 | `refTypeKey` | `_type` | `type` | Reference type key |
 | `fingerprintKey` | `_fingerprint` | `fingerprint` | EPackage fingerprint key (see [Type Serialization](06-type.md#8-in-band-epackage-fingerprint)) |
 
-### 5.2 CodecConfiguration Builder
+### 5.2 Property Map Configuration
 
 ```java
 // Custom keys for JSON-LD style output
-CodecConfiguration.builder()
-    .typeKey("@context")          // Outer type key
-    .typeNameKey("@type")         // Inner type name key
-    .typeSchemaKey("@vocab")      // Inner schema key
-    .superTypeKey("@extends")     // SuperType key
-    .idKey("@id")                 // ID key
-    .refKey("@id")                // Reference key
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_KEY, "@context",          // Outer type key
+    CodecOptions.CODEC_TYPE_NAME_KEY, "@type",        // Inner type name key
+    CodecOptions.CODEC_TYPE_SCHEMA_KEY, "@vocab",     // Inner schema key
+    CodecOptions.CODEC_SUPERTYPE_KEY, "@extends",     // SuperType key
+    CodecOptions.CODEC_ID_KEY, "@id",                 // ID key
+    CodecOptions.CODEC_REF_KEY, "@id");               // Reference key
 ```
 
 ### 5.3 EAnnotation Configuration
@@ -253,15 +252,14 @@ options.put("codec.typeSchemaKey", "@vocab");
 
 Configuration:
 ```java
-CodecConfiguration.builder()
-    .typeFormat(SerializationFormat.STRUCTURED)
-    .typeKey("@context")
-    .typeNameKey("@type")
-    .typeSchemaKey("@vocab")
-    .superTypeKey("@extends")
-    .idKey("@id")
-    .refKey("@id")
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_TYPE_KEY, "@context",
+    CodecOptions.CODEC_TYPE_NAME_KEY, "@type",
+    CodecOptions.CODEC_TYPE_SCHEMA_KEY, "@vocab",
+    CodecOptions.CODEC_SUPERTYPE_KEY, "@extends",
+    CodecOptions.CODEC_ID_KEY, "@id",
+    CodecOptions.CODEC_REF_KEY, "@id");
 ```
 
 Output:
@@ -282,12 +280,11 @@ Output:
 
 Configuration:
 ```java
-CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.NAME)
-    .typeKey("_t")
-    .idKey("_id")
-    .refKey("$id")
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "NAME",
+    CodecOptions.CODEC_TYPE_KEY, "_t",
+    CodecOptions.CODEC_ID_KEY, "_id",
+    CodecOptions.CODEC_REF_KEY, "$id");
 ```
 
 Output:
@@ -321,11 +318,10 @@ The deserializer uses the configured keys for detection, so custom keys work tra
 1. **Prefix Convention**: Root-level metadata keys use `_` prefix by default, inner keys don't
 2. **Container Grouping**: In STRUCTURED format, related metadata (schema, type, supertype) shares one container
 3. **Reference Format**: References always use an object wrapper (`{ "_ref": "..." }` or `{ "ref": "..." }`)
-4. **Configurability**: Every JSON key is configurable via EAnnotation, property map, or Builder
+4. **Configurability**: Every JSON key is configurable via EAnnotation or property map
 5. **Naming Parity**: Configuration keys are consistent across all methods:
    - EAnnotation: `typeKey` (camelCase, no prefix)
-   - Property map: `codec.typeKey` (add `codec.` prefix)
-   - Builder: `.typeKey(...)` (method name matches)
+   - Property map: `codec.typeKey` (add `codec.` prefix), `CodecOptions.CODEC_TYPE_KEY`
 
 ---
 

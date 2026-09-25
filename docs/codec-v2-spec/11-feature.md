@@ -25,19 +25,18 @@ Global settings that apply to all features unless overridden:
 | `serializeEmpty` | `codec.serializeEmpty` | ✅ | ✅ | ✅ | `false` | Include empty collections |
 
 > **`serializeDefault`, annotation and option alike (issues #220, #222).** The annotation detail key,
-> the option key, the property key and the builder method are all singular, matching
+> the option key and the property key are all singular, matching
 > `ConfigProperty.SERIALIZE_DEFAULT`. The annotation key used to be the plural `serializeDefaults`,
 > after the `FeatureCodecAspect` attribute it sets; it was renamed without an alias, so a model that
 > still writes the plural loses the setting. The Java constant `CodecOptions.CODEC_SERIALIZE_DEFAULTS`,
 > a deprecated alias since #220, was removed as well.
 
-**Java Builder (Codec-Wide):**
+**Load/Save Options (Codec-Wide):**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .serializeDefault(false)  // Default: omit default values
-    .serializeNull(false)      // Default: omit null values
-    .serializeEmpty(false)     // Default: omit empty collections
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_SERIALIZE_DEFAULT, false,  // Default: omit default values
+    CodecOptions.CODEC_SERIALIZE_NULL, false,     // Default: omit null values
+    CodecOptions.CODEC_SERIALIZE_EMPTY, false);   // Default: omit empty collections
 ```
 
 **Default Behavior (serializeDefault=false, serializeNull=false, serializeEmpty=false):**
@@ -168,22 +167,15 @@ Override codec-wide settings for individual features:
 </eStructuralFeatures>
 ```
 
-**Java Builder (Runtime Override):**
+**Load/Save Options (Runtime Override):**
 ```java
-// Ignore feature completely
-FeatureConfigBuilder.forFeature("internalCache")
-    .ignore(true)
-    .build();
-
-// Force serialize null for specific feature (override codec default)
-FeatureConfigBuilder.forFeature("middleName")
-    .serializeNull(true)
-    .build();
-
-// Skip default values for specific feature
-FeatureConfigBuilder.forFeature("counter")
-    .serializeDefault(false)
-    .build();
+Map<String, Object> options = Map.of(CodecOptions.CODEC_EATTRIBUTE_CONFIG, Map.of(
+    // Ignore feature completely
+    PersonPackage.Literals.PERSON__INTERNAL_CACHE, Map.of("codec.ignore", true),
+    // Force serialize null for specific feature (override codec default)
+    PersonPackage.Literals.PERSON__MIDDLE_NAME, Map.of(CodecOptions.CODEC_SERIALIZE_NULL, true),
+    // Skip default values for specific feature
+    PersonPackage.Literals.PERSON__COUNTER, Map.of(CodecOptions.CODEC_SERIALIZE_DEFAULT, false)));
 ```
 
 **Resolution Order:**
@@ -287,7 +279,7 @@ Override the JSON property name for a feature.
 **Note:** Feature key customization is per-feature only (not supported on EClass).
 
 **Resolution Order (highest to lowest priority):**
-1. **Config Builder** - Runtime configuration override
+1. **Load/save options or properties** - Runtime configuration override
 2. **Model Annotation** - `<details key="key" value="..."/>` on EStructuralFeature
 3. **ExtendedMetaData name** - Only when `useNamesFromExtendedMetadata=true` (see [Section 3](#3-extended-metadata-names))
 4. **Feature Name** - Default EMF feature name
@@ -311,15 +303,14 @@ Customize feature names directly in the EMF model using codec annotations:
 }
 ```
 
-### 2.2 Config Builder Override
+### 2.2 Runtime Override
 
-The config builder can override annotation-defined names at runtime:
+Load/save options can override annotation-defined names at runtime:
 
 ```java
 // Override the annotation-defined key
-FeatureConfigBuilder.forFeature("firstName")
-    .key("givenName")  // Overrides annotation
-    .build();
+Map<String, Object> options = Map.of(CodecOptions.CODEC_EATTRIBUTE_CONFIG, Map.of(
+    PersonPackage.Literals.PERSON__FIRST_NAME, Map.of(CodecOptions.CODEC_KEY, "givenName")));
 ```
 
 **Resulting Output (config overrides annotation):**
@@ -345,13 +336,6 @@ Use names from XSD extended metadata annotations instead of EMF feature names.
 **Note:** This is a **runtime-only** property (no EAnnotation support).
 
 ### 3.1 Configuration
-
-**Java Builder:**
-```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .useNamesFromExtendedMetadata(true)
-    .build();
-```
 
 **Property Map:**
 ```java
@@ -441,19 +425,7 @@ Or on a specific EAttribute (overrides EEnum setting):
 </eStructuralFeatures>
 ```
 
-### 4.2 Java Builder (Codec-Wide or Feature-Specific)
-
-```java
-// Codec-wide default
-CodecConfiguration config = CodecConfiguration.builder()
-    .enumSerialization(EnumSerialization.LITERAL)
-    .build();
-
-// Feature-specific override
-FeatureConfigBuilder.forFeature("status")
-    .enumSerialization(EnumSerialization.VALUE)
-    .build();
-```
+### 4.2 Load/Save Options (Codec-Wide or Feature-Specific)
 
 **Property Map:**
 ```java
@@ -461,6 +433,10 @@ FeatureConfigBuilder.forFeature("status")
 Map<String, Object> options = Map.of(
     "codec.enumSerialization", "LITERAL"
 );
+
+// Feature-specific override
+Map<String, Object> options = Map.of(CodecOptions.CODEC_EATTRIBUTE_CONFIG, Map.of(
+    OrderPackage.Literals.ORDER__STATUS, Map.of(CodecOptions.CODEC_ENUM_SERIALIZATION, "VALUE")));
 ```
 
 ### 4.3 Deserialization Behavior
@@ -523,16 +499,14 @@ Use per-feature `forceWrite` and `forceRead` annotations (see [Section 1.2](#12-
 </eStructuralFeatures>
 ```
 
-**Java Builder (per-feature):**
+**Load/Save Options (per-feature):**
 ```java
-// Force serialize specific volatile feature by name
-FeatureConfigBuilder.forFeature("data")
-    .forceWrite(true)
-    .forceRead(true)
-    .build();
+// Force serialize specific volatile feature
+Map<String, Object> options = Map.of(CodecOptions.CODEC_EATTRIBUTE_CONFIG, Map.of(
+    GeoJsonPackage.Literals.POINT__DATA, Map.of("codec.forceWrite", true, "codec.forceRead", true)));
 ```
 
-**Java Builder (type-safe convenience method):**
+**`ConfigurationResolver.Builder` (type-safe convenience method):**
 ```java
 // Force serialize multiple volatile features using EStructuralFeature references
 // This is type-safe and recommended when you have access to the generated package
@@ -592,11 +566,10 @@ The GeoJSON EMF model stores coordinates in a structured `Coordinates` object bu
 
 **Configuration:**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeKey("type")
-    .typeStrategy(TypeStrategy.NAME)
-    .useNamesFromExtendedMetadata(true)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_KEY, "type",
+    CodecOptions.CODEC_TYPE_STRATEGY, "NAME",
+    "codec.useNamesFromExtendedMetadata", true);
 ```
 
 **Output:**
@@ -977,12 +950,12 @@ For features requiring custom serialization logic, you can specify named value r
 </eStructuralFeatures>
 ```
 
-**Java Builder:**
+**Load/Save Options:**
 ```java
-FeatureConfigBuilder.forFeature("timestamp")
-    .valueReaderName("isoDateReader")
-    .valueWriterName("isoDateWriter")
-    .build();
+Map<String, Object> options = Map.of(CodecOptions.CODEC_EATTRIBUTE_CONFIG, Map.of(
+    EventPackage.Literals.EVENT__TIMESTAMP, Map.of(
+        CodecOptions.CODEC_VALUE_READER_NAME, "isoDateReader",
+        CodecOptions.CODEC_VALUE_WRITER_NAME, "isoDateWriter")));
 ```
 
 **Use cases:**
@@ -1144,7 +1117,7 @@ INPUT: EObject, EStructuralFeature, effective config (annotations + save options
 │    ┌───────┬──────────────────────────────────────────────────────────────┐ │
 │    │ Prio  │ Source                                                       │ │
 │    ├───────┼──────────────────────────────────────────────────────────────┤ │
-│    │  1    │ Config Builder / Load-Save option override                   │ │
+│    │  1    │ Load/save option or property override                        │ │
 │    │  2    │ EAnnotation: <details key="key" value="..."/>               │ │
 │    │  3    │ ExtendedMetaData name (only if useNamesFromExtendedMetadata  │ │
 │    │       │ =true; source "http:///org/eclipse/emf/ecore/util/          │ │
@@ -1412,7 +1385,7 @@ Before any feature can be deserialized, the codec builds a `Map<String, Deserial
 │    ┌────────────────────────────────────────────────────────────────────┐   │
 │    │ KEY RESOLUTION (same as serialization, see §12.0 step 2)          │   │
 │    │                                                                    │   │
-│    │ 1. Config Builder override                                         │   │
+│    │ 1. Load/save option or property override                           │   │
 │    │ 2. EAnnotation key                                                 │   │
 │    │ 3. ExtendedMetaData name (if useNamesFromExtendedMetadata=true)   │   │
 │    │ 4. EStructuralFeature.getName()                                    │   │

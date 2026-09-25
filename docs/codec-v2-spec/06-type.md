@@ -101,15 +101,13 @@ neither describes what happened. For nested objects the reference type takes tha
 
 **Example:**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.NONE)
-    .build();
-
 // Serialization output - no _type field
+resource.save(output, Map.of(CodecOptions.CODEC_TYPE_STRATEGY, "NONE"));
 // { "name": "John", "age": 30 }
 
 // Deserialization - MUST provide CODEC_ROOT_TYPE
 Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "NONE",
     CodecResource.CODEC_ROOT_TYPE, PersonPackage.Literals.PERSON
 );
 resource.load(input, options);
@@ -230,12 +228,12 @@ Smart Compression uses the root's schema context to simplify same-schema types t
 Type configuration **is supported at EReference level**, allowing different type handling for specific references:
 
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.URI)  // Global default
-    .forReference(CompanyPackage.Literals.COMPANY__EXTERNAL_PARTNER)
-        .typeStrategy(TypeStrategy.NAME)
-        .typeKey("@type")
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "URI",  // Global default
+    CodecOptions.CODEC_EREFERENCE_CONFIG, Map.of(
+        CompanyPackage.Literals.COMPANY__EXTERNAL_PARTNER, Map.of(
+            CodecOptions.CODEC_TYPE_STRATEGY, "NAME",
+            CodecOptions.CODEC_TYPE_KEY, "@type")));
 ```
 
 **Output:**
@@ -358,11 +356,11 @@ Type configuration can also be applied at EReference level for per-reference ove
 </eStructuralFeatures>
 ```
 
-### 3.3 Java Builder (Runtime Override)
+### 3.3 Load/Save Options (Runtime Override)
 
 **Minimal (default: PLAIN format, URI strategy):**
 ```java
-CodecConfiguration config = CodecConfiguration.builder().build();
+Map<String, Object> options = Map.of();
 ```
 **Resulting JSON:**
 ```json
@@ -373,10 +371,9 @@ CodecConfiguration config = CodecConfiguration.builder().build();
 
 **PLAIN format with NAME strategy:**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeFormat(SerializationFormat.PLAIN)
-    .typeStrategy(TypeStrategy.NAME)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_FORMAT, "PLAIN",
+    CodecOptions.CODEC_TYPE_STRATEGY, "NAME");
 ```
 **Resulting JSON:**
 ```json
@@ -387,10 +384,9 @@ CodecConfiguration config = CodecConfiguration.builder()
 
 **STRUCTURED format with SCHEMA_AND_TYPE strategy:**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeFormat(SerializationFormat.STRUCTURED)
-    .typeStrategy(TypeStrategy.SCHEMA_AND_TYPE)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_TYPE_STRATEGY, "SCHEMA_AND_TYPE");
 ```
 **Resulting JSON:**
 ```json
@@ -404,13 +400,12 @@ CodecConfiguration config = CodecConfiguration.builder()
 
 **With custom keys:**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeFormat(SerializationFormat.STRUCTURED)
-    .typeStrategy(TypeStrategy.SCHEMA_AND_TYPE)
-    .typeKey("@context")
-    .typeSchemaKey("@vocab")
-    .typeNameKey("@type")
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_TYPE_STRATEGY, "SCHEMA_AND_TYPE",
+    CodecOptions.CODEC_TYPE_KEY, "@context",
+    CodecOptions.CODEC_TYPE_SCHEMA_KEY, "@vocab",
+    CodecOptions.CODEC_TYPE_NAME_KEY, "@type");
 ```
 **Resulting JSON:**
 ```json
@@ -424,12 +419,11 @@ CodecConfiguration config = CodecConfiguration.builder()
 
 **With scope control (runtime-only):**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.SCHEMA_AND_TYPE)
-    .typeScope(StrategyScope.ROOT_ONLY)           // Strategy at root only
-    .typeFormat(SerializationFormat.STRUCTURED)
-    .typeFormatScope(StrategyScope.ROOT_CONTAINMENT)  // Format at root + containments
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "SCHEMA_AND_TYPE",
+    CodecOptions.CODEC_TYPE_SCOPE, "ROOT_ONLY",                // Strategy at root only
+    CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_TYPE_FORMAT_SCOPE, "ROOT_CONTAINMENT"); // Format at root + containments
 ```
 
 | Object Level | Strategy | Format |
@@ -685,9 +679,7 @@ trip `strictOnUnknown` and must not be misread as a data property. See
 To use `type` as type discriminator, configure it explicitly:
 
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .globalTypeKey("type")
-    .build();
+Map<String, Object> options = Map.of(CodecOptions.CODEC_TYPE_KEY, "type");
 ```
 
 Or via EAnnotation on the EPackage:
@@ -1441,10 +1433,9 @@ raised while reading — type resolution included, and supertype validation as
 **STRICT Mode:**
 ```java
 // Config says SCHEMA_AND_TYPE, but JSON only has simple name → ERROR
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.SCHEMA_AND_TYPE)
-    .deserializationMode(DeserializationMode.STRICT)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "SCHEMA_AND_TYPE",
+    CodecOptions.CODEC_DESERIALIZATION_MODE, "STRICT");
 
 // JSON: {"_type": "Person", "name": "John"}  // No _schema field
 // Result: ERROR - "Missing schema field, config requires SCHEMA_AND_TYPE"
@@ -1453,10 +1444,9 @@ CodecConfiguration config = CodecConfiguration.builder()
 **LENIENT Mode (default):**
 ```java
 // Config says SCHEMA_AND_TYPE, but JSON only has simple name → try fallback
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.SCHEMA_AND_TYPE)
-    // .deserializationMode(DeserializationMode.LENIENT)  // default
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "SCHEMA_AND_TYPE");
+    // CodecOptions.CODEC_DESERIALIZATION_MODE, "LENIENT" is the default
 
 // JSON: {"_type": "Person", "name": "John"}
 // Result: WARNING logged, resolves "Person" using CODEC_ROOT_SCHEMA or hint
@@ -1465,10 +1455,9 @@ CodecConfiguration config = CodecConfiguration.builder()
 **AUTO_DETECT Mode:**
 ```java
 // Ignore config, probe JSON structure
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.URI)  // Config says URI
-    .deserializationMode(DeserializationMode.AUTO_DETECT)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "URI",  // Config says URI
+    CodecOptions.CODEC_DESERIALIZATION_MODE, "AUTO_DETECT");
 
 // JSON: {"_type": "Person", "name": "John"}  // Simple name
 // Result: Auto-detects NAME format, resolves using context
@@ -1589,12 +1578,9 @@ FeatureCollection (extends GeoJsonObject)
 To deserialize real GeoJSON, configure:
 
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeKey("type")                        // GeoJSON uses "type" not "_type"
-    .useNamesFromExtendedMetaData(true)     // Map "coordinates" → data attribute
-    .build();
-
 Map<String, Object> options = new HashMap<>();
+options.put(CodecOptions.CODEC_TYPE_KEY, "type");                     // GeoJSON uses "type" not "_type"
+options.put("codec.useNamesFromExtendedMetadata", true);              // Map "coordinates" → data attribute
 options.put(CodecResource.CODEC_ROOT_SCHEMA, "https://geojson.org/model/2016");
 
 resource.load(inputStream, options);

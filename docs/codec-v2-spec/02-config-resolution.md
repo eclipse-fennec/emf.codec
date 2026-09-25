@@ -24,9 +24,9 @@ Configuration can be provided at different sources. **Higher priority sources ov
 | Priority | Source | Lifecycle | Configuration Methods |
 |:--------:|--------|-----------|----------------------|
 | 1 (highest) | **Load/Save Options** | Per-operation | Property map |
-| 2 | **Resource** | Per-resource | Property map, ConfigBuilder |
-| 3 | **ResourceFactory** | Per-factory | Property map, ConfigBuilder |
-| 4 | **Jackson Module Config** | Per-codec | Property map, ConfigBuilder |
+| 2 | **Resource** | Per-resource | Property map |
+| 3 | **ResourceFactory** | Per-factory | Property map |
+| 4 | **Jackson Module Config** | Per-codec | Property map |
 | 5 | **EAnnotations** | Per-model (static) | Ecore model annotations |
 | 6 (lowest) | **Built-in Defaults** | Global | Hardcoded in codec |
 
@@ -168,10 +168,10 @@ At the **Global** level (codec-wide configuration), certain properties support *
 
 **Configuration:**
 ```java
-CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.NAME)
-    .typeScope(StrategyScope.ROOT_ONLY)  // Only applies to root
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "NAME",
+    CodecOptions.CODEC_TYPE_SCOPE, "ROOT_ONLY");  // Only applies to root
+resource.save(outputStream, options);
 ```
 
 **EAnnotation equivalent:**
@@ -208,9 +208,9 @@ Smart compression affects multiple targets:
 
 ---
 
-## 7. EAnnotation and Config Builder Parity
+## 7. EAnnotation and Property Map Parity
 
-Every codec feature that can be configured via **EAnnotations** can also be configured via **Config Builder**, and vice versa.
+Every codec feature that can be configured via **EAnnotations** can also be configured via a **property map**, and vice versa.
 
 **EAnnotation (static, in model):**
 ```xml
@@ -219,14 +219,6 @@ Every codec feature that can be configured via **EAnnotations** can also be conf
     <details key="key" value="first_name"/>
   </eAnnotations>
 </eStructuralFeatures>
-```
-
-**Config Builder (dynamic, at runtime):**
-```java
-FeatureSerializationConfig.builder()
-    .feature("firstName")
-    .key("first_name")
-    .build();
 ```
 
 **Load/Save options (per-operation override):**
@@ -295,17 +287,18 @@ For programmatic use, constructor injection is preferred:
 // Minimal - uses default configuration
 CodecResourceFactory factory = new CodecResourceFactory(metadataService);
 
-// With custom configuration
-CodecConfiguration config = CodecConfiguration.builder()
-    .smartCompression(true)
-    .typeStrategy(TypeStrategy.NAME)
+// With custom configuration (factory-level properties)
+ConfigurationResolver resolver = ConfigurationResolver.builder()
+    .factoryProperties(Map.of(
+        CodecOptions.CODEC_SMART_COMPRESSION, true,
+        CodecOptions.CODEC_TYPE_STRATEGY, "NAME"))
     .build();
-CodecResourceFactory factory = new CodecResourceFactory(metadataService, config);
+CodecResourceFactory factory = new CodecResourceFactory(metadataService, resolver);
 
 // With custom Jackson mapper
 JsonMapper.Builder mapperBuilder = JsonMapper.builder()
     .enable(SerializationFeature.INDENT_OUTPUT);
-CodecResourceFactory factory = new CodecResourceFactory(metadataService, config, mapperBuilder);
+CodecResourceFactory factory = new CodecResourceFactory(metadataService, resolver, mapperBuilder);
 ```
 
 ### 9.2 Setter-Based Configuration (DI Frameworks)
@@ -319,8 +312,8 @@ CodecResourceFactory factory = new CodecResourceFactory();
 // Required: MetadataService must be set before creating resources
 factory.setMetadataService(metadataService);
 
-// Optional: Custom configuration (defaults to CodecConfiguration.defaults())
-factory.setConfiguration(config);
+// Optional: Custom configuration (defaults to ConfigurationResolver.defaults())
+factory.setResolver(resolver);
 
 // Optional: Custom Jackson mapper
 factory.setMapperBuilder(mapperBuilder);
@@ -343,11 +336,10 @@ public class CodecResourceFactoryComponent extends CodecResourceFactory {
 
     @Activate
     public void activate(Map<String, Object> properties) {
-        // Build configuration from Config Admin properties
-        CodecConfiguration config = CodecConfiguration.builder()
-            .fromProperties(properties)
-            .build();
-        setConfiguration(config);
+        // Use the Config Admin properties as factory-level properties
+        setResolver(ConfigurationResolver.builder()
+            .factoryProperties(properties)
+            .build());
     }
 }
 ```
@@ -362,8 +354,8 @@ public class CodecConfig {
     public CodecResourceFactory codecResourceFactory(MetadataService metadataService) {
         CodecResourceFactory factory = new CodecResourceFactory();
         factory.setMetadataService(metadataService);
-        factory.setConfiguration(CodecConfiguration.builder()
-            .smartCompression(true)
+        factory.setResolver(ConfigurationResolver.builder()
+            .factoryProperties(Map.of(CodecOptions.CODEC_SMART_COMPRESSION, true))
             .build());
         return factory;
     }
@@ -413,7 +405,7 @@ JsonMapper.Builder customBuilder = JsonMapper.builder()
 
 CodecResourceFactory factory = new CodecResourceFactory(
     metadataService,
-    codecConfig,
+    resolver,
     customBuilder  // All resources use this base configuration
 );
 ```
@@ -761,36 +753,34 @@ ContextHelper.FEATURE_VALUE_READERS
 ContextHelper.FEATURE_VALUE_WRITERS
 ```
 
-### 11.6 Type-Safe Configuration (Preferred)
+### 11.6 Programmatic Configuration
 
-For most use cases, the type-safe `CodecConfiguration.Builder` is preferred over raw option maps:
+Programmatic configuration uses the same property maps, with the `CodecOptions` constants for
+the keys. Global keys sit at the top level, per-class overrides under `codec.eClassConfig`:
 
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
+Map<String, Object> properties = Map.of(
     // Global settings
-    .smartCompression(true)
-    .typeStrategy(TypeStrategy.NAME)
+    CodecOptions.CODEC_SMART_COMPRESSION, true,
+    CodecOptions.CODEC_TYPE_STRATEGY, "NAME",
 
     // ID settings
-    .idKeyMode(IdKeyMode.ID_ONLY)
-    .idOnTop(true)
-    .idKey("_id")
+    CodecOptions.CODEC_ID_KEY_MODE, "ID_ONLY",
+    CodecOptions.CODEC_ID_ON_TOP, true,
+    CodecOptions.CODEC_ID_KEY, "_id",
 
     // Per-class overrides
-    .forClass(PersonPackage.Literals.PERSON)
-        .typeStrategy(TypeStrategy.URI)
-        .idFeatures("firstName", "lastName")
-        .done()
+    CodecOptions.CODEC_ECLASS_CONFIG, Map.of(PersonPackage.Literals.PERSON, Map.of(
+        CodecOptions.CODEC_TYPE_STRATEGY, "URI",
+        CodecOptions.CODEC_ID_FEATURES, List.of("firstName", "lastName"))));
 
+ConfigurationResolver resolver = ConfigurationResolver.builder()
+    .factoryProperties(properties)
     .build();
-
-CodecResourceFactory factory = new CodecResourceFactory(metadataService, config);
+CodecResourceFactory factory = new CodecResourceFactory(metadataService, resolver);
 ```
 
-The builder approach provides:
-- Compile-time type safety
-- IDE auto-completion
-- Validation of dependent settings
+The same map works as load/save options (highest priority) or resource properties.
 
 ### 11.7 Direction-Specific Configuration
 
@@ -808,13 +798,6 @@ Map<String, Object> properties = Map.of(
     "codec.ser.typeStrategy", "NAME",      // Serialize with simple names
     "codec.deser.typeStrategy", "URI"      // Deserialize expects full URIs
 );
-
-// Build separate configs
-CodecConfiguration serConfig = ConfigBuilder.fromMap(properties).buildSerializationConfig();
-// serConfig.typeStrategy = NAME
-
-CodecConfiguration deserConfig = ConfigBuilder.fromMap(properties).buildDeserializationConfig();
-// deserConfig.typeStrategy = URI
 ```
 
 **Precedence:** Specific prefix overrides general prefix:
@@ -833,7 +816,7 @@ Map<String, Object> properties = Map.of(
 - Testing/migration scenarios
 
 **EAnnotation alternative:**
-Direction-specific configuration is primarily a runtime concern and is not supported via EAnnotations. Use property maps or CodecConfiguration builder for direction-specific settings.
+Direction-specific configuration is primarily a runtime concern and is not supported via EAnnotations. Use property maps for direction-specific settings.
 
 ---
 

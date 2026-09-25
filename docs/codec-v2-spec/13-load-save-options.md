@@ -18,8 +18,8 @@ This section defines the runtime options passed to `resource.load(options)` and 
 
 Every configuration that can be set via EAnnotations must also be available as:
 1. **EAnnotation** - Declarative, static configuration in the .ecore model
-2. **CodecOptionsBuilder** - Programmatic configuration for code-based setup
-3. **Load/Save Options** - Map-based properties for Spring/OSGi integration
+2. **Load/Save Options** - Map-based properties, per operation or as resource, factory and
+   module properties (Spring/OSGi integration)
 
 ### 1.2 Option Priority
 
@@ -662,30 +662,6 @@ readerInstances.put(
 loadOptions.put(CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES, readerInstances);
 
 resource.load(inputStream, loadOptions);
-```
-
-### 7.2 CodecOptionsBuilder
-
-```java
-Map<String, Object> options = CodecOptionsBuilder.create()
-    // Root type hint
-    .rootType(PersonPackage.eINSTANCE.getPerson())
-    // EClass type hints
-    .featureTypeHint(
-        OpenAPIPackage.eINSTANCE.getExample_Value(),
-        PersonPackage.eINSTANCE.getPerson()
-    )
-    // ValueReader names
-    .featureValueReader(
-        OpenAPIPackage.eINSTANCE.getComponents_Schemas(),
-        "jsonSchemaToEPackage"
-    )
-    // ValueWriter names
-    .featureValueWriter(
-        OpenAPIPackage.eINSTANCE.getComponents_Schemas(),
-        "ePackageToJsonSchema"
-    )
-    .build();
 ```
 
 ---

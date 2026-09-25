@@ -18,7 +18,7 @@ How configuration is resolved across two dimensions: the **source hierarchy** (l
 
 ### [03 - Naming Conventions](03-naming-conventions.md)
 
-The consistent naming scheme used throughout the codec: EAnnotation keys (`typeStrategy`), property map keys (`codec.typeStrategy`), Java constants (`CODEC_TYPE_STRATEGY`), and builder methods (`.typeStrategy(...)`). Also covers the scope-level keys like `codec.eClassConfig` for per-class configuration.
+The consistent naming scheme used throughout the codec: EAnnotation keys (`typeStrategy`), property map keys (`codec.typeStrategy`), and Java constants (`CODEC_TYPE_STRATEGY`). Also covers the scope-level keys like `codec.eClassConfig` for per-class configuration.
 
 ### [04 - Common Types](04-common-types.md)
 
@@ -88,7 +88,7 @@ Quick-reference materials for lookup.
 
 ### [16 - Annotation & Configuration Reference](16-annotation-reference.md)
 
-**The definitive reference** for all configuration options. Complete matrix of which properties are valid at which scope levels (Global, EClass, EReference, EAttribute), naming conventions, property-to-builder mapping, and implementation status tracking.
+**The definitive reference** for all configuration options. Complete matrix of which properties are valid at which scope levels (Global, EClass, EReference, EAttribute), naming conventions, annotation-to-property mapping, and implementation status tracking.
 
 ---
 

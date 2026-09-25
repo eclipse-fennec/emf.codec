@@ -11,16 +11,14 @@ This document is the **definitive reference** for codec configuration. It covers
 1. **Configuration Resolution** - How configuration is resolved across two dimensions
 2. **Annotation Keys** - Which keys are valid at each EMF element level
 3. **Error Cases** - What happens with misplaced annotations
-4. **API Parity** - Equivalence between EAnnotations, Properties, and Builder methods
+4. **API Parity** - Equivalence between EAnnotations and Properties
 
 **Relationship between configuration methods:**
 ```
-EAnnotations ⊆ Properties ⊆ Builder Methods
+EAnnotations ⊆ Properties
 
 - Every EAnnotation key has a Property equivalent
-- Every Property has a Builder method
 - Some Properties may NOT have EAnnotation equivalents (runtime-only, marked 🔧)
-- Some Builder methods may be convenience wrappers
 ```
 
 ---
@@ -36,9 +34,9 @@ Configuration can be provided at different sources. **Higher priority sources ov
 | Priority | Source | Lifecycle | Configuration Methods |
 |:--------:|--------|-----------|----------------------|
 | 1 (highest) | **Load/Save Options** | Per-operation | Property map |
-| 2 | **Resource** | Per-resource | Property map, ConfigBuilder |
-| 3 | **ResourceFactory** | Per-factory | Property map, ConfigBuilder |
-| 4 | **Jackson Module Config** | Per-codec | Property map, ConfigBuilder |
+| 2 | **Resource** | Per-resource | Property map |
+| 3 | **ResourceFactory** | Per-factory | Property map |
+| 4 | **Jackson Module Config** | Per-codec | Property map |
 | 5 | **EAnnotations** | Per-model (static) | Ecore model annotations |
 | 6 (lowest) | **Built-in Defaults** | Global | Hardcoded in codec |
 
@@ -133,14 +131,13 @@ All codec annotations use the source: `http://eclipse.org/fennec/codec`
 
 ## Naming Convention
 
-Configuration can be specified via EAnnotations, property maps, or the Builder API. All three use a consistent naming scheme:
+Configuration can be specified via EAnnotations or property maps. Both use a consistent naming scheme:
 
 | Method | Key Format | Example |
 |--------|------------|---------|
 | **EAnnotation detail** | `camelCase` | `<details key="typeStrategy" value="NAME"/>` |
 | **Property map** | `codec.` + `camelCase` | `codec.typeStrategy=NAME` |
 | **Java constant** | `CODEC_` + `SCREAMING_SNAKE` | `CODEC_TYPE_STRATEGY = "codec.typeStrategy"` |
-| **Builder method** | `.camelCase(...)` | `.typeStrategy(TypeStrategy.NAME)` |
 
 **Key principle:** The property key is simply the EAnnotation key prefixed with `codec.`
 
@@ -175,9 +172,9 @@ Load/Save options use the same convention:
 
 ---
 
-## Programmatic Configuration (Property Maps & Builders)
+## Programmatic Configuration (Property Maps)
 
-While EAnnotations define scope implicitly (by their location on EClass/EReference/EAttribute), property maps and builders need explicit structure to specify scope levels.
+While EAnnotations define scope implicitly (by their location on EClass/EReference/EAttribute), property maps need explicit structure to specify scope levels.
 
 ### Scope Level Keys
 
@@ -226,67 +223,6 @@ resource.save(outputStream, options);
 resource.load(inputStream, options);
 ```
 
-### Builder API
-
-The Builder API provides a fluent way to construct the same configuration:
-
-```java
-CodecConfiguration config = CodecConfiguration.builder()
-    // Global settings
-    .typeStrategy(TypeStrategy.NAME)
-    .typeKey("_type")
-    .idKey("_id")
-
-    // Per-EClass settings
-    .forClass(ExamplePackage.Literals.FRIEND)
-        .typeStrategy(TypeStrategy.NAME)
-        .typeFormat(SerializationFormat.STRUCTURED)
-        .typeNameKey("friendKind")
-        .end()
-
-    .forClass(ExamplePackage.Literals.ADDRESS)
-        .idFormat(SerializationFormat.STRUCTURED)
-        .end()
-
-    // Per-EReference settings
-    .forReference(ExamplePackage.Literals.PERSON__FRIENDS)
-        .typeKey("fType")
-        .idKey("friendId")
-        .end()
-
-    .build();
-```
-
-### Typed Configuration Objects (Future)
-
-> **Note:** This section describes a planned feature. The exact API (class names, method signatures) will be designed when implementing the builder layer.
-
-Scope configuration maps will accept **either** raw property maps **or** typed configuration objects:
-
-```java
-Map<EReference, Object> eReferenceConfig = new HashMap<>();
-
-// Option 1: Raw property map
-Map<String, Object> config = Map.of("codec.typeKey", "fType");
-eReferenceConfig.put(someReference, config);
-
-// Option 2: Typed configuration object (future)
-eReferenceConfig.put(otherReference, /* typed config from builder */);
-```
-
-**Benefits of typed configuration objects:**
-- Compile-time type safety and IDE auto-completion
-- Validation during build (invalid combinations caught early)
-- Self-documenting, reusable across multiple features
-
-**Benefits of raw property maps:**
-- External configuration friendly (JSON/YAML parsed directly)
-- Dynamic configuration where types aren't known at compile time
-
-Both styles can be mixed in the same configuration.
-
----
-
 ### Value Type Flexibility
 
 Property maps use `Map<String, Object>`, which allows flexible value types. The codec accepts multiple representations for common types:
@@ -320,25 +256,6 @@ classConfigByUri.put("http://example.org#//Person", personConfig);
 options.put("codec.serializeNull", true);
 options.put("codec.serializeNull", "true");
 options.put("codec.serializeNull", Boolean.TRUE);
-```
-
-**Builder methods** provide type safety with overloaded methods:
-
-```java
-CodecConfiguration.builder()
-    // Type-safe enum
-    .typeStrategy(TypeStrategy.NAME)
-    // Or string variant (convenience)
-    .typeStrategy("NAME")
-
-    // Type-safe EClass
-    .forClass(ExamplePackage.Literals.PERSON)
-    // Or URI variant (for dynamic configuration)
-    .forClass("http://example.org#//Person")
-
-    // Boolean - no string variant needed (just use boolean)
-    .serializeNull(true)
-    .build();
 ```
 
 **Resolution rules:**
@@ -444,12 +361,11 @@ Controls **where** a strategy or format applies within the object hierarchy. Use
 **Key principle:** Strategy and Format have **independent scopes**. This enables powerful combinations:
 
 ```java
-CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.SCHEMA_AND_TYPE)
-    .typeScope(StrategyScope.ROOT_ONLY)           // Strategy at root only
-    .typeFormat(SerializationFormat.STRUCTURED)
-    .typeFormatScope(StrategyScope.ROOT_CONTAINMENT)  // Format at root + containments
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "SCHEMA_AND_TYPE",
+    CodecOptions.CODEC_TYPE_SCOPE, "ROOT_ONLY",               // Strategy at root only
+    CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_TYPE_FORMAT_SCOPE, "ROOT_CONTAINMENT"); // Format at root + containments
 ```
 
 | Object Level | Strategy | Format |
@@ -467,15 +383,15 @@ CodecConfiguration.builder()
 ## Quick Reference Matrix
 
 ### Legend
-- ✅ = Valid at this level (has EAnnotation, Property, AND Builder support)
-- 🔧 = Property/Builder only (no EAnnotation - runtime configuration)
+- ✅ = Valid at this level (has EAnnotation AND Property support)
+- 🔧 = Property only (no EAnnotation - runtime configuration)
 - ❌ = Not valid at this level
 - 🔶 = Valid but with limitations (see notes)
 
 ### Scope Levels
 | Level | EMF Element | Example |
 |-------|-------------|---------|
-| **Global** | Codec configuration | `CodecConfiguration.builder()...` |
+| **Global** | Codec configuration | Top-level `codec.*` key in a property map |
 | **EPackage** | `EPackage` | Annotation on `<ecore:EPackage>` — defaults for every class in the package |
 | **EClass** | `EClassifier` | Annotation on `<eClassifiers>` |
 | **EReference** | `EReference` | Annotation on containment/non-containment reference |
@@ -909,16 +825,6 @@ Static mappings and distributed registration **can be combined** in the same reg
 
 #### Programmatic Configuration
 
-**Builder API:**
-```java
-ClassConfigBuilder.forEClass(ExamplePackage.Literals.UPLINK_MESSAGE)
-    .typeMapId("lorawan-devices")
-    .typeDiscriminatorPath("info.profileName")
-    .addDiscriminatorMapping("temp-sensor", TemperaturePackage.Literals.TEMPERATURE_SENSOR)
-    .addDiscriminatorMapping("humidity-sensor", HumidityPackage.Literals.HUMIDITY_SENSOR)
-    .build();
-```
-
 **Property Map:**
 ```java
 Map<String, Object> config = Map.of(
@@ -1179,14 +1085,13 @@ When both `typeFormat` and `idFormat` are `STRUCTURED`, you can optionally merge
 ### Without Merge **(default)**
 
 ```java
-Config.builder()
-    .typeStrategy(TypeStrategy.SCHEMA_AND_TYPE)
-    .typeFormat(SerializationFormat.STRUCTURED)
-    .typeKey("_type")
-    .superTypeSerialize(true)
-    .idFormat(SerializationFormat.STRUCTURED)
-    .idKey("_id")
-    .build()
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "SCHEMA_AND_TYPE",
+    CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_TYPE_KEY, "_type",
+    CodecOptions.CODEC_SUPERTYPE_SERIALIZE, true,
+    CodecOptions.CODEC_ID_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_ID_KEY, "_id");
 ```
 
 ```json
@@ -1206,14 +1111,13 @@ Config.builder()
 ### With Merge
 
 ```java
-Config.builder()
-    .typeStrategy(TypeStrategy.SCHEMA_AND_TYPE)
-    .typeFormat(SerializationFormat.STRUCTURED)
-    .superTypeSerialize(true)
-    .idFormat(SerializationFormat.STRUCTURED)
-    .metadataMerge(true)
-    .metadataKey("_metadata")  // default
-    .build()
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "SCHEMA_AND_TYPE",
+    CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_SUPERTYPE_SERIALIZE, true,
+    CodecOptions.CODEC_ID_FORMAT, "STRUCTURED",
+    "codec.metadataMerge", true,
+    "codec.metadataKey", "_metadata");  // default
 ```
 
 ```json
@@ -1472,30 +1376,30 @@ Controls how deserializer handles unexpected mismatches.
 
 This section summarizes all global-level runtime options. Most are described in detail in their respective sections.
 
-| Property Key | Builder | Default | Described In |
-|--------------|---------|---------|--------------|
-| `codec.typeStrategy` | `.typeStrategy(...)` | `URI` | [Type Configuration](#type-configuration) |
-| `codec.typeFormat` | `.typeFormat(...)` | `PLAIN` | [Type Configuration](#type-configuration) |
-| `codec.typeKey` | `.typeKey(...)` | `_type` | [Type Configuration](#type-configuration) |
-| `codec.typeScope` | `.typeScope(...)` | `ALL` | [Type Configuration](#type-configuration) |
-| `codec.typeFormatScope` | `.typeFormatScope(...)` | `ALL` | [Type Configuration](#type-configuration) |
-| `codec.idStrategy` | `.idStrategy(...)` | `ID_FIELD` | [ID Configuration](#id-configuration) |
-| `codec.idFormat` | `.idFormat(...)` | `PLAIN` | [ID Configuration](#id-configuration) |
-| `codec.idKey` | `.idKey(...)` | `_id` | [ID Configuration](#id-configuration) |
-| `codec.idScope` | `.idScope(...)` | `ALL` | [ID Configuration](#id-configuration) |
-| `codec.superTypeSerialize` | `.superTypeSerialize(...)` | `false` | [SuperType Configuration](#supertype-configuration) |
-| `codec.refFormat` | `.refFormat(...)` | `PLAIN` | [Reference Configuration](#reference-configuration) |
-| `codec.refKey` | `.refKey(...)` | `_ref` | [Reference Configuration](#reference-configuration) |
-| `codec.ignoreFeatures` | `.ignoreFeatures(...)` | — | [Feature Visibility Control](#feature-visibility-control) |
-| `codec.serializeNull` | `.serializeNull(...)` | `false` | [Feature Serialization Options](#feature-serialization-options) |
-| `codec.serializeEmpty` | `.serializeEmpty(...)` | `false` | [Feature Serialization Options](#feature-serialization-options) |
-| `codec.serializeDefault` | `.serializeDefault(...)` | `false` | [Feature Serialization Options](#feature-serialization-options) |
-| `codec.enumSerialization` | `.enumSerialization(...)` | `LITERAL` | [Feature Serialization Options](#feature-serialization-options) |
-| `codec.strictOnUnknown` | `.strictOnUnknown(...)` | `false` | [Feature Strictness](#feature-strictness) |
-| `codec.strictOnMissing` | `.strictOnMissing(...)` | `false` | [Feature Strictness](#feature-strictness) |
-| `codec.smartCompression` | `.smartCompression(boolean)` | `false` | Omit redundant type info |
-| `codec.useNamesFromExtendedMetaData` | `.useNamesFromExtendedMetaData(boolean)` | `false` | Use XSD names for features |
-| `codec.sortPropertiesAlphabetically` | `.sortPropertiesAlphabetically(boolean)` | `false` | Sort JSON properties |
+| Property Key | Default | Described In |
+|--------------|---------|--------------|
+| `codec.typeStrategy` | `URI` | [Type Configuration](#type-configuration) |
+| `codec.typeFormat` | `PLAIN` | [Type Configuration](#type-configuration) |
+| `codec.typeKey` | `_type` | [Type Configuration](#type-configuration) |
+| `codec.typeScope` | `ALL` | [Type Configuration](#type-configuration) |
+| `codec.typeFormatScope` | `ALL` | [Type Configuration](#type-configuration) |
+| `codec.idStrategy` | `ID_FIELD` | [ID Configuration](#id-configuration) |
+| `codec.idFormat` | `PLAIN` | [ID Configuration](#id-configuration) |
+| `codec.idKey` | `_id` | [ID Configuration](#id-configuration) |
+| `codec.idScope` | `ALL` | [ID Configuration](#id-configuration) |
+| `codec.superTypeSerialize` | `false` | [SuperType Configuration](#supertype-configuration) |
+| `codec.refFormat` | `PLAIN` | [Reference Configuration](#reference-configuration) |
+| `codec.refKey` | `_ref` | [Reference Configuration](#reference-configuration) |
+| `codec.ignoreFeatures` | — | [Feature Visibility Control](#feature-visibility-control) |
+| `codec.serializeNull` | `false` | [Feature Serialization Options](#feature-serialization-options) |
+| `codec.serializeEmpty` | `false` | [Feature Serialization Options](#feature-serialization-options) |
+| `codec.serializeDefault` | `false` | [Feature Serialization Options](#feature-serialization-options) |
+| `codec.enumSerialization` | `LITERAL` | [Feature Serialization Options](#feature-serialization-options) |
+| `codec.strictOnUnknown` | `false` | [Feature Strictness](#feature-strictness) |
+| `codec.strictOnMissing` | `false` | [Feature Strictness](#feature-strictness) |
+| `codec.smartCompression` | `false` | Omit redundant type info |
+| `codec.useNamesFromExtendedMetaData` | `false` | Use XSD names for features |
+| `codec.sortPropertiesAlphabetically` | `false` | Sort JSON properties |
 
 ---
 
@@ -1725,30 +1629,30 @@ options.put("codec.diagnosticHandler", new DiagnosticHandler() {
 
 ---
 
-## Property to Builder Mapping
+## Annotation to Property Mapping
 
-| Annotation Key | Property Key | Builder Method | Scope |
-|----------------|--------------|----------------|-------|
-| `typeStrategy` | `codec.typeStrategy` | `.typeStrategy(TypeStrategy)` | Global, Class, Reference |
-| `typeFormat` | `codec.typeFormat` | `.typeFormat(SerializationFormat)` | Global, Class, Reference |
-| `typeKey` | `codec.typeKey` | `.typeKey(String)` | Global, Class, Reference |
-| — | `codec.typeScope` | `.typeScope(StrategyScope)` | Global only (runtime) |
-| — | `codec.typeFormatScope` | `.typeFormatScope(StrategyScope)` | Global only (runtime) |
-| `idStrategy` | `codec.idStrategy` | `.idStrategy(IdStrategy)` | Global, Class |
-| `idFormat` | `codec.idFormat` | `.idFormat(SerializationFormat)` | Global, Class, Reference |
-| `idKey` | `codec.idKey` | `.idKey(String)` | Global, Class, Reference |
-| `idFeatures` | `codec.idFeatures` | `.idFeatures(String...)` | Class only |
-| — | `codec.idScope` | `.idScope(StrategyScope)` | Global only (runtime) |
-| `refFormat` | `codec.refFormat` | `.refFormat(SerializationFormat)` | Global, Reference |
-| `expand` | `codec.expand` | `.expand(boolean)` | Global, Reference |
-| `refKey` | `codec.refKey` | `.refKey(String)` | Global, Reference |
-| `key` | `codec.key` | `.key(String)` | Feature |
-| `ignore` | `codec.ignore` | `.ignore(boolean)` | Feature |
-| `ignoreRead` | `codec.ignoreRead` | `.ignoreRead(boolean)` | Feature |
-| `ignoreWrite` | `codec.ignoreWrite` | `.ignoreWrite(boolean)` | Feature |
-| `forceRead` | `codec.forceRead` | `.forceRead(boolean)` | Feature |
-| `forceWrite` | `codec.forceWrite` | `.forceWrite(boolean)` | Feature |
-| — | `codec.ignoreFeatures` | `.ignoreFeatures(...)` | Global, Class (runtime) |
+| Annotation Key | Property Key | Scope |
+|----------------|--------------|-------|
+| `typeStrategy` | `codec.typeStrategy` | Global, Class, Reference |
+| `typeFormat` | `codec.typeFormat` | Global, Class, Reference |
+| `typeKey` | `codec.typeKey` | Global, Class, Reference |
+| — | `codec.typeScope` | Global only (runtime) |
+| — | `codec.typeFormatScope` | Global only (runtime) |
+| `idStrategy` | `codec.idStrategy` | Global, Class |
+| `idFormat` | `codec.idFormat` | Global, Class, Reference |
+| `idKey` | `codec.idKey` | Global, Class, Reference |
+| `idFeatures` | `codec.idFeatures` | Class only |
+| — | `codec.idScope` | Global only (runtime) |
+| `refFormat` | `codec.refFormat` | Global, Reference |
+| `expand` | `codec.expand` | Global, Reference |
+| `refKey` | `codec.refKey` | Global, Reference |
+| `key` | `codec.key` | Feature |
+| `ignore` | `codec.ignore` | Feature |
+| `ignoreRead` | `codec.ignoreRead` | Feature |
+| `ignoreWrite` | `codec.ignoreWrite` | Feature |
+| `forceRead` | `codec.forceRead` | Feature |
+| `forceWrite` | `codec.forceWrite` | Feature |
+| — | `codec.ignoreFeatures` | Global, Class (runtime) |
 
 ---
 
@@ -1987,6 +1891,7 @@ removed (#222).
 
 | Date | Changes |
 |------|---------|
+| 2026-09-25 | Removed the Builder API (fluent `CodecConfiguration` builder, `ClassConfigBuilder`, typed configuration objects): it was never implemented. Examples now use property maps; "Property to Builder Mapping" became "Annotation to Property Mapping" (issue #240) |
 | 2026-07-25 | Added `fingerprintMode` / `fingerprintKey` to Type Configuration (in-band EPackage fingerprint, issue #73) |
 | 2026-07-25 | Resolved the dead links to `codec-v2-spec-working/`: those working documents were lost in the spec rewrite. The reasoning they held is now inline here (why scopes are runtime-only) or consolidated in 99-open-questions.md Q1/Q2, so it cannot go missing with a file again (issue #75) |
 | 2026-01-23 | Added Diagnostic Options subsection with cross-reference to 15-error-handling.md |
