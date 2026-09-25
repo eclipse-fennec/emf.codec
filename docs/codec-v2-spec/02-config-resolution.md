@@ -174,13 +174,10 @@ Map<String, Object> options = Map.of(
 resource.save(outputStream, options);
 ```
 
-**EAnnotation equivalent:**
-```xml
-<eAnnotations source="http://eclipse.org/fennec/codec">
-  <details key="codec.typeStrategy" value="NAME"/>
-  <details key="codec.typeScope" value="ROOT_ONLY"/>
-</eAnnotations>
-```
+There is no EAnnotation equivalent: `typeScope` is runtime-only, since where a strategy applies
+is a property of the operation, not of the model. An annotation carrying it is ignored with a
+WARNING ([Annotation Reference](16-annotation-reference.md)). `typeStrategy` itself can be
+annotated, with the unprefixed detail key `typeStrategy`.
 
 ---
 
@@ -564,10 +561,8 @@ These keys are valid only in EAnnotations and control how annotations are proces
 | `typeDiscriminator` | C | RW | `null` | 08-discriminator-mapping.md |
 | `typeMappings` | C | RW | `null` | 08-discriminator-mapping.md |
 | `inlineMappings` | F | RW | `null` | 08-discriminator-mapping.md |
-| `discriminatorPath` | F | RW | `null` | 08-discriminator-mapping.md |
-| `discriminatorValue` | F | RW | `null` | 08-discriminator-mapping.md |
 | `fallbackStrategy` | G, C, F | R(W) | `SKIP` | 08-discriminator-mapping.md |
-| `fallbackEClass` | F | R(W) | `null` | 08-discriminator-mapping.md |
+| `fallbackEClass` | C, F | R(W) | `null` | 08-discriminator-mapping.md |
 
 ### 11.10 SuperType Properties
 
@@ -600,7 +595,6 @@ These keys are valid only in EAnnotations and control how annotations are proces
 | `smartCompression` | G | RW | `false` | 05-global-options.md |
 | `ignoreFeatures` | G, C | RW | `[]` | 05-global-options.md |
 | `fieldOrder` | G | (R)W | `DECLARATION` | 05-global-options.md |
-| `metadataFieldsFirst` | G | (R)W | `true` | 05-global-options.md |
 | `useNamesFromExtendedMetadata` | G | RW | `false` | 11-feature.md |
 
 > **Note:** `useNamesFromExtendedMetadata` is a runtime-only option (no EAnnotation support). When `true`, ExtendedMetaData `name` annotations are used as JSON keys (priority: codec annotation > ExtendedMetaData > feature name).
@@ -616,8 +610,6 @@ These options are only available at runtime via load/save option maps, not via E
 | `rootFingerprint` | G | R | `null` | 13-load-save-options.md |
 | `featureTypeHints` | G | R | `null` | 13-load-save-options.md |
 | `typeHintMode` | G | R | `HINT` | 13-load-save-options.md |
-| `valueReaders` | G | R | `null` | 13-load-save-options.md |
-| `valueWriters` | G | W | `null` | 13-load-save-options.md |
 | `featureValueReaders` | G | R | `null` | 13-load-save-options.md |
 | `featureValueWriters` | G | W | `null` | 13-load-save-options.md |
 | `featureValueReaderInstances` | G | R | `null` | 13-load-save-options.md |
@@ -782,41 +774,13 @@ CodecResourceFactory factory = new CodecResourceFactory(metadataService, resolve
 
 The same map works as load/save options (highest priority) or resource properties.
 
-### 11.7 Direction-Specific Configuration
+### 11.7 Direction
 
-Properties can be scoped to serialization, deserialization, or both using prefixes:
-
-| Prefix | Applies To | Example |
-|--------|------------|---------|
-| `codec.` | Both ser and deser | `codec.typeStrategy=NAME` |
-| `codec.ser.` | Serialization only | `codec.ser.typeStrategy=NAME` |
-| `codec.deser.` | Deserialization only | `codec.deser.typeStrategy=URI` |
-
-**Use Case:** Different strategies for serialization vs deserialization:
-```java
-Map<String, Object> properties = Map.of(
-    "codec.ser.typeStrategy", "NAME",      // Serialize with simple names
-    "codec.deser.typeStrategy", "URI"      // Deserialize expects full URIs
-);
-```
-
-**Precedence:** Specific prefix overrides general prefix:
-```java
-Map<String, Object> properties = Map.of(
-    "codec.typeStrategy", "URI",           // Default for both
-    "codec.ser.typeStrategy", "NAME"       // Override for serialization only
-);
-// Serialization: NAME (specific override)
-// Deserialization: URI (general default)
-```
-
-**When to use direction-specific configuration:**
-- External API writes URIs but you want to serialize simple names
-- Legacy system compatibility (read old format, write new format)
-- Testing/migration scenarios
-
-**EAnnotation alternative:**
-Direction-specific configuration is primarily a runtime concern and is not supported via EAnnotations. Use property maps for direction-specific settings.
+A property has one key for both directions; whether it acts on read, on write or on both is
+fixed per property (the *Direction* column of the tables above). Where read and write need different
+behavior, the property exists twice: `ignoreRead`/`ignoreWrite`, `forceRead`/`forceWrite`.
+There are no `codec.ser.`/`codec.deser.` prefixes; a key spelled that way is unknown and
+reported as such.
 
 ---
 

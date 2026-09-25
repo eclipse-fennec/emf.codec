@@ -308,12 +308,6 @@ public enum ConfigProperty {
     INLINE_MAPPINGS("inlineMappings", (Class<Map<String, Object>>) (Class<?>) Map.class, null,
         levels(FEATURE), directions(READ, WRITE)),
 
-    DISCRIMINATOR_PATH("discriminatorPath", String.class, null,
-        levels(FEATURE), directions(READ, WRITE)),
-
-    DISCRIMINATOR_VALUE("discriminatorValue", String.class, null,
-        levels(FEATURE), directions(READ, WRITE)),
-
     FALLBACK_STRATEGY("fallbackStrategy", String.class, "SKIP", FallbackStrategy.class,  // Spec default: SKIP
         levels(GLOBAL, ECLASS, FEATURE), directions(READ), directions(WRITE)),  // R(W)
 
@@ -384,9 +378,6 @@ public enum ConfigProperty {
     FIELD_ORDER("fieldOrder", String.class, "DECLARATION",
         levels(GLOBAL), directions(WRITE), directions(READ)),  // (R)W
 
-    METADATA_FIELDS_FIRST("metadataFieldsFirst", Boolean.class, true,
-        levels(GLOBAL), directions(WRITE), directions(READ)),  // (R)W
-
     METADATA_MERGE("metadataMerge", Boolean.class, false,
         levels(GLOBAL, ECLASS), directions(READ, WRITE)),
 
@@ -415,14 +406,6 @@ public enum ConfigProperty {
 
     TYPE_HINT_MODE("typeHintMode", String.class, "HINT", TypeHintMode.class,
         levels(GLOBAL), directions(READ)),
-
-    @SuppressWarnings("unchecked")
-    VALUE_READERS("valueReaders", (Class<Map<?, ?>>) (Class<?>) Map.class, null,
-        levels(GLOBAL), directions(READ)),
-
-    @SuppressWarnings("unchecked")
-    VALUE_WRITERS("valueWriters", (Class<Map<?, ?>>) (Class<?>) Map.class, null,
-        levels(GLOBAL), directions(WRITE)),
 
     @SuppressWarnings("unchecked")
     FEATURE_VALUE_READERS("featureValueReaders", (Class<Map<?, ?>>) (Class<?>) Map.class, null,

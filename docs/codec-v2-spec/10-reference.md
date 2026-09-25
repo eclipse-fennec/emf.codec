@@ -549,7 +549,7 @@ On EReference (specific reference):
 ```java
 // Expand ALL non-containment references
 Map<String, Object> options = Map.of(
-    "codec.expandGlobal", true,
+    CodecOptions.CODEC_EXPAND_GLOBAL, true,
     CodecOptions.CODEC_EXPAND_DEPTH, 2,
     CodecOptions.CODEC_EXPAND_IGNORE_BIDIRECTIONAL, true);
 
@@ -595,35 +595,17 @@ If expanding `employer`, the `employees` back-reference in Company is skipped.
 
 ## 6. Type Configuration per Context
 
-Type serialization can be configured differently for each context:
+There is no separate type strategy for containments and references. Two settings shape where
+type information is written and in which form:
 
-| Context | Config | Use Case |
-|---------|--------|----------|
-| Root objects | `typeStrategy(...)` | Main serialization |
-| Containments | `containmentTypeStrategy(...)` | Inline contained objects |
-| References (proxy + expanded) | `referenceTypeStrategy(...)` | Non-containment refs |
+- `codec.typeScope` limits where the configured type strategy applies: `ALL` (default),
+  `ROOT_ONLY`, `ROOT_CONTAINMENT`, `ROOT_NON_CONTAINMENT` ([02 §5](02-config-resolution.md),
+  [06](06-type.md)).
+- `codec.smartCompression` writes the types of the root object's schema as simple names and
+  keeps full URIs for other schemas ([05 §1](05-global-options.md)).
 
-> **Not implemented.** No configuration key sets a type strategy per context: the
-> `containmentTypeStrategy`/`referenceTypeStrategy` settings named above do not exist. The
-> closest existing control is `codec.typeScope`, which limits where the configured strategy
-> applies. The JSON below shows the intended result.
-
-**Resulting JSON:**
-```json
-{
-  "_type": "http://example.org/person/1.0#//Person",
-  "_id": "john-doe",
-  "name": "John Doe",
-  "address": {
-    "_type": "Address",
-    "street": "123 Main St"
-  },
-  "employer": {
-    "_type": "http://example.org/company/1.0#//Company",
-    "_ref": "companies.json#//@companies.0"
-  }
-}
-```
+A strategy of its own per context (containment vs reference) would be a new feature with its own
+specification.
 
 ---
 
