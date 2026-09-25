@@ -4,6 +4,29 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-25
 
+**Session Summary (2026-09-25, wave/discriminator-fallback, end) — #240 spec builder cleanup:**
+
+- **#240 - the spec showed builder APIs that never existed** (`CodecConfiguration.builder()`,
+  `ClassConfigBuilder`, `CodecOptionsBuilder`, `CodecConfig.builder()`, `*ConfigBuilder.forX`).
+  Removed from 00, 02, 03, 05, 06, 07, 09, 10, 11, 13, 14, 16, 17, 18: next to a property map or
+  annotation example the builder block was deleted, a sole example became a load/save options map
+  (`CodecOptions` constants, `"codec.<key>"` where no constant exists), factory-wide config uses
+  `ConfigurationResolver.builder().factoryProperties(…)` + `new CodecResourceFactory(ms, resolver)`.
+  Checked mechanically: every `CodecOptions.CODEC_*` and every chained method in the new examples
+  exists. The real `ConfigurationResolver.Builder` convenience methods (`typeKey`, `useId`,
+  `forceWrite`, …) are used where a format sets them (17 §8.1 GeoJSON).
+  - Spec 18 outputs corrected with it: smart compression keeps `_type` (simple name, 05 §1.1);
+    NUMERIC affects the type only, there are no numeric feature keys.
+  - `docs-site/docs/guides/` is generated from `docs/` (`sync-guides.mjs`, git-ignored) - never edit.
+- **Spec drift seen, not fixed** (listed in the PR): `CodecResourceOptions` (06 §6.4.1, 07 §9.3)
+  does not exist; `codec.ser.`/`codec.deser.` prefixes (02 §11.7) do not exist; `codec.`-prefixed
+  annotation detail keys (02 §5); 16 lists `CODEC_VALUE_READERS`/`WRITERS` (missing) and URI-string
+  keys for `codec.eClassConfig` (not accepted); per-context type strategy (10 §6/§7.2) not
+  implemented; value reader/writer lambdas impossible (two abstract methods, 14 §3.4); options
+  without a `CodecOptions` constant: `metadataMerge`, `metadataKey`, `fieldOrder`,
+  `metadataFieldsFirst`, `ignoreFeatures`, `expandGlobal`, `useNamesFromExtendedMetadata`, `ignore`,
+  `forceRead`, `forceWrite`; 03 §6.2 is titled "MongoDB Style".
+
 **Session Summary (2026-09-25, wave/discriminator-fallback, later) — #239 implemented:**
 
 - **#239 - type/inline mappings from configuration.** `OptionTypeMappings` (codec, package-private)
@@ -22,7 +45,7 @@ This document provides context for continuing codec development across sessions.
     an external `TypeDiscriminatorReader` -> WARNING. New `CodecOptions.CODEC_INLINE_MAPPINGS`;
     `FALLBACK_ECLASS` now valid at ECLASS level.
   - Spec 08 §4.4 rewritten (rules), the never-built builder APIs in §4.4/§5.1 removed. The same
-    fictional `CodecConfiguration.builder()` still appears in spec 03 and 09.
+    fictional builder appeared across the spec; removed with #240.
   - Class options are still not inherited: a subclass's write type key must be configured on it.
 
 **Session Summary (2026-09-25, wave/discriminator-fallback) — #238, #239 filed:**
