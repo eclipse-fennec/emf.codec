@@ -333,19 +333,17 @@ public class ConfigAwareDateWriter implements AttributeValueWriter<Date> {
 }
 ```
 
-### 3.4 Example: Lambda Style with Explicit Name
+### 3.4 Example: Registration with Explicit Name
 
-For simple cases, use the builder with an explicit name:
+`CodecValueReader` and `CodecValueWriter` declare two abstract methods (`getName()` and
+`read`/`write`), so they are not functional interfaces and a lambda cannot implement them. To
+register an instance under a name other than its `getName()`, use the registry's explicit-name
+methods:
 
 ```java
-// Register via builder with explicit name (since lambdas can't implement getName())
-CodecConfiguration.builder()
-    .valueWriter("base64", (value, attr, ctx) ->
-        ctx.getGenerator().writeString(
-            Base64.getEncoder().encodeToString((byte[]) value)))
-    .valueReader("base64", (ctx, attr) ->
-        Base64.getDecoder().decode(ctx.getParser().getString()))
-    .build();
+CodecValueRegistry registry = new CodecValueRegistry()
+    .registerWriter("base64", new Base64Writer())
+    .registerReader("base64", new Base64Reader());
 ```
 
 ### 3.4 Serialization Flow
@@ -533,32 +531,25 @@ ReferenceSerializationEntry (non-containment)
 
 There are two ways to register value readers/writers:
 
-1. **Instance-based registration** via builder (recommended) - uses `getName()` for auto-registration
+1. **Instance-based registration** on a `CodecValueRegistry` (recommended) - uses `getName()` for auto-registration
 2. **Direct registry manipulation** - explicit name-based registration
 
-### 5.1 Instance-Based Registration via Builder (Recommended)
+### 5.1 Instance-Based Registration (Recommended)
 
-The builder accepts reader/writer instances and uses `getName()` for auto-registration:
+`CodecValueRegistry.register` accepts reader/writer instances and uses `getName()` for
+auto-registration:
 
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
+CodecValueRegistry registry = new CodecValueRegistry()
     // Single instances - getName() used as registry key
-    .valueReader(new ISODateReader())           // registered as "isoDate"
-    .valueWriter(new ISODateWriter())           // registered as "isoDate"
-    .valueReader(new EPackageValueReader())     // registered as "jsonSchemaToEPackage"
-    .valueWriter(new EPackageValueWriter())     // registered as "ePackageToJsonSchema"
+    .register(new ISODateReader())              // registered as "isoDate"
+    .register(new ISODateWriter())              // registered as "isoDate"
+    .register(new EPackageValueReader())        // registered as "jsonSchemaToEPackage"
+    .register(new EPackageValueWriter())        // registered as "ePackageToJsonSchema"
 
     // Multiple instances at once (varargs)
-    .valueReaders(new MongoIdReader(), new CustomReader1(), new CustomReader2())
-    .valueWriters(new MongoIdWriter(), new CustomWriter1())
-
-    // Lambda/anonymous with explicit name (getName() not available)
-    .valueReader("base64", (ctx, attr) ->
-        Base64.getDecoder().decode(ctx.getParser().getString()))
-    .valueWriter("base64", (value, attr, ctx) ->
-        ctx.getGenerator().writeString(Base64.getEncoder().encodeToString((byte[]) value)))
-
-    .build();
+    .registerAll(new MongoIdReader(), new CustomReader1(), new CustomReader2())
+    .registerAll(new MongoIdWriter(), new CustomWriter1());
 ```
 
 **Benefits of instance-based registration:**
@@ -606,24 +597,19 @@ if (reader instanceof ReferenceValueReader<?> refReader) {
 
 ### 5.4 Passing Registry to CodecResource
 
-The registry is typically obtained from the configuration:
+The registry is passed to the `CodecResource` constructor:
 
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .valueReader(new ISODateReader())
-    .valueWriter(new ISODateWriter())
-    .build();
+CodecValueRegistry registry = new CodecValueRegistry()
+    .register(new ISODateReader())
+    .register(new ISODateWriter());
 
-// Registry is accessible from config
-CodecValueRegistry registry = config.getValueRegistry();
-
-// Or pass explicitly to CodecResource
 CodecResource resource = new CodecResource(
     uri,
     metadataService,
-    config,
-    config.getValueRegistry(),
-    mapperBuilder
+    resolver,        // ConfigurationResolver
+    registry,
+    mapperBuilder    // null for default
 );
 ```
 
@@ -694,18 +680,6 @@ Map<String, Object> options = Map.of(
 );
 
 resource.save(outputStream, options);
-```
-
-**Option C: Builder API**
-```java
-Map<String, Object> options = CodecOptionsBuilder.create()
-    // By name
-    .featureValueReader(MyPackage.Literals.PERSON__CREATED_AT, "isoDate")
-    .featureValueWriter(MyPackage.Literals.PERSON__CREATED_AT, "isoDate")
-    // Or by instance
-    .featureValueReaderInstance(MyPackage.Literals.PERSON__CREATED_AT, new ISODateReader())
-    .featureValueWriterInstance(MyPackage.Literals.PERSON__CREATED_AT, new ISODateWriter())
-    .build();
 ```
 
 ---
@@ -807,22 +781,22 @@ Custom value reader/writer resolution follows the standard configuration hierarc
    - `codec.featureValueReaderInstances` / `codec.featureValueWriterInstances` (direct instance)
    - `codec.featureValueReaders` / `codec.featureValueWriters` (by name)
 2. **ResourceFactory Defaults**
-3. **CodecConfiguration**
-   - Instances registered via `.valueReader()` / `.valueWriter()`
+3. **CodecValueRegistry**
+   - Instances registered via `register()` / `registerReader()` / `registerWriter()`
 4. **EAnnotation on EStructuralFeature**
    - `valueReaderName` / `valueWriterName` (by name)
 5. **Built-in Defaults** (no custom reader/writer)
 
-### 10.1 Builder Configuration Options
+### 10.1 Registry Methods
 
-| Builder Method | Description |
+| `CodecValueRegistry` Method | Description |
 |----------------|-------------|
-| `.valueReader(reader)` | Register reader using `reader.getName()` |
-| `.valueWriter(writer)` | Register writer using `writer.getName()` |
-| `.valueReaders(r1, r2, ...)` | Register multiple readers (varargs) |
-| `.valueWriters(w1, w2, ...)` | Register multiple writers (varargs) |
-| `.valueReader(name, lambda)` | Register lambda reader with explicit name |
-| `.valueWriter(name, lambda)` | Register lambda writer with explicit name |
+| `register(reader)` | Register reader using `reader.getName()` |
+| `register(writer)` | Register writer using `writer.getName()` |
+| `registerAll(r1, r2, ...)` | Register multiple readers (varargs) |
+| `registerAll(w1, w2, ...)` | Register multiple writers (varargs) |
+| `registerReader(name, reader)` | Register reader under an explicit name |
+| `registerWriter(name, writer)` | Register writer under an explicit name |
 
 ### 10.2 Load/Save Option Keys
 
@@ -906,11 +880,10 @@ by converting between `EPackage` and JSON Schema using custom `ReferenceValueRea
 ```
 
 ```java
-// Register converters via builder (uses getName() for auto-registration)
-CodecConfiguration config = CodecConfiguration.builder()
-    .valueReader(new EPackageValueReader(converter))   // "jsonSchemaToEPackage"
-    .valueWriter(new EPackageValueWriter(converter))   // "ePackageToJsonSchema"
-    .build();
+// Register converters (uses getName() for auto-registration)
+CodecValueRegistry registry = new CodecValueRegistry()
+    .register(new EPackageValueReader(converter))   // "jsonSchemaToEPackage"
+    .register(new EPackageValueWriter(converter));  // "ePackageToJsonSchema"
 ```
 
 ```json

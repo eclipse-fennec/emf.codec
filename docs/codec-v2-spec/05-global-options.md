@@ -88,13 +88,6 @@ Smart compression requires a **context schema** to be established from the root 
 |----------------|--------------|------|---------|
 | `smartCompression` | `codec.smartCompression` | `boolean` | `false` |
 
-**Java Builder:**
-```java
-CodecConfiguration.builder()
-    .smartCompression(true)
-    .build();
-```
-
 **Property Map:**
 ```java
 Map<String, Object> options = new HashMap<>();
@@ -355,18 +348,7 @@ The root schema is derived from:
 
 Uses EClass classifier IDs instead of names for maximum compactness.
 
-**Configuration:**
-
-```java
-// Global - applies to type serialization
-CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.NUMERIC)
-    .typeSchemaKey("s")       // Short keys for compactness
-    .typeKey("c")
-    .build();
-```
-
-**Property Map:**
+**Configuration (property map):**
 ```java
 Map<String, Object> options = new HashMap<>();
 options.put("codec.typeStrategy", "NUMERIC");
@@ -461,18 +443,16 @@ When `metadataFieldsFirst=true`, the output order is:
 
 > **Note:** The relative order of `_id` and `_type` is controlled by `idOnTop` (see [09-id.md §8.7](09-id.md#87-metadata-field-ordering-idontop)). The default (`idOnTop=false`) places `_type` before `_id`.
 
-**Java Builder (proposed):**
+**Property Map (proposed):**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .fieldOrder(FieldOrder.DECLARATION)    // default
-    .metadataFieldsFirst(true)             // default: metadata fields first
-    .build();
+Map<String, Object> options = Map.of(
+    "codec.fieldOrder", "DECLARATION",     // default
+    "codec.metadataFieldsFirst", true);    // default: metadata fields first
 
 // Alphabetical ordering with ID always first
-CodecConfiguration alphabetical = CodecConfiguration.builder()
-    .fieldOrder(FieldOrder.ALPHABETICAL)
-    .metadataFieldsFirst(true)             // _id, _type, _supertype first, then alphabetical
-    .build();
+Map<String, Object> alphabetical = Map.of(
+    "codec.fieldOrder", "ALPHABETICAL",
+    "codec.metadataFieldsFirst", true);    // _id, _type, _supertype first, then alphabetical
 ```
 
 **EAnnotation (proposed, on EPackage):**
@@ -497,13 +477,6 @@ This is useful for:
 - Skipping audit fields (`createdAt`, `updatedAt`, `version`) across all EClasses
 - Excluding internal/technical features from API output
 - Temporary exclusion without modifying model annotations
-
-**Java Builder:**
-```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .ignoreFeatures("createdAt", "updatedAt", "version", "internalId")
-    .build();
-```
 
 **Property Map:**
 ```java
@@ -535,13 +508,11 @@ Global ignore is useful for API versioning where certain fields should not be ex
 
 ```java
 // V1 API - hide new fields
-CodecConfiguration v1Config = CodecConfiguration.builder()
-    .globalIgnoreFeatures("newFieldAddedInV2", "anotherV2Field")
-    .build();
+Map<String, Object> v1Options = Map.of(
+    "codec.ignoreFeatures", List.of("newFieldAddedInV2", "anotherV2Field"));
 
 // V2 API - expose all fields
-CodecConfiguration v2Config = CodecConfiguration.builder()
-    .build();
+Map<String, Object> v2Options = Map.of();
 ```
 
 When deserializing with global ignore:
@@ -565,16 +536,6 @@ When both `typeFormat` and `idFormat` are set to `STRUCTURED`, each produces its
 | `metadataKey` | `codec.metadataKey` | `String` | `_metadata` | Key for the merged metadata object |
 
 **Scope:** Global and EClass levels only — not valid on EReference or EAttribute.
-
-**Java Builder:**
-```java
-CodecConfiguration.builder()
-    .typeFormat(SerializationFormat.STRUCTURED)
-    .idFormat(SerializationFormat.STRUCTURED)
-    .metadataMerge(true)
-    .metadataKey("_metadata")  // default
-    .build();
-```
 
 **Property Map:**
 ```java

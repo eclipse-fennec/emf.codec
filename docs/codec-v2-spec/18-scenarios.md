@@ -2,14 +2,16 @@
 
 [← Format Abstraction](17-format-abstraction.md) | [Next: Test Coverage →](19-test-coverage.md)
 
+Each scenario shows the save options (`resource.save(out, options)`) and the resulting output.
+
 ---
 
 ## 1. Minimal Configuration (Defaults)
 
-Using all built-in defaults:
+Using all built-in defaults - no options:
 
 ```java
-CodecConfig config = CodecConfig.builder().build();
+resource.save(out, Map.of());
 ```
 
 **Output:**
@@ -29,9 +31,9 @@ CodecConfig config = CodecConfig.builder().build();
 All metadata as nested objects:
 
 ```java
-CodecConfig config = CodecConfig.builder()
-    .format(SerializationFormat.STRUCTURED)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_ID_FORMAT, "STRUCTURED");
 ```
 
 **Output:**
@@ -55,11 +57,8 @@ CodecConfig config = CodecConfig.builder()
 ## 3. With SuperTypes Enabled
 
 ```java
-CodecConfig config = CodecConfig.builder()
-    .supertype(SuperTypeSerializationConfig.builder()
-        .enabled(true)
-        .build())
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_SUPERTYPE_SERIALIZE, true);
 ```
 
 **Output:**
@@ -78,20 +77,20 @@ CodecConfig config = CodecConfig.builder()
 ## 4. Smart Compression
 
 ```java
-CodecConfig config = CodecConfig.builder()
-    .smartCompression(true)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_SMART_COMPRESSION, true);
 ```
 
-**Output (type omitted when inferable):**
+**Output (types of the root's schema as simple names, see [05 §1](05-global-options.md)):**
 ```json
 {
+  "_type": "http://example.org/person/1.0#//Person",
   "_id": "john-doe",
   "firstName": "John",
   "lastName": "Doe",
   "addresses": [
-    { "street": "123 Main St" },
-    { "street": "456 Oak Ave" }
+    { "_type": "Address", "street": "123 Main St" },
+    { "_type": "Address", "street": "456 Oak Ave" }
   ]
 }
 ```
@@ -101,14 +100,9 @@ CodecConfig config = CodecConfig.builder()
 ## 5. Custom Keys
 
 ```java
-CodecConfig config = CodecConfig.builder()
-    .type(TypeSerializationConfig.builder()
-        .typeKey("@type")
-        .build())
-    .id(IdSerializationConfig.builder()
-        .idKey("@id")
-        .build())
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_KEY, "@type",
+    CodecOptions.CODEC_ID_KEY, "@id");
 ```
 
 **Output:**
@@ -126,10 +120,9 @@ CodecConfig config = CodecConfig.builder()
 ## 6. Reference Expansion
 
 ```java
-CodecConfig config = CodecConfig.builder()
-    .expand(true)
-    .expandDepth(2)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_EXPAND, true,
+    CodecOptions.CODEC_EXPAND_DEPTH, 2);
 ```
 
 **Output:**
@@ -151,19 +144,21 @@ CodecConfig config = CodecConfig.builder()
 ## 7. NUMERIC Strategy (Compact)
 
 ```java
-CodecConfig config = CodecConfig.builder()
-    .useNumericIds(true)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "NUMERIC");
 ```
 
 **Output:**
 ```json
 {
   "_type": { "schema": "http://example.org/person/1.0", "classifier": 3 },
-  "5": "John",
-  "6": "Doe"
+  "firstName": "John",
+  "lastName": "Doe"
 }
 ```
+
+> NUMERIC applies to the type only. Feature keys stay feature names; an earlier revision
+> showed numeric feature keys (`"5"`) behind a `useNumericIds` switch, neither of which exists.
 
 > The inner keys of the NUMERIC strategy are `schema` (configurable via `typeSchemaKey`) and
 > the fixed `classifier`. Earlier revisions of this chapter showed abbreviated `s`/`c` keys,

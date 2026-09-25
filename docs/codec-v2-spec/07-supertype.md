@@ -175,28 +175,25 @@ SuperType configuration has dependencies on Type configuration:
 **Invalid configuration:**
 ```java
 // ERROR: supertype needs _type object but typeStrategy=NONE means no _type
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.NONE)        // No _type field
-    .typeFormat(SerializationFormat.STRUCTURED)
-    .superTypeSerialize(true)               // Wants to write supertype
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "NONE",           // No _type field
+    CodecOptions.CODEC_TYPE_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_SUPERTYPE_SERIALIZE, true);      // Wants to write supertype
 ```
 
 **Valid alternatives:**
 ```java
 // Option 1: Use PLAIN format (supertype becomes standalone field)
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.NONE)
-    .typeFormat(SerializationFormat.PLAIN)  // PLAIN allows standalone _supertype
-    .superTypeSerialize(true)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "NONE",
+    CodecOptions.CODEC_TYPE_FORMAT, "PLAIN",            // PLAIN allows standalone _supertype
+    CodecOptions.CODEC_SUPERTYPE_SERIALIZE, true);
 // Output: { "_supertype": ["Entity"], "name": "John" }
 
 // Option 2: Don't serialize supertype when type is disabled
-CodecConfiguration config = CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.NONE)
-    .superTypeSerialize(false)              // Disabled
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_TYPE_STRATEGY, "NONE",
+    CodecOptions.CODEC_SUPERTYPE_SERIALIZE, false);     // Disabled
 // Output: { "name": "John" }
 ```
 
@@ -206,18 +203,16 @@ When using string presentation (`superTypeAsArray=false`) with a **non-default s
 
 ```java
 // Serialization with custom separator
-CodecConfiguration serConfig = CodecConfiguration.builder()
-    .superTypeSerialize(true)
-    .superTypeAsArray(false)
-    .superTypeSeparator("|")  // Custom separator
-    .build();
+Map<String, Object> saveOptions = Map.of(
+    CodecOptions.CODEC_SUPERTYPE_SERIALIZE, true,
+    CodecOptions.CODEC_SUPERTYPE_AS_ARRAY, false,
+    CodecOptions.CODEC_SUPERTYPE_SEPARATOR, "|");       // Custom separator
 // Output: "_supertype": "Entity|Auditable"
 
 // Deserialization MUST match:
-CodecConfiguration deserConfig = CodecConfiguration.builder()
-    .superTypeAsArray(false)
-    .superTypeSeparator("|")  // Same separator required!
-    .build();
+Map<String, Object> loadOptions = Map.of(
+    CodecOptions.CODEC_SUPERTYPE_AS_ARRAY, false,
+    CodecOptions.CODEC_SUPERTYPE_SEPARATOR, "|");       // Same separator required!
 // Otherwise "Entity|Auditable" won't be parsed correctly
 ```
 
@@ -302,33 +297,22 @@ When explicitly set, the configured value is used regardless of format.
 </eClassifiers>
 ```
 
-### 6.3 Java Builder (Runtime Override)
+### 6.3 Load/Save Options (Runtime Override)
 
 **Enable with defaults (ALL strategy, array presentation):**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .superTypeSerialize(true)
-    .build();
+Map<String, Object> options = Map.of(CodecOptions.CODEC_SUPERTYPE_SERIALIZE, true);
 ```
 
 **With STRING presentation:**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .superTypeSerialize(true)
-    .superTypeAsArray(false)
-    .superTypeSeparator("|")  // Custom separator
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_SUPERTYPE_SERIALIZE, true,
+    CodecOptions.CODEC_SUPERTYPE_AS_ARRAY, false,
+    CodecOptions.CODEC_SUPERTYPE_SEPARATOR, "|");       // Custom separator
 ```
 
-**With SINGLE strategy:**
-```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .superTypeSerialize(true)
-    .superTypeStrategy(SuperTypeStrategy.SINGLE)
-    .build();
-```
-
-**Property Map:**
+**With SINGLE strategy (property map):**
 ```java
 Map<String, Object> options = new HashMap<>();
 options.put("codec.superTypeSerialize", true);
@@ -513,7 +497,7 @@ SuperType validation is controlled by `DeserializationMode` (see [Load/Save Opti
 | `LENIENT` | Skip entirely (no read, no validation) |
 | `AUTO_DETECT` | Same as LENIENT for supertype |
 
-**Java Builder:**
+**Load options:**
 ```java
 Map<String, Object> options = Map.of(
     CodecResourceOptions.DESERIALIZATION_MODE, DeserializationMode.STRICT

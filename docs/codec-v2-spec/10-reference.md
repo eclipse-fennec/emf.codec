@@ -164,11 +164,11 @@ The configuration defines **keys and format**, not actual values.
 </eStructuralFeatures>
 ```
 
-### 3.3 Java Builder (Runtime Override)
+### 3.3 Load/Save Options (Runtime Override)
 
 **Minimal (default: STRUCTURED):**
 ```java
-CodecConfiguration config = CodecConfiguration.builder().build();
+Map<String, Object> options = Map.of();
 ```
 **Resulting JSON:**
 ```json
@@ -182,9 +182,8 @@ CodecConfiguration config = CodecConfiguration.builder().build();
 
 **PLAIN format:**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .refFormat(SerializationFormat.PLAIN)
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_REF_FORMAT, "PLAIN");
 ```
 **Resulting JSON:**
 ```json
@@ -195,11 +194,10 @@ CodecConfiguration config = CodecConfiguration.builder()
 
 **STRUCTURED with custom keys (JSON-LD style):**
 ```java
-CodecConfiguration config = CodecConfiguration.builder()
-    .refFormat(SerializationFormat.STRUCTURED)
-    .refTypeKey("@type")
-    .refKey("@id")
-    .build();
+Map<String, Object> options = Map.of(
+    CodecOptions.CODEC_REF_FORMAT, "STRUCTURED",
+    CodecOptions.CODEC_REF_TYPE_KEY, "@type",
+    CodecOptions.CODEC_REF_KEY, "@id");
 ```
 **Resulting JSON:**
 ```json
@@ -243,15 +241,11 @@ Unlike Type (where strategy is per-class), Reference format **can be configured 
 **Example:** An EClass with multiple references using different formats:
 
 ```java
-// Reference to employer uses STRUCTURED (for type safety)
-ReferenceConfigBuilder.forReference(PersonPackage.Literals.PERSON__EMPLOYER)
-    .refFormat(SerializationFormat.STRUCTURED)
-    .build();
-
-// Reference to friends uses PLAIN (for compactness)
-ReferenceConfigBuilder.forReference(PersonPackage.Literals.PERSON__FRIENDS)
-    .refFormat(SerializationFormat.PLAIN)
-    .build();
+Map<String, Object> options = Map.of(CodecOptions.CODEC_EREFERENCE_CONFIG, Map.of(
+    // Reference to employer uses STRUCTURED (for type safety)
+    PersonPackage.Literals.PERSON__EMPLOYER, Map.of(CodecOptions.CODEC_REF_FORMAT, "STRUCTURED"),
+    // Reference to friends uses PLAIN (for compactness)
+    PersonPackage.Literals.PERSON__FRIENDS, Map.of(CodecOptions.CODEC_REF_FORMAT, "PLAIN")));
 ```
 
 **Resulting JSON:**
@@ -550,34 +544,22 @@ On EReference (specific reference):
 </eStructuralFeatures>
 ```
 
-**Java Builder:**
+**Load/Save Options:**
 
 ```java
 // Expand ALL non-containment references
-CodecConfiguration.builder()
-    .expandGlobal(true)
-    .expandDepth(2)
-    .expandIgnoreBidirectional(true)
-    .build();
+Map<String, Object> options = Map.of(
+    "codec.expandGlobal", true,
+    CodecOptions.CODEC_EXPAND_DEPTH, 2,
+    CodecOptions.CODEC_EXPAND_IGNORE_BIDIRECTIONAL, true);
 
 // Expand SPECIFIC references by EReference (type-safe)
-CodecConfiguration.builder()
-    .expand(
-        PersonPackage.eINSTANCE.getPerson_Employer(),
-        PersonPackage.eINSTANCE.getPerson_Manager()
-    )
-    .build();
+Map<String, Object> options = Map.of(CodecOptions.CODEC_EXPAND, List.of(
+    PersonPackage.eINSTANCE.getPerson_Employer(),
+    PersonPackage.eINSTANCE.getPerson_Manager()));
 
 // Expand SPECIFIC references by name
-CodecConfiguration.builder()
-    .expand("employer", "manager")
-    .build();
-
-// Mixed: add references incrementally
-CodecConfiguration.builder()
-    .expand(PersonPackage.eINSTANCE.getPerson_Employer())
-    .expand("manager")
-    .build();
+Map<String, Object> options = Map.of(CodecOptions.CODEC_EXPAND, List.of("employer", "manager"));
 ```
 
 **Option Values:**
@@ -621,14 +603,11 @@ Type serialization can be configured differently for each context:
 | Containments | `containmentTypeStrategy(...)` | Inline contained objects |
 | References (proxy + expanded) | `referenceTypeStrategy(...)` | Non-containment refs |
 
-**Java Builder:**
-```java
-CodecConfiguration.builder()
-    .typeStrategy(TypeStrategy.URI)  // root: full URI
-    .containmentTypeStrategy(TypeStrategy.NAME)  // contained: just name (context clear)
-    .referenceTypeStrategy(TypeStrategy.URI)   // refs: full URI for resolution
-    .build();
-```
+> **Not implemented.** No configuration key sets a type strategy per context: the
+> `containmentTypeStrategy`/`referenceTypeStrategy` settings named above do not exist. The
+> closest existing control is `codec.typeScope`, which limits where the configured strategy
+> applies. The JSON below shows the intended result.
+
 **Resulting JSON:**
 ```json
 {
@@ -706,13 +685,6 @@ and is always inlined, even when it also reports no container (models generated 
 `suppressNotification="true"` leave containment children container-less).
 
 > **Implementation Status:** Cross-document containment **resolution during deserialization** is not yet implemented. Serialization of cross-document containments works correctly (serialized as `_ref`), but deserialization will create proxy objects that require manual resolution via the ResourceSet.
-
-**Type configuration:**
-```java
-CodecConfiguration.builder()
-    .containmentTypeStrategy(TypeStrategy.URI)  // full URI for cross-doc resolution
-    .build();
-```
 
 **With smart compression (when instance type equals declared reference type):**
 ```json
