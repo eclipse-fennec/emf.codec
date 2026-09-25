@@ -92,6 +92,13 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
     private final Map<String, TypeDiscriminatorRegistry> registries = new ConcurrentHashMap<>();
 
     /**
+     * Class to mapId assignments that come from configuration rather than a
+     * {@code typeMapping/{mapId}} annotation (issue #239). Checked before the annotations of
+     * the same class, so an option wins over the model.
+     */
+    private final Map<EClass, String> assignedMapIds = new ConcurrentHashMap<>();
+
+    /**
      * The {@link MetadataRegistry} the packages behind these registries were published
      * through, remembered so a class URI named by a mapping annotation can be resolved
      * without the global {@link EPackage.Registry#INSTANCE} (issue #207).
@@ -1041,18 +1048,88 @@ public class TypeDiscriminatorService implements MetadataHandler, TypeDiscrimina
             return null;
         }
         // Check the EClass itself first
-        String mapId = extractMapIdFromAnnotations(eClass);
+        String mapId = mapIdOf(eClass);
         if (mapId != null) {
             return mapId;
         }
         // Walk up the supertype hierarchy
         for (EClass superType : eClass.getEAllSuperTypes()) {
-            mapId = extractMapIdFromAnnotations(superType);
+            mapId = mapIdOf(superType);
             if (mapId != null) {
                 return mapId;
             }
         }
         return null;
+    }
+
+    /** The mapId of one class: a configured assignment first, then its annotations. */
+    private String mapIdOf(EClass eClass) {
+        String assigned = assignedMapIds.get(eClass);
+        return assigned != null ? assigned : extractMapIdFromAnnotations(eClass);
+    }
+
+    // ========================================================================
+    // Configuration overlay (issue #239)
+    // ========================================================================
+
+    /**
+     * Assigns a class to a registry by configuration, as a {@code typeMapping/{mapId}}
+     * annotation on it would. Subclasses inherit the assignment through
+     * {@link #getMapIdForEClass(EClass)}, which is what the write side uses to find the
+     * discriminator value of a concrete class.
+     * <p>
+     * Meant for the per-operation instance built for one load or save: option-supplied
+     * mappings must not reach the shared, model-derived views (spec 08 §7.4).
+     * </p>
+     *
+     * @param eClass the configured class
+     * @param mapId the registry it belongs to
+     */
+    public void assignMapId(EClass eClass, String mapId) {
+        Objects.requireNonNull(eClass, "eClass must not be null");
+        Objects.requireNonNull(mapId, "mapId must not be null");
+        assignedMapIds.put(eClass, mapId);
+    }
+
+    /**
+     * Sets the registry-level settings a configuration supplies. A {@code null} argument
+     * leaves the current setting, so an option only changes what it names.
+     *
+     * @param mapId the registry to configure, created when missing
+     * @param discriminatorPath the discriminator path, or null to keep
+     * @param fallbackStrategy the fallback strategy, or null to keep
+     * @param fallbackEClass the fallback EClass URI, or null to keep
+     */
+    public void configureRegistry(String mapId, String discriminatorPath,
+            FallbackStrategy fallbackStrategy, String fallbackEClass) {
+        TypeDiscriminatorRegistry registry = getOrCreateRegistry(mapId);
+        if (discriminatorPath != null) {
+            registry.setDiscriminatorPath(discriminatorPath);
+        }
+        if (fallbackStrategy != null) {
+            registry.setFallbackStrategy(fallbackStrategy);
+        }
+        if (fallbackEClass != null) {
+            registry.setFallbackEClass(fallbackEClass);
+        }
+    }
+
+    /**
+     * Registers a mapping from configuration. It replaces a mapping of the same value from
+     * the model, including the replaced class's reverse entry, since configuration ranks above
+     * annotations.
+     *
+     * @param mapId the registry, created when missing
+     * @param discriminatorValue the discriminator value
+     * @param eClass the class the value stands for
+     */
+    public void registerOverride(String mapId, String discriminatorValue, EClass eClass) {
+        TypeDiscriminatorRegistry registry = getOrCreateRegistry(mapId);
+        EClass existing = registry.getEClass(discriminatorValue);
+        if (existing != null && existing != eClass) {
+            registry.unregister(discriminatorValue);
+        }
+        registry.register(discriminatorValue, eClass);
     }
 
     /**

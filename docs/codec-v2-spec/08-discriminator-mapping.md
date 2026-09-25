@@ -106,8 +106,8 @@ Discriminator mappings use **dedicated annotation sources** (not the main `http:
 | `codec.typeMapId` | Registry ID (for programmatic/property configuration) |
 | `codec.typeDiscriminatorPath` | JSON path to discriminator value |
 | `codec.typeDiscriminator` | This class's discriminator value |
-| `codec.typeMappings` | Mappings as `Map<String, String>` (EClass property config) |
-| `codec.inlineMappings` | Mappings as `Map<String, String>` (EReference property config) |
+| `codec.typeMappings` | Mappings as `Map<String, ?>`, value an EClass URI or an `EClass` (EClass property config) |
+| `codec.inlineMappings` | Mappings as `Map<String, ?>`, value an EClass URI or an `EClass` (EReference property config) |
 | `codec.fallbackStrategy` | `ERROR`, `SKIP`, `FALLBACK` |
 | `codec.fallbackEClass` | Explicit fallback EClass URI |
 
@@ -221,29 +221,47 @@ Static mappings and distributed registration **can be combined** in the same reg
 - `humidity-sensor` → `HumiditySensor` (from static mapping)
 - `foo-bar` → `FooMessage` (from distributed registration)
 
-### 4.4 Programmatic Configuration
+### 4.4 Configuration without Annotations `[#239]`
 
-**Builder API:**
+Every key of §4.1 has a property counterpart (§4.2), set per class in `codec.eClassConfig`
+(load/save options, resource, factory or module properties). This is how a caller configures a
+registry for a model it cannot annotate:
+
 ```java
-ClassConfigBuilder.forEClass(ExamplePackage.Literals.UPLINK_MESSAGE)
-    .typeMapId("lorawan-devices")
-    .typeDiscriminatorPath("info.profileName")
-    .addDiscriminatorMapping("temp-sensor", TemperaturePackage.Literals.TEMPERATURE_SENSOR)
-    .addDiscriminatorMapping("humidity-sensor", HumidityPackage.Literals.HUMIDITY_SENSOR)
-    .build();
+options.put(CodecOptions.CODEC_ECLASS_CONFIG, Map.of(GeoJsonPackage.Literals.GEOMETRY, Map.of(
+    CodecOptions.CODEC_TYPE_KEY, "type",
+    CodecOptions.CODEC_TYPE_MAP_ID, "geojson",
+    CodecOptions.CODEC_TYPE_DISCRIMINATOR_PATH, "type",
+    CodecOptions.CODEC_TYPE_MAPPINGS, Map.of(
+        "Point", "http://geojson.org/1.0#//Point",          // EClass URI
+        "Polygon", GeoJsonPackage.Literals.POLYGON),        // or the EClass itself
+    CodecOptions.CODEC_FALLBACK_STRATEGY, "ERROR")));
 ```
 
-**Property Map:**
-```java
-Map<String, Object> config = Map.of(
-    "codec.typeMapId", "lorawan-devices",
-    "codec.typeDiscriminatorPath", "info.profileName",
-    "codec.typeMappings", Map.of(
-        "temp-sensor", "http://example.org#//TemperatureSensor",
-        "humidity-sensor", "http://example.org#//HumiditySensor"
-    )
-);
-```
+A concrete class can also register itself (distributed registration): `codec.typeMapId` plus
+`codec.typeDiscriminator` on that class.
+
+**Rules:**
+
+1. **Per operation.** Configured mappings go into the discriminator view built for one load or
+   save, never into the shared, model-derived views (§7.4). A later operation without the
+   options does not see them.
+2. **Configuration ranks above annotations.** Configured entries are laid over the registry
+   the model defines: a configured value replaces an annotated mapping of the same value, a
+   configured `fallbackStrategy`/`fallbackEClass` replaces the annotated one, and a setting
+   that no configuration source names keeps the model's value. Among the configuration
+   sources the usual order applies (02).
+3. **Class URIs resolve like types.** A URI value resolves through the load's package
+   resolution (06 §6.4.6), so it maps the pinned version; an `EClass` value names the
+   version itself. A value that resolves to nothing is reported as a WARNING and ignored.
+4. **The registry needs an id.** Settings on a class that has neither `codec.typeMapId` nor
+   an annotated `typeMapping/{mapId}` are reported as a WARNING and ignored.
+5. **Subclasses belong to the registry of the configured class** on the write side, as with
+   the annotation: writing a `Polygon` looks up the mapId of `Geometry` and writes `"Polygon"`.
+   Other class options are not inherited, so a type key a subclass writes with is configured
+   on that subclass too.
+6. **An externally managed `TypeDiscriminatorReader`** (passed to the `CodecResource`) is not
+   changed; configured mappings are then ignored with a WARNING.
 
 ---
 
@@ -289,7 +307,7 @@ Inline mapping defines value→EClass mappings directly on an EReference using a
 
 ### 5.1 Programmatic Configuration
 
-For property maps or builder configuration, use `codec.inlineMappings`:
+For property maps, use `codec.inlineMappings` in `codec.eReferenceConfig`:
 
 **Property Map:**
 ```java
@@ -310,18 +328,8 @@ eReferenceConfig.put(PersonPackage.Literals.PERSON__CONTACTS, contactsConfig);
 options.put("codec.eReferenceConfig", eReferenceConfig);
 ```
 
-**Builder API:**
-```java
-CodecConfiguration.builder()
-    .forReference(PersonPackage.Literals.PERSON__CONTACTS)
-        .typeKey("contactType")
-        .inlineMapping("friend", FriendPackage.Literals.FRIEND)
-        .inlineMapping("enemy", EnemyPackage.Literals.ENEMY)
-        .inlineMapping("colleague", ColleaguePackage.Literals.COLLEAGUE)
-        .fallbackStrategy(FallbackStrategy.SKIP)
-        .end()
-    .build();
-```
+The rules of §4.4 apply: per operation, configuration above annotations, URI or `EClass`
+values. The registry id is the reference's URI, the same as for the annotation.
 
 ---
 

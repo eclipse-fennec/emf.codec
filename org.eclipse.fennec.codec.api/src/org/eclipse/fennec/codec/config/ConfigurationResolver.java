@@ -757,6 +757,82 @@ public final class ConfigurationResolver {
         return globalDiscriminatorConfig;
     }
 
+    /**
+     * Returns the discriminator settings that configuration - not the model - gives a class
+     * (issue #239). Unlike {@link #resolveDiscriminatorConfig(EClass, DiagnosticCollector)}
+     * this leaves out the annotation layer and has no defaults: a value that no configuration
+     * source sets stays {@code null}, the fallback strategy included, so a caller can tell
+     * "configured as SKIP" apart from "not configured" and lay only what is set over the
+     * model's registries.
+     *
+     * @param eClass the class
+     * @return the configured discriminator settings, never null
+     */
+    public DiscriminatorConfig resolveDiscriminatorOverrides(EClass eClass) {
+        Objects.requireNonNull(eClass, "eClass must not be null");
+        return DiscriminatorConfig.builder().fallbackStrategy(null).build()
+                .mergeWith(extractClassProperties(moduleProperties, eClass))
+                .mergeWith(extractClassProperties(factoryProperties, eClass))
+                .mergeWith(extractClassProperties(resourceProperties, eClass))
+                .mergeWith(extractClassProperties(optionsProperties, eClass));
+    }
+
+    /**
+     * Returns the inline-mapping settings that configuration gives a reference, like
+     * {@link #resolveDiscriminatorOverrides(EClass)}: no annotation layer, no defaults.
+     *
+     * @param reference the reference
+     * @return the configured discriminator settings, never null
+     */
+    public DiscriminatorConfig resolveInlineDiscriminatorOverrides(EReference reference) {
+        Objects.requireNonNull(reference, "reference must not be null");
+        return DiscriminatorConfig.builder().fallbackStrategy(null).build()
+                .mergeWith(extractFeatureProperties(moduleProperties, reference))
+                .mergeWith(extractFeatureProperties(factoryProperties, reference))
+                .mergeWith(extractFeatureProperties(resourceProperties, reference))
+                .mergeWith(extractFeatureProperties(optionsProperties, reference));
+    }
+
+    /**
+     * Returns the classes that a configuration source names in {@code codec.eClassConfig}.
+     * The annotation layer is left out: what the model declares is already in the model's
+     * registries.
+     *
+     * @return the configured classes, never null
+     */
+    public Set<EClass> getConfiguredEClasses() {
+        return configuredKeys(ConfigProperty.ECLASS_CONFIG, EClass.class);
+    }
+
+    /**
+     * Returns the references that a configuration source names in
+     * {@code codec.eReferenceConfig}, leaving out the annotation layer.
+     *
+     * @return the configured references, never null
+     */
+    public Set<EReference> getConfiguredEReferences() {
+        return configuredKeys(ConfigProperty.EREFERENCE_CONFIG, EReference.class);
+    }
+
+    private <T> Set<T> configuredKeys(ConfigProperty scope, Class<T> keyType) {
+        Set<T> keys = new LinkedHashSet<>();
+        for (Map<String, Object> source : List.of(nullSafe(moduleProperties), nullSafe(factoryProperties),
+                nullSafe(resourceProperties), nullSafe(optionsProperties))) {
+            Object scoped = source.get(scope.getKey());
+            if (scoped == null) {
+                scoped = source.get(scope.getPropertyKey());
+            }
+            if (scoped instanceof Map<?, ?> scopedMap) {
+                for (Object key : scopedMap.keySet()) {
+                    if (keyType.isInstance(key)) {
+                        keys.add(keyType.cast(key));
+                    }
+                }
+            }
+        }
+        return keys;
+    }
+
     // ========================================================================
     // Class Configuration Resolution (Strictness)
     // ========================================================================

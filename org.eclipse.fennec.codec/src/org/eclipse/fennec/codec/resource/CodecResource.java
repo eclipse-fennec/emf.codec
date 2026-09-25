@@ -65,6 +65,7 @@ import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.prefix.CodecPrefixRegistry;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.util.TokenLoops;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 
@@ -1040,13 +1041,18 @@ public class CodecResource extends ResourceImpl {
         // On load (packageResolver != null): a per-step, version-scoped composed view (B.6) —
         // pinned version per nsURI, value collisions -> error. On save (packageResolver == null):
         // the instance-driven global view (no ambiguity to resolve).
+        // Mappings from configuration (issue #239) go onto the per-operation instance only.
         TypeDiscriminatorReader typeService;
         if (typeDiscriminatorReader != null) {
             typeService = typeDiscriminatorReader;
-        } else if (packageResolver != null) {
-            typeService = TypeDiscriminatorService.composedFor(metadataService, packageResolver::pinnedVersion);
+            OptionTypeMappings.reportIgnored(operationResolver, diagnostics);
         } else {
-            typeService = TypeDiscriminatorService.fromMetadataService(metadataService);
+            TypeDiscriminatorService operationService = packageResolver != null
+                    ? TypeDiscriminatorService.composedFor(metadataService, packageResolver::pinnedVersion)
+                    : TypeDiscriminatorService.fromMetadataService(metadataService);
+            OptionTypeMappings.apply(operationService, operationResolver,
+                    uri -> resolveMappedEClass(uri, packageResolver), diagnostics);
+            typeService = operationService;
         }
 
         // Extract global properties from the operation resolver (includes load/save options)
@@ -1100,6 +1106,26 @@ public class CodecResource extends ResourceImpl {
         return builder
                 .addModule(codecModule)
                 .build();
+    }
+
+    /**
+     * Resolves a class URI named by a configured mapping. On load it goes through the load's
+     * package resolver, so the pinned version is the one mapped; on save through the metadata
+     * service.
+     *
+     * @param uri the EClass URI
+     * @param packageResolver the load's package resolver, null on save
+     * @return the class, or null if none is known or the URI is ambiguous
+     */
+    private EClass resolveMappedEClass(String uri, PackageResolver packageResolver) {
+        if (packageResolver != null) {
+            try {
+                return packageResolver.resolveEClassFromTypeUri(uri, null);
+            } catch (IOException e) {
+                return null;
+            }
+        }
+        return metadataService.getClassMetadataByURI(uri).map(ClassMetadata::getEClass).orElse(null);
     }
 
     /**

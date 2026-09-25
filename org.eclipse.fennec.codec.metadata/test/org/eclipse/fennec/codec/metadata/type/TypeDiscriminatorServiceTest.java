@@ -626,6 +626,56 @@ class TypeDiscriminatorServiceTest {
     }
 
     // ========================================================================
+    // Configuration overlay from options (issue #239)
+    // ========================================================================
+
+    @Nested
+    @DisplayName("configuration overlay")
+    class ConfigurationOverlay {
+
+        @Test
+        @DisplayName("registerOverride replaces an existing value and its reverse mapping")
+        void registerOverrideReplaces() {
+            service.getOrCreateRegistry("map1").register("p", personClass);
+
+            service.registerOverride("map1", "p", customerClass);
+
+            assertEquals(customerClass, service.getEClass("map1", "p"));
+            assertEquals("p", service.getDiscriminatorValue("map1", customerClass));
+            assertNull(service.getDiscriminatorValue("map1", personClass),
+                    "the replaced class must not keep the value on the write side");
+        }
+
+        @Test
+        @DisplayName("configureRegistry changes only the settings that are given")
+        void configureRegistryKeepsUnset() {
+            TypeDiscriminatorRegistry registry = service.getOrCreateRegistry("map1");
+            registry.setDiscriminatorPath("kind");
+            registry.setFallbackStrategy(FallbackStrategy.ERROR);
+
+            service.configureRegistry("map1", null, FallbackStrategy.FALLBACK, "http://test#//Fallback");
+
+            assertEquals("kind", registry.getDiscriminatorPath());
+            assertEquals(FallbackStrategy.FALLBACK, registry.getFallbackStrategy());
+            assertEquals("http://test#//Fallback", registry.getFallbackEClass());
+        }
+
+        @Test
+        @DisplayName("an assigned mapId is found for the class and its subclasses")
+        void assignedMapIdIsInherited() {
+            EClass subClass = EcoreFactory.eINSTANCE.createEClass();
+            subClass.setName("SubPerson");
+            subClass.getESuperTypes().add(personClass);
+
+            service.assignMapId(personClass, "people");
+
+            assertEquals("people", service.getMapIdForEClass(personClass));
+            assertEquals("people", service.getMapIdForEClass(subClass));
+            assertNull(service.getMapIdForEClass(deviceClass));
+        }
+    }
+
+    // ========================================================================
     // resolveFromAny (untargeted, issue #238)
     // ========================================================================
 

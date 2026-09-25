@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -1238,6 +1239,77 @@ class ConfigurationResolverTest {
                 assertEquals("ALPHABETICAL", value,
                         "prefixed key must be found in " + label + " source");
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("Discriminator overrides from configuration (issue #239)")
+    class DiscriminatorOverrides {
+
+        @Test
+        @DisplayName("lists the classes and references configured outside the model")
+        void listsConfiguredElements() {
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .annotationProperties(Map.of(ConfigProperty.ECLASS_CONFIG.getKey(),
+                            Map.of(addressClass, Map.of("typeMapId", "fromModel"))))
+                    .resourceProperties(Map.of(ConfigProperty.ECLASS_CONFIG.getPropertyKey(),
+                            Map.of(personClass, Map.of("typeMapId", "people"))))
+                    .optionsProperties(Map.of(ConfigProperty.EREFERENCE_CONFIG.getPropertyKey(),
+                            Map.of(addressReference, Map.of("inlineMappings", Map.of("a", addressClass)))))
+                    .build();
+
+            assertEquals(Set.of(personClass), resolver.getConfiguredEClasses(),
+                    "annotation-derived entries are the model's, not configuration");
+            assertEquals(Set.of(addressReference), resolver.getConfiguredEReferences());
+        }
+
+        @Test
+        @DisplayName("overrides leave unset values null and ignore the model")
+        void overridesLeaveUnsetNull() {
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .annotationProperties(Map.of(ConfigProperty.ECLASS_CONFIG.getKey(),
+                            Map.of(personClass, Map.of("typeMapId", "fromModel", "fallbackStrategy", "ERROR"))))
+                    .optionsProperties(Map.of(ConfigProperty.ECLASS_CONFIG.getPropertyKey(),
+                            Map.of(personClass, Map.of("typeMappings", Map.of("a", addressClass)))))
+                    .build();
+
+            DiscriminatorConfig overrides = resolver.resolveDiscriminatorOverrides(personClass);
+
+            assertEquals(null, overrides.getTypeMapId());
+            assertEquals(null, overrides.getFallbackStrategy(), "not configured is not SKIP");
+            assertSame(addressClass, overrides.getTypeMappings().get("a"), "an EClass value is kept as is");
+        }
+
+        @Test
+        @DisplayName("options rank above resource properties")
+        void optionsRankAboveResource() {
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .resourceProperties(Map.of(ConfigProperty.ECLASS_CONFIG.getPropertyKey(),
+                            Map.of(personClass, Map.of("typeMapId", "people", "fallbackStrategy", "ERROR"))))
+                    .optionsProperties(Map.of(ConfigProperty.ECLASS_CONFIG.getPropertyKey(),
+                            Map.of(personClass, Map.of("fallbackStrategy", "SKIP"))))
+                    .build();
+
+            DiscriminatorConfig overrides = resolver.resolveDiscriminatorOverrides(personClass);
+
+            assertEquals("people", overrides.getTypeMapId());
+            assertEquals(DiscriminatorConfig.FallbackStrategy.SKIP, overrides.getFallbackStrategy());
+        }
+
+        @Test
+        @DisplayName("reference overrides carry inline mappings and fallback")
+        void referenceOverrides() {
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .optionsProperties(Map.of(ConfigProperty.EREFERENCE_CONFIG.getPropertyKey(),
+                            Map.of(addressReference, Map.of(
+                                    "inlineMappings", Map.of("a", "http://test.org/1.0#//Address"),
+                                    "fallbackStrategy", "ERROR"))))
+                    .build();
+
+            DiscriminatorConfig overrides = resolver.resolveInlineDiscriminatorOverrides(addressReference);
+
+            assertEquals("http://test.org/1.0#//Address", overrides.getInlineMappings().get("a"));
+            assertEquals(DiscriminatorConfig.FallbackStrategy.ERROR, overrides.getFallbackStrategy());
         }
     }
 }
