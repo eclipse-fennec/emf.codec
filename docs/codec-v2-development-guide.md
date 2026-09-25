@@ -4,6 +4,28 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-25
 
+**Session Summary (2026-09-25, wave/spec-drift) — #242 spec/code drift:**
+
+- **Constants:** 14 `CodecOptions` constants for properties that are read but had none
+  (`CODEC_IGNORE[_READ|_WRITE]`, `CODEC_FORCE_READ/WRITE`, `CODEC_PROXY_KEY`, `CODEC_EXPAND_GLOBAL`,
+  `CODEC_SERIALIZE_INSTANCE_TYPE`, `CODEC_STRICT_ON_UNKNOWN/MISSING/CONVERSION`,
+  `CODEC_IGNORE_FEATURES`, `CODEC_FIELD_ORDER`, `CODEC_USE_NAMES_FROM_EXTENDED_METADATA`).
+  `CodecOptionsParityTest` now requires a constant for every `ConfigProperty`; the only exceptions
+  are `metadataMerge`/`metadataKey` (parsed from annotations, never applied by the serializer - no
+  option until the feature is built).
+- **Removed from `ConfigProperty`** (nothing read them): `discriminatorPath`/`discriminatorValue`
+  (feature-level leftovers of an early mapping design; the class-level `typeDiscriminatorPath`/
+  `typeDiscriminator` and `inlineMappings` via `typeKey` replaced them), `valueReaders`/`valueWriters`
+  (#45), `metadataFieldsFirst`. Setting one now gets the unknown-key warning (#220).
+- **Spec:** `CodecResourceOptions` → `CodecOptions` (06, 07); 02 §11.7 `codec.ser.`/`codec.deser.`
+  replaced by "direction is fixed per property" (09 table too); 16 drops `CODEC_VALUE_*` rows and the
+  URI-string key example for `codec.eClassConfig`; 02 §5 annotation block removed (`typeScope` is
+  runtime-only); 10 §6 per-context strategy replaced by `typeScope` + `smartCompression`; 05 §3 field
+  order describes the real behavior (option only, `ALPHABETICAL` sorts metadata keys too, `idOnTop`
+  keeps the id first); 03 §6.2 and 14 examples without Mongo branding (`ObjectIdRefWriter`,
+  `"objectIdRef"` - not `objectId`, that name is the shipped BSON id-plane handler); spec examples
+  use the new constants. `CODEC_SMART_COMPRESSION` javadoc fixed (the type is still written).
+
 **Session Summary (2026-09-25, wave/discriminator-fallback, end) — #240 spec builder cleanup:**
 
 - **#240 - the spec showed builder APIs that never existed** (`CodecConfiguration.builder()`,
