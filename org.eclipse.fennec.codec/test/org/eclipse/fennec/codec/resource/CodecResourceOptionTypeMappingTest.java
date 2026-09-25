@@ -39,8 +39,11 @@ import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.CodecOptions;
+import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorService;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
+import org.eclipse.fennec.codec.value.CodecReaderContext;
+import org.eclipse.fennec.codec.value.ReferenceValueReader;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.junit.jupiter.api.AfterEach;
@@ -48,6 +51,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import tools.jackson.databind.DeserializationContext;
 
 /**
  * Type Mapping Registry and Inline Mapping configured through options instead of annotations
@@ -275,6 +280,106 @@ class CodecResourceOptionTypeMappingTest {
 
             assertTrue(json.replace(" ", "").contains("\"type\":\"p\""), json);
             assertNotEquals(-1, json.indexOf("focus"), json);
+        }
+    }
+
+    // ========================================================================
+    // Embedded object handed to the codec by a ReferenceValueReader (issue #244)
+    // ========================================================================
+
+    /**
+     * The delegation of emf.ogc.features: a reader bound to the reference sets the expected type
+     * and hands the nested object to the codec's root deserializer. The context schema is the
+     * root's package ({@code drawing}), the object belongs to {@code shapes} (spec 06 §6.4.7).
+     */
+    @Nested
+    @DisplayName("Embedded through a ReferenceValueReader")
+    class EmbeddedThroughValueReader {
+
+        private static final String POLYGON = """
+                { "title": "t", "focus": { "type": "Polygon", "label": "p" } }
+                """;
+
+        @Test
+        @DisplayName("NAME alone does not reach the embedded package")
+        void nameAloneFails() {
+            Map<String, Object> options = withReader(nameForAll(), false);
+
+            IOException error = assertThrows(IOException.class, () -> load(POLYGON, options));
+            assertTrue(error.getMessage().contains("abstract"), error.getMessage());
+        }
+
+        @Test
+        @DisplayName("a type mapping from options resolves the embedded object")
+        void typeMappingResolves() throws IOException {
+            Map<EClass, Object> classConfig = nameForAll();
+            classConfig.put(geometryClass, Map.of(
+                    CodecOptions.CODEC_TYPE_KEY, "type",
+                    CodecOptions.CODEC_TYPE_MAP_ID, "geojson",
+                    CodecOptions.CODEC_TYPE_DISCRIMINATOR_PATH, "type",
+                    CodecOptions.CODEC_TYPE_MAPPINGS, Map.of("Point", pointClass, "Polygon", polygonClass),
+                    CodecOptions.CODEC_FALLBACK_STRATEGY, "ERROR"));
+
+            EObject focus = (EObject) load(POLYGON, withReader(classConfig, false)).eGet(focusRef);
+
+            assertEquals(polygonClass, focus.eClass());
+        }
+
+        @Test
+        @DisplayName("switching the context schema around the nested read resolves the embedded object")
+        void contextSchemaSwitchResolves() throws IOException {
+            EObject drawing = load(POLYGON, withReader(nameForAll(), true));
+
+            assertEquals(polygonClass, ((EObject) drawing.eGet(focusRef)).eClass());
+        }
+
+        /** Every geometry class reads its type by simple name under the key "type". */
+        private Map<EClass, Object> nameForAll() {
+            Map<EClass, Object> classConfig = new HashMap<>();
+            for (EClass eClass : List.of(geometryClass, pointClass, polygonClass, genericClass)) {
+                classConfig.put(eClass, Map.of(
+                        CodecOptions.CODEC_TYPE_KEY, "type",
+                        CodecOptions.CODEC_TYPE_STRATEGY, "NAME"));
+            }
+            return classConfig;
+        }
+
+        private Map<String, Object> withReader(Map<EClass, Object> classConfig, boolean switchSchema) {
+            Map<String, Object> options = new HashMap<>();
+            options.put(CodecOptions.CODEC_ECLASS_CONFIG, classConfig);
+            options.put(CodecOptions.CODEC_FEATURE_VALUE_READER_INSTANCES,
+                    Map.of(focusRef, delegatingReader(switchSchema)));
+            return options;
+        }
+
+        private ReferenceValueReader<EObject> delegatingReader(boolean switchSchema) {
+            return new ReferenceValueReader<>() {
+                @Override
+                public String getName() {
+                    return "geometry";
+                }
+
+                @Override
+                public boolean canHandle(EReference reference) {
+                    return reference == focusRef;
+                }
+
+                @Override
+                public EObject read(CodecReaderContext ctx, EReference reference) throws IOException {
+                    DeserializationContext ctxt = ctx.getJacksonContext();
+                    String previous = ContextHelper.getContextSchemaUri(ctxt);
+                    if (switchSchema) {
+                        ContextHelper.setContextSchemaUri(ctxt, SHAPES_NS);
+                    }
+                    try {
+                        ContextHelper.setExpectedType(ctxt, geometryClass);
+                        return (EObject) ctxt.findRootValueDeserializer(ctxt.constructType(EObject.class))
+                                .deserialize(ctx.getParser(), ctxt);
+                    } finally {
+                        ContextHelper.setContextSchemaUri(ctxt, previous);
+                    }
+                }
+            };
         }
     }
 

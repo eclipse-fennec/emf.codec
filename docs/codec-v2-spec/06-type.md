@@ -1312,6 +1312,60 @@ versions of the named nsURI are tried and the first carrying the class wins. Ver
 for these happens in the per-step composed discriminator view (B.6, spec 08 §7.4), which
 rejects a value that ends up mapped to two different classes.
 
+#### 6.4.7 Embedded Objects from Another Package `[#244]`
+
+The context schema belongs to the whole load: it is set once, from `CODEC_ROOT_SCHEMA`, the root
+type or the first full URI (§6.4.3), and NAME, CLASS and NUMERIC resolve in that one package. The
+package of the expected (hint) class is used only when there is **no** context schema. A simple
+name of a class from **another** package - an object embedded in a document whose root belongs to
+a different model - is therefore not found, even when that class's own configuration says
+`typeStrategy=NAME`; resolution falls back to the hint class (an error if it is abstract).
+
+Example: a CQL2 expression (root package `cql2`) carries GeoJSON geometries (package `geojson`)
+as operation arguments, `{"type": "Polygon", ...}` with `Geometry` as the expected class.
+
+This is deliberate (S-4): a name is looked up in exactly one package, and that package does not
+change silently within a load. Two ways make the embedded package explicit:
+
+1. **Type Mapping Registry on the embedded base class (preferred).** Configure the mapping
+   through options or properties ([08 §4.4](08-discriminator-mapping.md)) - it needs no
+   annotation on the foreign model:
+
+   ```java
+   Map<String, Object> geometry = Map.of(
+       CodecOptions.CODEC_TYPE_KEY, "type",
+       CodecOptions.CODEC_TYPE_MAP_ID, "geojson",
+       CodecOptions.CODEC_TYPE_DISCRIMINATOR_PATH, "type",
+       CodecOptions.CODEC_TYPE_MAPPINGS, Map.of(
+           "Point", GeoJsonPackage.Literals.POINT,
+           "Polygon", GeoJsonPackage.Literals.POLYGON /* , ... */),
+       CodecOptions.CODEC_FALLBACK_STRATEGY, "ERROR");
+   options.put(CodecOptions.CODEC_ECLASS_CONFIG, Map.of(GeoJsonPackage.Literals.GEOMETRY, geometry));
+   ```
+
+   Resolution is targeted (`resolve(mapId, …)`), independent of the context schema, and the set
+   of accepted types is closed: an unknown value fails with the configured fallback instead of
+   ending on the abstract base class. Subclasses write their mapped value (08 §4.4 rule 5); their
+   type key is configured on them as well, since class options are not inherited.
+
+2. **Context schema around the nested read.** Code that hands the embedded object to the codec
+   itself - a `ReferenceValueReader` calling `findRootValueDeserializer` - can switch the context
+   schema for that call and restore it afterwards:
+
+   ```java
+   String previous = ContextHelper.getContextSchemaUri(ctxt);
+   ContextHelper.setContextSchemaUri(ctxt, GeoJsonPackage.eNS_URI);
+   try {
+       ContextHelper.setExpectedType(ctxt, GeoJsonPackage.Literals.GEOMETRY);
+       return ctxt.findRootValueDeserializer(ctxt.constructType(EObject.class)).deserialize(parser, ctxt);
+   } finally {
+       ContextHelper.setContextSchemaUri(ctxt, previous);
+   }
+   ```
+
+   NAME then resolves in the embedded package for exactly that object. Restoring the previous
+   value is required: the rest of the document keeps resolving in its own package.
+
 ### 6.5 Type Resolution Rules
 
 | Content has `_type` | `CODEC_ROOT_TYPE` set | Behavior |
