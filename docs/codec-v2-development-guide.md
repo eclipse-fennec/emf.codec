@@ -4,6 +4,27 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-09-25
 
+**Session Summary (2026-09-25, wave/discriminator-fallback, later) — #239 implemented:**
+
+- **#239 - type/inline mappings from configuration.** `OptionTypeMappings` (codec, package-private)
+  lays `codec.eClassConfig`/`codec.eReferenceConfig` discriminator settings over the per-operation
+  `TypeDiscriminatorService` in `CodecResource.createObjectMapper` (load: `composedFor`, save:
+  `fromMetadataService`; both fresh instances that copy the model views, so nothing leaks, 08 §7.4).
+  - Resolver: `resolveDiscriminatorOverrides(EClass)` / `resolveInlineDiscriminatorOverrides(EReference)`
+    merge module..options without the annotation layer and **without defaults** (fallback `null` =
+    not configured); `getConfiguredEClasses()`/`getConfiguredEReferences()` list the EClass/EReference
+    keys (name-keyed class config is not enumerated).
+  - Service: `assignMapId` (checked before annotations in `getMapIdForEClass`, inherited by
+    subclasses -> write side), `configureRegistry` (null keeps), `registerOverride` (config replaces
+    an annotated value incl. its reverse entry).
+  - `typeMappings`/`inlineMappings` values: URI string or `EClass` (`Map<String, Object>` now);
+    URIs resolve via the load's `PackageResolver`. Unresolvable value, settings without mapId, or
+    an external `TypeDiscriminatorReader` -> WARNING. New `CodecOptions.CODEC_INLINE_MAPPINGS`;
+    `FALLBACK_ECLASS` now valid at ECLASS level.
+  - Spec 08 §4.4 rewritten (rules), the never-built builder APIs in §4.4/§5.1 removed. The same
+    fictional `CodecConfiguration.builder()` still appears in spec 03 and 09.
+  - Class options are still not inherited: a subclass's write type key must be configured on it.
+
 **Session Summary (2026-09-25, wave/discriminator-fallback) — #238, #239 filed:**
 
 - **#238 - untargeted discriminator lookup applies no fallback.** `TypeDiscriminatorService.resolveFromAny`
@@ -18,14 +39,14 @@ This document provides context for continuing codec development across sessions.
   - **Not changed, on purpose:** `NAME`/`CLASS` search only the context schema's package; the hint
     class's package is used only when there is no context schema. A class from a foreign package
     (GeoJSON `Geometry` under a CQL2 root) therefore does not resolve by `NAME`. Widening the search
-    was discussed and rejected (S-4, a single user); the intended way is #239.
+    was discussed and rejected (S-4, a single user); the intended way is #239 (done, see above).
 - **#239 filed - type mappings from EClass options are a GAP.** `DiscriminatorConfig` parses
   `codec.typeMapId`/`typeDiscriminatorPath`/`typeMappings`/`fallbackStrategy`/`fallbackEClass`, but the
   read side consumes only `getTypeMapId()`; the registries come from annotations only. An option-supplied
   mapId points to no registry. Fix: a per-load registry view (not the shared model registries, 08 §7.4).
 - **Context (emf.ogc.features):** `cql2.GeometryLiteral.geometry` is typed `org.geojson.model#//Geometry`;
-  the CQL2 JSON encoding writes the bare geometry into `Operation.args`. Workarounds until #239:
-  `typeStrategy=URI` for `Geometry`, or set the context schema around the nested read.
+  the CQL2 JSON encoding writes the bare geometry into `Operation.args`. With #239: a `geojson`
+  registry on `Geometry` via `codec.eClassConfig` (spec 08 §4.4 example).
 
 **Session Summary (2026-09-24, wave/cleanup) — #236 and the last #222 leftovers:**
 
