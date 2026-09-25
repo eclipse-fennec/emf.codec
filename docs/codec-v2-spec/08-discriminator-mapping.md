@@ -650,6 +650,13 @@ Deserializing a contained object:
    → See 06-type.md §6.3.0 step 4
 ```
 
+**Untargeted lookup applies no fallback strategy.** When the hint class belongs to no registry
+(step 1 answers NO), the value may still be looked up across all registries
+(`resolveFromAny`), but only a direct match counts. A `fallbackStrategy` belongs to the
+registry it is configured on: an unrelated registry's `ERROR` must not fail the object, and its
+`FALLBACK` must not re-type it with that registry's `fallbackEClass`. On no direct match,
+resolution continues with step 2/3 (issue #238).
+
 ---
 
 ### 7.4 Registry composition under multi-version `[B.6]`

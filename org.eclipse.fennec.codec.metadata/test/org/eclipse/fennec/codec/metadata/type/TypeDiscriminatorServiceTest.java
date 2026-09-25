@@ -626,6 +626,59 @@ class TypeDiscriminatorServiceTest {
     }
 
     // ========================================================================
+    // resolveFromAny (untargeted, issue #238)
+    // ========================================================================
+
+    @Nested
+    @DisplayName("resolveFromAny")
+    class ResolveFromAny {
+
+        private Function<String, EClass> resolver;
+
+        @BeforeEach
+        void setUpResolveFromAny() {
+            EClass fallbackClass = EcoreFactory.eINSTANCE.createEClass();
+            fallbackClass.setName("Fallback");
+            resolver = uri -> uri.endsWith("#//Fallback") ? fallbackClass : null;
+        }
+
+        @Test
+        @DisplayName("returns a direct match from any registry")
+        void returnsDirectMatch() {
+            service.getOrCreateRegistry("map1").register("person", personClass);
+
+            assertEquals(personClass, service.resolveFromAny("person", resolver));
+        }
+
+        @Test
+        @DisplayName("does not apply an unrelated registry's ERROR fallback")
+        void ignoresErrorFallback() {
+            TypeDiscriminatorRegistry registry = service.getOrCreateRegistry("error-map");
+            registry.register("known", personClass);
+            registry.setFallbackStrategy(FallbackStrategy.ERROR);
+
+            assertNull(service.resolveFromAny("Polygon", resolver));
+        }
+
+        @Test
+        @DisplayName("does not apply an unrelated registry's FALLBACK class")
+        void ignoresFallbackClass() {
+            TypeDiscriminatorRegistry registry = service.getOrCreateRegistry("fallback-map");
+            registry.register("known", deviceClass);
+            registry.setFallbackStrategy(FallbackStrategy.FALLBACK);
+            registry.setFallbackEClass("http://test#//Fallback");
+
+            assertNull(service.resolveFromAny("Polygon", resolver));
+        }
+
+        @Test
+        @DisplayName("returns null for null discriminator")
+        void returnsNullForNull() {
+            assertNull(service.resolveFromAny(null, resolver));
+        }
+    }
+
+    // ========================================================================
     // resolveForReference
     // ========================================================================
 
