@@ -721,7 +721,7 @@ class ConfigPropertyTest {
         @DisplayName("properties with Map type")
         void propertiesWithMapType() {
             assertEquals(Map.class, ConfigProperty.TYPE_MAPPINGS.getType());
-            assertEquals(Map.class, ConfigProperty.VALUE_READERS.getType());
+            assertEquals(Map.class, ConfigProperty.FEATURE_VALUE_READERS.getType());
             assertEquals(Map.class, ConfigProperty.FEATURE_VALUE_WRITERS.getType());
         }
 

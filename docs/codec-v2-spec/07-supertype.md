@@ -500,7 +500,7 @@ SuperType validation is controlled by `DeserializationMode` (see [Load/Save Opti
 **Load options:**
 ```java
 Map<String, Object> options = Map.of(
-    CodecResourceOptions.DESERIALIZATION_MODE, DeserializationMode.STRICT
+    CodecOptions.CODEC_DESERIALIZATION_MODE, "STRICT"
 );
 resource.load(inputStream, options);
 ```

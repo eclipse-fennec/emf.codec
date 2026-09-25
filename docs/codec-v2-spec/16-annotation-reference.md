@@ -159,8 +159,6 @@ Load/Save options use the same convention:
 | `CODEC_FEATURE_TYPE_HINTS` | `"codec.featureTypeHints"` | Per-feature type hints |
 | `CODEC_TYPE_HINT_MODE` | `"codec.typeHintMode"` | HINT or OVERRIDE |
 | `CODEC_DESERIALIZATION_MODE` | `"codec.deserializationMode"` | STRICT, LENIENT, AUTO_DETECT |
-| `CODEC_VALUE_READERS` | `"codec.valueReaders"` | Readers to register (uses `getName()`) |
-| `CODEC_VALUE_WRITERS` | `"codec.valueWriters"` | Writers to register (uses `getName()`) |
 | `CODEC_FEATURE_VALUE_READERS` | `"codec.featureValueReaders"` | Reader names per feature |
 | `CODEC_FEATURE_VALUE_WRITERS` | `"codec.featureValueWriters"` | Writer names per feature |
 | `CODEC_FEATURE_VALUE_READER_INSTANCES` | `"codec.featureValueReaderInstances"` | Reader instances per feature |
@@ -245,12 +243,13 @@ options.put("codec.typeStrategy", TypeStrategy.NAME);
 options.put("codec.typeStrategy", "NAME");
 options.put("codec.typeStrategy", "name");  // case-insensitive
 
-// All equivalent for EClass:
+// All equivalent for an EClass value:
+options.put("codec.rootType", ExamplePackage.Literals.PERSON);
+options.put("codec.rootType", "http://example.org#//Person");
+
+// Keys of codec.eClassConfig are EClass instances, not URI strings:
 Map<EClass, Map<String, Object>> classConfig = new HashMap<>();
 classConfig.put(ExamplePackage.Literals.PERSON, personConfig);
-// or via URI string key:
-Map<String, Map<String, Object>> classConfigByUri = new HashMap<>();
-classConfigByUri.put("http://example.org#//Person", personConfig);
 
 // All equivalent for boolean:
 options.put("codec.serializeNull", true);
@@ -1418,8 +1417,6 @@ Options passed to `resource.load(options)` or `resource.save(options)`. These ar
 | `CODEC_FEATURE_TYPE_HINTS` | `Map<EStructuralFeature, EClass>` | Load | Type hints per feature ([details](#per-feature-type-hints-codec_feature_type_hints)) |
 | `CODEC_FEATURE_VALUE_READERS` | `Map<EStructuralFeature, String>` | Load | Custom readers per feature |
 | `CODEC_FEATURE_VALUE_WRITERS` | `Map<EStructuralFeature, String>` | Save | Custom writers per feature |
-| `CODEC_VALUE_READERS` | `List<CodecValueReader>` | Load | Global readers to register ([details](14-custom-values.md)) |
-| `CODEC_VALUE_WRITERS` | `List<CodecValueWriter>` | Save | Global writers to register ([details](14-custom-values.md)) |
 | `CODEC_FAIL_FAST` | `Boolean` | Both | Throw on first error ([details](#diagnostic-options)) |
 | `CODEC_SUPPRESS_WARNINGS` | `Boolean` | Both | Suppress all warnings ([details](#diagnostic-options)) |
 | `CODEC_SUPPRESS_WARNING_SOURCES` | `Set<String>` | Both | Suppress warnings by source ([details](#diagnostic-options)) |
@@ -1817,8 +1814,6 @@ removed (#222).
 | `CODEC_FEATURE_TYPE_HINTS` | ✅ | ✅ | ✅ |
 | `CODEC_FEATURE_VALUE_READERS` | ✅ | ✅ | ✅ |
 | `CODEC_FEATURE_VALUE_WRITERS` | ✅ | ✅ | ✅ |
-| `CODEC_VALUE_READERS` | ✅ | ✅ | ✅ |
-| `CODEC_VALUE_WRITERS` | ✅ | ✅ | ✅ |
 | `CODEC_FAIL_FAST` | 🔶 | ❌ | ✅ |
 | `CODEC_SUPPRESS_WARNINGS` | 🔶 | ❌ | ✅ |
 | `CODEC_SUPPRESS_WARNING_SOURCES` | 🔶 | ❌ | ✅ |

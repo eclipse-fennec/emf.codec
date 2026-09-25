@@ -94,7 +94,7 @@ ReferenceConfigBuilder.forReference(PersonPackage.Literals.COMPANY__EMPLOYEE)
 **Property Map:**
 ```java
 Map<String, Object> options = Map.of(
-    "codec.serializeInstanceType", false
+    CodecOptions.CODEC_SERIALIZE_INSTANCE_TYPE, false
 );
 ```
 

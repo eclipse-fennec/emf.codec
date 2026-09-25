@@ -1003,7 +1003,7 @@ one is a document without a discriminator, the other a discriminator that does n
 **Example - Unknown type with hint (succeeds):**
 ```java
 Map<String, Object> options = Map.of(
-    CodecResourceOptions.CODEC_ROOT_TYPE, PersonPackage.Literals.PERSON
+    CodecOptions.CODEC_ROOT_TYPE, PersonPackage.Literals.PERSON
 );
 resource.load(inputStream, options);
 // JSON: {"_type": "UnknownType", "name": "John"}
@@ -1047,7 +1047,7 @@ Explicitly sets the context schema for deserialization:
 
 ```java
 Map<String, Object> options = new HashMap<>();
-options.put(CodecResourceOptions.CODEC_ROOT_SCHEMA, "http://geojson.org/1.0");
+options.put(CodecOptions.CODEC_ROOT_SCHEMA, "http://geojson.org/1.0");
 resource.load(inputStream, options);
 ```
 
@@ -1077,7 +1077,7 @@ Specifies the expected root EClass for deserialization. **Additionally**, it imp
 
 ```java
 Map<String, Object> options = new HashMap<>();
-options.put(CodecResourceOptions.CODEC_ROOT_TYPE, GeoJsonPackage.eINSTANCE.getFeatureCollection());
+options.put(CodecOptions.CODEC_ROOT_TYPE, GeoJsonPackage.eINSTANCE.getFeatureCollection());
 resource.load(inputStream, options);
 ```
 
@@ -1193,7 +1193,7 @@ This is a **standard EMF pattern** (typed map entries), so we cannot treat dupli
 ```java
 // Good: Context provided, unambiguous resolution
 Map<String, Object> options = Map.of(
-    CodecResourceOptions.CODEC_ROOT_SCHEMA, "http://example.org/model/1.0"
+    CodecOptions.CODEC_ROOT_SCHEMA, "http://example.org/model/1.0"
 );
 resource.load(inputStream, options);
 
@@ -1580,7 +1580,7 @@ To deserialize real GeoJSON, configure:
 ```java
 Map<String, Object> options = new HashMap<>();
 options.put(CodecOptions.CODEC_TYPE_KEY, "type");                     // GeoJSON uses "type" not "_type"
-options.put("codec.useNamesFromExtendedMetadata", true);              // Map "coordinates" → data attribute
+options.put(CodecOptions.CODEC_USE_NAMES_FROM_EXTENDED_METADATA, true);              // Map "coordinates" → data attribute
 options.put(CodecResource.CODEC_ROOT_SCHEMA, "https://geojson.org/model/2016");
 
 resource.load(inputStream, options);

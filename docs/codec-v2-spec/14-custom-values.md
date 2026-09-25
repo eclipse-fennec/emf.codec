@@ -50,7 +50,7 @@ CodecValueWriter<T, F extends EStructuralFeature>
 | `AttributeValueWriter<T>` | Format primitive/data type values | Base64 encoding |
 | `ReferenceValueReader<T>` | Read references in custom format (containment or non-containment) | JSON Schema → EPackage |
 | `ReferenceValueWriter<T>` | Write references in custom format (containment or non-containment) | EPackage → JSON Schema |
-| `CodecValueReader<String, EReference>` | Transform non-containment reference URIs | MongoDB ObjectId → EMF URI |
+| `CodecValueReader<String, EReference>` | Transform non-containment reference URIs | BSON ObjectId → EMF URI |
 | `CodecValueWriter<EObject, EReference>` | Write non-containment reference URIs | Custom URI scheme |
 
 ### 1.3 Core Components
@@ -376,7 +376,7 @@ AttributeSerializationEntry
 | Type | Interface | Purpose | When Used |
 |------|-----------|---------|-----------|
 | **Inline Object** | `ReferenceValueReader<T>` / `ReferenceValueWriter<T>` | Convert entire object structure (containment or non-containment) | JSON Schema ↔ EPackage, JSON Schema ↔ EClass |
-| **Non-Containment URI** | `CodecValueReader<String, EReference>` / `CodecValueWriter<EObject, EReference>` | Transform reference URI | MongoDB ObjectId ↔ EMF URI |
+| **Non-Containment URI** | `CodecValueReader<String, EReference>` / `CodecValueWriter<EObject, EReference>` | Transform reference URI | BSON ObjectId ↔ EMF URI |
 
 ### 4.2 Inline Object Reference Readers/Writers
 
@@ -469,13 +469,13 @@ ReferenceSerializationEntry
 
 Used for **non-containment references** to transform URI format.
 
-#### Example: MongoDB ObjectId
+#### Example: BSON ObjectId in a reference
 
 ```java
-public class MongoIdWriter implements CodecValueWriter<EObject, EReference> {
+public class ObjectIdRefWriter implements CodecValueWriter<EObject, EReference> {
     @Override
     public String getName() {
-        return "mongoId";
+        return "objectIdRef";
     }
 
     @Override
@@ -488,10 +488,10 @@ public class MongoIdWriter implements CodecValueWriter<EObject, EReference> {
     }
 }
 
-public class MongoIdReader implements CodecValueReader<String, EReference> {
+public class ObjectIdRefReader implements CodecValueReader<String, EReference> {
     @Override
     public String getName() {
-        return "mongoId";
+        return "objectIdRef";
     }
 
     @Override
@@ -548,8 +548,8 @@ CodecValueRegistry registry = new CodecValueRegistry()
     .register(new EPackageValueWriter())        // registered as "ePackageToJsonSchema"
 
     // Multiple instances at once (varargs)
-    .registerAll(new MongoIdReader(), new CustomReader1(), new CustomReader2())
-    .registerAll(new MongoIdWriter(), new CustomWriter1());
+    .registerAll(new ObjectIdRefReader(), new CustomReader1(), new CustomReader2())
+    .registerAll(new ObjectIdRefWriter(), new CustomWriter1());
 ```
 
 **Benefits of instance-based registration:**
@@ -646,8 +646,8 @@ CodecResource resource = new CodecResource(
 ```xml
 <eStructuralFeatures xsi:type="ecore:EReference" name="manager" eType="#//Person">
   <eAnnotations source="http://eclipse.org/fennec/codec">
-    <details key="valueWriterName" value="mongoId"/>
-    <details key="valueReaderName" value="mongoId"/>
+    <details key="valueWriterName" value="objectIdRef"/>
+    <details key="valueReaderName" value="objectIdRef"/>
   </eAnnotations>
 </eStructuralFeatures>
 ```

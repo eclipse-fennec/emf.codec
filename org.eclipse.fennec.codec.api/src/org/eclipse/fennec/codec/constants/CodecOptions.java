@@ -496,6 +496,12 @@ public final class CodecOptions {
     public static final String CODEC_REF_TYPE_KEY = "codec.refTypeKey";
 
     /**
+     * Key that marks a proxy reference in STRUCTURED format; reader and writer must agree on it.
+     * <p>Default: "$proxy"</p>
+     */
+    public static final String CODEC_PROXY_KEY = "codec.proxyKey";
+
+    /**
      * Expand (inline) referenced objects.
      * <p>Default: false</p>
      */
@@ -533,6 +539,43 @@ public final class CodecOptions {
      * <p>Default: false</p>
      */
     public static final String CODEC_SERIALIZE_NULL = "codec.serializeNull";
+
+    /**
+     * Skip a feature on both read and write. Global, per class or per feature.
+     * <p>Value: {@code Boolean}, default: false</p>
+     */
+    public static final String CODEC_IGNORE = "codec.ignore";
+
+    /**
+     * Skip a feature on read only. Global, per class or per feature.
+     * <p>Value: {@code Boolean}, default: false</p>
+     */
+    public static final String CODEC_IGNORE_READ = "codec.ignoreRead";
+
+    /**
+     * Skip a feature on write only. Global, per class or per feature.
+     * <p>Value: {@code Boolean}, default: false</p>
+     */
+    public static final String CODEC_IGNORE_WRITE = "codec.ignoreWrite";
+
+    /**
+     * Read a transient, volatile or derived feature that is skipped by default.
+     * <p>Value: {@code Boolean}, default: false</p>
+     */
+    public static final String CODEC_FORCE_READ = "codec.forceRead";
+
+    /**
+     * Write a transient, volatile or derived feature that is skipped by default.
+     * <p>Value: {@code Boolean}, default: false</p>
+     */
+    public static final String CODEC_FORCE_WRITE = "codec.forceWrite";
+
+    /**
+     * Write the instance type of a contained object rather than the reference type.
+     * Global or per feature, write only.
+     * <p>Value: {@code Boolean}, default: true</p>
+     */
+    public static final String CODEC_SERIALIZE_INSTANCE_TYPE = "codec.serializeInstanceType";
 
     /**
      * Whether to serialize empty collections.
@@ -636,16 +679,63 @@ public final class CodecOptions {
     public static final String CODEC_EXPAND_DEPTH = "codec.expandDepth";
 
     /**
+     * Expand all non-containment references, not only those listed in {@link #CODEC_EXPAND}.
+     * Global or per class.
+     * <p>Default: false</p>
+     */
+    public static final String CODEC_EXPAND_GLOBAL = "codec.expandGlobal";
+
+    /**
      * Skip bidirectional references when expanding.
      * <p>Default: true</p>
      */
     public static final String CODEC_EXPAND_IGNORE_BIDIRECTIONAL = "codec.expandIgnoreBidirectional";
 
     /**
-     * Enable smart compression (omit type when inferable).
+     * Enable smart compression: types of the root object's schema are written as simple names
+     * instead of full URIs. The type is still written (spec 05 §1).
      * <p>Default: false</p>
      */
     public static final String CODEC_SMART_COMPRESSION = "codec.smartCompression";
+
+    /**
+     * Names of features to skip on read and write, codec-wide or per class.
+     * <p>Value: {@code List<String>}, default: empty</p>
+     */
+    public static final String CODEC_IGNORE_FEATURES = "codec.ignoreFeatures";
+
+    /**
+     * Order of the features in the output.
+     * <p>Values: "DECLARATION" (default), "ALPHABETICAL"</p>
+     */
+    public static final String CODEC_FIELD_ORDER = "codec.fieldOrder";
+
+    /**
+     * Use the element and attribute names of {@code ExtendedMetaData} as keys.
+     * <p>Value: {@code Boolean}, default: false</p>
+     */
+    public static final String CODEC_USE_NAMES_FROM_EXTENDED_METADATA = "codec.useNamesFromExtendedMetadata";
+
+    /**
+     * Report a document field that matches no feature as an ERROR, which fails the load,
+     * instead of a WARNING. Global or per class, read only (spec 15).
+     * <p>Value: {@code Boolean}, default: false</p>
+     */
+    public static final String CODEC_STRICT_ON_UNKNOWN = "codec.strictOnUnknown";
+
+    /**
+     * Report a required feature missing from the document as an ERROR, which fails the load,
+     * instead of a WARNING. Global or per class, read only (spec 15).
+     * <p>Value: {@code Boolean}, default: false</p>
+     */
+    public static final String CODEC_STRICT_ON_MISSING = "codec.strictOnMissing";
+
+    /**
+     * Report a present value that cannot be converted as an ERROR, which fails the load,
+     * instead of a WARNING. Global or per class, read only (spec 15).
+     * <p>Value: {@code Boolean}, default: false</p>
+     */
+    public static final String CODEC_STRICT_ON_CONVERSION = "codec.strictOnConversion";
 
     /**
      * Whether a class inherits codec configuration from its parent EClass. The option pair of the

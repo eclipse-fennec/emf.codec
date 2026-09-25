@@ -416,52 +416,28 @@ With smart compression (same package context):
 
 ---
 
-## 3. Field Ordering (Future Feature)
+## 3. Field Ordering
 
-> **Status:** Planned for future implementation. The configuration keys below are proposals.
-
-Controls the order of properties in serialized output.
-
-### Field Order Mode
+Controls the order of properties in serialized output. Load/save option or resource/factory
+property, codec-wide; there is no annotation for it.
 
 | Mode | Description |
 |------|-------------|
-| `DECLARATION` **(default)** | Features in EClass declaration order |
-| `ALPHABETICAL` | Features sorted alphabetically by key |
+| `DECLARATION` **(default)** | Metadata fields (`_type`, `_supertype`, `_id`) first, then the features in EClass declaration order |
+| `ALPHABETICAL` | All keys sorted, the metadata fields included |
 
-### Metadata Fields Position
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `metadataFieldsFirst` | `true` | Place `_type`, `_id`, `_supertype` before features |
-
-When `metadataFieldsFirst=true`, the output order is:
-1. `_type` (if enabled) — first when `idOnTop=false`
-2. `_supertype` (if enabled)
-3. `_id` (if enabled) — or first if `idOnTop=true` (the default)
-4. Features (in configured order)
-
-> **Note:** The relative order of `_id` and `_type` is controlled by `idOnTop` (see [09-id.md §8.7](09-id.md#87-metadata-field-ordering-idontop)). The default (`idOnTop=false`) places `_type` before `_id`.
-
-**Property Map (proposed):**
+**Property map:**
 ```java
 Map<String, Object> options = Map.of(
-    "codec.fieldOrder", "DECLARATION",     // default
-    "codec.metadataFieldsFirst", true);    // default: metadata fields first
-
-// Alphabetical ordering with ID always first
-Map<String, Object> alphabetical = Map.of(
-    "codec.fieldOrder", "ALPHABETICAL",
-    "codec.metadataFieldsFirst", true);    // _id, _type, _supertype first, then alphabetical
+    CodecOptions.CODEC_FIELD_ORDER, "ALPHABETICAL");
 ```
 
-**EAnnotation (proposed, on EPackage):**
-```xml
-<eAnnotations source="http://eclipse.org/fennec/codec">
-  <details key="fieldOrder" value="ALPHABETICAL"/>
-  <details key="metadataFieldsFirst" value="true"/>
-</eAnnotations>
-```
+`ALPHABETICAL` sorts by key string, so the metadata fields are not guaranteed to come first: `_`
+sorts after upper-case and before lower-case letters. To keep the id on top, combine it with
+`idOnTop` ([09 §8.7](09-id.md#87-metadata-field-ordering-idontop)), which moves `_id` (and the
+EMF id attribute) before the sorted keys. There is no switch that moves all metadata fields
+before the features in `ALPHABETICAL` mode; an earlier revision proposed `metadataFieldsFirst`
+for that, which was never implemented and was removed (issue #242).
 
 ---
 
@@ -481,7 +457,7 @@ This is useful for:
 **Property Map:**
 ```java
 Map<String, Object> options = new HashMap<>();
-options.put("codec.ignoreFeatures", List.of("createdAt", "updatedAt", "version"));
+options.put(CodecOptions.CODEC_IGNORE_FEATURES, List.of("createdAt", "updatedAt", "version"));
 ```
 
 **EAnnotation (on EPackage or EClass):**
@@ -509,7 +485,7 @@ Global ignore is useful for API versioning where certain fields should not be ex
 ```java
 // V1 API - hide new fields
 Map<String, Object> v1Options = Map.of(
-    "codec.ignoreFeatures", List.of("newFieldAddedInV2", "anotherV2Field"));
+    CodecOptions.CODEC_IGNORE_FEATURES, List.of("newFieldAddedInV2", "anotherV2Field"));
 
 // V2 API - expose all fields
 Map<String, Object> v2Options = Map.of();

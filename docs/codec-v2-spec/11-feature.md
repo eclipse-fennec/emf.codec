@@ -171,7 +171,7 @@ Override codec-wide settings for individual features:
 ```java
 Map<String, Object> options = Map.of(CodecOptions.CODEC_EATTRIBUTE_CONFIG, Map.of(
     // Ignore feature completely
-    PersonPackage.Literals.PERSON__INTERNAL_CACHE, Map.of("codec.ignore", true),
+    PersonPackage.Literals.PERSON__INTERNAL_CACHE, Map.of(CodecOptions.CODEC_IGNORE, true),
     // Force serialize null for specific feature (override codec default)
     PersonPackage.Literals.PERSON__MIDDLE_NAME, Map.of(CodecOptions.CODEC_SERIALIZE_NULL, true),
     // Skip default values for specific feature
@@ -201,12 +201,12 @@ The `ignoreFeatures` property provides runtime bulk ignore without model annotat
 **Property Map:**
 ```java
 Map<String, Object> options = Map.of(
-    "codec.ignoreFeatures", "internalId,debugInfo,tempCache"
+    CodecOptions.CODEC_IGNORE_FEATURES, "internalId,debugInfo,tempCache"
 );
 
 // Or with list
 Map<String, Object> options = Map.of(
-    "codec.ignoreFeatures", List.of("internalId", "debugInfo")
+    CodecOptions.CODEC_IGNORE_FEATURES, List.of("internalId", "debugInfo")
 );
 ```
 
@@ -340,7 +340,7 @@ Use names from XSD extended metadata annotations instead of EMF feature names.
 **Property Map:**
 ```java
 Map<String, Object> options = Map.of(
-    "codec.useNamesFromExtendedMetadata", true
+    CodecOptions.CODEC_USE_NAMES_FROM_EXTENDED_METADATA, true
 );
 ```
 
@@ -503,7 +503,7 @@ Use per-feature `forceWrite` and `forceRead` annotations (see [Section 1.2](#12-
 ```java
 // Force serialize specific volatile feature
 Map<String, Object> options = Map.of(CodecOptions.CODEC_EATTRIBUTE_CONFIG, Map.of(
-    GeoJsonPackage.Literals.POINT__DATA, Map.of("codec.forceWrite", true, "codec.forceRead", true)));
+    GeoJsonPackage.Literals.POINT__DATA, Map.of(CodecOptions.CODEC_FORCE_WRITE, true, CodecOptions.CODEC_FORCE_READ, true)));
 ```
 
 **`ConfigurationResolver.Builder` (type-safe convenience method):**
@@ -569,7 +569,7 @@ The GeoJSON EMF model stores coordinates in a structured `Coordinates` object bu
 Map<String, Object> options = Map.of(
     CodecOptions.CODEC_TYPE_KEY, "type",
     CodecOptions.CODEC_TYPE_STRATEGY, "NAME",
-    "codec.useNamesFromExtendedMetadata", true);
+    CodecOptions.CODEC_USE_NAMES_FROM_EXTENDED_METADATA, true);
 ```
 
 **Output:**

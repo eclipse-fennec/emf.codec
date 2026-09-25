@@ -276,7 +276,7 @@ Output:
 }
 ```
 
-### 6.2 MongoDB Style
+### 6.2 Short Underscore Keys
 
 Configuration:
 ```java
