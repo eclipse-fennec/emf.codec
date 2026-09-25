@@ -601,14 +601,22 @@ public final class CodecOptions {
     public static final String CODEC_TYPE_DISCRIMINATOR = "codec.typeDiscriminator";
 
     /**
-     * Type mappings as nested map.
-     * <p>Value: {@code Map<String, String>} (discriminator value to EClass URI)</p>
+     * Type mappings as nested map, on the class that owns the registry.
+     * <p>Value: {@code Map<String, ?>} (discriminator value to EClass URI string or
+     * {@code EClass} instance)</p>
      */
     public static final String CODEC_TYPE_MAPPINGS = "codec.typeMappings";
 
     /**
+     * Inline mappings as nested map, on an EReference in {@link #CODEC_EREFERENCE_CONFIG}.
+     * <p>Value: {@code Map<String, ?>} (discriminator value to EClass URI string or
+     * {@code EClass} instance)</p>
+     */
+    public static final String CODEC_INLINE_MAPPINGS = "codec.inlineMappings";
+
+    /**
      * Fallback strategy when discriminator value not found.
-     * <p>Values: "FALLBACK" (default), "ERROR", "SKIP"</p>
+     * <p>Values: "SKIP" (default), "ERROR", "FALLBACK"</p>
      */
     public static final String CODEC_FALLBACK_STRATEGY = "codec.fallbackStrategy";
 

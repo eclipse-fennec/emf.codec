@@ -301,11 +301,11 @@ public enum ConfigProperty {
         levels(ECLASS), directions(READ, WRITE)),
 
     @SuppressWarnings("unchecked")
-    TYPE_MAPPINGS("typeMappings", (Class<Map<String, String>>) (Class<?>) Map.class, null,
+    TYPE_MAPPINGS("typeMappings", (Class<Map<String, Object>>) (Class<?>) Map.class, null,
         levels(ECLASS), directions(READ, WRITE)),
 
     @SuppressWarnings("unchecked")
-    INLINE_MAPPINGS("inlineMappings", (Class<Map<String, String>>) (Class<?>) Map.class, null,
+    INLINE_MAPPINGS("inlineMappings", (Class<Map<String, Object>>) (Class<?>) Map.class, null,
         levels(FEATURE), directions(READ, WRITE)),
 
     DISCRIMINATOR_PATH("discriminatorPath", String.class, null,
@@ -318,7 +318,7 @@ public enum ConfigProperty {
         levels(GLOBAL, ECLASS, FEATURE), directions(READ), directions(WRITE)),  // R(W)
 
     FALLBACK_ECLASS("fallbackEClass", String.class, null,
-        levels(FEATURE), directions(READ), directions(WRITE)),  // R(W)
+        levels(ECLASS, FEATURE), directions(READ), directions(WRITE)),  // R(W)
 
     // ========================================================================
     // SuperType Properties (11.10)

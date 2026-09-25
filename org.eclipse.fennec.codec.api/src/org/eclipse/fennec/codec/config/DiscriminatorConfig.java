@@ -34,12 +34,12 @@ import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
  *   <li>typeMapId - registry ID</li>
  *   <li>typeDiscriminatorPath - JSON path to discriminator value</li>
  *   <li>typeDiscriminator - this class's discriminator value (for distributed registration)</li>
- *   <li>typeMappings - discriminator value → EClass URI mappings</li>
+ *   <li>typeMappings - discriminator value → EClass URI string or {@code EClass}</li>
  * </ul>
  * <p>
  * Inline Mapping properties (EReference level):
  * <ul>
- *   <li>inlineMappings - discriminator value → EClass URI mappings</li>
+ *   <li>inlineMappings - discriminator value → EClass URI string or {@code EClass}</li>
  * </ul>
  * <p>
  * Common properties:
@@ -69,10 +69,10 @@ public final class DiscriminatorConfig implements Mergeable<DiscriminatorConfig>
     private final String typeMapId;
     private final String typeDiscriminatorPath;
     private final String typeDiscriminator;
-    private final Map<String, String> typeMappings;
+    private final Map<String, Object> typeMappings;
 
     // Inline Mapping properties (EReference level)
-    private final Map<String, String> inlineMappings;
+    private final Map<String, Object> inlineMappings;
 
     // Common properties
     private final FallbackStrategy fallbackStrategy;
@@ -126,14 +126,15 @@ public final class DiscriminatorConfig implements Mergeable<DiscriminatorConfig>
     }
 
     /**
-     * Returns the type mappings (discriminator value → EClass URI).
+     * Returns the type mappings (discriminator value → EClass).
      * <p>
      * Used for centralized configuration where all mappings are defined
-     * on the base class.
+     * on the base class. A value is an EClass URI string, or an {@code EClass} instance
+     * when configured programmatically; an instance names the version unambiguously.
      *
-     * @return unmodifiable map of discriminator values to EClass URIs
+     * @return unmodifiable map of discriminator values to EClass URIs or EClasses
      */
-    public Map<String, String> getTypeMappings() {
+    public Map<String, Object> getTypeMappings() {
         return typeMappings;
     }
 
@@ -142,13 +143,14 @@ public final class DiscriminatorConfig implements Mergeable<DiscriminatorConfig>
     // ========================================================================
 
     /**
-     * Returns the inline mappings (discriminator value → EClass URI).
+     * Returns the inline mappings (discriminator value → EClass).
      * <p>
-     * Used for per-reference type mappings defined directly on the EReference.
+     * Used for per-reference type mappings defined directly on the EReference. Values as
+     * in {@link #getTypeMappings()}.
      *
-     * @return unmodifiable map of discriminator values to EClass URIs
+     * @return unmodifiable map of discriminator values to EClass URIs or EClasses
      */
-    public Map<String, String> getInlineMappings() {
+    public Map<String, Object> getInlineMappings() {
         return inlineMappings;
     }
 
@@ -217,10 +219,10 @@ public final class DiscriminatorConfig implements Mergeable<DiscriminatorConfig>
         }
 
         // For mappings, we merge the maps (source entries override base entries)
-        Map<String, String> mergedTypeMappings = mergeMaps(
+        Map<String, Object> mergedTypeMappings = mergeMaps(
                 this.typeMappings,
                 getMap(source, ConfigProperty.TYPE_MAPPINGS, null));
-        Map<String, String> mergedInlineMappings = mergeMaps(
+        Map<String, Object> mergedInlineMappings = mergeMaps(
                 this.inlineMappings,
                 getMap(source, ConfigProperty.INLINE_MAPPINGS, null));
 
@@ -235,14 +237,14 @@ public final class DiscriminatorConfig implements Mergeable<DiscriminatorConfig>
                 .build();
     }
 
-    private Map<String, String> mergeMaps(Map<String, String> base, Map<String, String> override) {
+    private Map<String, Object> mergeMaps(Map<String, Object> base, Map<String, Object> override) {
         if (override == null || override.isEmpty()) {
             return base;
         }
         if (base == null || base.isEmpty()) {
             return override;
         }
-        Map<String, String> merged = new HashMap<>(base);
+        Map<String, Object> merged = new HashMap<>(base);
         merged.putAll(override);
         return merged;
     }
@@ -333,8 +335,8 @@ public final class DiscriminatorConfig implements Mergeable<DiscriminatorConfig>
         private String typeMapId = null;
         private String typeDiscriminatorPath = null;
         private String typeDiscriminator = null;
-        private Map<String, String> typeMappings = null;
-        private Map<String, String> inlineMappings = null;
+        private Map<String, Object> typeMappings = null;
+        private Map<String, Object> inlineMappings = null;
         private FallbackStrategy fallbackStrategy = FallbackStrategy.SKIP;  // Spec default: SKIP
         private String fallbackEClass = null;
 
@@ -355,8 +357,8 @@ public final class DiscriminatorConfig implements Mergeable<DiscriminatorConfig>
             return this;
         }
 
-        public Builder typeMappings(Map<String, String> typeMappings) {
-            this.typeMappings = typeMappings;
+        public Builder typeMappings(Map<String, ?> typeMappings) {
+            this.typeMappings = typeMappings != null ? new HashMap<>(typeMappings) : null;
             return this;
         }
 
@@ -368,8 +370,8 @@ public final class DiscriminatorConfig implements Mergeable<DiscriminatorConfig>
             return this;
         }
 
-        public Builder inlineMappings(Map<String, String> inlineMappings) {
-            this.inlineMappings = inlineMappings;
+        public Builder inlineMappings(Map<String, ?> inlineMappings) {
+            this.inlineMappings = inlineMappings != null ? new HashMap<>(inlineMappings) : null;
             return this;
         }
 
