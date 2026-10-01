@@ -19,6 +19,8 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -68,6 +70,8 @@ import jakarta.ws.rs.ext.Provider;
 @Consumes(MediaType.WILDCARD)
 public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> extends BaseJakartaCodecMessageBodyReaderWriter<R, W>{
 
+	private static final Logger LOGGER = Logger.getLogger(EObjectMessageBodyHandler.class.getName());
+
 	@Context
 	private jakarta.inject.Provider<ResourceSet> resourceSetProvider;
 
@@ -99,6 +103,14 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 		ResourceSet resourceSet = getResourceSet();
 		Resource resource = t.eResource();
 		if(resource == null){
+			// A detached object carries no xmi:ids: they live in the XMLResource, not in the
+			// object (issue #246). Nothing is lost here that could be preserved, but the
+			// caller may wonder why the response has fresh ids - hence the hint.
+			if (LOGGER.isLoggable(Level.INFO)) {
+				LOGGER.log(Level.INFO, String.format(
+						"[%s] Serializing an object without a resource: xmi:ids cannot be preserved, keep the object in its resource to retain them",
+						genericType.getTypeName()));
+			}
 			// The live object is re-parented into the temporary response resource, so it
 			// must be detached in a finally: a failed write would otherwise leave it
 			// captured there (issue #93). Serializing an EcoreUtil.copy instead is not an
@@ -131,8 +143,27 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 				.getContentTypeToFactoryMap().containsKey(mediaType.getType() + "/" + mediaType.getSubtype());
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Reads the first root object of the request body.
+	 * <p>
+	 * The returned object stays attached to the resource it was loaded into, so
+	 * {@code eResource()} is never {@code null}. This is deliberate (issue #246): an
+	 * {@link org.eclipse.emf.ecore.xmi.XMLResource} keeps the {@code xmi:id}s of a document
+	 * in the resource, not in the objects. Clearing the resource, as this method did before,
+	 * detaches the whole tree and thereby erases every id. Callers that need the ids read
+	 * them through {@code ((XMLResource) result.eResource()).getID(...)}; callers that move
+	 * the object into another resource must carry the ids over themselves, e.g. with
+	 * {@code XMLResourceIDs.moveWithIDs} from {@code org.eclipse.fennec.emf.osgi.helper},
+	 * because leaving a resource clears the ids there.
+	 * </p>
+	 * <p>
+	 * The loading resource is removed from the per-request {@link ResourceSet}, so it does
+	 * not leak into a pooled set and the body cannot collide with other temporary resources.
+	 * As a consequence the object has no {@code ResourceSet} behind it: cross-document
+	 * references stay unresolved proxies, which is intended - the reader does not resolve
+	 * anything the document did not contain.
+	 * </p>
+	 *
 	 * @see jakarta.ws.rs.ext.MessageBodyReader#readFrom(java.lang.Class, java.lang.reflect.Type, java.lang.annotation.Annotation[], jakarta.ws.rs.core.MediaType, jakarta.ws.rs.core.MultivaluedMap, java.io.InputStream)
 	 */
 	@SuppressWarnings("unchecked")
@@ -143,18 +174,17 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 			throws IOException, WebApplicationException {
 		Resource resource = super.readResourceFrom(type, genericType, annotations, mediaType, httpHeaders, entityStream);
 
-		if(resource.getContents().size() > 0){
-			try {
-				R result = (R) resource.getContents().get(0);
-				return result;
-			} finally {
-				resource.getContents().clear();
-				ResourceSet rs = resource.getResourceSet();
-				rs.getResources().remove(resource);
-			}
+		// Only unhook the resource from the set; do not clear it - that would detach the
+		// tree and drop its xmi:ids (issue #246).
+		ResourceSet rs = resource.getResourceSet();
+		if (rs != null) {
+			rs.getResources().remove(resource);
 		}
 
-		return null;
+		if(resource.getContents().isEmpty()){
+			return null;
+		}
+		return (R) resource.getContents().get(0);
 	}
 
 	@Override
