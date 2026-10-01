@@ -2,7 +2,29 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-09-25
+**Last Updated:** 2026-10-01
+
+**Session Summary (2026-10-01, issue-246-xmi-ids) — #246 REST reader dropped every xmi:id:**
+
+- **Cause:** `EObjectMessageBodyHandler.readFrom` cleared the loading resource in a `finally`.
+  For XMI that runs `XMLResourceImpl.detachedHelper` over the whole tree and nulls every id
+  (ids live in the resource maps, not in the objects).
+- **Contract change:** the reader now returns the object *attached* to its loading resource
+  (`eResource() != null`), only the resource is unhooked from the per-request `ResourceSet`.
+  No `ResourceSet` behind it means cross-document references stay proxies - intended, the
+  reader resolves nothing the document did not contain. Documented on `readFrom`.
+- **Writer:** `writeResourceTo`'s foreign-resource-type branch copies via
+  `XMLResourceIDs.copyWithIDs` (new in emf.osgi `org.eclipse.fennec.emf.osgi.api`, #109), so ids
+  survive when the response resource class differs from the object's. A detached object has no
+  ids to keep; `writeTo` says so at INFO. `org.eclipse.fennec.emf.osgi.api` is now on the
+  codec.rest buildpath.
+- **Tests:** `XmiIdPreservationTest` (9): ids reachable after read, resource out of the set,
+  no ids invented without `xmi:id`, cross-document proxy kept, round trip emits the same ids
+  and id references (`eType="_person"`, no `//@`), id transfer across resource types, INFO log
+  only for detached objects. Note XMI writes same-document path refs as `//Person` (no `#`).
+- **Follow-up (Model Atlas):** consumers that move the uploaded object into their own resource
+  must use `XMLResourceIDs.moveWithIDs`; `eSetResource` detaches from the old resource first and
+  clears the ids there.
 
 **Session Summary (2026-09-25, wave/embedded-packages) — #244 answered, no code change:**
 
