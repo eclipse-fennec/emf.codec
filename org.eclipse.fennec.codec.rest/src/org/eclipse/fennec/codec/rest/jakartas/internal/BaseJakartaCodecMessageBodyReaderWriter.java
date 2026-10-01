@@ -34,13 +34,13 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.constants.RootOptions;
 import org.eclipse.fennec.codec.rest.annotations.ResourceOverwriteContentType;
 import org.eclipse.fennec.codec.rest.common.internal.XMLURIHandler;
 import org.eclipse.fennec.codec.rest.jakartas.AbstractJakartaCodecAnnotationHandler;
+import org.eclipse.fennec.emf.osgi.helper.XMLResourceIDs;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
@@ -112,7 +112,9 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 			} else {
 				resourceSet.getResources().add(referenceResource);
 				for (EObject eObject : t.getContents()) {
-					referenceResource.getContents().add(EcoreUtil.copy(eObject));
+					// The copy carries the xmi:ids of the original over into the reference
+					// resource; a plain EcoreUtil.copy would lose them (issue #246).
+					XMLResourceIDs.copyWithIDs(eObject, referenceResource);
 				}
 			}
 
