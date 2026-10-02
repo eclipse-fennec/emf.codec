@@ -17,9 +17,7 @@ This document provides context for continuing codec development across sessions.
   third script `tools/json_shape_oscal_ecore.py` - markup as Markdown `String` (exact round trip;
   BSI Markdown is not canonical), `prose`, simple-content value keys, `revisions` without wrapper,
   `$schema`. **Not committed there** - handed over as eclipse-fennec/common.models#58 (user pulls it
-  into the build). Locally built and installed as `1.2.3-SNAPSHOT` into `~/.m2`
-  (`mvn install:install-file`), coordinate in `cnf/central.mvn`. Until #58 is published **CI cannot
-  resolve the bundle** - the branch is not pushed yet.
+  into the build). Published since with the common models library.
   - Trap: the genmodel uses `loadInitialization`, IDs = positions in the `.ecore`; the generator
     numbers classes, enums, data types in genmodel order. The XSD importer interleaves data types,
     so the committed model had all 70 data type IDs wrong (dates came back as `String`).
@@ -42,9 +40,8 @@ This document provides context for continuing codec development across sessions.
   the literal. **#260** `byte[]` of a `base64Binary`/`hexBinary` type (also via ExtendedMetaData base
   type) written in its lexical form, `EByteArray` stays a number array. Spec 01 §5.1, 11 §7.1/§7.3/
   §7.7 (new), 17 §6.3 updated.
-- **Model status:** common.models#58 applied in common.models PR #59 (commit 8836b1d, branch
-  `feature/compliance-model-draft`), byte-identical to the local result; its jar is installed in
-  `~/.m2`. Push this branch once #59 is merged and the snapshot published.
+- **Model status:** common.models#58 merged with common.models PR #59; `gov.nist.oscal.model`
+  comes from the common models library snapshot (no own line in `cnf/central.mvn` any more).
 - **Also done:** `OscalOSGiTest` in `codec.osgi.tests` (factory by content type, resource set by
   content type), `codec.oscal` + `gov.nist.oscal.model` in `workspace.library/required.bndrun`
   (`resolve.required` agrees). **YAML:** `OscalResourceImpl`/factory take any `CodecFormatProvider`;
