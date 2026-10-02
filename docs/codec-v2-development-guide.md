@@ -2,7 +2,50 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-10-01
+**Last Updated:** 2026-10-02
+
+**Session Summary (2026-10-02, issue-248-oscal-codec) — #248 OSCAL codec, #258/#259/#260 numbers and binary:**
+
+- **New bundle `org.eclipse.fennec.codec.oscal`** (#248/#251/#252): `OscalResourceImpl` reads into
+  the model's `DocumentRoot` (root type option, `typeInclude(false)`, `useId(false)`,
+  `useNamesFromExtendedMetaData`, the derived document members and `DocumentRoot.schema` force
+  read/written, the XML feature maps ignored). Saving a bare `Catalog`/`Profile`/... wraps it in its
+  document member; any other root is an `IOException`. Factory + DS component (content type
+  `application/oscal+json`, no file extension - `.oscal.json` cannot be mapped, EMF looks at the last
+  segment), `@RequireCodecOscal`. No OSCAL-specific value readers/writers needed.
+- **Model** `gov.nist.oscal.model` (common.models, branch `feature/oscal-model`): JSON-shaped by a
+  third script `tools/json_shape_oscal_ecore.py` - markup as Markdown `String` (exact round trip;
+  BSI Markdown is not canonical), `prose`, simple-content value keys, `revisions` without wrapper,
+  `$schema`. **Not committed there** - handed over as eclipse-fennec/common.models#58 (user pulls it
+  into the build). Locally built and installed as `1.2.3-SNAPSHOT` into `~/.m2`
+  (`mvn install:install-file`), coordinate in `cnf/central.mvn`. Until #58 is published **CI cannot
+  resolve the bundle** - the branch is not pushed yet.
+  - Trap: the genmodel uses `loadInitialization`, IDs = positions in the `.ecore`; the generator
+    numbers classes, enums, data types in genmodel order. The XSD importer interleaves data types,
+    so the committed model had all 70 data type IDs wrong (dates came back as `String`).
+    `OscalModelIdsTest` checks every classifier/feature ID.
+- **Tests:** `ModelJsonOracle` resolves every JSON member to its feature on its own and compares
+  each value by type (strings exact, date-times as instant + fraction digits, numbers exact) and
+  reports features set but absent from JSON; the tests also require oracle count == number of JSON
+  scalars. `JsonDiff` compares semantically, only normalization: `+00:00` vs `Z`. BSI (19 files,
+  CC BY-SA, local in `test-data/bsi`, skipped without), NIST examples (CC0, committed) and
+  SP 800-53 rev5 (local), fixtures, Grundschutz++ through the typed API, performance (5.4 MB
+  catalog: load 150 ms, save 74 ms). `test-data/README.md` has the commits and the fetch steps.
+  - BSI data errors, asserted as such: ISO mapping `provenance/qa-note`, `qa-reviewed` (no OSCAL;
+    dropped with warning); Lieferkettensicherheit component `links` as object (read as list of one).
+  - EMF clears `getWarnings()` on save - capture load diagnostics before saving.
+- **#258** deferred properties (every OSCAL property - no type key) buffered floats as `double`
+  and ints as `long` (beyond long = load failure): now `Long`/`BigInteger` and the float literal
+  (`TokenBuffer.writeNumber(String)`); a number into a string attribute now keeps its literal
+  (`NumberIntoStringAttributeTest` updated: `1.50` stays `"1.50"`). **#259** `BigDecimal`,
+  `BigInteger`, `Short`, `Byte` written as numbers (were strings); object-array elements read from
+  the literal. **#260** `byte[]` of a `base64Binary`/`hexBinary` type (also via ExtendedMetaData base
+  type) written in its lexical form, `EByteArray` stays a number array. Spec 01 §5.1, 11 §7.1/§7.3/
+  §7.7 (new), 17 §6.3 updated.
+- **Open:** push + PR after common.models#58; then OSCAL in `workspace.library/required.bndrun`
+  and an OSGi test in `codec.osgi.tests` (#251); #249/#248 version list not yet edited (blocked
+  in-session; text prepared); YAML (#251), component-definition/mapping/SSP sub-issues (#253-#256)
+  are covered by the round trips but have no dedicated API tests yet.
 
 **Session Summary (2026-10-01, issue-246-xmi-ids) — #246 REST reader dropped every xmi:id:**
 
