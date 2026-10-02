@@ -20,11 +20,14 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.fennec.codec.yaml.YamlFormatProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import gov.nist.csrc.ns.oscal.DocumentRoot;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -47,6 +50,8 @@ import tools.jackson.databind.JsonNode;
 @EnabledIf("org.eclipse.fennec.codec.oscal.BsiTestData#present")
 class BsiRoundTripTest {
 
+	private static final YamlFormatProvider YAML = new YamlFormatProvider();
+
 	private static final String ISO_MAPPING = "ISO27001-AnnexA-to-GS++-mapping_collection.json";
 	private static final String SUPPLY_CHAIN_COMPONENT = "Lieferkettensicherheit-component_definition.json";
 
@@ -68,6 +73,26 @@ class BsiRoundTripTest {
 		assertEquals(expectedDiffs(name, roundTrip.original()), roundTrip.diffs(), "round trip");
 		assertEquals(List.of(), roundTrip.reloadDiagnostics(), "reload diagnostics");
 		assertTrue(roundTrip.stable(), "second round trip is not stable");
+	}
+
+	/**
+	 * The same file through YAML: the model loaded from JSON is written as YAML, loaded again and
+	 * checked with the oracle against the original JSON.
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("files")
+	void yamlRoundTrip(Path file) throws IOException {
+		String name = file.getFileName().toString();
+		RoundTrip roundTrip = RoundTrip.of(file);
+		byte[] yaml = RoundTrip.saveAs(roundTrip.root(), YAML);
+		Resource reloaded = RoundTrip.load(file.toString(), yaml, YAML);
+		assertEquals(List.of(), RoundTrip.messages(reloaded.getErrors()), "YAML load errors");
+		assertEquals(List.of(), RoundTrip.messages(reloaded.getWarnings()), "YAML load warnings");
+		ModelJsonOracle.Result oracle = ModelJsonOracle.check(roundTrip.original(),
+				(DocumentRoot) reloaded.getContents().get(0));
+		assertEquals(expectedOracleFindings(name), oracle.findings(), "YAML model vs. JSON");
+		assertEquals(RoundTrip.scalarCount(roundTrip.original()) - expectedUnmappedScalars(name),
+				oracle.checkedValues(), "not every JSON value was compared with the model");
 	}
 
 	/** {@code qa-note} and {@code qa-reviewed} are no members of OSCAL mapping provenance. */
