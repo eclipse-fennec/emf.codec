@@ -1,0 +1,4 @@
+{"mapping-collection":{"uuid":"74c8ba1e-5cd4-4ad1-bbfd-d888e2f6c725","metadata":{"title":"T","last-modified":"2026-01-01T00:00:00Z","version":"1","oscal-version":"1.2.3"},
+"provenance":{"method":"human","matching-rationale":"semantic","status":"complete","mapping-description":"d","coverage":{"generation-method":"g","target-coverage":0.12345678901234567890123}},
+"mappings":[{"uuid":"74c8ba1e-5cd4-4ad1-bbfd-d888e2f6c726","source-resource":{"type":"catalog","href":"a.json"},"target-resource":{"type":"catalog","href":"b.json"},
+"maps":[{"uuid":"74c8ba1e-5cd4-4ad1-bbfd-d888e2f6c727","relationship":"equivalent-to","sources":[{"type":"control","id-ref":"a"}],"targets":[{"type":"control","id-ref":"b"}]}]}]}}

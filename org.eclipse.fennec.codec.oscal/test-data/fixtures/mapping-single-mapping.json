@@ -1,0 +1,13 @@
+{
+  "mapping-collection": {
+    "uuid": "8b9c0d1e-2f3a-4b4c-8d5e-6f7a8b9c0d1e",
+    "metadata": { "title": "Fixture mapping", "last-modified": "2026-09-24T07:12:39Z", "version": "1", "oscal-version": "1.2.3" },
+    "provenance": { "method": "human", "matching-rationale": "semantic", "status": "complete", "mapping-description": "One mapping, written as a single object." },
+    "mappings": {
+      "uuid": "9c0d1e2f-3a4b-4c5d-8e6f-7a8b9c0d1e2f",
+      "source-resource": { "type": "catalog", "href": "a.json" },
+      "target-resource": { "type": "catalog", "href": "b.json" },
+      "maps": [{ "uuid": "0d1e2f3a-4b5c-4d6e-8f7a-8b9c0d1e2f3a", "relationship": "subset-of", "sources": [{ "type": "control", "id-ref": "a.1" }], "targets": [{ "type": "control", "id-ref": "b.1" }, { "type": "control", "id-ref": "b.2" }] }]
+    }
+  }
+}

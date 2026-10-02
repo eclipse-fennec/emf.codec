@@ -137,6 +137,7 @@ org.eclipse.fennec.bnd:org.eclipse.fennec.jacoco.bnd.library:0.0.9
 org.eclipse.fennec.bnd:org.eclipse.fennec.osgitest.bnd.library:0.0.9
 org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bnd.library.workspace:1.1.0-SNAPSHOT
 org.eclipse.fennec.models:org.eclipse.fennec.common.models.library:0.0.1-SNAPSHOT
+org.eclipse.fennec.models:gov.nist.oscal.model:1.2.3-SNAPSHOT
 
 #Deps needed for csv exporter
 de.siegmar:fastcsv:4.2.0

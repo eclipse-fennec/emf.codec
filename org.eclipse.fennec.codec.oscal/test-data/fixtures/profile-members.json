@@ -1,0 +1,34 @@
+{
+  "profile": {
+    "uuid": "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d",
+    "metadata": { "title": "Fixture profile", "last-modified": "2026-09-24T07:12:39.131969+00:00", "version": "1", "oscal-version": "1.2.3" },
+    "imports": [
+      { "href": "#5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b", "include-all": {}, "exclude-controls": [{ "with-ids": ["ctl-2"] }] },
+      {
+        "href": "catalog-members.json",
+        "include-controls": [
+          { "with-child-controls": "yes", "with-ids": ["ctl-1", "ctl-4"] },
+          { "matching": [{ "pattern": "ctl-3*" }] }
+        ]
+      }
+    ],
+    "merge": { "flat": {} },
+    "modify": {
+      "set-parameters": [
+        { "param-id": "ctl-1_prm_1", "label": "frequency", "values": ["annually"], "props": [{ "name": "origin", "value": "profile" }] },
+        { "param-id": "ctl-1_prm_2", "select": { "how-many": "one", "choice": ["weekly"] } }
+      ],
+      "alters": [
+        {
+          "control-id": "ctl-1",
+          "removes": [{ "by-name": "sort-id" }, { "by-class": "informative" }, { "by-id": "ctl-1_smt.b" }, { "by-item-name": "link" }, { "by-ns": "https://example.org/ns/parts" }],
+          "adds": [
+            { "position": "ending", "by-id": "ctl-1_smt", "title": "Added title", "props": [{ "name": "added", "value": "true" }], "parts": [{ "name": "item", "prose": "Added by the profile." }] },
+            { "position": "before", "params": [{ "id": "ctl-1_prm_3", "values": ["new"] }], "links": [{ "href": "#ctl-2", "rel": "related" }] }
+          ]
+        }
+      ]
+    },
+    "back-matter": { "resources": [{ "uuid": "5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b", "rlinks": [{ "href": "catalog-members.json" }] }] }
+  }
+}
