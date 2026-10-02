@@ -4,6 +4,18 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-10-02
 
+**Session Summary (2026-10-02, wave/oscal-models) — #253-#257 OSCAL models through the API, guide:**
+
+- API tests on top of the oracle round trips: `ComponentDefinitionTest` (NIST + all BSI
+  implementation_layer files; control implementations hang off components **or capabilities**,
+  GA-Lotse has none), `MappingCollectionTest` (source REL target kept, ISO 5.1 anchor),
+  `SystemSecurityPlanTest` (SSP built through the API written as schema-valid OSCAL - the export
+  case), `AssessmentTest` (AP tasks, AR results/findings/observations/risks, POA&M items).
+- #257: `docs/codec-oscal-guide.md` (in the docs-site allowlist), `GrundschutzExample` (controls
+  with `sec_level`, kept in codec.oscal tests because the BSI data is local only),
+  `OscalPerformanceTest` tagged `perf` (`./gradlew perfTest`). Test-data licensing was done in #261.
+- Model sources: read them in `/opt/git/fennec.common.models/gov.nist.oscal.model/src`, not from the jar.
+
 **Session Summary (2026-10-02, issue-248-oscal-codec) — #248 OSCAL codec, #258/#259/#260 numbers and binary:**
 
 - **New bundle `org.eclipse.fennec.codec.oscal`** (#248/#251/#252): `OscalResourceImpl` reads into
