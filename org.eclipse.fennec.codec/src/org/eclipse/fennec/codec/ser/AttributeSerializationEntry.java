@@ -14,6 +14,8 @@ package org.eclipse.fennec.codec.ser;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -27,7 +29,10 @@ import java.util.logging.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.Enumerator;
 import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.util.ExtendedMetaData;
+import org.eclipse.emf.ecore.xml.type.XMLTypePackage;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
@@ -61,6 +66,8 @@ public class AttributeSerializationEntry implements SerializationEntry {
     private final EAttribute attribute;
     private final CodecValueWriter<Object, EAttribute> customWriter;
     private final CodecEntryContext entryContext;
+    /** The data type is XML Schema base64Binary or hexBinary: bytes are written in its lexical form. */
+    private final boolean lexicalBinary;
 
     /**
      * Creates a new AttributeSerializationEntry with the feature configuration.
@@ -84,6 +91,7 @@ public class AttributeSerializationEntry implements SerializationEntry {
             CodecEntryContext entryContext) {
         this.config = config;
         this.attribute = attribute;
+        this.lexicalBinary = attribute != null && isXmlBinary(attribute.getEAttributeType());
         this.entryContext = entryContext;
 
         // Pre-resolve the custom writer at construction time
@@ -203,6 +211,15 @@ public class AttributeSerializationEntry implements SerializationEntry {
             gen.writeNumber(d);
         } else if (value instanceof Float f) {
             gen.writeNumber(f);
+        } else if (value instanceof BigDecimal bd) {
+            // numbers, not strings (issue #259); BigDecimal keeps its digits
+            gen.writeNumber(bd);
+        } else if (value instanceof BigInteger bi) {
+            gen.writeNumber(bi);
+        } else if (value instanceof Short s) {
+            gen.writeNumber(s);
+        } else if (value instanceof Byte b) {
+            gen.writeNumber(b);
         } else if (value instanceof Boolean b) {
             gen.writeBoolean(b);
         } else if (value instanceof Enumerator e) {
@@ -213,6 +230,9 @@ public class AttributeSerializationEntry implements SerializationEntry {
             writeDateValue(gen, d);
         } else if (value instanceof Instant || value instanceof LocalDateTime || value instanceof LocalDate) {
             writeJavaTimeValue(gen, value);
+        } else if (value instanceof byte[] bytes && lexicalBinary) {
+            // the lexical form the reader takes back (issue #260): Base64 or hex
+            gen.writeString(EcoreUtil.convertToString(attribute.getEAttributeType(), bytes));
         } else if (value.getClass().isArray()) {
             writeArrayValue(gen, value, ctxt);
         } else if (value instanceof Map<?, ?> map) {
@@ -222,6 +242,22 @@ public class AttributeSerializationEntry implements SerializationEntry {
         } else {
             gen.writeString(value.toString());
         }
+    }
+
+    /**
+     * Whether a data type is XML Schema {@code base64Binary} or {@code hexBinary}, directly or
+     * through its ExtendedMetaData base types, as XSD-derived models declare them. Such a type has
+     * a lexical form, unlike {@code EByteArray}, which is written as an array of numbers.
+     */
+    static boolean isXmlBinary(EDataType dataType) {
+        EDataType type = dataType;
+        for (int depth = 0; type != null && depth < 32; depth++) {
+            if (type == XMLTypePackage.Literals.BASE64_BINARY || type == XMLTypePackage.Literals.HEX_BINARY) {
+                return true;
+            }
+            type = ExtendedMetaData.INSTANCE.getBaseType(type);
+        }
+        return false;
     }
 
     /**

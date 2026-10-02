@@ -45,9 +45,10 @@ import org.junit.jupiter.params.provider.CsvSource;
  * number attribute was always silent; the reverse now is too.
  * </p>
  * <p>
- * An integer keeps its digits exactly, which is what an id needs. A floating-point number may
- * arrive normalised ({@code 1.50} as {@code "1.5"}), since the parser can hand it over already
- * decoded; a model that needs the literal should type the attribute as a number.
+ * A number keeps its literal: an integer its digits, which is what an id needs, and a
+ * floating-point number its text ({@code 1.50} stays {@code "1.50"}, {@code 1e3} stays
+ * {@code "1e3"}). Before issue #258 a property read ahead of the object went through a
+ * {@code double} and arrived normalised.
  * </p>
  */
 @DisplayName("A number into a string attribute")
@@ -79,7 +80,7 @@ class NumberIntoStringAttributeTest {
     }
 
     @ParameterizedTest(name = "{0} -> \"{1}\"")
-    @CsvSource(delimiter = '|', value = { "42|42", "-7|-7", "9007199254740993|9007199254740993", "1.50|1.5", "1e3|1000.0" })
+    @CsvSource(delimiter = '|', value = { "42|42", "-7|-7", "9007199254740993|9007199254740993", "1.50|1.50", "1e3|1e3" })
     @DisplayName("a single-valued string attribute takes the number's text")
     void singleValued(String number, String expected) throws IOException {
         CodecResource resource = load("{\"name\":" + number + "}");

@@ -608,8 +608,9 @@ EAttributes can have array data types (EDataTypes with array instance classes). 
 | `boolean[]` | `[true, false, true]` | Boolean flags |
 | `String[]` | `["a", "b", "c"]` | String lists |
 | `Date[]` | `["2025-01-14", "2024-12-25"]` | Date sequences |
-| `BigDecimal[]` | `["123.456", "789.012"]` | Precise decimal sequences |
-| `short[]`, `byte[]` | `[1, 2, 3]` | Compact integer sequences, e.g. `EByteArray` |
+| `BigDecimal[]` | `[123.456, 789.012]` | Precise decimal sequences, every digit kept (§7.7) |
+| `BigInteger[]` | `[123456789012345678901, 2]` | Integers beyond `long` (§7.7) |
+| `short[]`, `byte[]` | `[1, 2, 3]` | Compact integer sequences, e.g. `EByteArray`; a `byte[]` of an XML Schema `base64Binary`/`hexBinary` type is a string instead (§7.7) |
 | `char[]`, `Character[]` | `["a", "b"]` | Characters, written as one-character strings |
 | `Integer[]`, `Long[]`, `Double[]`, `Float[]`, `Short[]`, `Byte[]` | `[1, null, 3]` | Boxed numbers — unlike the primitive forms these may contain `null` |
 | `Boolean[]` | `[true, null, false]` | Boxed booleans, `null` allowed |
@@ -660,7 +661,8 @@ The deserializer automatically detects array types based on:
 - Both integer and float JSON numbers accepted for `double[]`
 
 **Object arrays** (`Date[]`, `BigDecimal[]`, etc.):
-- Elements converted from JSON strings via type-specific parsing
+- Elements converted from their JSON value via type-specific parsing; a number element from its
+  literal, so a `BigDecimal` keeps its digits and a `BigInteger` may exceed `long` (§7.7)
 - Common types: `Date` (ISO format), `BigDecimal`, `BigInteger`, `UUID`
 - Fallback: String constructor or `valueOf`/`parse` static methods
 
@@ -740,6 +742,44 @@ Results in `double[3][]` with inner arrays of lengths 1, 2, 3.
 ```
 
 Both serialize to JSON arrays, but array attributes support multi-dimensional nesting while multi-valued attributes provide EMF list semantics.
+
+---
+
+### 7.7 Numbers and Binary Data
+
+These rules hold for single values, for the elements of multi-valued attributes and for the
+elements of object arrays.
+
+**Numbers are JSON numbers** (issue #259). `Integer`, `Long`, `Short`, `Byte`, `Double`,
+`Float`, `BigInteger` and `BigDecimal` are written with the generator's number methods, never as
+strings. This covers `EBigDecimal`/`EBigInteger` and every XML Schema number type of an
+XSD-derived model (`decimal`, `integer`, `nonNegativeInteger`, ...). A `BigDecimal` keeps its
+digits and its scale: `1.50` is written as `1.50`.
+
+**Numbers are read exactly.** A JSON number reaches a `BigDecimal` or `BigInteger` attribute
+with every digit, also beyond `double` and `long`, and also when the property was read before
+its object existed and replayed from the deferred buffer
+([Architecture §5.1](01-architecture.md#51-deferred-properties-order-independent-parsing),
+issue #258). A number read into a string attribute becomes its literal text.
+
+| Model type | Value | JSON |
+|---|---|---|
+| `EBigDecimal`, XML `decimal` | `0.12345678901234567890123` | `0.12345678901234567890123` |
+| `EBigInteger`, XML `nonNegativeInteger` | `123456789012345678901` | `123456789012345678901` |
+| `EShortObject`, `EByteObject` | `7` | `7` |
+
+**Binary data.** A `byte[]` is written according to its data type (issue #260):
+
+| Data type | JSON | Read from |
+|---|---|---|
+| `EByteArray`, any other `byte[]` type | `[72, 101, 108]` - array of numbers | the array |
+| XML Schema `base64Binary`, directly or as ExtendedMetaData base type | `"SGVs"` - Base64 | the string |
+| XML Schema `hexBinary`, directly or as ExtendedMetaData base type | `"48656C"` - hex | the string |
+
+XSD-derived models declare their binary types with a base type chain
+(`Base64Datatype` → `base64Binary`); the writer follows it, so it writes the lexical form the
+reader already takes back. Before, such a value was read from a string but written as a number
+array.
 
 ---
 

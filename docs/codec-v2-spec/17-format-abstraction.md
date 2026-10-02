@@ -321,9 +321,12 @@ A value reader does the same through `FormatDelegateParser.getDelegate()` (e.g. 
 
 ### 6.3 Binary Data Handling
 
-Binary needs no custom writer: the codec writes `byte[]` through `JsonGenerator.writeBinary`,
-which JSON encodes as Base64 and `FormatDelegateGenerator` hands to `FormatDelegate.writeBinary`
-(native binary in BSON). On read, a native binary value surfaces as `VALUE_EMBEDDED_OBJECT`.
+The attribute writer does not call `JsonGenerator.writeBinary`: it writes a `byte[]` according
+to its data type ([Feature §7.7](11-feature.md#77-numbers-and-binary-data)) - `EByteArray` as an
+array of numbers, an XML Schema `base64Binary` or `hexBinary` type as its lexical string. A value
+writer that wants native binary (BSON) calls `writeBinary`, which JSON encodes as Base64 and
+`FormatDelegateGenerator` hands to `FormatDelegate.writeBinary`. On read, a native binary value
+surfaces as `VALUE_EMBEDDED_OBJECT`.
 
 ---
 
