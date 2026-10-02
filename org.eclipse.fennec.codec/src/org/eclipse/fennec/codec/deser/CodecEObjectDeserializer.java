@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.deser;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -997,9 +999,13 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             case VALUE_STRING:
                 return parser.getString();
             case VALUE_NUMBER_INT:
-                return parser.getLongValue();
+                // Kept exactly (issue #258): beyond long a getLongValue() fails the load
+                return parser.getNumberType() == JsonParser.NumberType.BIG_INTEGER
+                        ? parser.getBigIntegerValue() : parser.getLongValue();
             case VALUE_NUMBER_FLOAT:
-                return parser.getDoubleValue();
+                // Kept as written (issue #258): a double would cut a BigDecimal attribute
+                // short. Replayed as the same literal, every target reads it as from the stream.
+                return new FloatLiteral(parser.getText());
             case VALUE_TRUE:
                 return Boolean.TRUE;
             case VALUE_FALSE:
@@ -1186,6 +1192,10 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         }
     }
 
+    /** A floating-point number buffered by {@link #readCurrentValue}, as its JSON literal. */
+    private record FloatLiteral(String text) {
+    }
+
     /** Writes a value read by {@link #readCurrentValue} into a token buffer, so it can be parsed again. */
     private tools.jackson.databind.util.TokenBuffer bufferFor(Object value, DeserializationContext ctxt) {
         tools.jackson.databind.util.TokenBuffer buffer = ctxt.bufferForInputBuffering(ctxt.getParser());
@@ -1198,38 +1208,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         try {
             tools.jackson.databind.util.TokenBuffer buffer = ctxt.bufferForInputBuffering(ctxt.getParser());
 
-            if (value instanceof String s) {
-                buffer.writeString(s);
-            } else if (value instanceof Number n) {
-                if (n instanceof Integer i) {
-                    buffer.writeNumber(i);
-                } else if (n instanceof Long l) {
-                    buffer.writeNumber(l);
-                } else if (n instanceof Double d) {
-                    buffer.writeNumber(d);
-                } else {
-                    buffer.writeNumber(n.doubleValue());
-                }
-            } else if (value instanceof Boolean b) {
-                buffer.writeBoolean(b);
-            } else if (value instanceof Map<?, ?> map) {
-                buffer.writeStartObject();
-                for (var e : map.entrySet()) {
-                    buffer.writeName(String.valueOf(e.getKey()));
-                    writeValueToBuffer(buffer, e.getValue());
-                }
-                buffer.writeEndObject();
-            } else if (value instanceof List<?> list) {
-                buffer.writeStartArray();
-                for (Object item : list) {
-                    writeValueToBuffer(buffer, item);
-                }
-                buffer.writeEndArray();
-            } else if (value == null) {
-                buffer.writeNull();
-            } else {
-                buffer.writeString(value.toString());
-            }
+            writeValueToBuffer(buffer, value);
 
             try (tools.jackson.core.JsonParser bufferParser = buffer.asParser(ctxt)) {
                 bufferParser.nextToken();
@@ -1255,11 +1234,17 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     private void writeValueToBuffer(tools.jackson.databind.util.TokenBuffer buffer, Object value) {
         if (value instanceof String s) {
             buffer.writeString(s);
+        } else if (value instanceof FloatLiteral f) {
+            buffer.writeNumber(f.text());
         } else if (value instanceof Number n) {
             if (n instanceof Integer i) {
                 buffer.writeNumber(i);
             } else if (n instanceof Long l) {
                 buffer.writeNumber(l);
+            } else if (n instanceof BigInteger bi) {
+                buffer.writeNumber(bi);
+            } else if (n instanceof BigDecimal bd) {
+                buffer.writeNumber(bd);
             } else if (n instanceof Double d) {
                 buffer.writeNumber(d);
             } else {

@@ -145,7 +145,10 @@ buffered and the registered `CodecPrefixReader` is invoked in the replay with a 
 buffer; met after the EObject exists, it is read in place.
 
 **Supported deferred value types:**
-- Primitives: String, Number, Boolean, null
+- Primitives: String, Number, Boolean, null. Numbers are kept exactly (issue #258): an integer as
+  `Long`, or `BigInteger` beyond `long`; a floating-point number as its JSON literal. The replay
+  hands every target the value it would have read from the stream - a `BigDecimal` all its
+  digits, a `double` the same double, a string attribute the literal text.
 - Nested objects: Stored as `Map<String, Object>`, replayed as JSON objects
 - Arrays: Stored as `List<Object>`, replayed as JSON arrays
 - Deep nesting: Fully supported

@@ -695,10 +695,12 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
                         // native date-times (BSON DateTime) arrive as epoch millis
                         value = fromEpochMillis(parser.getLongValue(), componentType);
                     } else {
-                        value = convertObjectFromString(String.valueOf(parser.getLongValue()), componentType);
+                        // the literal, not getLongValue(): a BigInteger element may exceed long (issue #259)
+                        value = convertObjectFromString(parser.getText(), componentType);
                     }
                 } else if (token == JsonToken.VALUE_NUMBER_FLOAT) {
-                    value = convertObjectFromString(String.valueOf(parser.getDoubleValue()), componentType);
+                    // the literal, not a double: a BigDecimal element keeps its digits (issue #259)
+                    value = convertObjectFromString(parser.getText(), componentType);
                 } else if (token == JsonToken.VALUE_TRUE || token == JsonToken.VALUE_FALSE) {
                     value = convertObjectFromString(String.valueOf(parser.getBooleanValue()), componentType);
                 } else if (token != JsonToken.VALUE_NULL) {
