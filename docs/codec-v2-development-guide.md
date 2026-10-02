@@ -42,10 +42,18 @@ This document provides context for continuing codec development across sessions.
   the literal. **#260** `byte[]` of a `base64Binary`/`hexBinary` type (also via ExtendedMetaData base
   type) written in its lexical form, `EByteArray` stays a number array. Spec 01 §5.1, 11 §7.1/§7.3/
   §7.7 (new), 17 §6.3 updated.
-- **Open:** push + PR after common.models#58; then OSCAL in `workspace.library/required.bndrun`
-  and an OSGi test in `codec.osgi.tests` (#251); #249/#248 version list not yet edited (blocked
-  in-session; text prepared); YAML (#251), component-definition/mapping/SSP sub-issues (#253-#256)
-  are covered by the round trips but have no dedicated API tests yet.
+- **Model status:** common.models#58 applied in common.models PR #59 (commit 8836b1d, branch
+  `feature/compliance-model-draft`), byte-identical to the local result; its jar is installed in
+  `~/.m2`. Push this branch once #59 is merged and the snapshot published.
+- **Also done:** `OscalOSGiTest` in `codec.osgi.tests` (factory by content type, resource set by
+  content type), `codec.oscal` + `gov.nist.oscal.model` in `workspace.library/required.bndrun`
+  (`resolve.required` agrees). **YAML:** `OscalResourceImpl`/factory take any `CodecFormatProvider`;
+  `NistYamlTest` (18 NIST YAML examples vs. their JSON twins) and a YAML leg in `BsiRoundTripTest`
+  pass. Outside JSON a bare model object cannot be wrapped (rejected); no DS component for
+  `application/oscal+yaml` yet - it would make `codec.oscal` depend on `codec.yaml` (open decision).
+- **Open:** #249/#248 version list (text prepared, edit was blocked); dedicated API tests for
+  component-definition/mapping/SSP (#253-#256) - the oracle already checks every value of those
+  documents.
 
 **Session Summary (2026-10-01, issue-246-xmi-ids) — #246 REST reader dropped every xmi:id:**
 
