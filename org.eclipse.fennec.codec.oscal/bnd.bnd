@@ -1,0 +1,15 @@
+Bundle-Name: Fennec Codec OSCAL
+Bundle-Description: EMF / Codec extension to read and write NIST OSCAL JSON documents
+
+-library: enableEMF
+
+-buildpath: \
+	org.osgi.service.condition;version=latest,\
+	tools.jackson.core.jackson-core;version=latest,\
+	tools.jackson.core.jackson-databind;version=latest,\
+	com.fasterxml.jackson.core.jackson-annotations;version=latest,\
+	gov.nist.oscal.model;version=latest,\
+	org.eclipse.fennec.codec.api;version=snapshot,\
+	org.eclipse.fennec.codec;version=snapshot,\
+	org.eclipse.fennec.codec.metadata;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.metadata;version=latest

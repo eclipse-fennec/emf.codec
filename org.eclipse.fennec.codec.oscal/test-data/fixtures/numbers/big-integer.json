@@ -1,0 +1,2 @@
+{"component-definition":{"uuid":"74c8ba1e-5cd4-4ad1-bbfd-d888e2f6c728","metadata":{"title":"T","last-modified":"2026-01-01T00:00:00Z","version":"1","oscal-version":"1.2.3"},
+"components":[{"uuid":"74c8ba1e-5cd4-4ad1-bbfd-d888e2f6c729","type":"service","title":"S","description":"D","protocols":[{"name":"x","port-ranges":[{"start":443,"end":123456789012345678901,"transport":"TCP"}]}]}]}}

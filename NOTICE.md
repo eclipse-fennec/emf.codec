@@ -43,6 +43,12 @@ Notable runtime dependencies include:
 * OSGi Core and Compendium APIs — Apache License 2.0
 * BSON / CBOR / YAML format providers (Jackson dataformat) — Apache License 2.0
 
+Test data:
+
+* **NIST OSCAL examples** (`org.eclipse.fennec.codec.oscal/test-data/nist`) — public
+  domain (17 U.S.C. § 105) and CC0 1.0 worldwide; source: National Institute of
+  Standards and Technology, https://github.com/usnistgov/oscal-content
+
 ## Cryptography
 
 Content may contain encryption software. The country in which you are
