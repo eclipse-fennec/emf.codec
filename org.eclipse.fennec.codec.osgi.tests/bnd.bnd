@@ -30,3 +30,7 @@ Bundle-Version: 1.0.0.SNAPSHOT
 
 # Integration tests - do not publish this bundle to Maven Central; local install only (issue #67)
 -maven-release: local
+
+# The OSCAL model (fennec common models) is built for Java 21
+javac.source: 21
+javac.target: 21
