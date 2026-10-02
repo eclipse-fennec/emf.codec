@@ -4,10 +4,11 @@
 |---|---|---|---|
 | `fixtures/` | Small OSCAL documents written for the tests: members the real files do not use, markup edge cases, `$schema`, a single `mappings` object. `fixtures/numbers/` holds the documents of `OscalNumberAndBinaryTest`. | EPL-2.0 (this project) | yes |
 | `nist/` | The OSCAL examples of NIST, one or more per model (catalog, profile, component-definition, SSP, assessment plan and results, POA&M), OSCAL 1.1.2 to 1.2.2. | CC0 1.0 / public domain ([usnistgov/oscal-content](https://github.com/usnistgov/oscal-content/blob/main/LICENSE.md)) | yes |
+| `nist-yaml/` | The same NIST examples as OSCAL YAML, for `NistYamlTest`. | CC0 1.0 / public domain | yes |
 | `nist-large/` | NIST SP 800-53 rev5 catalog (10 MB), for the performance test. | CC0 1.0 / public domain | no |
 | `bsi/` | All OSCAL files of the BSI Stand-der-Technik-Bibliothek (Grundschutz++, WLAN, Lieferkettensicherheit, Mappings, component definitions). | CC BY-SA 4.0 | no |
 
-`nist/`, `nist-large/` and `bsi/` each have a `COMMIT` file with the commit of the source repository the files come from.
+`nist/`, `nist-yaml/`, `nist-large/` and `bsi/` each have a `COMMIT` file with the commit of the source repository the files come from.
 
 ## Getting the local data
 

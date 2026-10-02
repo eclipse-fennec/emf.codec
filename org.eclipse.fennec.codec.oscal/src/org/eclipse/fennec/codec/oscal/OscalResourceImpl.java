@@ -30,6 +30,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.ExtendedMetaData;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.CodecOptions;
+import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
@@ -48,9 +49,10 @@ import gov.nist.csrc.ns.oscal.OSCALPackage;
  * holds one {@code DocumentRoot}.
  * </p>
  * <p>
- * For saving, the content may also be a bare OSCAL model object such as a {@code Catalog}. It is
- * written inside its document member, so the output is an OSCAL document either way. Any other
- * object is rejected: without the member the output would not be OSCAL.
+ * For saving as JSON, the content may also be a bare OSCAL model object such as a {@code Catalog}.
+ * It is written inside its document member, so the output is an OSCAL document either way. Any
+ * other object is rejected: without the member the output would not be OSCAL. In another format
+ * (YAML) the content has to be the {@code DocumentRoot}.
  * </p>
  * <p>
  * Markup ({@code markup-line}, {@code markup-multiline}) is a Markdown string in OSCAL JSON and a
@@ -61,6 +63,9 @@ import gov.nist.csrc.ns.oscal.OSCALPackage;
  * @since 1.0
  */
 public class OscalResourceImpl extends CodecResource {
+
+	/** Whether the document is JSON; only then can a bare model object be wrapped while writing. */
+	private final boolean json;
 
 	/**
 	 * Creates a resource on a metadata service that knows the OSCAL model.
@@ -81,7 +86,23 @@ public class OscalResourceImpl extends CodecResource {
 	 * @param valueRegistry the value reader/writer registry, may be {@code null}
 	 */
 	public OscalResourceImpl(URI uri, MetadataService metadataService, CodecValueRegistry valueRegistry) {
-		super(uri, metadataService, createResolver(), valueRegistry, null);
+		this(uri, metadataService, valueRegistry, null);
+	}
+
+	/**
+	 * Creates a resource for OSCAL in another format than JSON, e.g. YAML through
+	 * {@code org.eclipse.fennec.codec.yaml.YamlFormatProvider}. OSCAL defines YAML as the same
+	 * document structure as JSON.
+	 *
+	 * @param uri the resource URI
+	 * @param metadataService the metadata service
+	 * @param valueRegistry the value reader/writer registry, may be {@code null}
+	 * @param formatProvider the format, {@code null} for JSON
+	 */
+	public OscalResourceImpl(URI uri, MetadataService metadataService, CodecValueRegistry valueRegistry,
+			CodecFormatProvider<?, ?> formatProvider) {
+		super(uri, metadataService, createResolver(), valueRegistry, null, formatProvider);
+		this.json = formatProvider == null;
 	}
 
 	private static ConfigurationResolver createResolver() {
@@ -143,6 +164,10 @@ public class OscalResourceImpl extends CodecResource {
 			return;
 		}
 		EObject root = getContents().get(0);
+		if (!json) {
+			throw new IOException("Cannot save " + root.eClass().getName() + " to " + getURI()
+					+ ": outside JSON the content must be a DocumentRoot that holds the OSCAL model");
+		}
 		EReference member = memberFor(root.eClass());
 		if (member == null) {
 			throw new IOException("Cannot save " + root.eClass().getName() + " as OSCAL document to " + getURI()

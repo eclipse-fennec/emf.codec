@@ -29,6 +29,7 @@ import java.util.Map;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.fennec.codec.yaml.YamlFormatProvider;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -131,6 +132,16 @@ class OscalResourceTest {
 		Resource reloaded = RoundTrip.load("bare.json", written);
 		DocumentRoot root = assertInstanceOf(DocumentRoot.class, reloaded.getContents().get(0));
 		assertEquals("Bare", root.getCatalog().getMetadata().getTitle());
+	}
+
+	/** Only JSON can wrap a bare model object; YAML needs the document root. */
+	@Test
+	void bareModelObjectIsRejectedInYaml() {
+		Resource resource = new OscalResourceImpl(URI.createURI("bare.yaml"), RoundTrip.metadataService(), null,
+				new YamlFormatProvider());
+		resource.getContents().add(OSCALFactory.eINSTANCE.createCatalog());
+		IOException e = assertThrows(IOException.class, () -> RoundTrip.save(resource));
+		assertTrue(e.getMessage().contains("outside JSON the content must be a DocumentRoot"), e.getMessage());
 	}
 
 	@Test

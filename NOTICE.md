@@ -45,7 +45,7 @@ Notable runtime dependencies include:
 
 Test data:
 
-* **NIST OSCAL examples** (`org.eclipse.fennec.codec.oscal/test-data/nist`) — public
+* **NIST OSCAL examples** (`org.eclipse.fennec.codec.oscal/test-data/nist`, `nist-yaml`) — public
   domain (17 U.S.C. § 105) and CC0 1.0 worldwide; source: National Institute of
   Standards and Technology, https://github.com/usnistgov/oscal-content
 

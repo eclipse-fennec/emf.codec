@@ -26,6 +26,7 @@ import java.util.Map;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 
@@ -89,7 +90,11 @@ record RoundTrip(JsonNode original, List<String> errors, List<String> warnings, 
 	}
 
 	static Resource load(String name, byte[] bytes) {
-		OscalResourceImpl resource = new OscalResourceImpl(URI.createFileURI(name), metadataService());
+		return load(name, bytes, null);
+	}
+
+	static Resource load(String name, byte[] bytes, CodecFormatProvider<?, ?> format) {
+		OscalResourceImpl resource = new OscalResourceImpl(URI.createFileURI(name), metadataService(), null, format);
 		try {
 			resource.load(new ByteArrayInputStream(bytes), Map.of());
 		} catch (IOException e) {
@@ -102,6 +107,20 @@ record RoundTrip(JsonNode original, List<String> errors, List<String> warnings, 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		resource.save(out, Map.of());
 		return out.toByteArray();
+	}
+
+	/** Writes a document root in the given format; the root goes back to its resource afterwards. */
+	static byte[] saveAs(DocumentRoot root, CodecFormatProvider<?, ?> format) throws IOException {
+		Resource home = root.eResource();
+		OscalResourceImpl resource = new OscalResourceImpl(URI.createURI("test://out"), metadataService(), null, format);
+		resource.getContents().add(root);
+		try {
+			return save(resource);
+		} finally {
+			if (home != null) {
+				home.getContents().add(root);
+			}
+		}
 	}
 
 	static List<String> messages(List<Resource.Diagnostic> diagnostics) {

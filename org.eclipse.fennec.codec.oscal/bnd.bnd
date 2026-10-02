@@ -13,3 +13,8 @@ Bundle-Description: EMF / Codec extension to read and write NIST OSCAL JSON docu
 	org.eclipse.fennec.codec;version=snapshot,\
 	org.eclipse.fennec.codec.metadata;version=snapshot,\
 	org.eclipse.fennec.emf.osgi.metadata;version=latest
+
+-testpath: \
+	org.eclipse.fennec.codec.yaml;version=snapshot,\
+	tools.jackson.dataformat.jackson-dataformat-yaml;version=latest,\
+	org.snakeyaml.engine;version=latest
