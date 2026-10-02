@@ -67,5 +67,8 @@ header:
     - 'gradlew.bat'
     - 'settings.gradle'
     - 'old/**'
+    # third-party test data (NIST OSCAL examples, CC0 / public domain, see NOTICE.md)
+    - 'org.eclipse.fennec.codec.oscal/test-data/nist/**'
+    - 'org.eclipse.fennec.codec.oscal/test-data/nist-yaml/**'
 
   comment: always
