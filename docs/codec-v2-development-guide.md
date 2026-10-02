@@ -49,8 +49,8 @@ This document provides context for continuing codec development across sessions.
   content type), `codec.oscal` + `gov.nist.oscal.model` in `workspace.library/required.bndrun`
   (`resolve.required` agrees). **YAML:** `OscalResourceImpl`/factory take any `CodecFormatProvider`;
   `NistYamlTest` (18 NIST YAML examples vs. their JSON twins) and a YAML leg in `BsiRoundTripTest`
-  pass. Outside JSON a bare model object cannot be wrapped (rejected); no DS component for
-  `application/oscal+yaml` yet - it would make `codec.oscal` depend on `codec.yaml` (open decision).
+  pass. Outside JSON a bare model object cannot be wrapped (rejected); deliberately no DS component
+  for `application/oscal+yaml` (decided 2026-10-02): `codec.oscal` stays free of `codec.yaml`.
 - **Open:** #249/#248 version list (text prepared, edit was blocked); dedicated API tests for
   component-definition/mapping/SSP (#253-#256) - the oracle already checks every value of those
   documents.
