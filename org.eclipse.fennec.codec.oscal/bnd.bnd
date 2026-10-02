@@ -18,3 +18,7 @@ Bundle-Description: EMF / Codec extension to read and write NIST OSCAL JSON docu
 	org.eclipse.fennec.codec.yaml;version=snapshot,\
 	tools.jackson.dataformat.jackson-dataformat-yaml;version=latest,\
 	org.snakeyaml.engine;version=latest
+
+# The OSCAL model (fennec common models) is built for Java 21
+javac.source: 21
+javac.target: 21
