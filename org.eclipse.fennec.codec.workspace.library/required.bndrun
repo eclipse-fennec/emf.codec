@@ -15,6 +15,7 @@
 	bnd.identity;id='org.eclipse.fennec.codec.yaml',\
 	bnd.identity;id='org.eclipse.fennec.openapi.model',\
 	bnd.identity;id='org.eclipse.fennec.codec.geojson',\
+	bnd.identity;id='org.eclipse.fennec.codec.oscal',\
 	bnd.identity;id='org.eclipse.fennec.codec.ods',\
 	bnd.identity;id='org.eclipse.fennec.codec.csv',\
 	bnd.identity;id='org.eclipse.fennec.codec.rlang',\
@@ -33,6 +34,8 @@
 	org.eclipse.fennec.codec.cbor;version=snapshot,\
 	org.eclipse.fennec.codec.examples;version=snapshot,\
 	org.eclipse.fennec.codec.geojson;version=snapshot,\
+	org.eclipse.fennec.codec.oscal;version=snapshot,\
+	gov.nist.oscal.model;version='[1.2.3,1.2.4)',\
 	org.eclipse.fennec.codec.jsonschema;version=snapshot,\
 	org.eclipse.fennec.codec.metadata;version=snapshot,\
 	org.eclipse.fennec.codec.openapi;version=snapshot,\

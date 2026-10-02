@@ -2,7 +2,8 @@
 
 -runrequires: \
 	bnd.identity;id='org.eclipse.fennec.codec.osgi.tests',\
-	bnd.identity;id='org.eclipse.fennec.codec.metadata'
+	bnd.identity;id='org.eclipse.fennec.codec.metadata',\
+	bnd.identity;id='org.eclipse.fennec.codec.oscal'
 
 -runbundles.test: \
 	org.eclipse.fennec.codec.osgi.tests;version=snapshot

@@ -1,0 +1,141 @@
+{
+  "$schema": "https://raw.githubusercontent.com/usnistgov/OSCAL/v1.2.3/json/schema/oscal_catalog_schema.json",
+  "catalog": {
+    "uuid": "6f1d2a4e-8c3b-4e5f-9a7b-1c2d3e4f5a6b",
+    "metadata": {
+      "title": "Fixture catalog with **markup** and `code`",
+      "published": "2026-03-01T08:00:00+02:00",
+      "last-modified": "2026-09-24T07:12:47.278531946Z",
+      "version": "1.0.0-rc.1",
+      "oscal-version": "1.2.3",
+      "revisions": [
+        {
+          "title": "Draft",
+          "published": "2026-01-15T12:00:00Z",
+          "last-modified": "2026-01-15T12:00:00.5Z",
+          "version": "0.9",
+          "oscal-version": "1.2.3",
+          "props": [{ "name": "status", "value": "draft" }],
+          "links": [{ "href": "#b7c8d9e0-1f2a-4b3c-8d4e-5f6a7b8c9d0e", "rel": "predecessor-version" }],
+          "remarks": "First draft."
+        }
+      ],
+      "document-ids": [{ "scheme": "http://www.doi.org/", "identifier": "10.1000/xyz123" }],
+      "props": [
+        { "name": "keywords", "value": "fixture, test", "class": "meta", "group": "g1", "remarks": "A remark on a property." },
+        { "name": "sec_level", "ns": "https://example.org/ns/levels", "value": "high", "uuid": "0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" }
+      ],
+      "links": [{ "href": "https://example.org/doc.pdf", "rel": "reference", "media-type": "application/pdf", "resource-fragment": "page=3", "text": "The *document*" }],
+      "roles": [{ "id": "creator", "title": "Document Creator", "short-name": "CR", "description": "Creates the document.", "props": [{ "name": "x", "value": "y" }] }],
+      "locations": [
+        {
+          "uuid": "1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+          "title": "Head office",
+          "address": { "type": "work", "addr-lines": ["Hauptstraße 1", "2. OG"], "city": "Jena", "state": "TH", "postal-code": "07743", "country": "DE" },
+          "email-addresses": ["office@example.org"],
+          "telephone-numbers": [{ "type": "office", "number": "+49 3641 0000" }, { "number": "+49 3641 0001" }],
+          "urls": ["https://example.org"],
+          "remarks": "Main location."
+        }
+      ],
+      "parties": [
+        {
+          "uuid": "2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f",
+          "type": "organization",
+          "name": "Example Org",
+          "short-name": "EO",
+          "external-ids": [{ "scheme": "http://orcid.org/", "id": "0000-0002-1825-0097" }],
+          "email-addresses": ["info@example.org"],
+          "location-uuids": ["1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e"]
+        },
+        {
+          "uuid": "3d4e5f6a-7b8c-4d9e-8f0a-1b2c3d4e5f6a",
+          "type": "person",
+          "name": "Erika Mustermann",
+          "member-of-organizations": ["2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f"],
+          "addresses": [{ "addr-lines": ["Musterweg 2"], "city": "Erfurt", "country": "DE" }],
+          "telephone-numbers": [{ "type": "mobile", "number": "+49 170 0000000" }]
+        }
+      ],
+      "responsible-parties": [{ "role-id": "creator", "party-uuids": ["2c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f", "3d4e5f6a-7b8c-4d9e-8f0a-1b2c3d4e5f6a"] }],
+      "remarks": "Line one.\n\nLine two with trailing spaces   \n- item ä\n- item ✓\n\n> quoted \"text\" and a back\\slash"
+    },
+    "params": [
+      { "id": "prm-top", "label": "Top level", "values": ["a", "b"] }
+    ],
+    "controls": [
+      {
+        "id": "ctl-1",
+        "class": "SP800-53",
+        "title": "Control **one**",
+        "params": [
+          {
+            "id": "ctl-1_prm_1",
+            "class": "organization",
+            "props": [{ "name": "label", "value": "P1" }],
+            "links": [{ "href": "#ctl-2", "rel": "related" }],
+            "label": "frequency",
+            "usage": "How often.",
+            "constraints": [{ "description": "At least yearly.", "tests": [{ "expression": "years <= 1", "remarks": "check" }] }],
+            "guidelines": [{ "prose": "Pick a *reasonable* value." }],
+            "remarks": "Parameter remark."
+          },
+          {
+            "id": "ctl-1_prm_2",
+            "select": { "how-many": "one-or-more", "choice": ["daily", "weekly", "{{ insert: param, prm-top }}"] }
+          }
+        ],
+        "props": [{ "name": "label", "value": "CTL-1" }, { "name": "sort-id", "value": "ctl-01" }],
+        "links": [{ "href": "#5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b", "rel": "reference" }],
+        "parts": [
+          {
+            "id": "ctl-1_smt",
+            "name": "statement",
+            "prose": "The organization reviews the policy {{ insert: param, ctl-1_prm_1 }}.",
+            "parts": [
+              { "id": "ctl-1_smt.a", "name": "item", "props": [{ "name": "label", "value": "a." }], "prose": "First item." },
+              { "id": "ctl-1_smt.b", "name": "item", "title": "Item B", "prose": "Second item\nwith two lines.", "links": [{ "href": "#ctl-2" }] }
+            ]
+          },
+          { "id": "ctl-1_gdn", "name": "guidance", "ns": "https://example.org/ns/parts", "class": "informative", "prose": "Guidance with a table:\n\n| a | b |\n|---|---|\n| 1 | 2 |" }
+        ],
+        "controls": [
+          { "id": "ctl-1.1", "title": "Enhancement", "parts": [{ "name": "statement", "prose": "Nested control." }] }
+        ]
+      },
+      { "id": "ctl-2", "title": "Control two" }
+    ],
+    "groups": [
+      {
+        "id": "grp-1",
+        "class": "family",
+        "title": "Group one",
+        "params": [{ "id": "grp-1_prm", "values": ["x"] }],
+        "props": [{ "name": "label", "value": "G1" }],
+        "parts": [{ "name": "overview", "prose": "Group overview." }],
+        "groups": [{ "id": "grp-1.1", "title": "Sub group", "controls": [{ "id": "ctl-3", "title": "Control three" }] }]
+      },
+      { "id": "grp-2", "title": "Group two", "links": [{ "href": "#grp-1" }], "controls": [{ "id": "ctl-4", "title": "Control four" }] }
+    ],
+    "back-matter": {
+      "resources": [
+        {
+          "uuid": "5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b",
+          "title": "Reference",
+          "description": "A described resource.",
+          "props": [{ "name": "type", "value": "policy" }],
+          "document-ids": [{ "scheme": "http://www.doi.org/", "identifier": "10.1000/abc" }],
+          "citation": { "text": "Mustermann, E. (2026). *Policy*.", "props": [{ "name": "year", "value": "2026" }], "links": [{ "href": "https://example.org/cite" }] },
+          "rlinks": [
+            {
+              "href": "https://example.org/policy.pdf",
+              "media-type": "application/pdf",
+              "hashes": [{ "algorithm": "SHA-256", "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" }]
+            }
+          ],
+          "remarks": "Resource remark."
+        }
+      ]
+    }
+  }
+}
