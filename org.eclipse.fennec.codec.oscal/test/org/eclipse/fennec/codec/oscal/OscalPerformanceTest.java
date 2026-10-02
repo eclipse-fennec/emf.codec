@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -34,9 +35,11 @@ import org.junit.jupiter.params.provider.MethodSource;
  * <p>
  * The files are local test data (see {@code test-data/README.md}); a missing one is skipped. The
  * limits are generous, so that a slow build machine does not fail the test; the numbers are
- * printed for comparison.
+ * printed for comparison. Tagged {@code perf}: it runs with {@code ./gradlew perfTest}, not in the
+ * normal build.
  * </p>
  */
+@Tag("perf")
 @DisplayName("OSCAL performance")
 class OscalPerformanceTest {
 
