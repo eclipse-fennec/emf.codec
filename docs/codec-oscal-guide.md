@@ -46,7 +46,7 @@ member. Any other content is rejected with an `IOException`.
 
 | OSCAL JSON | Model | Note |
 |---|---|---|
-| `markup-line`, `markup-multiline` (`title`, `remarks`, `prose`, `description`, …) | `String` | Markdown kept exactly, `{{ insert: param, … }}` included; no Markdown ↔ XHTML conversion |
+| `markup-line`, `markup-multiline` (`title`, `remarks`, `prose`, `description`, …) | `String` | Markdown kept exactly, parameter inserts (`insert: param`) included; no Markdown ↔ XHTML conversion |
 | `prose` of `parts` | `Part.getProse()` | |
 | date-time | `XMLGregorianCalendar` | all fraction digits kept; a zero offset is written as `Z` (`+00:00` reads the same instant) |
 | `decimal`, `integer`, `nonNegativeInteger`, … | `BigDecimal`, `BigInteger` | exact, written as JSON numbers |
