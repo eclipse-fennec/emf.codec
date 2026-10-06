@@ -47,6 +47,37 @@ class XMLURIHandlerTest {
 
 			assertEquals(uri, handler.deresolve(uri));
 		}
+
+		@Test
+		@DisplayName("a reference into the written document deresolves to its fragment (issue #266)")
+		void deresolveIntoWriteUriYieldsFragment() {
+			URI writeURI = URI.createURI("http://codec.temp/d9ae5c81-ecb1-453f-8fe5-3770593d4d53");
+			XMLURIHandler handler = new XMLURIHandler(URI.createURI("file:/storage/mapping.xmi"), writeURI);
+
+			assertEquals(URI.createURI("#//@timestamp"),
+					handler.deresolve(writeURI.appendFragment("//@timestamp")));
+		}
+
+		@Test
+		@DisplayName("a reference into another resource still deresolves against the original URI (issue #266)")
+		void deresolveOtherResourceAgainstResourceUri() {
+			XMLURIHandler handler = new XMLURIHandler(URI.createURI("file:/storage/mapping.xmi"),
+					URI.createURI("http://codec.temp/d9ae5c81-ecb1-453f-8fe5-3770593d4d53"));
+			XMLURIHandler withoutWriteURI = new XMLURIHandler(URI.createURI("file:/storage/mapping.xmi"));
+			URI other = URI.createURI("file:/storage/mapping.xmi/sub#//@x");
+
+			assertEquals(withoutWriteURI.deresolve(other), handler.deresolve(other));
+		}
+
+		@Test
+		@DisplayName("a reference into the original resource deresolves as before")
+		void deresolveIntoResourceUri() {
+			URI resourceURI = URI.createURI("file:/storage/mapping.xmi");
+			XMLURIHandler handler = new XMLURIHandler(resourceURI);
+
+			assertEquals(URI.createURI("#//@timestamp"),
+					handler.deresolve(resourceURI.appendFragment("//@timestamp")));
+		}
 	}
 
 	@Nested

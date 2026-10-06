@@ -28,13 +28,26 @@ public class XMLURIHandler implements XMLResource.URIHandler{
 
 	private static final Logger logger = Logger.getLogger("XMLURIHandler");
 	private final URI resourceURI;
+	private final URI writeURI;
 
 	public XMLURIHandler() {
 		this(null);
 	}
 
 	public XMLURIHandler(URI uri) {
+		this(uri, null);
+	}
+
+	/**
+	 * Creates a handler for writing a copy of a resource.
+	 *
+	 * @param uri the URI of the original resource, other resources are deresolved against it
+	 * @param writeURI the URI of the resource actually written, references into it are
+	 *        written relative to the document (issue #266); may be null
+	 */
+	public XMLURIHandler(URI uri, URI writeURI) {
 		resourceURI = uri;
+		this.writeURI = writeURI;
 	}
 
 	@Override
@@ -85,6 +98,11 @@ public class XMLURIHandler implements XMLResource.URIHandler{
 	public URI deresolve(URI uri) {
 		if("platform".equals(uri.scheme())){
 			return uri;
+		}
+		if(writeURI != null && uri.trimFragment().equals(writeURI)){
+			// a reference into the written copy is a reference within the served document,
+			// it must not leak the temporary URI of the copy (issue #266)
+			return URI.createURI("").appendFragment(uri.fragment());
 		}
 		if(resourceURI == null){
 			return uri;
