@@ -15,5 +15,12 @@ Bundle-Description: Jakarta REST (JAX-RS) integration for the Fennec EMF Codec
 	org.glassfish.hk2.api,\
 	org.glassfish.jersey.core.jersey-common
 
+# The JSON codec is exercised in the writer tests (issue #266)
+-testpath.rest: \
+	org.eclipse.fennec.codec.metadata;version=project,\
+	tools.jackson.core.jackson-core;version=latest,\
+	tools.jackson.core.jackson-databind;version=latest,\
+	com.fasterxml.jackson.core.jackson-annotations;version=latest
+
 #So inherited @Reference are put in the service description xml
 -dsannotations-options: inherit

@@ -120,7 +120,9 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 
 			HashMap<Object, Object> options = new HashMap<>();
 			options.put(XMLResource.OPTION_SCHEMA_LOCATION, Boolean.TRUE);
-			options.put(XMLResource.OPTION_URI_HANDLER, new XMLURIHandler(t.getURI()));
+			// References within the document target the copy, all others are deresolved
+			// against the original resource (issue #266).
+			options.put(XMLResource.OPTION_URI_HANDLER, new XMLURIHandler(t.getURI(), referenceResource.getURI()));
 
 			handleAnnotedOptions(annotations, options, resourceSet, true);
 			// Client-supplied (whitelisted) options win over endpoint annotations.
