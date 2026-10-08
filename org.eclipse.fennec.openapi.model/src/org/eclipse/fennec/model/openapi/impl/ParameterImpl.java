@@ -51,7 +51,7 @@ import org.eclipse.fennec.model.openapi.Schema;
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.ParameterImpl#isDeprecated <em>Deprecated</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.ParameterImpl#isAllowEmptyValue <em>Allow Empty Value</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.ParameterImpl#getStyle <em>Style</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.openapi.impl.ParameterImpl#isExplode <em>Explode</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.openapi.impl.ParameterImpl#getExplode <em>Explode</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.ParameterImpl#isAllowReserved <em>Allow Reserved</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.ParameterImpl#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.ParameterImpl#getExamples <em>Examples</em>}</li>
@@ -109,7 +109,7 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 	 * @generated
 	 * @ordered
 	 */
-	protected static final ParameterLocation IN_EDEFAULT = ParameterLocation.QUERY;
+	protected static final ParameterLocation IN_EDEFAULT = ParameterLocation.NULL;
 
 	/**
 	 * The cached value of the '{@link #getIn() <em>In</em>}' attribute.
@@ -209,7 +209,7 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 	 * @generated
 	 * @ordered
 	 */
-	protected static final ParameterStyle STYLE_EDEFAULT = ParameterStyle.MATRIX;
+	protected static final ParameterStyle STYLE_EDEFAULT = ParameterStyle.NULL;
 
 	/**
 	 * The cached value of the '{@link #getStyle() <em>Style</em>}' attribute.
@@ -222,24 +222,24 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 	protected ParameterStyle style = STYLE_EDEFAULT;
 
 	/**
-	 * The default value of the '{@link #isExplode() <em>Explode</em>}' attribute.
+	 * The default value of the '{@link #getExplode() <em>Explode</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isExplode()
+	 * @see #getExplode()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean EXPLODE_EDEFAULT = false;
+	protected static final Boolean EXPLODE_EDEFAULT = null;
 
 	/**
-	 * The cached value of the '{@link #isExplode() <em>Explode</em>}' attribute.
+	 * The cached value of the '{@link #getExplode() <em>Explode</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isExplode()
+	 * @see #getExplode()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean explode = EXPLODE_EDEFAULT;
+	protected Boolean explode = EXPLODE_EDEFAULT;
 
 	/**
 	 * The default value of the '{@link #isAllowReserved() <em>Allow Reserved</em>}' attribute.
@@ -500,7 +500,7 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 	 * @generated
 	 */
 	@Override
-	public boolean isExplode() {
+	public Boolean getExplode() {
 		return explode;
 	}
 
@@ -510,8 +510,8 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 	 * @generated
 	 */
 	@Override
-	public void setExplode(boolean newExplode) {
-		boolean oldExplode = explode;
+	public void setExplode(Boolean newExplode) {
+		Boolean oldExplode = explode;
 		explode = newExplode;
 		if (eNotificationRequired())
 			eNotify(new ENotificationImpl(this, Notification.SET, OpenApiPackage.PARAMETER__EXPLODE, oldExplode, explode));
@@ -654,7 +654,7 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 			case OpenApiPackage.PARAMETER__STYLE:
 				return getStyle();
 			case OpenApiPackage.PARAMETER__EXPLODE:
-				return isExplode();
+				return getExplode();
 			case OpenApiPackage.PARAMETER__ALLOW_RESERVED:
 				return isAllowReserved();
 			case OpenApiPackage.PARAMETER__SCHEMA:
@@ -796,7 +796,7 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 			case OpenApiPackage.PARAMETER__STYLE:
 				return style != STYLE_EDEFAULT;
 			case OpenApiPackage.PARAMETER__EXPLODE:
-				return explode != EXPLODE_EDEFAULT;
+				return EXPLODE_EDEFAULT == null ? explode != null : !EXPLODE_EDEFAULT.equals(explode);
 			case OpenApiPackage.PARAMETER__ALLOW_RESERVED:
 				return allowReserved != ALLOW_RESERVED_EDEFAULT;
 			case OpenApiPackage.PARAMETER__SCHEMA:

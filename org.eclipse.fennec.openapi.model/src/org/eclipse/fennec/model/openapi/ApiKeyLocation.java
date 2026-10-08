@@ -32,6 +32,16 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public enum ApiKeyLocation implements Enumerator {
 	/**
+	 * The '<em><b>Null</b></em>' literal object.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #NULL_VALUE
+	 * @generated
+	 * @ordered
+	 */
+	NULL(0, "null", "null"),
+
+	/**
 	 * The '<em><b>Query</b></em>' literal object.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -39,7 +49,7 @@ public enum ApiKeyLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	QUERY(0, "query", "query"),
+	QUERY(1, "query", "query"),
 
 	/**
 	 * The '<em><b>Header</b></em>' literal object.
@@ -49,7 +59,7 @@ public enum ApiKeyLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	HEADER(1, "header", "header"),
+	HEADER(2, "header", "header"),
 
 	/**
 	 * The '<em><b>Cookie</b></em>' literal object.
@@ -59,7 +69,18 @@ public enum ApiKeyLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	COOKIE(2, "cookie", "cookie");
+	COOKIE(3, "cookie", "cookie");
+
+	/**
+	 * The '<em><b>Null</b></em>' literal value.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #NULL
+	 * @model name="null"
+	 * @generated
+	 * @ordered
+	 */
+	public static final int NULL_VALUE = 0;
 
 	/**
 	 * The '<em><b>Query</b></em>' literal value.
@@ -70,7 +91,7 @@ public enum ApiKeyLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int QUERY_VALUE = 0;
+	public static final int QUERY_VALUE = 1;
 
 	/**
 	 * The '<em><b>Header</b></em>' literal value.
@@ -81,7 +102,7 @@ public enum ApiKeyLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int HEADER_VALUE = 1;
+	public static final int HEADER_VALUE = 2;
 
 	/**
 	 * The '<em><b>Cookie</b></em>' literal value.
@@ -92,7 +113,7 @@ public enum ApiKeyLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int COOKIE_VALUE = 2;
+	public static final int COOKIE_VALUE = 3;
 
 	/**
 	 * An array of all the '<em><b>Api Key Location</b></em>' enumerators.
@@ -102,6 +123,7 @@ public enum ApiKeyLocation implements Enumerator {
 	 */
 	private static final ApiKeyLocation[] VALUES_ARRAY =
 		new ApiKeyLocation[] {
+			NULL,
 			QUERY,
 			HEADER,
 			COOKIE,
@@ -161,6 +183,7 @@ public enum ApiKeyLocation implements Enumerator {
 	 */
 	public static ApiKeyLocation get(int value) {
 		switch (value) {
+			case NULL_VALUE: return NULL;
 			case QUERY_VALUE: return QUERY;
 			case HEADER_VALUE: return HEADER;
 			case COOKIE_VALUE: return COOKIE;

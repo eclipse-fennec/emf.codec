@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.model.openapi.Parameter#isDeprecated <em>Deprecated</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Parameter#isAllowEmptyValue <em>Allow Empty Value</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Parameter#getStyle <em>Style</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.openapi.Parameter#isExplode <em>Explode</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.openapi.Parameter#getExplode <em>Explode</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Parameter#isAllowReserved <em>Allow Reserved</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Parameter#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Parameter#getExamples <em>Examples</em>}</li>
@@ -235,22 +235,22 @@ public interface Parameter extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Explode</em>' attribute.
-	 * @see #setExplode(boolean)
+	 * @see #setExplode(Boolean)
 	 * @see org.eclipse.fennec.model.openapi.OpenApiPackage#getParameter_Explode()
 	 * @model
 	 * @generated
 	 */
-	boolean isExplode();
+	Boolean getExplode();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.openapi.Parameter#isExplode <em>Explode</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.openapi.Parameter#getExplode <em>Explode</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Explode</em>' attribute.
-	 * @see #isExplode()
+	 * @see #getExplode()
 	 * @generated
 	 */
-	void setExplode(boolean value);
+	void setExplode(Boolean value);
 
 	/**
 	 * Returns the value of the '<em><b>Allow Reserved</b></em>' attribute.

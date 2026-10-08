@@ -213,7 +213,7 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="deprecated" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="allowEmptyValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="style" eType="#//ParameterStyle"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="explode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="explode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="allowReserved" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="#//Schema"
         containment="true"/>
@@ -233,19 +233,21 @@
     <eLiterals name="TRACE" value="7"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="ParameterLocation">
-    <eLiterals name="query"/>
-    <eLiterals name="header" value="1"/>
-    <eLiterals name="path" value="2"/>
-    <eLiterals name="cookie" value="3"/>
+    <eLiterals name="null"/>
+    <eLiterals name="query" value="1"/>
+    <eLiterals name="header" value="2"/>
+    <eLiterals name="path" value="3"/>
+    <eLiterals name="cookie" value="4"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="ParameterStyle">
-    <eLiterals name="matrix"/>
-    <eLiterals name="label" value="1"/>
-    <eLiterals name="form" value="2"/>
-    <eLiterals name="simple" value="3"/>
-    <eLiterals name="spaceDelimited" value="4"/>
-    <eLiterals name="pipeDelimited" value="5"/>
-    <eLiterals name="deepObject" value="6"/>
+    <eLiterals name="null"/>
+    <eLiterals name="matrix" value="1"/>
+    <eLiterals name="label" value="2"/>
+    <eLiterals name="form" value="3"/>
+    <eLiterals name="simple" value="4"/>
+    <eLiterals name="spaceDelimited" value="5"/>
+    <eLiterals name="pipeDelimited" value="6"/>
+    <eLiterals name="deepObject" value="7"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="RequestBody">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="ref" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
@@ -271,7 +273,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="headers" upperBound="-1"
         eType="#//HeaderEntry" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="style" eType="#//ParameterStyle"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="explode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="explode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="allowReserved" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Response">
@@ -303,7 +305,7 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="deprecated" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="allowEmptyValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="style" eType="#//ParameterStyle"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="explode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="explode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="allowReserved" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="#//Schema"
         containment="true"/>
@@ -510,15 +512,17 @@
     </eStructuralFeatures>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="SecuritySchemeType">
-    <eLiterals name="apiKey"/>
-    <eLiterals name="http" value="1"/>
-    <eLiterals name="oauth2" value="2"/>
-    <eLiterals name="openIdConnect" value="3"/>
+    <eLiterals name="null"/>
+    <eLiterals name="apiKey" value="1"/>
+    <eLiterals name="http" value="2"/>
+    <eLiterals name="oauth2" value="3"/>
+    <eLiterals name="openIdConnect" value="4"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="ApiKeyLocation">
-    <eLiterals name="query"/>
-    <eLiterals name="header" value="1"/>
-    <eLiterals name="cookie" value="2"/>
+    <eLiterals name="null"/>
+    <eLiterals name="query" value="1"/>
+    <eLiterals name="header" value="2"/>
+    <eLiterals name="cookie" value="3"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="OAuthFlows">
     <eStructuralFeatures xsi:type="ecore:EReference" name="implicit" eType="#//OAuthFlow"
