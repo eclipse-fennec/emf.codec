@@ -6,6 +6,7 @@
 -generate:\
 	model/tabular.genmodel;\
 		generate=fennecEMF;\
+		lineEndings=lf;\
 		genmodel=model/tabular.genmodel;\
 		output=src
 # Add this attribute to find some logging information

@@ -6,6 +6,7 @@
 -generate:\
 	model/openapi_v3.genmodel;\
 		generate=fennecEMF;\
+		lineEndings=lf;\
 		genmodel=model/openapi_v3.genmodel;\
 		output=src
 # Add this attribute to find some logging information
