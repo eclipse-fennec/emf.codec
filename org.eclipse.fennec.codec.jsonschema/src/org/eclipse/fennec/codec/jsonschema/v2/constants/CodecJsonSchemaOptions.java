@@ -138,6 +138,22 @@ public interface CodecJsonSchemaOptions {
 	public static final String OPTION_SUPPRESS_VENDOR_EXTENSIONS = "codec.jsonschema.suppressVendorExtensions";
 
 	/**
+	 * Option key to express nullability with the {@code nullable: true} keyword of the OpenAPI 3.0
+	 * Schema Object instead of a {@code "null"} entry in a {@code type} array (issue #270).
+	 * <p>
+	 * In this mode {@code type} is always a single string, as OpenAPI 3.0 requires: an optional
+	 * attribute becomes {@code {"type": "string", "nullable": true}}, and a type list from a
+	 * {@code dataType} annotation becomes {@code anyOf} with one entry per type when it names
+	 * more than one.
+	 * </p>
+	 * <p>
+	 * Default: {@code false} (JSON Schema type arrays, right for plain JSON Schema and OpenAPI
+	 * 3.1). The OpenAPI codec sets it for documents of OpenAPI 3.0 unless the caller has.
+	 * </p>
+	 */
+	public static final String OPTION_NULLABLE_KEYWORD = "codec.jsonschema.nullableKeyword";
+
+	/**
 	 * When set to {@code true}, references that would normally use {@code $ref}
 	 * are inlined: the full object definition is written directly at the reference
 	 * site instead of pointing to a shared definition in {@code $defs}.

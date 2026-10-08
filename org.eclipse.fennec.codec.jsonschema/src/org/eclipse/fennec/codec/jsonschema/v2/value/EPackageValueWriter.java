@@ -134,6 +134,21 @@ public class EPackageValueWriter implements ReferenceValueWriter<EPackage> {
 	 */
 	@Override
 	public void write(EPackage value, EReference reference, CodecWriterContext ctx) throws IOException {
+		Map<String, Object> options = ctx.getConfig() != null
+				? ctx.getConfig().getCustomProperties() : Collections.emptyMap();
+		write(value, ctx, options);
+	}
+
+	/**
+	 * Writes an EPackage as embedded JSON Schema with the given converter options, instead of
+	 * the custom properties of the context. Lets a wrapping writer add options that follow from
+	 * the document it writes into, e.g. the OpenAPI version (issue #270).
+	 * @param value the EPackage to convert and write
+	 * @param ctx the writer context providing generator and diagnostics
+	 * @param options the converter options ({@code CodecJsonSchemaOptions} keys)
+	 * @throws IOException if an I/O error occurs
+	 */
+	public void write(EPackage value, CodecWriterContext ctx, Map<String, Object> options) throws IOException {
 		if (value == null) {
 			ctx.getGenerator().writeNull();
 			return;
@@ -141,12 +156,7 @@ public class EPackageValueWriter implements ReferenceValueWriter<EPackage> {
 
 		// Convert EPackage to JSON Schema
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		if(ctx.getConfig() != null) {
-			converter.convert(value, baos, schemaFeature, false, ctx.getConfig().getCustomProperties());
-		}
-		else {
-			converter.convert(value, baos, schemaFeature, false, Collections.emptyMap());
-		}
+		converter.convert(value, baos, schemaFeature, false, options);
 
 		String jsonSchema = baos.toString(StandardCharsets.UTF_8);
 

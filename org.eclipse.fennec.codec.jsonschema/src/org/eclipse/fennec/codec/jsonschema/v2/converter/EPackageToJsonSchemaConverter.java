@@ -1609,11 +1609,42 @@ public class EPackageToJsonSchemaConverter {
 	}
 
 	private void writeTypeArray(String dataTypeStr, JsonGenerator gen) throws IOException {
-		gen.writeArrayPropertyStart("type");
+		List<String> types = new ArrayList<>();
 		for (String dt : dataTypeStr.split(",")) {
-			gen.writeString(dt.trim());
+			types.add(dt.trim());
+		}
+		if (isNullableKeyword()) {
+			writeOpenApi30Types(types, gen);
+			return;
+		}
+		gen.writeArrayPropertyStart("type");
+		for (String type : types) {
+			gen.writeString(type);
 		}
 		gen.writeEndArray();
+	}
+
+	/**
+	 * Writes a type list the way the OpenAPI 3.0 Schema Object allows it (issue #270): no
+	 * {@code null} type but {@code nullable: true}, a single {@code type} string, and
+	 * {@code anyOf} for more than one type.
+	 */
+	private void writeOpenApi30Types(List<String> types, JsonGenerator gen) throws IOException {
+		boolean nullable = types.remove("null");
+		if (types.size() == 1) {
+			gen.writeStringProperty("type", types.get(0));
+		} else if (types.size() > 1) {
+			gen.writeArrayPropertyStart("anyOf");
+			for (String type : types) {
+				gen.writeStartObject();
+				gen.writeStringProperty("type", type);
+				gen.writeEndObject();
+			}
+			gen.writeEndArray();
+		}
+		if (nullable) {
+			gen.writeBooleanProperty("nullable", true);
+		}
 	}
 
 	private void writeEEnum(EEnum eEnum, JsonGenerator gen) throws IOException {
@@ -1945,6 +1976,10 @@ public class EPackageToJsonSchemaConverter {
 
 	private boolean isInlineRefs() {
 		return Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_INLINE_REFS));
+	}
+
+	private boolean isNullableKeyword() {
+		return Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_NULLABLE_KEYWORD));
 	}
 
 	private String abstractRefKeyword() {
