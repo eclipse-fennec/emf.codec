@@ -12,6 +12,9 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.openapi;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
@@ -24,6 +27,7 @@ import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.codec.value.CodecValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.model.openapi.OpenApiPackage;
@@ -45,6 +49,15 @@ import org.eclipse.fennec.model.openapi.OpenApiPackage;
  * @since 1.0
  */
 public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
+
+	/** The IANA media type for OpenAPI documents in JSON (issue #268). */
+	public static final String CONTENT_TYPE_OPENAPI_JSON = "application/vnd.oai.openapi+json";
+
+	/** The configurator name the bundle announces as {@code emf.configurator} capability. */
+	public static final String CONFIGURATOR_NAME = "FennecCodecOpenApi";
+
+	/** The file extension the factory is registered for. */
+	public static final String FILE_EXTENSION = "openapi";
 
 	private final MetadataService metadataService;
 	private final CodecValueRegistry valueRegistry;
@@ -130,5 +143,19 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 	@Override
 	public Resource createResource(URI uri) {
 		return new OpenApiResourceImpl(uri, metadataService, valueRegistry);
+	}
+
+	/**
+	 * Returns OSGi service properties for this resource factory.
+	 *
+	 * @return map of service properties
+	 */
+	public Map<String, Object> getServiceProperties() {
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, CONFIGURATOR_NAME);
+		properties.put(EMFNamespaces.EMF_MODEL_FILE_EXT, FILE_EXTENSION);
+		properties.put(EMFNamespaces.EMF_MODEL_VERSION, "1.0");
+		properties.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE, CONTENT_TYPE_OPENAPI_JSON);
+		return properties;
 	}
 }

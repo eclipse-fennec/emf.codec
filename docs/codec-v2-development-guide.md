@@ -1318,6 +1318,8 @@ Added the OSGi resolver wiring pattern used by gecko (`emf.configurator` namespa
 | `org.eclipse.fennec.codec.rlang` | `@RequireCodecRLang` | `FennecCodecRLang` |
 | `org.eclipse.fennec.codec.jsonschema` | `@RequireCodecJsonSchema` (in `v2.annotation`) | `FennecCodecJsonSchema` |
 | `org.eclipse.fennec.codec.geojson` | `@RequireCodecGeoJson` | `FennecCodecGeoJson` (added 2026-09-03, #201) |
+| `org.eclipse.fennec.codec.oscal` | `@RequireCodecOscal` | `FennecCodecOscal` (#251) |
+| `org.eclipse.fennec.codec.openapi` | `@RequireCodecOpenApi` | `FennecCodecOpenApi` (added 2026-10-08, #268) |
 
 *Note:* The `codec.rest` bundle uses its own `fennec.codec.rest` namespace (capability `messagebody`) rather than `emf.configurator`, because `@RequireCodecMessageBodyReaderWriter` requires the JAX-RS message body reader/writer component, not a resource factory.
 

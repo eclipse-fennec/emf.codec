@@ -60,7 +60,9 @@ public class GeoJsonResourceFactoryComponent extends GeoJsonResourceFactoryImpl 
 reader/writer resolves the factory for a request exclusively through
 `getContentTypeToFactoryMap()`, so a factory without `EMF_MODEL_CONTENT_TYPE` is invisible to
 `@Produces`/`@Consumes` (issue #168: GeoJSON could not be served as `application/geo+json`).
-Several types are several property values, as in CSV and GeoJSON.
+Several types are several property values, as in CSV and GeoJSON. The OpenAPI factory registers
+`application/vnd.oai.openapi+json` (issue #268); the YAML type `application/vnd.oai.openapi` is
+left out, because the OpenAPI codec is neither built nor tested for YAML output.
 
 **Limitation:** These are tightly coupled to a specific model and do not support custom value registries, format providers, or configuration beyond defaults.
 

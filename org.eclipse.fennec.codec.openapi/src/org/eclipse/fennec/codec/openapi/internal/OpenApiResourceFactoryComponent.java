@@ -17,6 +17,7 @@ import org.eclipse.fennec.codec.openapi.OpenApiResourceFactoryImpl;
 import org.eclipse.fennec.codec.openapi.value.OpenApiSchemasValueWriter;
 import org.eclipse.fennec.codec.openapi.value.OperationValueReader;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -26,7 +27,9 @@ import org.osgi.service.component.annotations.ServiceScope;
 /**
  * Resource factory for OpenAPI documents.
  * <p>
- * Registered as OSGi DS component for file extensions: json, yaml, openapi
+ * Registered as OSGi DS component for the file extension {@code openapi} and the content type
+ * {@code application/vnd.oai.openapi+json}. The REST message body handlers select a factory by
+ * content type only, so the content type is what lets them serve an OpenAPI document (issue #268).
  * </p>
  *
  * @author Data In Motion
@@ -38,7 +41,10 @@ import org.osgi.service.component.annotations.ServiceScope;
 		scope = ServiceScope.SINGLETON,
 		property = {
 				"emf.resource.name=openapi",
-				"emf.model.fileExtension=openapi"
+				EMFNamespaces.EMF_CONFIGURATOR_NAME + "=" + OpenApiResourceFactoryImpl.CONFIGURATOR_NAME,
+				EMFNamespaces.EMF_MODEL_FILE_EXT + "=" + OpenApiResourceFactoryImpl.FILE_EXTENSION,
+				EMFNamespaces.EMF_MODEL_VERSION + "=" + "1.0",
+				EMFNamespaces.EMF_MODEL_CONTENT_TYPE + "=" + OpenApiResourceFactoryImpl.CONTENT_TYPE_OPENAPI_JSON
 		}
 )
 public class OpenApiResourceFactoryComponent extends OpenApiResourceFactoryImpl {
