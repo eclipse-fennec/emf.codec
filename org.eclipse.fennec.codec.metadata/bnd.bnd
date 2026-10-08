@@ -10,6 +10,7 @@ src=${^src},src-gen
 -generate:\
 	model/codec.genmodel;\
 		generate=fennecEMF;\
+		lineEndings=lf;\
 		genmodel=model/codec.genmodel;\
 		output=src-gen
 # Add this attribute to find some logging information
