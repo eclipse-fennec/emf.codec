@@ -37,7 +37,7 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.model.openapi.Header#isDeprecated <em>Deprecated</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Header#isAllowEmptyValue <em>Allow Empty Value</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Header#getStyle <em>Style</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.openapi.Header#isExplode <em>Explode</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.openapi.Header#getExplode <em>Explode</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Header#isAllowReserved <em>Allow Reserved</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Header#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Header#getExamples <em>Examples</em>}</li>
@@ -190,22 +190,22 @@ public interface Header extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Explode</em>' attribute.
-	 * @see #setExplode(boolean)
+	 * @see #setExplode(Boolean)
 	 * @see org.eclipse.fennec.model.openapi.OpenApiPackage#getHeader_Explode()
 	 * @model
 	 * @generated
 	 */
-	boolean isExplode();
+	Boolean getExplode();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.openapi.Header#isExplode <em>Explode</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.openapi.Header#getExplode <em>Explode</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Explode</em>' attribute.
-	 * @see #isExplode()
+	 * @see #getExplode()
 	 * @generated
 	 */
-	void setExplode(boolean value);
+	void setExplode(Boolean value);
 
 	/**
 	 * Returns the value of the '<em><b>Allow Reserved</b></em>' attribute.

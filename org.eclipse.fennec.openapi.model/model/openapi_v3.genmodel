@@ -19,12 +19,14 @@
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//HttpMethod/TRACE"/>
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="openapi_v3.ecore#//ParameterLocation">
+      <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ParameterLocation/null"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ParameterLocation/query"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ParameterLocation/header"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ParameterLocation/path"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ParameterLocation/cookie"/>
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="openapi_v3.ecore#//ParameterStyle">
+      <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ParameterStyle/null"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ParameterStyle/matrix"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ParameterStyle/label"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ParameterStyle/form"/>
@@ -34,12 +36,14 @@
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ParameterStyle/deepObject"/>
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="openapi_v3.ecore#//SecuritySchemeType">
+      <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//SecuritySchemeType/null"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//SecuritySchemeType/apiKey"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//SecuritySchemeType/http"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//SecuritySchemeType/oauth2"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//SecuritySchemeType/openIdConnect"/>
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="openapi_v3.ecore#//ApiKeyLocation">
+      <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ApiKeyLocation/null"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ApiKeyLocation/query"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ApiKeyLocation/header"/>
       <genEnumLiterals ecoreEnumLiteral="openapi_v3.ecore#//ApiKeyLocation/cookie"/>

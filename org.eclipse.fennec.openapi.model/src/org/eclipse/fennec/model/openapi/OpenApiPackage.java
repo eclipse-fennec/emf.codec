@@ -45,7 +45,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = OpenApiPackage.eNS_URI, fingerprint = "fp1:082e2ff42cba2a65996f72cc63e1f2b892365789ce5bc7fc9fa3971213215713", genModel = "/model/openapi_v3.genmodel", genModelSourceLocations = {"model/openapi_v3.genmodel","org.eclipse.fennec.openapi.model/model/openapi_v3.genmodel"}, ecore = "/model/openapi_v3.ecore", ecoreSourceLocations = "/model/openapi_v3.ecore")
+@EPackage(uri = OpenApiPackage.eNS_URI, fingerprint = "fp1:f360d4419b1062505d836328a77f8e47bee2f0fff92266142eae8783eaa88344", genModel = "/model/openapi_v3.genmodel", genModelSourceLocations = {"model/openapi_v3.genmodel","org.eclipse.fennec.openapi.model/model/openapi_v3.genmodel"}, ecore = "/model/openapi_v3.ecore", ecoreSourceLocations = "/model/openapi_v3.ecore")
 public interface OpenApiPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.
@@ -4030,11 +4030,11 @@ public interface OpenApiPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getParameter_Style();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.openapi.Parameter#isExplode <em>Explode</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.openapi.Parameter#getExplode <em>Explode</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Explode</em>'.
-	 * @see org.eclipse.fennec.model.openapi.Parameter#isExplode()
+	 * @see org.eclipse.fennec.model.openapi.Parameter#getExplode()
 	 * @see #getParameter()
 	 * @generated
 	 */
@@ -4225,11 +4225,11 @@ public interface OpenApiPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getEncoding_Style();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.openapi.Encoding#isExplode <em>Explode</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.openapi.Encoding#getExplode <em>Explode</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Explode</em>'.
-	 * @see org.eclipse.fennec.model.openapi.Encoding#isExplode()
+	 * @see org.eclipse.fennec.model.openapi.Encoding#getExplode()
 	 * @see #getEncoding()
 	 * @generated
 	 */
@@ -4388,11 +4388,11 @@ public interface OpenApiPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getHeader_Style();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.openapi.Header#isExplode <em>Explode</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.openapi.Header#getExplode <em>Explode</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Explode</em>'.
-	 * @see org.eclipse.fennec.model.openapi.Header#isExplode()
+	 * @see org.eclipse.fennec.model.openapi.Header#getExplode()
 	 * @see #getHeader()
 	 * @generated
 	 */

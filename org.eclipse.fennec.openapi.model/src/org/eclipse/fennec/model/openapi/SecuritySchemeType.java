@@ -32,6 +32,16 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public enum SecuritySchemeType implements Enumerator {
 	/**
+	 * The '<em><b>Null</b></em>' literal object.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #NULL_VALUE
+	 * @generated
+	 * @ordered
+	 */
+	NULL(0, "null", "null"),
+
+	/**
 	 * The '<em><b>Api Key</b></em>' literal object.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -39,7 +49,7 @@ public enum SecuritySchemeType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	API_KEY(0, "apiKey", "apiKey"),
+	API_KEY(1, "apiKey", "apiKey"),
 
 	/**
 	 * The '<em><b>Http</b></em>' literal object.
@@ -49,7 +59,7 @@ public enum SecuritySchemeType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	HTTP(1, "http", "http"),
+	HTTP(2, "http", "http"),
 
 	/**
 	 * The '<em><b>Oauth2</b></em>' literal object.
@@ -59,7 +69,7 @@ public enum SecuritySchemeType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	OAUTH2(2, "oauth2", "oauth2"),
+	OAUTH2(3, "oauth2", "oauth2"),
 
 	/**
 	 * The '<em><b>Open Id Connect</b></em>' literal object.
@@ -69,7 +79,18 @@ public enum SecuritySchemeType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	OPEN_ID_CONNECT(3, "openIdConnect", "openIdConnect");
+	OPEN_ID_CONNECT(4, "openIdConnect", "openIdConnect");
+
+	/**
+	 * The '<em><b>Null</b></em>' literal value.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #NULL
+	 * @model name="null"
+	 * @generated
+	 * @ordered
+	 */
+	public static final int NULL_VALUE = 0;
 
 	/**
 	 * The '<em><b>Api Key</b></em>' literal value.
@@ -80,7 +101,7 @@ public enum SecuritySchemeType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int API_KEY_VALUE = 0;
+	public static final int API_KEY_VALUE = 1;
 
 	/**
 	 * The '<em><b>Http</b></em>' literal value.
@@ -91,7 +112,7 @@ public enum SecuritySchemeType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int HTTP_VALUE = 1;
+	public static final int HTTP_VALUE = 2;
 
 	/**
 	 * The '<em><b>Oauth2</b></em>' literal value.
@@ -102,7 +123,7 @@ public enum SecuritySchemeType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int OAUTH2_VALUE = 2;
+	public static final int OAUTH2_VALUE = 3;
 
 	/**
 	 * The '<em><b>Open Id Connect</b></em>' literal value.
@@ -113,7 +134,7 @@ public enum SecuritySchemeType implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int OPEN_ID_CONNECT_VALUE = 3;
+	public static final int OPEN_ID_CONNECT_VALUE = 4;
 
 	/**
 	 * An array of all the '<em><b>Security Scheme Type</b></em>' enumerators.
@@ -123,6 +144,7 @@ public enum SecuritySchemeType implements Enumerator {
 	 */
 	private static final SecuritySchemeType[] VALUES_ARRAY =
 		new SecuritySchemeType[] {
+			NULL,
 			API_KEY,
 			HTTP,
 			OAUTH2,
@@ -183,6 +205,7 @@ public enum SecuritySchemeType implements Enumerator {
 	 */
 	public static SecuritySchemeType get(int value) {
 		switch (value) {
+			case NULL_VALUE: return NULL;
 			case API_KEY_VALUE: return API_KEY;
 			case HTTP_VALUE: return HTTP;
 			case OAUTH2_VALUE: return OAUTH2;

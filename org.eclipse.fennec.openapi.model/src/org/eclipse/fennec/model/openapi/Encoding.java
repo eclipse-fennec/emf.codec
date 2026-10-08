@@ -30,7 +30,7 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.model.openapi.Encoding#getContentType <em>Content Type</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Encoding#getHeaders <em>Headers</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Encoding#getStyle <em>Style</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.openapi.Encoding#isExplode <em>Explode</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.openapi.Encoding#getExplode <em>Explode</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.Encoding#isAllowReserved <em>Allow Reserved</em>}</li>
  * </ul>
  *
@@ -105,22 +105,22 @@ public interface Encoding extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Explode</em>' attribute.
-	 * @see #setExplode(boolean)
+	 * @see #setExplode(Boolean)
 	 * @see org.eclipse.fennec.model.openapi.OpenApiPackage#getEncoding_Explode()
 	 * @model
 	 * @generated
 	 */
-	boolean isExplode();
+	Boolean getExplode();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.openapi.Encoding#isExplode <em>Explode</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.openapi.Encoding#getExplode <em>Explode</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Explode</em>' attribute.
-	 * @see #isExplode()
+	 * @see #getExplode()
 	 * @generated
 	 */
-	void setExplode(boolean value);
+	void setExplode(Boolean value);
 
 	/**
 	 * Returns the value of the '<em><b>Allow Reserved</b></em>' attribute.

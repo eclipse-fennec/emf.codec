@@ -32,6 +32,16 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public enum ParameterLocation implements Enumerator {
 	/**
+	 * The '<em><b>Null</b></em>' literal object.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #NULL_VALUE
+	 * @generated
+	 * @ordered
+	 */
+	NULL(0, "null", "null"),
+
+	/**
 	 * The '<em><b>Query</b></em>' literal object.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -39,7 +49,7 @@ public enum ParameterLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	QUERY(0, "query", "query"),
+	QUERY(1, "query", "query"),
 
 	/**
 	 * The '<em><b>Header</b></em>' literal object.
@@ -49,7 +59,7 @@ public enum ParameterLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	HEADER(1, "header", "header"),
+	HEADER(2, "header", "header"),
 
 	/**
 	 * The '<em><b>Path</b></em>' literal object.
@@ -59,7 +69,7 @@ public enum ParameterLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	PATH(2, "path", "path"),
+	PATH(3, "path", "path"),
 
 	/**
 	 * The '<em><b>Cookie</b></em>' literal object.
@@ -69,7 +79,18 @@ public enum ParameterLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	COOKIE(3, "cookie", "cookie");
+	COOKIE(4, "cookie", "cookie");
+
+	/**
+	 * The '<em><b>Null</b></em>' literal value.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #NULL
+	 * @model name="null"
+	 * @generated
+	 * @ordered
+	 */
+	public static final int NULL_VALUE = 0;
 
 	/**
 	 * The '<em><b>Query</b></em>' literal value.
@@ -80,7 +101,7 @@ public enum ParameterLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int QUERY_VALUE = 0;
+	public static final int QUERY_VALUE = 1;
 
 	/**
 	 * The '<em><b>Header</b></em>' literal value.
@@ -91,7 +112,7 @@ public enum ParameterLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int HEADER_VALUE = 1;
+	public static final int HEADER_VALUE = 2;
 
 	/**
 	 * The '<em><b>Path</b></em>' literal value.
@@ -102,7 +123,7 @@ public enum ParameterLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int PATH_VALUE = 2;
+	public static final int PATH_VALUE = 3;
 
 	/**
 	 * The '<em><b>Cookie</b></em>' literal value.
@@ -113,7 +134,7 @@ public enum ParameterLocation implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int COOKIE_VALUE = 3;
+	public static final int COOKIE_VALUE = 4;
 
 	/**
 	 * An array of all the '<em><b>Parameter Location</b></em>' enumerators.
@@ -123,6 +144,7 @@ public enum ParameterLocation implements Enumerator {
 	 */
 	private static final ParameterLocation[] VALUES_ARRAY =
 		new ParameterLocation[] {
+			NULL,
 			QUERY,
 			HEADER,
 			PATH,
@@ -183,6 +205,7 @@ public enum ParameterLocation implements Enumerator {
 	 */
 	public static ParameterLocation get(int value) {
 		switch (value) {
+			case NULL_VALUE: return NULL;
 			case QUERY_VALUE: return QUERY;
 			case HEADER_VALUE: return HEADER;
 			case PATH_VALUE: return PATH;

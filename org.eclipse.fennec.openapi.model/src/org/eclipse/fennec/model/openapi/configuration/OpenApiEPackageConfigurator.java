@@ -43,7 +43,7 @@ public class OpenApiEPackageConfigurator implements EPackageConfigurator {
 	 * service property.
 	 * @generated
 	 */
-	public static final String FINGERPRINT = "fp1:082e2ff42cba2a65996f72cc63e1f2b892365789ce5bc7fc9fa3971213215713";
+	public static final String FINGERPRINT = "fp1:f360d4419b1062505d836328a77f8e47bee2f0fff92266142eae8783eaa88344";
 
 	private OpenApiPackage ePackage;
 

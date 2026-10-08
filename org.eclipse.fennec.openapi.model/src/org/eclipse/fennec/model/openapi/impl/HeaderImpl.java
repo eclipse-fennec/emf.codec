@@ -48,7 +48,7 @@ import org.eclipse.fennec.model.openapi.Schema;
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.HeaderImpl#isDeprecated <em>Deprecated</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.HeaderImpl#isAllowEmptyValue <em>Allow Empty Value</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.HeaderImpl#getStyle <em>Style</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.openapi.impl.HeaderImpl#isExplode <em>Explode</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.openapi.impl.HeaderImpl#getExplode <em>Explode</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.HeaderImpl#isAllowReserved <em>Allow Reserved</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.HeaderImpl#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.HeaderImpl#getExamples <em>Examples</em>}</li>
@@ -166,7 +166,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 * @ordered
 	 */
-	protected static final ParameterStyle STYLE_EDEFAULT = ParameterStyle.MATRIX;
+	protected static final ParameterStyle STYLE_EDEFAULT = ParameterStyle.NULL;
 
 	/**
 	 * The cached value of the '{@link #getStyle() <em>Style</em>}' attribute.
@@ -179,24 +179,24 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	protected ParameterStyle style = STYLE_EDEFAULT;
 
 	/**
-	 * The default value of the '{@link #isExplode() <em>Explode</em>}' attribute.
+	 * The default value of the '{@link #getExplode() <em>Explode</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isExplode()
+	 * @see #getExplode()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean EXPLODE_EDEFAULT = false;
+	protected static final Boolean EXPLODE_EDEFAULT = null;
 
 	/**
-	 * The cached value of the '{@link #isExplode() <em>Explode</em>}' attribute.
+	 * The cached value of the '{@link #getExplode() <em>Explode</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isExplode()
+	 * @see #getExplode()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean explode = EXPLODE_EDEFAULT;
+	protected Boolean explode = EXPLODE_EDEFAULT;
 
 	/**
 	 * The default value of the '{@link #isAllowReserved() <em>Allow Reserved</em>}' attribute.
@@ -411,7 +411,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public boolean isExplode() {
+	public Boolean getExplode() {
 		return explode;
 	}
 
@@ -421,8 +421,8 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public void setExplode(boolean newExplode) {
-		boolean oldExplode = explode;
+	public void setExplode(Boolean newExplode) {
+		Boolean oldExplode = explode;
 		explode = newExplode;
 		if (eNotificationRequired())
 			eNotify(new ENotificationImpl(this, Notification.SET, OpenApiPackage.HEADER__EXPLODE, oldExplode, explode));
@@ -561,7 +561,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 			case OpenApiPackage.HEADER__STYLE:
 				return getStyle();
 			case OpenApiPackage.HEADER__EXPLODE:
-				return isExplode();
+				return getExplode();
 			case OpenApiPackage.HEADER__ALLOW_RESERVED:
 				return isAllowReserved();
 			case OpenApiPackage.HEADER__SCHEMA:
@@ -687,7 +687,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 			case OpenApiPackage.HEADER__STYLE:
 				return style != STYLE_EDEFAULT;
 			case OpenApiPackage.HEADER__EXPLODE:
-				return explode != EXPLODE_EDEFAULT;
+				return EXPLODE_EDEFAULT == null ? explode != null : !EXPLODE_EDEFAULT.equals(explode);
 			case OpenApiPackage.HEADER__ALLOW_RESERVED:
 				return allowReserved != ALLOW_RESERVED_EDEFAULT;
 			case OpenApiPackage.HEADER__SCHEMA:

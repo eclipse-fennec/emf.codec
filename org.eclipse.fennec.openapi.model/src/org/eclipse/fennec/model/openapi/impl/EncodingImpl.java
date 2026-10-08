@@ -43,7 +43,7 @@ import org.eclipse.fennec.model.openapi.ParameterStyle;
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.EncodingImpl#getContentType <em>Content Type</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.EncodingImpl#getHeaders <em>Headers</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.EncodingImpl#getStyle <em>Style</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.openapi.impl.EncodingImpl#isExplode <em>Explode</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.openapi.impl.EncodingImpl#getExplode <em>Explode</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.EncodingImpl#isAllowReserved <em>Allow Reserved</em>}</li>
  * </ul>
  *
@@ -88,7 +88,7 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	 * @generated
 	 * @ordered
 	 */
-	protected static final ParameterStyle STYLE_EDEFAULT = ParameterStyle.MATRIX;
+	protected static final ParameterStyle STYLE_EDEFAULT = ParameterStyle.NULL;
 
 	/**
 	 * The cached value of the '{@link #getStyle() <em>Style</em>}' attribute.
@@ -101,24 +101,24 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	protected ParameterStyle style = STYLE_EDEFAULT;
 
 	/**
-	 * The default value of the '{@link #isExplode() <em>Explode</em>}' attribute.
+	 * The default value of the '{@link #getExplode() <em>Explode</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isExplode()
+	 * @see #getExplode()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean EXPLODE_EDEFAULT = false;
+	protected static final Boolean EXPLODE_EDEFAULT = null;
 
 	/**
-	 * The cached value of the '{@link #isExplode() <em>Explode</em>}' attribute.
+	 * The cached value of the '{@link #getExplode() <em>Explode</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isExplode()
+	 * @see #getExplode()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean explode = EXPLODE_EDEFAULT;
+	protected Boolean explode = EXPLODE_EDEFAULT;
 
 	/**
 	 * The default value of the '{@link #isAllowReserved() <em>Allow Reserved</em>}' attribute.
@@ -224,7 +224,7 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	 * @generated
 	 */
 	@Override
-	public boolean isExplode() {
+	public Boolean getExplode() {
 		return explode;
 	}
 
@@ -234,8 +234,8 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	 * @generated
 	 */
 	@Override
-	public void setExplode(boolean newExplode) {
-		boolean oldExplode = explode;
+	public void setExplode(Boolean newExplode) {
+		Boolean oldExplode = explode;
 		explode = newExplode;
 		if (eNotificationRequired())
 			eNotify(new ENotificationImpl(this, Notification.SET, OpenApiPackage.ENCODING__EXPLODE, oldExplode, explode));
@@ -294,7 +294,7 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 			case OpenApiPackage.ENCODING__STYLE:
 				return getStyle();
 			case OpenApiPackage.ENCODING__EXPLODE:
-				return isExplode();
+				return getExplode();
 			case OpenApiPackage.ENCODING__ALLOW_RESERVED:
 				return isAllowReserved();
 		}
@@ -370,7 +370,7 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 			case OpenApiPackage.ENCODING__STYLE:
 				return style != STYLE_EDEFAULT;
 			case OpenApiPackage.ENCODING__EXPLODE:
-				return explode != EXPLODE_EDEFAULT;
+				return EXPLODE_EDEFAULT == null ? explode != null : !EXPLODE_EDEFAULT.equals(explode);
 			case OpenApiPackage.ENCODING__ALLOW_RESERVED:
 				return allowReserved != ALLOW_RESERVED_EDEFAULT;
 		}

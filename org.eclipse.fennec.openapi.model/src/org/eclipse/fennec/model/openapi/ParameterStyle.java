@@ -32,6 +32,16 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public enum ParameterStyle implements Enumerator {
 	/**
+	 * The '<em><b>Null</b></em>' literal object.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #NULL_VALUE
+	 * @generated
+	 * @ordered
+	 */
+	NULL(0, "null", "null"),
+
+	/**
 	 * The '<em><b>Matrix</b></em>' literal object.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -39,7 +49,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	MATRIX(0, "matrix", "matrix"),
+	MATRIX(1, "matrix", "matrix"),
 
 	/**
 	 * The '<em><b>Label</b></em>' literal object.
@@ -49,7 +59,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	LABEL(1, "label", "label"),
+	LABEL(2, "label", "label"),
 
 	/**
 	 * The '<em><b>Form</b></em>' literal object.
@@ -59,7 +69,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	FORM(2, "form", "form"),
+	FORM(3, "form", "form"),
 
 	/**
 	 * The '<em><b>Simple</b></em>' literal object.
@@ -69,7 +79,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	SIMPLE(3, "simple", "simple"),
+	SIMPLE(4, "simple", "simple"),
 
 	/**
 	 * The '<em><b>Space Delimited</b></em>' literal object.
@@ -79,7 +89,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	SPACE_DELIMITED(4, "spaceDelimited", "spaceDelimited"),
+	SPACE_DELIMITED(5, "spaceDelimited", "spaceDelimited"),
 
 	/**
 	 * The '<em><b>Pipe Delimited</b></em>' literal object.
@@ -89,7 +99,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	PIPE_DELIMITED(5, "pipeDelimited", "pipeDelimited"),
+	PIPE_DELIMITED(6, "pipeDelimited", "pipeDelimited"),
 
 	/**
 	 * The '<em><b>Deep Object</b></em>' literal object.
@@ -99,7 +109,18 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	DEEP_OBJECT(6, "deepObject", "deepObject");
+	DEEP_OBJECT(7, "deepObject", "deepObject");
+
+	/**
+	 * The '<em><b>Null</b></em>' literal value.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #NULL
+	 * @model name="null"
+	 * @generated
+	 * @ordered
+	 */
+	public static final int NULL_VALUE = 0;
 
 	/**
 	 * The '<em><b>Matrix</b></em>' literal value.
@@ -110,7 +131,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int MATRIX_VALUE = 0;
+	public static final int MATRIX_VALUE = 1;
 
 	/**
 	 * The '<em><b>Label</b></em>' literal value.
@@ -121,7 +142,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int LABEL_VALUE = 1;
+	public static final int LABEL_VALUE = 2;
 
 	/**
 	 * The '<em><b>Form</b></em>' literal value.
@@ -132,7 +153,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int FORM_VALUE = 2;
+	public static final int FORM_VALUE = 3;
 
 	/**
 	 * The '<em><b>Simple</b></em>' literal value.
@@ -143,7 +164,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int SIMPLE_VALUE = 3;
+	public static final int SIMPLE_VALUE = 4;
 
 	/**
 	 * The '<em><b>Space Delimited</b></em>' literal value.
@@ -154,7 +175,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int SPACE_DELIMITED_VALUE = 4;
+	public static final int SPACE_DELIMITED_VALUE = 5;
 
 	/**
 	 * The '<em><b>Pipe Delimited</b></em>' literal value.
@@ -165,7 +186,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int PIPE_DELIMITED_VALUE = 5;
+	public static final int PIPE_DELIMITED_VALUE = 6;
 
 	/**
 	 * The '<em><b>Deep Object</b></em>' literal value.
@@ -176,7 +197,7 @@ public enum ParameterStyle implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	public static final int DEEP_OBJECT_VALUE = 6;
+	public static final int DEEP_OBJECT_VALUE = 7;
 
 	/**
 	 * An array of all the '<em><b>Parameter Style</b></em>' enumerators.
@@ -186,6 +207,7 @@ public enum ParameterStyle implements Enumerator {
 	 */
 	private static final ParameterStyle[] VALUES_ARRAY =
 		new ParameterStyle[] {
+			NULL,
 			MATRIX,
 			LABEL,
 			FORM,
@@ -249,6 +271,7 @@ public enum ParameterStyle implements Enumerator {
 	 */
 	public static ParameterStyle get(int value) {
 		switch (value) {
+			case NULL_VALUE: return NULL;
 			case MATRIX_VALUE: return MATRIX;
 			case LABEL_VALUE: return LABEL;
 			case FORM_VALUE: return FORM;

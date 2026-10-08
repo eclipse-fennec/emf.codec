@@ -3477,7 +3477,7 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 		initEAttribute(getParameter_Deprecated(), ecorePackage.getEBoolean(), "deprecated", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_AllowEmptyValue(), ecorePackage.getEBoolean(), "allowEmptyValue", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_Style(), this.getParameterStyle(), "style", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getParameter_Explode(), ecorePackage.getEBoolean(), "explode", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getParameter_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_AllowReserved(), ecorePackage.getEBoolean(), "allowReserved", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getParameter_Schema(), this.getSchema(), null, "schema", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getParameter_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -3498,7 +3498,7 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 		initEAttribute(getEncoding_ContentType(), ecorePackage.getEString(), "contentType", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getEncoding_Headers(), this.getHeaderEntry(), null, "headers", null, 0, -1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getEncoding_Style(), this.getParameterStyle(), "style", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getEncoding_Explode(), ecorePackage.getEBoolean(), "explode", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getEncoding_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getEncoding_AllowReserved(), ecorePackage.getEBoolean(), "allowReserved", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(responseEClass, Response.class, "Response", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
@@ -3515,7 +3515,7 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 		initEAttribute(getHeader_Deprecated(), ecorePackage.getEBoolean(), "deprecated", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_AllowEmptyValue(), ecorePackage.getEBoolean(), "allowEmptyValue", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_Style(), this.getParameterStyle(), "style", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getHeader_Explode(), ecorePackage.getEBoolean(), "explode", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getHeader_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_AllowReserved(), ecorePackage.getEBoolean(), "allowReserved", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getHeader_Schema(), this.getSchema(), null, "schema", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getHeader_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -3699,12 +3699,14 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 		addEEnumLiteral(httpMethodEEnum, HttpMethod.TRACE);
 
 		initEEnum(parameterLocationEEnum, ParameterLocation.class, "ParameterLocation");
+		addEEnumLiteral(parameterLocationEEnum, ParameterLocation.NULL);
 		addEEnumLiteral(parameterLocationEEnum, ParameterLocation.QUERY);
 		addEEnumLiteral(parameterLocationEEnum, ParameterLocation.HEADER);
 		addEEnumLiteral(parameterLocationEEnum, ParameterLocation.PATH);
 		addEEnumLiteral(parameterLocationEEnum, ParameterLocation.COOKIE);
 
 		initEEnum(parameterStyleEEnum, ParameterStyle.class, "ParameterStyle");
+		addEEnumLiteral(parameterStyleEEnum, ParameterStyle.NULL);
 		addEEnumLiteral(parameterStyleEEnum, ParameterStyle.MATRIX);
 		addEEnumLiteral(parameterStyleEEnum, ParameterStyle.LABEL);
 		addEEnumLiteral(parameterStyleEEnum, ParameterStyle.FORM);
@@ -3714,12 +3716,14 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 		addEEnumLiteral(parameterStyleEEnum, ParameterStyle.DEEP_OBJECT);
 
 		initEEnum(securitySchemeTypeEEnum, SecuritySchemeType.class, "SecuritySchemeType");
+		addEEnumLiteral(securitySchemeTypeEEnum, SecuritySchemeType.NULL);
 		addEEnumLiteral(securitySchemeTypeEEnum, SecuritySchemeType.API_KEY);
 		addEEnumLiteral(securitySchemeTypeEEnum, SecuritySchemeType.HTTP);
 		addEEnumLiteral(securitySchemeTypeEEnum, SecuritySchemeType.OAUTH2);
 		addEEnumLiteral(securitySchemeTypeEEnum, SecuritySchemeType.OPEN_ID_CONNECT);
 
 		initEEnum(apiKeyLocationEEnum, ApiKeyLocation.class, "ApiKeyLocation");
+		addEEnumLiteral(apiKeyLocationEEnum, ApiKeyLocation.NULL);
 		addEEnumLiteral(apiKeyLocationEEnum, ApiKeyLocation.QUERY);
 		addEEnumLiteral(apiKeyLocationEEnum, ApiKeyLocation.HEADER);
 		addEEnumLiteral(apiKeyLocationEEnum, ApiKeyLocation.COOKIE);
