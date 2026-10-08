@@ -32,7 +32,7 @@ import org.osgi.service.component.annotations.Component;
  * <p>
  * Wraps {@link EPackageValueWriter} with {@code embedInFeature=true} so the
  * output is a flat schema map (e.g. {@code {"Pet": {...}}}) rather than the full
- * JSON Schema document (e.g. {@code {"definitions": {"Pet": {...}}}}).
+ * JSON Schema document (e.g. {@code {"components/schemas": {"Pet": {...}}}}).
  * </p>
  * <p>
  * The Schema Object differs between OpenAPI versions: 3.0 allows a single {@code type} string
@@ -48,7 +48,11 @@ import org.osgi.service.component.annotations.Component;
 @Component(service = CodecValueWriter.class)
 public class OpenApiSchemasValueWriter implements ReferenceValueWriter<EPackage> {
 
-	private final EPackageValueWriter delegate = new EPackageValueWriter("definitions", true);
+	/**
+	 * The schema feature is the path the schemas are embedded at: the delegate writes only the
+	 * content below it, but the converter builds every {@code $ref} from it (issue #273).
+	 */
+	private final EPackageValueWriter delegate = new EPackageValueWriter("components/schemas", true);
 
 	@Override
 	public String getName() {
