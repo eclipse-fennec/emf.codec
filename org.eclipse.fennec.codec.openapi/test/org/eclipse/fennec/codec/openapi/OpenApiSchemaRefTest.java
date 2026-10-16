@@ -57,7 +57,8 @@ class OpenApiSchemaRefTest {
 
         assertEquals(SCHEMAS + "Address", schemas.at("/Person/properties/address/$ref").asString(),
                 schemas.toString());
-        assertEquals(SCHEMAS + "Person", schemas.at("/Person/properties/friend/$ref").asString(),
+        // a non-containment reference is written as the codec writes it, x-ref names the target
+        assertEquals(SCHEMAS + "Person", schemas.at("/Person/properties/friend/x-ref").asString(),
                 schemas.toString());
         assertEquals(SCHEMAS + "Person", schemas.at("/Employee/allOf/0/$ref").asString(),
                 schemas.toString());

@@ -1243,6 +1243,16 @@ public final class ConfigurationResolver {
     }
 
     /**
+     * Returns the annotation properties map (lowest priority source, built from the model's
+     * codec annotations).
+     *
+     * @return the annotation properties map, or null if not set
+     */
+    public Map<String, Object> getAnnotationProperties() {
+        return annotationProperties;
+    }
+
+    /**
      * Retrieves a global property value by searching all configuration sources
      * in priority order (OPTIONS → RESOURCE → FACTORY → MODULE → ANNOTATION).
      * <p>

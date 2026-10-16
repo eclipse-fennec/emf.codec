@@ -39,6 +39,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants;
@@ -47,6 +48,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Enhanced converter from JSON Schema to EMF EPackage.
@@ -581,11 +583,30 @@ public class JsonSchemaToEPackageConverter {
 	private void applyTypeStrategy(EPackage ePackage) {
 		for (EClassifier classifier : ePackage.getEClassifiers()) {
 			if (classifier instanceof EClass eClass) {
-				addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_TYPE_STRATEGY, "NONE");
-				if (needsTypeInference(eClass, ePackage)) {
+				// A codec-written schema states the type key: the codec writes and reads type info
+				boolean typeInfo = "true".equals(EcoreUtil.getAnnotation(eClass, AnnotationSources.JSONSCHEMA, "typeInfo"));
+				if (!typeInfo) {
+					addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_TYPE_STRATEGY, "NONE");
+				}
+				keepEnumDefaults(eClass);
+				if (!typeInfo && needsTypeInference(eClass, ePackage)) {
 					addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_TYPE_INFERENCE,
 							"STRUCTURAL");
 				}
+			}
+		}
+	}
+
+	/**
+	 * The default of an enum attribute is its first literal, which the codec would not write: an
+	 * enum attribute is unsettable and writes its default, so a value in the payload is written
+	 * again and an absent one stays absent (spec 21 §3).
+	 */
+	private void keepEnumDefaults(EClass eClass) {
+		for (EAttribute attribute : eClass.getEAttributes()) {
+			if (attribute.getEType() instanceof EEnum) {
+				attribute.setUnsettable(true);
+				addEAnnotation(attribute, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_SERIALIZE_DEFAULT, "true");
 			}
 		}
 	}
@@ -874,6 +895,8 @@ public class JsonSchemaToEPackageConverter {
 			subTypeNames.add(extractSchemaNameFromRef(entry.get("$ref").asString()));
 		}
 		anyOfRefMap.put(abstractBase, subTypeNames);
+		// Kept so the writer reproduces the union in its order (spec 21 §2.1)
+		addEAnnotation(abstractBase, AnnotationSources.JSONSCHEMA, "oneOfRefs", String.join(",", subTypeNames));
 
 		return abstractBase;
 	}
@@ -1333,7 +1356,12 @@ public class JsonSchemaToEPackageConverter {
 
 		if (propertiesNode != null) {
 			for (String property : propertiesNode.propertyNames()) {
-				EStructuralFeature feature = createStructuralFeature(propertiesNode.get(property), property, qualifiedName);
+				JsonNode propertyNode = propertiesNode.get(property);
+				if (propertyNode.has("x-codec")) {
+					readCodecMember(eClass, property, propertyNode, requiredNode);
+					continue;
+				}
+				EStructuralFeature feature = createStructuralFeature(propertyNode, property, qualifiedName);
 				if (feature != null) {
 					// 'required' only raises the lower bound of single-valued features; for
 					// multi-valued features the lower bound is governed by minItems.
@@ -1374,6 +1402,40 @@ public class JsonSchemaToEPackageConverter {
 
 		cachedClassifiers.put(classNode.toString(), eClass);
 		return eClass;
+	}
+
+	/**
+	 * A member a codec-written schema marks with {@code x-codec} is written by the codec for the
+	 * object itself: type, supertypes or id. It becomes codec configuration again - and, for the
+	 * id, the id attribute it stands for - instead of a feature (spec 21 §4).
+	 */
+	private void readCodecMember(EClass eClass, String key, JsonNode propertyNode, JsonNode requiredNode) {
+		switch (propertyNode.get("x-codec").asString()) {
+			case "type" -> {
+				addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "typeInfo", "true");
+				if (!"_type".equals(key)) {
+					addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_TYPE_KEY, key);
+				}
+			}
+			case "superType" -> {
+				addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_SUPERTYPE_SERIALIZE, "true");
+				addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_SUPERTYPE_KEY, key);
+			}
+			case "id" -> {
+				EAttribute id = ecoreFactory.createEAttribute();
+				id.setName(propertyNode.path("x-codec-feature").asString("id"));
+				id.setEType(EcorePackage.Literals.ESTRING);
+				id.setID(true);
+				if (requiredNode != null && arrayContains(requiredNode, key)) {
+					id.setLowerBound(1);
+				}
+				eClass.getEStructuralFeatures().add(id);
+				if (!"_id".equals(key)) {
+					addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_ID_KEY, key);
+				}
+			}
+			default -> diagnostics.add(JsonSchemaConversionDiagnostic.unsupportedFeature("x-codec", key));
+		}
 	}
 
 	private EClass createClassWithAllOf(JsonNode classNode, String name, String qualifiedName) {
@@ -1626,8 +1688,18 @@ public class JsonSchemaToEPackageConverter {
 	private EStructuralFeature createStructuralFeature(JsonNode propertyNode, String name, String contextPath) {
 		EStructuralFeature feature = null;
 
+		// A codec-written non-containment reference: the shape the codec writes, x-ref names the
+		// target (spec 21 §4)
+		if (propertyNode.has("x-ref") && propertyNode instanceof ObjectNode objectNode) {
+			ObjectNode refNode = objectNode.deepCopy();
+			refNode.put("$ref", propertyNode.get("x-ref").asString());
+			feature = createRefFeature(refNode, name);
+			if (feature instanceof EReference reference) {
+				reference.setContainment(false);
+			}
+		}
 		// Handle $ref
-		if (propertyNode.has("$ref")) {
+		else if (propertyNode.has("$ref")) {
 			feature = createRefFeature(propertyNode, name);
 		}
 		// Handle type-based feature
@@ -1948,6 +2020,8 @@ public class JsonSchemaToEPackageConverter {
 			String enumName = deriveEnumName(contextPath, name);
 			EEnum eEnum = createEEnum(propertyNode, enumName, contextPath);
 			classifierMap.put(eEnum.getName(), eEnum);
+			// Declared inline in the property, so written back inline, not as a definition
+			addEAnnotation(eEnum, AnnotationSources.JSONSCHEMA, "inline", "true");
 
 			var feature = ecoreFactory.createEAttribute();
 			feature.setName(name);

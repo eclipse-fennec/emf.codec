@@ -4,6 +4,24 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-10-16
 
+**Session Summary (2026-10-16, wave/issue-277-schema-codec-aspects) — #271 (phase 3, writing):**
+
+- `ModelAnnotations.withAnnotationsOf` (codec util): the schema writer sees the codec annotations of
+  the package it writes (temporary nsURI for packages without one); `ConfigurationResolver`
+  got `getAnnotationProperties()`.
+- Writer (`EPackageToJsonSchemaConverter`), decisions of 2026-10-16: `nullable` only with
+  `serializeNull`; `additionalProperties` only from the source annotation or the catch-all map;
+  no invented enum `default`, inline enums stay inline; `oneOf` unions and `discriminator`
+  reconstructed; `_type` / `_supertype` / `_id` from the resolved config (`x-codec` markers),
+  id attributes not a property under `ID_ONLY`; non-containment references as `{_ref, _type}` /
+  string with `x-ref`; property names = codec keys. Reader turns `x-codec` / `x-ref` back.
+- Codec core: an unset unsettable feature is never written (also with `serializeDefault`); the
+  reader makes enum attributes unsettable + `serializeDefault` (first literal was lost).
+- Tests rewritten to the new semantics: NewFeaturesTest (additionalProperties, nullable, enum
+  default, non-containment), OpenApiSchemaNullableTest/RefTest, JsonSchemaOneOfIntegrationTest
+  (non-containment = reference shape); gap baselines shrank (unions, enums). Acceptance:
+  `foreignSchemaRoundTrip`, `codecModelSchema` in ForeignSchemaCodecAspectsTest.
+
 **Session Summary (2026-10-16, wave/issue-277-schema-codec-aspects) — #278, #279 (phase 2):**
 
 - New class aspects in `codec.ecore` (regenerated): `ClassCodecAspect.additionalPropertiesFeature`,

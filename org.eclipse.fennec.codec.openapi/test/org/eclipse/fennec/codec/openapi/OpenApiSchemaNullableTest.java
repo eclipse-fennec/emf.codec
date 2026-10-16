@@ -55,18 +55,28 @@ import tools.jackson.databind.json.JsonMapper;
 class OpenApiSchemaNullableTest {
 
     @Test
-    @DisplayName("OpenAPI 3.0: optional attributes are a single type with nullable: true")
+    @DisplayName("OpenAPI 3.0: attributes written as null are a single type with nullable: true")
     void openApi30WritesNullableKeyword() throws IOException {
         JsonNode person = save(createDocument("3.0.3")).at("/components/schemas/Person/properties");
 
-        assertEquals("string", person.at("/id/type").asString(), person.toString());
-        assertNull(person.at("/id").get("nullable"), "a required attribute is not nullable");
+        // the id attribute is written under the id key (ID_ONLY, spec 21 §4)
+        assertEquals("string", person.at("/_id/type").asString(), person.toString());
+        assertNull(person.get("id"), person.toString());
         assertEquals("string", person.at("/firstName/type").asString(), person.toString());
         assertTrue(person.at("/firstName/nullable").asBoolean(), person.toString());
         assertEquals("string", person.at("/birthDate/type").asString(), person.toString());
         assertTrue(person.at("/birthDate/nullable").asBoolean(), person.toString());
         assertEquals("integer", person.at("/age/type").asString(), person.toString());
         assertTrue(person.at("/age/nullable").asBoolean(), person.toString());
+    }
+
+    @Test
+    @DisplayName("an optional attribute the codec does not write as null is not nullable")
+    void optionalWithoutSerializeNullIsNotNullable() throws IOException {
+        JsonNode nickname = save(createDocument("3.0.3")).at("/components/schemas/Person/properties/nickname");
+
+        assertEquals("string", nickname.path("type").asString(), nickname.toString());
+        assertNull(nickname.get("nullable"), nickname.toString());
     }
 
     @Test
@@ -81,7 +91,7 @@ class OpenApiSchemaNullableTest {
     }
 
     @Test
-    @DisplayName("OpenAPI 3.1: optional attributes keep the JSON Schema type array")
+    @DisplayName("OpenAPI 3.1: attributes written as null keep the JSON Schema type array")
     void openApi31KeepsTypeArray() throws IOException {
         JsonNode firstName = save(createDocument("3.1.0")).at("/components/schemas/Person/properties/firstName");
 
@@ -124,6 +134,9 @@ class OpenApiSchemaNullableTest {
         EAttribute id = attribute(person, "id", EcorePackage.Literals.ESTRING, 1);
         id.setID(true);
         attribute(person, "firstName", EcorePackage.Literals.ESTRING, 0);
+        // not written as null by the codec, so not nullable in the schema (spec 21 §4)
+        EAttribute nickname = attribute(person, "nickname", EcorePackage.Literals.ESTRING, 0);
+        nickname.getEAnnotations().remove(nickname.getEAnnotation(AnnotationSources.CODEC));
         attribute(person, "birthDate", EcorePackage.Literals.EDATE, 0);
         attribute(person, "age", EcorePackage.Literals.EINTEGER_OBJECT, 0);
         EAttribute code = attribute(person, "code", EcorePackage.Literals.EJAVA_OBJECT, 0);
@@ -136,6 +149,12 @@ class OpenApiSchemaNullableTest {
         attribute.setName(name);
         attribute.setEType(type);
         attribute.setLowerBound(lowerBound);
+        if (lowerBound == 0) {
+            EAnnotation codec = EcoreFactory.eINSTANCE.createEAnnotation();
+            codec.setSource(AnnotationSources.CODEC);
+            codec.getDetails().put("serializeNull", "true");
+            attribute.getEAnnotations().add(codec);
+        }
         owner.getEStructuralFeatures().add(attribute);
         return attribute;
     }

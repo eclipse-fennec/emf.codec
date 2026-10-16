@@ -63,10 +63,11 @@ Map<String, Object> options = Map.of(
 }
 ```
 
-**`serializeNull` and unsettable features (#277).** For an ordinary feature an unset value and
-an explicit `null` are the same, so `serializeNull=true` writes every `null`. An **unsettable**
-feature tells them apart: `serializeNull=true` writes its `null` only when the feature is set
-(`eIsSet`), an unset one is left out. Reading an explicit `null` sets the feature, also when the
+**Unsettable features (#277).** For an ordinary feature an unset value and an explicit `null` or
+default value are the same, so `serializeNull=true` writes every `null` and `serializeDefault=true`
+every default. An **unsettable** feature tells them apart: when it is not set (`eIsSet` false) it
+is never written, whatever its value; when it is set, `serializeNull` and `serializeDefault`
+decide as usual. Reading an explicit `null` sets the feature, also when the
 value was buffered until the type was known, so `{"tag": null}` survives load and save while an
 absent `tag` stays absent.
 
