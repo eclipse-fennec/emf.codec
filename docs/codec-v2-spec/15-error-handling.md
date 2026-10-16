@@ -152,6 +152,15 @@ resource boundary:
   warning, and never returns a partially read document as a successful load.
 - **Diagnostics survive the abort.** Everything collected up to the failure is transferred to
   `getErrors()`/`getWarnings()` before the exception leaves `load`/`save`.
+- **Document errors are typed.** A failure caused by the document's own content can be told from
+  a fault of the codec or the server: the `STRICT` and `strictOn*` aborts throw
+  `CodecDocumentException` (an `IllegalStateException`), an unmapped discriminator value under
+  fallback `ERROR` `UnknownDiscriminatorException`; syntax and read-limit errors are
+  `JacksonException`s, a `STRICT` load with errors carries `CodecDiagnosticException`. The REST
+  message body reader answers these, EMF's XML load errors (`XMIException`, SAX parse errors) and
+  a lenient load that produced errors and no content with `400` and a description of the problem
+  (line and column, no server-side URI, no stack trace); every other failure keeps the generic
+  `500` (issue #265, see #165).
 - **Caller option errors are not translated.** `codec.throwOnValidationWarnings` answers a save
   option mismatch with an `IllegalStateException`, as documented; that check runs before
   anything is written.

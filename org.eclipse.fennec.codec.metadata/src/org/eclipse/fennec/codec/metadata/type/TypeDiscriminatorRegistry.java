@@ -192,7 +192,7 @@ public class TypeDiscriminatorRegistry {
 
         switch (fallbackStrategy) {
             case ERROR:
-                throw new IllegalStateException("[" + mapId + "] Discriminator value '"
+                throw new UnknownDiscriminatorException("[" + mapId + "] Discriminator value '"
                         + discriminatorValue + "' not found in mapping and fallback strategy is ERROR");
             case FALLBACK:
                 if (fallbackEClass == null) {

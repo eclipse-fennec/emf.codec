@@ -18,6 +18,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.fennec.codec.config.ClassConfig;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
+import org.eclipse.fennec.codec.diagnostic.CodecDocumentException;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
@@ -62,7 +63,7 @@ public final class ConversionFailures {
         LOGGER.warning(message);
         if (isStrict(entryContext, owner)) {
             ContextHelper.addError(ctxt, message, parser, source);
-            throw new IllegalStateException(message);
+            throw new CodecDocumentException(message);
         }
         ContextHelper.addWarning(ctxt, message, parser, source);
     }
