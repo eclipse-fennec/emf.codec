@@ -218,6 +218,10 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         Object value = state.getValue(reference);
 
         if (value == null) {
+            // serializeNull writes an explicit null: an unsettable reference tells it from an unset one
+            if (reference.isUnsettable() && !state.getEObject().eIsSet(reference)) {
+                return false;
+            }
             return config.isSerializeNull();
         }
 

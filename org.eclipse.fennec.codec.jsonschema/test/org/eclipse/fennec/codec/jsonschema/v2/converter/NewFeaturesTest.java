@@ -3541,7 +3541,7 @@ class NewFeaturesTest {
 			EStructuralFeature value = measurement.getEStructuralFeature("value");
 			assertNotNull(value);
 			assertTrue(value instanceof EAttribute, "nullable integer should be an EAttribute");
-			assertEquals(EcorePackage.Literals.EINT, ((EAttribute) value).getEAttributeType());
+			assertEquals(EcorePackage.Literals.ELONG_OBJECT, ((EAttribute) value).getEAttributeType());
 			assertEquals(0, value.getLowerBound());
 		}
 

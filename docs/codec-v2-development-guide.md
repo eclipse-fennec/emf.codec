@@ -4,6 +4,22 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-10-16
 
+**Session Summary (2026-10-16, wave/issue-277-schema-codec-aspects) — #277 phase 1, foreign schemas:**
+
+- Spec 21 (new): schema and codec configuration describe the same wire format; the reader produces
+  the codec aspects, the writer renders them (#271). Decisions in §6 (null, maps #278, inference
+  #279, discriminator, ids).
+- `JsonSchemaToEPackageConverter`: `typeStrategy=NONE` on every class, `$ref` = containment
+  (`x-containment: false` keeps non-containment), wrapper scalars (`integer` → `ELongObject`
+  unless `int32`), sanitized enum literal names (literal = value), nullable → `unsettable` +
+  `serializeNull`, OpenAPI `discriminator` → `typeMapping/<Base>` registry with
+  `typeDiscriminator` per subclass, `$ref` to an enum → `EAttribute`.
+- Writer: enum values as literals, `int32`/`float` formats, `x-containment: false`.
+- Codec core: `serializeNull` skips an unset unsettable feature; deferred `null`s are replayed
+  (were dropped). Test: `ForeignSchemaCodecAspectsTest` (payload round trip).
+- Updated expectations: primitive → wrapper in jsonschema tests, `CORE_DataSet.ecore` reference
+  (containment, wrappers), core-ir gap baseline (5) for abstract containment as oneOf.
+
 **Session Summary (2026-10-16) — #272 OpenAPI guide, #276 empty paths:**
 
 - `docs/codec-openapi-guide.md` (in the docs-site allowlist): setup (OSGi properties, plain Java,

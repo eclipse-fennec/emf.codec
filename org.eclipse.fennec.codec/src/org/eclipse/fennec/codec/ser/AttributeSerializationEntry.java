@@ -153,6 +153,10 @@ public class AttributeSerializationEntry implements SerializationEntry {
         // but value-based conditions (null, empty, default) still apply.
         // Shared with the tabular export pipeline via FeatureConfig.shouldSerializeValue.
         Object value = state.getValue(attribute);
+        // serializeNull writes an explicit null: an unsettable attribute tells it from an unset one
+        if (value == null && attribute.isUnsettable() && !state.getEObject().eIsSet(attribute)) {
+            return false;
+        }
         boolean manyEmpty = attribute.isMany() && value instanceof EList<?> list && list.isEmpty();
         return config.shouldSerializeValue(value, attribute.getDefaultValue(), manyEmpty);
     }

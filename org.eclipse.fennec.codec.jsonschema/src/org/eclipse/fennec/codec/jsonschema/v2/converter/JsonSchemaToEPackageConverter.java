@@ -41,6 +41,7 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 
 import org.eclipse.fennec.codec.constants.AnnotationSources;
+import org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -99,6 +100,7 @@ public class JsonSchemaToEPackageConverter {
 	private List<JsonSchemaConversionDiagnostic> diagnostics;
 	private int artificialClassifierCounter;
 	private String schemaFeature;
+	private Map<EClass, JsonNode> discriminators;
 
 	/**
 	 * Converts JSON Schema from input stream to EPackage.
@@ -226,7 +228,7 @@ public class JsonSchemaToEPackageConverter {
 		for (String value : enumValues) {
 			EEnumLiteral literal = ecoreFactory.createEEnumLiteral();
 			literal.setLiteral(value);
-			literal.setName(value);
+			literal.setName(literalName(eEnum, value));
 			literal.setValue(ordinal++);
 			eEnum.getELiterals().add(literal);
 		}
@@ -390,6 +392,7 @@ public class JsonSchemaToEPackageConverter {
 
 	private void resetState() {
 		classifierMap = new HashMap<>();
+		discriminators = new LinkedHashMap<>();
 		schemaDefinitions = new HashMap<>();
 		missingRefMap = new HashMap<>();
 		anyOfRefMap = new HashMap<>();
@@ -565,7 +568,56 @@ public class JsonSchemaToEPackageConverter {
 			}
 		}
 
+		applyDiscriminators();
+		applyTypeStrategy(ePackage);
+
 		return ePackage;
+	}
+
+	/**
+	 * A schema has no type information in the payload: the type comes from the declared feature
+	 * type or from a discriminator, so no class writes or expects a type key (spec 21 §3).
+	 */
+	private void applyTypeStrategy(EPackage ePackage) {
+		for (EClassifier classifier : ePackage.getEClassifiers()) {
+			if (classifier instanceof EClass eClass) {
+				addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_TYPE_STRATEGY, "NONE");
+			}
+		}
+	}
+
+	/**
+	 * Turns an OpenAPI {@code discriminator} into a type mapping registry (spec 08 §4.2): the base
+	 * class names the discriminator property, every subclass registers its value - the
+	 * {@code mapping} entry that points to it, otherwise its schema name (spec 21 §3, §6.4).
+	 */
+	private void applyDiscriminators() {
+		for (Map.Entry<EClass, JsonNode> entry : discriminators.entrySet()) {
+			EClass base = entry.getKey();
+			JsonNode discriminator = entry.getValue();
+			if (!discriminator.has("propertyName")) {
+				continue;
+			}
+			String source = AnnotationSources.TYPE_MAPPING_PREFIX + base.getName();
+			addEAnnotation(base, source, CodecAnnotationConstants.KEY_TYPE_DISCRIMINATOR_PATH,
+					discriminator.get("propertyName").asString());
+
+			Map<String, String> valueBySchemaName = new HashMap<>();
+			JsonNode mapping = discriminator.get("mapping");
+			if (mapping != null) {
+				for (String value : mapping.propertyNames()) {
+					valueBySchemaName.putIfAbsent(extractSchemaNameFromRef(mapping.get(value).asString()), value);
+				}
+			}
+			for (Map.Entry<String, EClassifier> classifier : classifierMap.entrySet()) {
+				if (classifier.getValue() instanceof EClass eClass && !eClass.isAbstract()
+						&& (eClass == base || base.isSuperTypeOf(eClass))) {
+					String schemaName = classifier.getKey();
+					String value = valueBySchemaName.getOrDefault(schemaName, schemaName);
+					addEAnnotation(eClass, source, CodecAnnotationConstants.KEY_TYPE_DISCRIMINATOR, value);
+				}
+			}
+		}
 	}
 
 	/**
@@ -1248,6 +1300,10 @@ public class JsonSchemaToEPackageConverter {
 			eClass.setAbstract(true); // Interfaces are implicitly abstract in EMF
 		}
 
+		if (classNode.has("discriminator")) {
+			discriminators.put(eClass, classNode.get("discriminator"));
+		}
+
 		JsonNode requiredNode = classNode.get("required");
 		JsonNode propertiesNode = classNode.get("properties");
 
@@ -1456,7 +1512,7 @@ public class JsonSchemaToEPackageConverter {
 			EEnumLiteral literal = ecoreFactory.createEEnumLiteral();
 			String literalName = literalNames.get(e);
 			literal.setLiteral(literalName);
-			literal.setName(literalName);
+			literal.setName(literalName(eEnum, literalName));
 			literal.setValue(e);
 			eEnum.getELiterals().add(literal);
 		}
@@ -1467,6 +1523,22 @@ public class JsonSchemaToEPackageConverter {
 
 		cachedClassifiers.put(enumNode.toString(), eEnum);
 		return eEnum;
+	}
+
+	/**
+	 * A valid, unique Ecore name for an enum value; the value itself stays the literal, which is
+	 * what the codec reads and writes.
+	 */
+	private String literalName(EEnum eEnum, String value) {
+		String name = value.replaceAll("[^A-Za-z0-9_]", "_");
+		if (name.isEmpty() || !Character.isJavaIdentifierStart(name.charAt(0))) {
+			name = "_" + name;
+		}
+		String unique = name;
+		for (int i = 1; eEnum.getEEnumLiteral(unique) != null; i++) {
+			unique = name + "_" + i;
+		}
+		return unique;
 	}
 
 	private EDataType createEDataType(JsonNode dtNode, String name) {
@@ -1570,6 +1642,13 @@ public class JsonSchemaToEPackageConverter {
 			ref.setContainment(propertyNode.get("x-containment").asBoolean());
 		}
 
+		// An explicit null of a nullable property is payload content: write it again, but only when
+		// it was in the payload - unsettable tells an explicit null from an absent member (spec 21 §6.1)
+		if (feature != null && isNullable(propertyNode)) {
+			feature.setUnsettable(true);
+			addEAnnotation(feature, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_SERIALIZE_NULL, "true");
+		}
+
 		// Add common annotations
 		if (feature != null) {
 			addCommonAnnotations(feature, propertyNode, false);
@@ -1578,16 +1657,29 @@ public class JsonSchemaToEPackageConverter {
 		return feature;
 	}
 
+	private boolean isNullable(JsonNode propertyNode) {
+		if (propertyNode.path("nullable").asBoolean(false)) {
+			return true;
+		}
+		JsonNode typeNode = propertyNode.get("type");
+		return typeNode != null && typeNode.isArray() && arrayContains(typeNode, "null");
+	}
+
 	private EStructuralFeature createRefFeature(JsonNode propertyNode, String name) {
 		EReference reference = ecoreFactory.createEReference();
 		reference.setName(name);
-		reference.setContainment(false); // $ref typically means non-containment reference
+		// In a schema a $ref describes the referenced object inlined in the JSON; a codec-written
+		// schema marks a non-containment reference with x-containment: false (spec 21 §3)
+		reference.setContainment(true);
 
 		String refPath = propertyNode.get("$ref").asString();
 		addEAnnotation(reference, AnnotationSources.JSONSCHEMA, "ref", refPath);
 
 		String refName = extractSchemaNameFromRef(refPath);
 
+		if (classifierMap.get(refName) instanceof EDataType dataType) {
+			return toAttribute(reference, dataType);
+		}
 		if (classifierMap.containsKey(refName)) {
 			reference.setEType(classifierMap.get(refName));
 		} else {
@@ -1595,6 +1687,25 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		return reference;
+	}
+
+	/**
+	 * A $ref to an enum or data type schema is a value, not an object: an attribute of that type
+	 * with the reference's name, bounds and annotations.
+	 */
+	private EAttribute toAttribute(EReference reference, EDataType dataType) {
+		EAttribute attribute = ecoreFactory.createEAttribute();
+		attribute.setName(reference.getName());
+		attribute.setEType(dataType);
+		attribute.setLowerBound(reference.getLowerBound());
+		attribute.setUpperBound(reference.getUpperBound());
+		attribute.setUnsettable(reference.isUnsettable());
+		attribute.getEAnnotations().addAll(reference.getEAnnotations());
+		EClass owner = reference.getEContainingClass();
+		if (owner != null) {
+			owner.getEStructuralFeatures().set(owner.getEStructuralFeatures().indexOf(reference), attribute);
+		}
+		return attribute;
 	}
 
 	private EStructuralFeature createTypedFeature(JsonNode propertyNode, String name, String contextPath) {
@@ -1649,7 +1760,8 @@ public class JsonSchemaToEPackageConverter {
 			EReference reference = ecoreFactory.createEReference();
 			reference.setName(name);
 			reference.setEType(commonSuperType);
-			// Containment will be set by x-containment handling in createStructuralFeature
+			// Inlined like a $ref; x-containment in createStructuralFeature can override it
+			reference.setContainment(true);
 			return reference;
 		}
 
@@ -1763,7 +1875,7 @@ public class JsonSchemaToEPackageConverter {
 			default:
 				feature = ecoreFactory.createEAttribute();
 				feature.setName(name);
-				feature.setEType(mapJsonTypeToEcore(type));
+				feature.setEType(mapJsonTypeToEcore(type, propertyNode.path("format").asString(null)));
 				preserveAdditionalSchemaProperties(propertyNode, feature);
 				break;
 		}
@@ -1911,7 +2023,8 @@ public class JsonSchemaToEPackageConverter {
 
 		EReference reference = ecoreFactory.createEReference();
 		reference.setName(name);
-		reference.setContainment(false);
+		// Inlined like a $ref; x-containment in createStructuralFeature can override it
+		reference.setContainment(true);
 
 		List<String> refTargetNames = new ArrayList<>();
 		StringBuilder refAnnotation = new StringBuilder();
@@ -2081,7 +2194,9 @@ public class JsonSchemaToEPackageConverter {
 						configRef.owningClass.getEStructuralFeatures().add(configReference);
 					}
 				} else if (deferredRef instanceof DeferredTypeReference typeRef) {
-					if (typeRef.feature != null) {
+					if (typeRef.feature instanceof EReference reference && referencedType instanceof EDataType dataType) {
+						toAttribute(reference, dataType);
+					} else if (typeRef.feature != null) {
 						typeRef.feature.setEType(referencedType);
 					}
 				}
@@ -2418,12 +2533,21 @@ public class JsonSchemaToEPackageConverter {
 	}
 
 	private EDataType mapJsonTypeToEcore(String jsonType) {
+		return mapJsonTypeToEcore(jsonType, null);
+	}
+
+	/**
+	 * Scalars are wrapper types: with a primitive, a {@code 0} or {@code false} in the payload
+	 * equals the Ecore default and is not written again. An integer is a long unless the schema
+	 * says {@code int32} (spec 21 §3).
+	 */
+	private EDataType mapJsonTypeToEcore(String jsonType, String format) {
 		EcorePackage ecorePackage = EcorePackage.eINSTANCE;
 		return switch (jsonType) {
 			case "string" -> ecorePackage.getEString();
-			case "integer" -> ecorePackage.getEInt();
-			case "number" -> ecorePackage.getEDouble();
-			case "boolean" -> ecorePackage.getEBoolean();
+			case "integer" -> "int32".equals(format) ? ecorePackage.getEIntegerObject() : ecorePackage.getELongObject();
+			case "number" -> "float".equals(format) ? ecorePackage.getEFloatObject() : ecorePackage.getEDoubleObject();
+			case "boolean" -> ecorePackage.getEBooleanObject();
 			case "bigDecimal" -> ecorePackage.getEBigDecimal();
 			case "bigInteger" -> ecorePackage.getEBigInteger();
 			case "binary" -> ecorePackage.getEByte();
