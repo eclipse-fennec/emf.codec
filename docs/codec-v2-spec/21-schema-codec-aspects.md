@@ -1,7 +1,8 @@
 # 21 - Schemas and Codec Aspects
 
 > **Status: draft** for #277 (reading) and #271 (writing). Nothing in this chapter is implemented
-> yet; the open questions in §6 are to be decided before the implementation starts.
+> yet. The decisions of §6 were taken on 2026-10-16; the new codec aspects of §6 still need their
+> option counterparts in [16](16-annotation-reference.md).
 
 ## 1. Principle
 
@@ -41,7 +42,18 @@ For a foreign schema `S` and a payload `P` that is valid against `S`:
 | `allOf: [ { $ref: Parent }, { … } ]` | supertype `Parent` | none — `superTypeSerialize` stays off |
 | `oneOf` / `anyOf` of `$ref`s with `discriminator` | abstract base, one subclass per entry | `typeDiscriminatorPath=<propertyName>` on the base, one mapping entry per value of `discriminator.mapping` (implicit mapping: the schema name), see [08](08-discriminator-mapping.md) |
 | `required` | `lowerBound=1` | none |
-| no id concept | no `eID` attribute | none — with no id attribute no `_id` is written |
+| `type: integer` | `EIntegerObject` for `format: int32`, otherwise `ELongObject` | none |
+| `type: number` | `EFloatObject` for `format: float`, otherwise `EDoubleObject` | none |
+| `type: boolean` | `EBooleanObject` | none |
+| `type: string` (any `format`) | `EString`, the `format` kept as annotation | none — the string is kept exactly |
+| `enum` | `EEnum`, literal = the value as written, name = a valid Ecore name derived from it | none — the codec writes the literal |
+| `nullable: true` / `type: [x, "null"]` | feature as above | `serializeNull=true` (§6.1) |
+| `additionalProperties: true` or a schema | catch-all map feature (§6.2) | `additionalPropertiesFeature=<feature>` on the class |
+| `discriminator.propertyName` | ordinary attribute in the subclasses (§6.4) | none |
+| `id` or any other property | ordinary attribute, no `eID` (§6.5) | none — with no id attribute no `_id` is written |
+
+Scalars are wrapper types, never primitives: with a primitive, a `0` or `false` in the payload
+equals the Ecore default, counts as unset and is not written again, which breaks §2.2.
 
 The aspects are set only where the default differs; a generated EPackage carries no annotation that
 repeats a default.
@@ -71,33 +83,47 @@ references and its original keys, so writing it reproduces the foreign schema (�
 `codec.jsonschema.suppressVendorExtensions=true`, the reader honours them. They are what lets a
 codec-written schema round-trip an Ecore that a foreign schema could not express.
 
-## 6. Open questions
+## 6. Decisions
 
-1. **Nullable values.** A property that is `nullable` / `type: [x, "null"]` and is `null` in the
-   payload is read as an unset or null value; the codec does not write it again
-   (`serializeNull=false`), which breaks §2.2. Set `serializeNull=true` on such features, or keep
-   the payload difference?
-2. **`additionalProperties`.** `true` or a schema allows members the class does not declare. Today
-   they are dropped with a warning. Map them to an `EMap` feature with a catch-all reader / writer,
-   or keep dropping?
-3. **`oneOf` / `anyOf` without `discriminator`.** The codec cannot pick the subclass from the
-   payload. Leave the reference typed with the abstract base and fail on read (`fallbackStrategy`),
-   or infer the subclass from the members present?
-4. **Discriminator property.** OpenAPI declares the discriminator property in the subschemas as an
-   ordinary property. Does the codec keep reading it into its feature next to using it for the type
-   decision, and write it from the feature?
-5. **Enum values** that are not valid Ecore literal names (`in-progress`, `1`): kept as the literal
-   (`EEnumLiteral.getLiteral()`), which the codec writes — to be verified.
-6. **`format` values** (`date-time`, `date`, `byte`, …): which data types keep the exact string
-   (fraction digits, offset) through the payload round trip.
-7. **Ids from the schema.** A foreign API often has an `id` property. It stays an ordinary
-   attribute (no `eID`), so references between payloads are not resolved — or is an opt-in to mark
-   it as id wanted?
+1. **Nullable values.** Features of a `nullable` / `type: [x, "null"]` property get
+   `serializeNull=true`: an explicit `null` in the payload is read as a set `null` and written
+   again. An absent member stays unset and is not written.
+2. **`additionalProperties`.** `true` or a schema maps to a catch-all map feature on the class.
+   - New class aspect `additionalPropertiesFeature` (option `codec.additionalPropertiesFeature`,
+     a property map per EClass): names the map feature. On read, every member the class does not
+     declare goes into that map; on write, the map entries are written as members after the
+     declared features. The map feature itself is never a JSON key.
+   - Value type: `additionalProperties: <schema with $ref>` gives a containment map of that class;
+     `true` or `{}` gives a map of JSON values, kept as the raw JSON text of each member.
+   - The feature name is `additionalProperties`, made unique when the class declares a property of
+     that name.
+   - `additionalProperties: false` or absent: no map; an undeclared member is dropped with a
+     warning, as today.
+3. **`oneOf` / `anyOf` without `discriminator`.** The subclass is inferred from the members present.
+   - New class aspect `typeInference=STRUCTURAL` on the abstract base (option
+     `codec.typeInference`, values `NONE` (default) and `STRUCTURAL`).
+   - A subclass is a candidate when every required property is present and, for a class without
+     catch-all map, no member is undeclared in it. Exactly one candidate: that class. Several: the
+     one declaring the most of the present members; a tie is decided by declaration order, with a
+     warning. None: `fallbackStrategy` of [08](08-discriminator-mapping.md).
+   - A discriminator, an explicit type key or a root type hint wins over inference.
+4. **Discriminator property.** The discriminator property stays an ordinary attribute in the
+   subclasses: reading uses its value for the type decision **and** sets the attribute; writing
+   writes the attribute. When the attribute is unset, the writer writes the mapped value of the
+   object's class, so the payload always carries it. It is never written twice.
+5. **Ids.** A schema property named `id` (or any other) is an ordinary attribute. No `eID`, no
+   `_id`, references between payloads are not resolved.
+6. **Enum and `format`** (verified against the reader): the enum literal is the value as written and
+   is what the codec writes; `format` of strings is only annotated, the value stays an exact string.
+   Literal *names* are to be sanitized (`in-progress`, `1` are no valid Ecore names); integer and
+   number types follow the table of §3 instead of today's `EInt` / `EDouble`.
 
 ## 7. Test plan
 
 - Petstore (OpenAPI 3.0) and one larger public OpenAPI document as test data, each with example
   payloads from the document's `examples`.
 - Both acceptance checks of §2 per schema and payload.
+- Payloads with explicit `null`, `0`, `false`, large `int64` values, undeclared members under
+  `additionalProperties`, and `oneOf` without discriminator.
 - A codec-written schema (EPackage → schema → EPackage) keeps classes, references, containment
   and supertypes, as today.
