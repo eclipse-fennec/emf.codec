@@ -30,6 +30,7 @@ export const GUIDES = [
   { file: 'codec-v2-spec/18-scenarios.md', title: '18 · Configuration Scenarios', group: 'Specification' },
   { file: 'codec-v2-spec/19-test-coverage.md', title: '19 · Test Coverage & Expectations', group: 'Specification' },
   { file: 'codec-v2-spec/20-code-conventions.md', title: '20 · Code Conventions & Patterns', group: 'Specification' },
+  { file: 'codec-v2-spec/21-schema-codec-aspects.md', title: '21 · Schemas and Codec Aspects', group: 'Specification' },
 
   // Standalone references.
   { file: 'codec-options-reference.md', title: 'Codec Options Reference', group: 'References' },
