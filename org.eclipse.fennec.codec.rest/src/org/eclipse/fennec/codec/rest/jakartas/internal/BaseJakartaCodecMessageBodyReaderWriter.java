@@ -187,19 +187,35 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 			}
 
 			resource.load(entityStream, options);
+			// Read leniently, but nothing came out: the errors say why, and they are the
+			// document's (issue #265)
+			if (resource.getContents().isEmpty() && !resource.getErrors().isEmpty()) {
+				throw badRequest(genericType, DocumentErrors.describe(resource.getErrors()), null);
+			}
 			checkResourceByAnnotation(resource, annotations);
 			return resource;
 		} catch (WebApplicationException wae) {
 			throw wae;
 		} catch (Exception e) {
-			// Same reasoning as in writeResourceTo: log the cause here, keep the body generic
-			// (issue #165).
+			// Same reasoning as in writeResourceTo: log the cause here (issue #165)
 			LOGGER.log(Level.SEVERE, String.format("[%s] Error de-serializing incoming data as [%s]",
 					genericType.getTypeName(), determinContentType(mediaType, annotations)), e);
+			// A failure caused by the document is the client's: 400 with what is wrong with it.
+			// Anything else keeps the generic body, details would leak internals (issue #265).
+			String documentError = DocumentErrors.describe(e);
+			if (documentError != null) {
+				throw badRequest(genericType, documentError, e);
+			}
 			String errorText = String.format("[%s] Error de-serializing incoming data", genericType.getTypeName());
 			Response r = Response.serverError().entity(errorText).type(MediaType.TEXT_PLAIN).build();
 			throw new WebApplicationException(e, r);
 		}
+	}
+
+	private static WebApplicationException badRequest(Type genericType, String documentError, Exception cause) {
+		String errorText = String.format("[%s] Invalid document: %s", genericType.getTypeName(), documentError);
+		Response r = Response.status(Response.Status.BAD_REQUEST).entity(errorText).type(MediaType.TEXT_PLAIN).build();
+		return new WebApplicationException(cause, r);
 	}
 
 	/**

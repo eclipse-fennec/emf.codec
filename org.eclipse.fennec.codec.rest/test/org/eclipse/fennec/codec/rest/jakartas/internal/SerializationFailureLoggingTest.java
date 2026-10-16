@@ -18,11 +18,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -187,8 +186,13 @@ class SerializationFailureLoggingTest {
 	@Test
 	@DisplayName("a failed read logs the full cause and responds with a generic body")
 	void failedReadIsLoggedAndBodyStaysGeneric() {
-		ByteArrayInputStream broken = new ByteArrayInputStream(
-				"this is not xml at all".getBytes(StandardCharsets.UTF_8));
+		// A server fault - a malformed document is the client's and answered with 400 (issue #265)
+		InputStream broken = new InputStream() {
+			@Override
+			public int read() throws IOException {
+				throw new IOException(SECRET);
+			}
+		};
 
 		WebApplicationException thrown = assertThrows(WebApplicationException.class,
 				() -> handler.readFrom(EObject.class, EObject.class, NO_ANNOTATIONS, MEDIA_TYPE,

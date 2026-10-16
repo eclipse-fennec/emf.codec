@@ -31,6 +31,7 @@ import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.util.TokenLoops;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
+import org.eclipse.fennec.codec.diagnostic.CodecDocumentException;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -785,7 +786,7 @@ public class TypeDeserializationEntry implements DeserializationEntry {
         if (ContextHelper.isStrictMode(ctxt)) {
             LOGGER.severe(message);
             ContextHelper.addError(ctxt, message, "TypeDeserializationEntry");
-            throw new IllegalStateException(message);
+            throw new CodecDocumentException(message);
         }
         if (firstReport) {
             LOGGER.warning(message);

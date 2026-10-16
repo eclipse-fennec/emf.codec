@@ -56,6 +56,7 @@ import org.eclipse.fennec.codec.util.TokenLoops;
 import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
+import org.eclipse.fennec.codec.diagnostic.CodecDocumentException;
 
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -1143,7 +1144,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                     String msg = "Unknown feature '" + propertyName + "' for EClass " + eClass.getName();
                     LOGGER.warning(msg);
                     ContextHelper.addError(ctxt, msg, null, "CodecEObjectDeserializer");
-                    throw new IllegalStateException(msg);
+                    throw new CodecDocumentException(msg);
                 } else {
                     LOGGER.fine("Skipping unknown deferred property: " + propertyName);
                     ContextHelper.addWarning(ctxt,
@@ -1200,7 +1201,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             LOGGER.warning(msg);
             ContextHelper.addError(ctxt, msg, null, PREFIX_SOURCE);
             if (ContextHelper.isStrictMode(ctxt)) {
-                throw new IllegalStateException(msg, e);
+                throw new CodecDocumentException(msg, e);
             }
         }
     }
@@ -1456,7 +1457,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                 String msg = "Unknown feature '" + propertyName + "' for EClass " + eClass.getName();
                 LOGGER.warning(msg);
                 ContextHelper.addError(ctxt, msg, parser, "CodecEObjectDeserializer");
-                throw new IllegalStateException(msg);
+                throw new CodecDocumentException(msg);
             } else {
                 // Lenient mode (default): skip with warning
                 LOGGER.fine("Unknown property: " + propertyName);
@@ -1522,7 +1523,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
                     + String.join(", ", missingFeatures);
             LOGGER.warning(msg);
             ContextHelper.addError(ctxt, msg, parser, "CodecEObjectDeserializer");
-            throw new IllegalStateException(msg);
+            throw new CodecDocumentException(msg);
         }
     }
 

@@ -4,6 +4,18 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-10-16
 
+**Session Summary (2026-10-16, fix/issue-265-document-errors-400) — #265 REST 400 for document errors:**
+
+- `CodecDocumentException` (codec.api, extends `IllegalStateException`) at the STRICT /
+  strictOnUnknown / strictOnConversion / strictOnMissing / fingerprint / prefix-reader aborts;
+  `UnknownDiscriminatorException` (codec.metadata) for fallback `ERROR`.
+- REST `readResourceFrom`: `DocumentErrors.describe` classifies the cause chain (XMIException,
+  SAXParseException, CodecDiagnosticException, the two above, JacksonException except
+  `JacksonIOException`) → `400` "[type] Invalid document: …" with line/column, without the
+  `temp/id` URI; a lenient load with errors and no content is `400` too. Everything else `500`.
+  codec.rest now has codec.metadata and jackson-core on its buildpath.
+- Tests: `DocumentErrorResponseTest`; the #165 read test now uses a failing stream (server fault).
+
 **Session Summary (2026-10-16, wave/issue-277-schema-codec-aspects) — #271 (phase 3, writing):**
 
 - `ModelAnnotations.withAnnotationsOf` (codec util): the schema writer sees the codec annotations of
