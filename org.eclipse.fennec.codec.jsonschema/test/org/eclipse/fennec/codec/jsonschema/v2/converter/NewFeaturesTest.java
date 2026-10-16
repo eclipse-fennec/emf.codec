@@ -37,6 +37,7 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.jsonschema.v2.JsonSchemaResourceImpl;
 import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
+import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -883,7 +884,7 @@ class NewFeaturesTest {
 			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
 			JsonNode createdAt = root.get("properties").get("createdAt");
 			assertNotNull(createdAt, "createdAt property should exist");
-			assertEquals("string", createdAt.get("type").asArray().get(0).asString(),
+			assertEquals("string", createdAt.get("type").asString(),
 				"EDate should serialize as type:string");
 			assertEquals("date-time", createdAt.get("format").asString(),
 				"EDate should have format:date-time");
@@ -911,7 +912,7 @@ class NewFeaturesTest {
 
 			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
 			JsonNode eventDate = root.get("properties").get("eventDate");
-			assertEquals("string", eventDate.get("type").asArray().get(0).asString());
+			assertEquals("string", eventDate.get("type").asString());
 			assertEquals("date", eventDate.get("format").asString(),
 				"Explicit format annotation should take precedence");
 		}
@@ -940,7 +941,7 @@ class NewFeaturesTest {
 			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
 			JsonNode analysisDate = root.get("properties").get("analysisDate");
 			assertNotNull(analysisDate.get("description"), "description should be present");
-			assertEquals("string", analysisDate.get("type").asArray().get(0).asString(),
+			assertEquals("string", analysisDate.get("type").asString(),
 				"EDate should have type:string even with description");
 			assertEquals("date-time", analysisDate.get("format").asString(),
 				"EDate should have format:date-time even with description");
@@ -998,11 +999,11 @@ class NewFeaturesTest {
 			assertNotNull(addressDef, "Address should be defined in $defs");
 			assertEquals("object", addressDef.get("type").asString());
 
-			// $ref should point to $defs/Address
+			// The reference is written as the codec writes it; x-ref points to $defs/Address
 			JsonNode homeProperty = root.get("properties").get("home");
 			assertNotNull(homeProperty);
-			String ref = homeProperty.get("$ref").asString();
-			assertEquals("#/$defs/Address", ref);
+			assertNotNull(homeProperty.at("/properties/_ref"), homeProperty.toString());
+			assertEquals("#/$defs/Address", homeProperty.get("x-ref").asString());
 		}
 
 		@Test
@@ -1138,12 +1139,12 @@ class NewFeaturesTest {
 	// ========================================================================
 
 	@Nested
-	@DisplayName("additionalProperties: false by default")
+	@DisplayName("additionalProperties only where the model says so (spec 21 §6.2)")
 	class AdditionalPropertiesTests {
 
 		@Test
-		@DisplayName("EClass converter emits additionalProperties:false")
-		void eClassConverterEmitsAdditionalPropertiesFalse() throws IOException {
+		@DisplayName("EClass converter writes no additionalProperties for a class without catch-all or annotation")
+		void eClassConverterEmitsNoAdditionalProperties() throws IOException {
 			EClass eClass = EcoreFactory.eINSTANCE.createEClass();
 			eClass.setName("Simple");
 
@@ -1158,13 +1159,12 @@ class NewFeaturesTest {
 
 			JsonNode root = JsonMapper.builder().build().readTree(baos.toByteArray());
 			assertEquals("object", root.get("type").asString());
-			assertNotNull(root.get("additionalProperties"), "additionalProperties should be present");
-			assertFalse(root.get("additionalProperties").asBoolean(), "additionalProperties should be false");
+			assertNull(root.get("additionalProperties"), "nothing in the model says additionalProperties");
 		}
 
 		@Test
-		@DisplayName("EPackage converter emits additionalProperties:false on all object definitions")
-		void ePackageConverterEmitsAdditionalPropertiesFalse() throws IOException {
+		@DisplayName("a schema round trip keeps additionalProperties as the source had it")
+		void ePackageConverterKeepsSourceAdditionalProperties() throws IOException {
 			String json = """
 				{
 					"$id": "http://example.org/test",
@@ -1180,7 +1180,8 @@ class NewFeaturesTest {
 							"type": "object",
 							"properties": {
 								"street": { "type": "string" }
-							}
+							},
+							"additionalProperties": false
 						}
 					}
 				}
@@ -1200,21 +1201,19 @@ class NewFeaturesTest {
 			JsonNode definitions = root.get("definitions");
 
 			JsonNode person = definitions.get("Person");
-			assertNotNull(person.get("additionalProperties"),
-				"Person should have additionalProperties");
-			assertFalse(person.get("additionalProperties").asBoolean(),
-				"Person additionalProperties should be false");
+			assertNull(person.get("additionalProperties"),
+				"Person had no additionalProperties");
 
 			JsonNode address = definitions.get("Address");
 			assertNotNull(address.get("additionalProperties"),
-				"Address should have additionalProperties");
+				"Address should keep additionalProperties");
 			assertFalse(address.get("additionalProperties").asBoolean(),
-				"Address additionalProperties should be false");
+				"Address additionalProperties should stay false");
 		}
 
 		@Test
-		@DisplayName("nested object references also get additionalProperties:false")
-		void nestedObjectsGetAdditionalPropertiesFalse() throws IOException {
+		@DisplayName("nested object definitions get no additionalProperties of their own")
+		void nestedObjectsGetNoAdditionalProperties() throws IOException {
 			EPackage ePackage = EcoreFactory.eINSTANCE.createEPackage();
 			ePackage.setName("test");
 			ePackage.setNsPrefix("test");
@@ -1249,9 +1248,8 @@ class NewFeaturesTest {
 			JsonNode root = JsonMapper.builder().build().readTree(output);
 			JsonNode definitions = root.get("definitions");
 
-			// Both top-level classes should have additionalProperties:false
-			assertFalse(definitions.get("Person").get("additionalProperties").asBoolean());
-			assertFalse(definitions.get("Address").get("additionalProperties").asBoolean());
+			assertNull(definitions.get("Person").get("additionalProperties"));
+			assertNull(definitions.get("Address").get("additionalProperties"));
 		}
 	}
 
@@ -1901,6 +1899,10 @@ class NewFeaturesTest {
 			name.setName("name");
 			name.setEType(EcorePackage.Literals.ESTRING);
 			eClass.getEStructuralFeatures().add(name);
+			EAnnotation closed = EcoreFactory.eINSTANCE.createEAnnotation();
+			closed.setSource(JSONSCHEMA_ANNOTATION_SOURCE);
+			closed.getDetails().put("additionalProperties", "false");
+			eClass.getEAnnotations().add(closed);
 
 			// Without suppression: additionalProperties present
 			JsonNode withoutSuppression = convertEClass(eClass, Map.of());
@@ -2113,7 +2115,7 @@ class NewFeaturesTest {
 	class OneOfAbstractRefTests {
 
 		@Test
-		@DisplayName("non-containment ref to abstract EClass uses oneOf by default")
+		@DisplayName("ref to abstract EClass uses oneOf by default")
 		void nonContainmentAbstractRef_usesOneOfByDefault() throws IOException {
 			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
 			pkg.setName("test");
@@ -2148,7 +2150,9 @@ class NewFeaturesTest {
 			EReference resultsRef = EcoreFactory.eINSTANCE.createEReference();
 			resultsRef.setName("results");
 			resultsRef.setEType(abstractResult);
-			resultsRef.setContainment(false);
+			// a non-containment reference is written as {_ref, _type} (spec 21 §4); the abstract
+			// union keyword applies to the objects of a containment
+			resultsRef.setContainment(true);
 			resultsRef.setUpperBound(-1);
 			container.getEStructuralFeatures().add(resultsRef);
 			pkg.getEClassifiers().add(container);
@@ -2281,7 +2285,7 @@ class NewFeaturesTest {
 			EReference ref = EcoreFactory.eINSTANCE.createEReference();
 			ref.setName("items");
 			ref.setEType(abstractResult);
-			ref.setContainment(false);
+			ref.setContainment(true);
 			ref.setUpperBound(-1);
 			container.getEStructuralFeatures().add(ref);
 			pkg.getEClassifiers().add(container);
@@ -3122,7 +3126,7 @@ class NewFeaturesTest {
 		}
 
 		@Test
-		@DisplayName("inlines non-containment reference instead of $ref")
+		@DisplayName("a non-containment reference keeps the reference shape under inlineRefs")
 		void inlinesNonContainmentReference() throws IOException {
 			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
 			pkg.setName("test");
@@ -3155,11 +3159,13 @@ class NewFeaturesTest {
 
 			assertNull(root.get("$defs"), "$defs should not be present when inlining");
 
+			// A non-containment reference is written as the codec writes it, not inlined (spec 21 §4)
 			JsonNode home = root.get("properties").get("home");
 			assertNotNull(home);
 			assertNull(home.get("$ref"), "home should not use $ref");
 			assertEquals("object", home.get("type").asString());
-			assertNotNull(home.get("properties").get("street"));
+			assertNotNull(home.get("properties").get("_ref"));
+			assertNull(home.get("properties").get("street"));
 		}
 
 		@Test
@@ -3412,7 +3418,7 @@ class NewFeaturesTest {
 		}
 
 		@Test
-		@DisplayName("single-valued abstract non-containment reference is inlined")
+		@DisplayName("a single-valued abstract non-containment reference keeps the reference shape")
 		void inlinesSingleValuedAbstractNonContainment() throws IOException {
 			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
 			pkg.setName("test");
@@ -3460,15 +3466,11 @@ class NewFeaturesTest {
 
 			assertNull(root.get("$defs"), "$defs should not be present");
 
+			// A non-containment reference is written as the codec writes it (spec 21 §4)
 			JsonNode pet = root.get("properties").get("pet");
-			JsonNode oneOf = pet.get("oneOf");
-			assertNotNull(oneOf, "abstract non-containment should produce oneOf");
-			assertEquals(2, oneOf.size());
-
-			for (JsonNode entry : oneOf) {
-				assertNull(entry.get("$ref"), "oneOf entries should be inlined, not $ref");
-				assertEquals("object", entry.get("type").asString());
-			}
+			assertNull(pet.get("oneOf"), pet.toString());
+			assertNotNull(pet.get("properties").get("_ref"), pet.toString());
+			assertNotNull(pet.get("properties").get("_type"), pet.toString());
 		}
 	}
 
@@ -3682,7 +3684,7 @@ class NewFeaturesTest {
 		}
 
 		@Test
-		@DisplayName("writes nullable type for optional string EAttribute")
+		@DisplayName("writes nullable type for an optional string EAttribute with serializeNull")
 		void writesNullableTypeForOptionalString() throws IOException {
 			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
 			pkg.setName("TestPkg");
@@ -3702,6 +3704,7 @@ class NewFeaturesTest {
 			optional.setName("nickname");
 			optional.setEType(EcorePackage.Literals.ESTRING);
 			optional.setLowerBound(0);
+			serializeNull(optional);
 			person.getEStructuralFeatures().add(optional);
 
 			pkg.getEClassifiers().add(person);
@@ -3729,7 +3732,7 @@ class NewFeaturesTest {
 		}
 
 		@Test
-		@DisplayName("writes nullable type for optional integer EAttribute")
+		@DisplayName("writes nullable type for an optional integer EAttribute with serializeNull")
 		void writesNullableTypeForOptionalInteger() throws IOException {
 			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
 			pkg.setName("TestPkg");
@@ -3743,6 +3746,7 @@ class NewFeaturesTest {
 			count.setName("count");
 			count.setEType(EcorePackage.Literals.EINT);
 			count.setLowerBound(0);
+			serializeNull(count);
 			item.getEStructuralFeatures().add(count);
 
 			pkg.getEClassifiers().add(item);
@@ -3812,7 +3816,7 @@ class NewFeaturesTest {
 		}
 
 		@Test
-		@DisplayName("writes default value for optional enum EAttribute instead of nullable type")
+		@DisplayName("writes no invented default for an optional enum EAttribute")
 		void writesDefaultForOptionalEnum() throws IOException {
 			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
 			pkg.setName("TestPkg");
@@ -3868,17 +3872,15 @@ class NewFeaturesTest {
 			assertNull(properties.get("primaryColor").get("default"),
 					"required enum should not have a default value");
 
-			// Optional enum should have simple string type with a default value
+			// Optional enum: simple string type, no default the model does not state (spec 21 §4)
 			JsonNode secondaryType = properties.get("secondaryColor").get("type");
 			assertTrue(secondaryType.isString(), "optional enum should still have simple string type");
 			assertEquals("string", secondaryType.asString());
-			JsonNode defaultValue = properties.get("secondaryColor").get("default");
-			assertNotNull(defaultValue, "optional enum should have a default value");
-			assertEquals("RED", defaultValue.asString(), "default should be the first enum literal");
+			assertNull(properties.get("secondaryColor").get("default"));
 		}
 
 		@Test
-		@DisplayName("writes nullable type for optional boolean EAttribute")
+		@DisplayName("writes nullable type for an optional boolean EAttribute with serializeNull")
 		void writesNullableTypeForOptionalBoolean() throws IOException {
 			EPackage pkg = EcoreFactory.eINSTANCE.createEPackage();
 			pkg.setName("TestPkg");
@@ -3892,6 +3894,7 @@ class NewFeaturesTest {
 			enabled.setName("enabled");
 			enabled.setEType(EcorePackage.Literals.EBOOLEAN);
 			enabled.setLowerBound(0);
+			serializeNull(enabled);
 			settings.getEStructuralFeatures().add(enabled);
 
 			pkg.getEClassifiers().add(settings);
@@ -3907,5 +3910,13 @@ class NewFeaturesTest {
 			assertEquals("boolean", enabledType.get(0).asString());
 			assertEquals("null", enabledType.get(1).asString());
 		}
+	}
+
+	/** null is written for the feature, so the schema allows it (spec 21 §4). */
+	private static void serializeNull(EStructuralFeature feature) {
+		EAnnotation codec = EcoreFactory.eINSTANCE.createEAnnotation();
+		codec.setSource(AnnotationSources.CODEC);
+		codec.getDetails().put("serializeNull", "true");
+		feature.getEAnnotations().add(codec);
 	}
 }

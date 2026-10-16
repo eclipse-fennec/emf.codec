@@ -107,10 +107,10 @@ public class JsonSchemaRoundTripComparisonIntegrationTest {
 	 * documentation/identity keywords, nullability decoration).
 	 */
 	private static final List<String> EXPECTED_CORE_IR_GAPS = List.of(
-			// (1) Synthetic classifiers (inline enums, additionalProperties map-entry
-			//     classes, the anonymous dataStructures value type) leak into $defs as
-			//     named definitions the source never had.
-			"#/$defs: unexpected entries [DataSinkConnectionType, DataSinkMethod, DataSourceConnectionType, DataStructure, DataStructuresMapEntry, FieldsMapEntry, PipelineEdgeKind]",
+			// (1) Synthetic classifiers (additionalProperties map-entry classes, the
+			//     anonymous dataStructures value type) leak into $defs as named
+			//     definitions the source never had. Inline enums stay inline (#271).
+			"#/$defs: unexpected entries [DataStructure, DataStructuresMapEntry, FieldsMapEntry]",
 
 			// (2) additionalProperties maps round-trip as type:array (the …MapEntry
 			//     transformation is not reversed): the map value-schema is dropped, the
@@ -124,19 +124,14 @@ public class JsonSchemaRoundTripComparisonIntegrationTest {
 			"#/properties/dataStructures/items: present on round-trip only",
 			"#/properties/dataStructures/type: type expected [object] but was [array]",
 
-			// (3) oneOf unions are not reconstructed: the abstract base loses its oneOf
-			//     and becomes a bare object; the MappingField string|$ref variants are
-			//     mangled (string variant becomes an object, the $ref variant becomes an
-			//     inline {value} object).
+			// (3) The MappingField string|$ref variants are mangled (string variant
+			//     becomes an object, the $ref variant becomes an inline {value} object).
+			//     oneOf unions of $refs are reconstructed since #271.
 			"#/$defs/MappingField/oneOf[0]/type: type expected [string] but was [object]",
 			"#/$defs/MappingField/oneOf[1]/$ref: missing '$ref' (expected \"#/$defs/MappingOperation\")",
 			"#/$defs/MappingField/oneOf[1]/properties: unexpected entries [value]",
 			"#/$defs/MappingField/oneOf[1]/required: required expected [] but was [value]",
 			"#/$defs/MappingField/oneOf[1]/type: type expected [] but was [object]",
-			"#/$defs/MappingOperation/oneOf: present on original only",
-			"#/$defs/MappingOperation/type: type expected [] but was [object]",
-			"#/$defs/PipelineNode/oneOf: present on original only",
-			"#/$defs/PipelineNode/type: type expected [] but was [object]",
 
 			// (4) $ref collections lose their required membership. (Until issue #43
 			//     they also lost type:array — the feature inherited a spurious
@@ -161,14 +156,13 @@ public class JsonSchemaRoundTripComparisonIntegrationTest {
 			"#/properties/fields/type: type expected [object] but was [array]",
 			"#/required: required expected [fields, id, source, target] but was [id, source, target]",
 
-			// (3) oneOf unions are not reconstructed.
+			// (3) The MappingField string|$ref variants are mangled; oneOf unions of $refs
+			//     are reconstructed since #271.
 			"#/$defs/MappingField/oneOf[0]/type: type expected [string] but was [object]",
 			"#/$defs/MappingField/oneOf[1]/$ref: missing '$ref' (expected \"#/$defs/MappingOperation\")",
 			"#/$defs/MappingField/oneOf[1]/properties: unexpected entries [value]",
 			"#/$defs/MappingField/oneOf[1]/required: required expected [] but was [value]",
-			"#/$defs/MappingField/oneOf[1]/type: type expected [] but was [object]",
-			"#/$defs/MappingOperation/oneOf: present on original only",
-			"#/$defs/MappingOperation/type: type expected [] but was [object]");
+			"#/$defs/MappingField/oneOf[1]/type: type expected [] but was [object]");
 
 	@InjectService(filter = "(emf.contentType=application/schema+json)")
 	ResourceSet resourceSet;

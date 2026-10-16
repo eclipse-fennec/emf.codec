@@ -70,28 +70,42 @@ resource.save(out, null);
   "components": {
     "schemas": {
       "Person": {
-        "additionalProperties": false,
         "type": "object",
         "properties": {
+          "_type": { "type": "string", "x-codec": "type" },
           "address": { "$ref": "#/components/schemas/Address", "x-containment": true },
-          "friend": { "$ref": "#/components/schemas/Person" },
-          "firstName": { "type": "string", "nullable": true }
+          "friend": {
+            "type": "object",
+            "properties": { "_ref": { "type": "string" }, "_type": { "type": "string" } },
+            "required": ["_ref"],
+            "x-containment": false,
+            "x-ref": "#/components/schemas/Person"
+          },
+          "firstName": { "type": "string" }
         }
       },
       "Address": {
-        "additionalProperties": false,
         "type": "object",
-        "properties": { "city": { "type": "string" } },
+        "properties": { "_type": { "type": "string", "x-codec": "type" }, "city": { "type": "string" } },
         "required": ["city"]
       },
       "Employee": {
-        "additionalProperties": false,
-        "allOf": [ { "$ref": "#/components/schemas/Person" }, { "type": "object" } ]
+        "allOf": [
+          { "$ref": "#/components/schemas/Person" },
+          { "type": "object", "properties": { "_type": { "type": "string", "x-codec": "type" } } }
+        ]
       }
     }
   }
 }
 ```
+
+The schemas describe the JSON the codec writes for instances of the classes, under the codec
+configuration of the model and the save options ([spec 21](/guides/21-schema-codec-aspects) §4):
+`_type` because the default type strategy writes it, a non-containment reference as the
+`{_ref, _type}` object the codec writes for it, an id attribute under `_id` (`ID_ONLY`). A model
+whose classes say `typeStrategy=NONE` gets no `_type`, one with `refFormat=PLAIN` a string
+reference.
 
 `paths` is always written, as `{}` when there are no entries: OpenAPI 3.0 requires the member
 (#276).
@@ -116,15 +130,20 @@ classifier name. ExtendedMetaData names are used only with
 `codec.jsonschema.useNamesFromExtendedMetadata=true`. Every reference and every supertype is a
 `$ref` to `#/components/schemas/<name>`.
 
-**Nullability.** OpenAPI 3.0 has no `"null"` type: an optional attribute is written as a single
-`type` with `nullable: true`, a multi-type `dataType` annotation becomes `anyOf`. For a document
-with `openapi` 3.1 or later the Schema Object is JSON Schema 2020-12 and keeps the type array
+**Nullability.** `null` is part of a schema only where the codec writes it: for a feature with
+`serializeNull=true`. OpenAPI 3.0 has no `"null"` type, so such an attribute is a single `type`
+with `nullable: true`, and a multi-type `dataType` annotation becomes `anyOf`. For a document with
+`openapi` 3.1 or later the Schema Object is JSON Schema 2020-12 and keeps the type array
 (`"type": ["string", "null"]`). The codec decides by the `openapi` value of the document; the
 option `codec.jsonschema.nullableKeyword` set by the caller wins.
 
-Containment references carry the vendor extension `x-containment: true`;
-`codec.jsonschema.suppressVendorExtensions=true` leaves the `x-` keywords out. Classes are closed
-with `additionalProperties: false`.
+**`additionalProperties`** is written as the source schema had it, `true` (or a `$ref`) for a class
+with a catch-all map, and not at all otherwise.
+
+**Vendor extensions.** `x-containment` marks containment, `x-codec` the members the codec writes for
+the object itself (`type`, `superType`, `id`), `x-ref` the target of a non-containment reference.
+They let a codec-written schema be read back into the same model;
+`codec.jsonschema.suppressVendorExtensions=true` leaves them out.
 
 The other JSON Schema options (`codec.jsonschema.*`, see the
 [options reference](/guides/codec-options-reference)) apply to `components/schemas` as well, passed
@@ -160,7 +179,5 @@ EClass; it refers to the generated types with `ref` (`"$ref": "#/components/sche
 
 ## Known gaps
 
-- The schemas describe the EClasses, not the JSON the codec writes for their instances: `_id` and
-  `_type`, which the codec writes by default, are not part of the generated schema (#271).
 - YAML documents are not supported.
 - `$ref`s to other documents are kept as strings; the codec does not load them.

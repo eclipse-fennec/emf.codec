@@ -39,9 +39,20 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.codec.config.ClassConfig;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.util.ModelAnnotations;
 import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
 import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
+import org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants;
+import org.eclipse.fennec.codec.config.FeatureConfig;
+import org.eclipse.fennec.codec.config.IdConfig;
+import org.eclipse.fennec.codec.config.SuperTypeConfig;
+import org.eclipse.fennec.codec.config.TypeConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.IdKeyMode;
+import org.eclipse.fennec.codec.metadata.model.codec.IdStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
+import org.eclipse.fennec.codec.config.ReferenceConfig;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.JsonNode;
@@ -156,7 +167,9 @@ public class EPackageToJsonSchemaConverter {
 		this.inlineStack.clear();
 		this.suppressedKeywords = resolveSuppressedKeywords(this.options);
 		this.suppressVendorExtensions = Boolean.TRUE.equals(this.options.get(CodecJsonSchemaOptions.OPTION_SUPPRESS_VENDOR_EXTENSIONS));
-		this.configurationResolver = resolver != null ? resolver : ConfigurationResolver.defaults();
+		// The schema describes the JSON the codec writes, so it needs the codec configuration of
+		// this package - also when no metadata service knows it (spec 21 §4)
+		this.configurationResolver = ModelAnnotations.withAnnotationsOf(resolver, ePackage);
 		this.featureDiagnostics = new DiagnosticCollector();
 
 		JsonMapper.Builder mapperBuilder = JsonMapper.builder();
@@ -266,12 +279,7 @@ public class EPackageToJsonSchemaConverter {
 	private void writeTopLevelProperties(EClass rootClass, JsonGenerator gen) throws IOException {
 		gen.writeStringProperty("type", "object");
 
-		String additionalProperties = extractAnnotationDetail(rootClass, AnnotationSources.JSONSCHEMA, "additionalProperties");
-		if (additionalProperties != null) {
-			writeAdditionalProperties(additionalProperties, gen);
-		} else {
-			gen.writeBooleanProperty("additionalProperties", false);
-		}
+		writeClassAdditionalProperties(rootClass, gen);
 
 		// Collect required properties
 		List<EStructuralFeature> rootFeatures = schemaFeatures(rootClass);
@@ -384,6 +392,10 @@ public class EPackageToJsonSchemaConverter {
 			if (processedClassifiers.containsKey(classifier.getName())) {
 				continue;
 			}
+			// An enum the reader derived from an inline property enum stays inline (spec 21 §4)
+			if ("true".equals(extractAnnotationDetail(classifier, AnnotationSources.JSONSCHEMA, "inline"))) {
+				continue;
+			}
 
 			String discriminatedUnion = extractAnnotationDetail(classifier, AnnotationSources.JSONSCHEMA, "discriminatedUnion");
 			if ("true".equals(discriminatedUnion) && classifier instanceof EClass eClass) {
@@ -481,6 +493,8 @@ public class EPackageToJsonSchemaConverter {
 			String commonBase = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "commonBase");
 			if ("true".equals(commonBase)) {
 				writeContextSpecificVariantsAsOneOf(eClass, gen);
+			} else if (isRefUnion(eClass)) {
+				writeRefUnion(eClass, gen);
 			} else {
 				writeEClass(eClass, gen);
 			}
@@ -488,6 +502,72 @@ public class EPackageToJsonSchemaConverter {
 			writeEEnum(eEnum, gen);
 		} else if (classifier instanceof EDataType eDataType) {
 			writeEDataType(eDataType, gen);
+		}
+	}
+
+	/** A class the reader made from a {@code oneOf} of {@code $ref}s. */
+	private boolean isRefUnion(EClass eClass) {
+		return "true".equals(extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "oneOfRefUnion"));
+	}
+
+	/**
+	 * Writes a {@code oneOf} union back as the source had it: the referenced schemas in their
+	 * order, and its discriminator (spec 21 §2.1).
+	 */
+	private void writeRefUnion(EClass union, JsonGenerator gen) throws IOException {
+		gen.writeStartObject();
+		String description = extractAnnotationDetail(union, AnnotationSources.GEN_MODEL, "documentation");
+		if (description != null && !isSuppressed("description")) {
+			gen.writeStringProperty("description", description);
+		}
+		gen.writeArrayPropertyStart("oneOf");
+		String refs = extractAnnotationDetail(union, AnnotationSources.JSONSCHEMA, "oneOfRefs");
+		if (refs != null) {
+			for (String name : refs.split(",")) {
+				EClassifier member = currentPackage.getEClassifier(name);
+				gen.writeStartObject();
+				gen.writeStringProperty("$ref", buildRef(member != null ? getOriginalName(member) : name, null, member));
+				gen.writeEndObject();
+			}
+		} else {
+			writeSubclassRefs(union, gen);
+		}
+		gen.writeEndArray();
+		writeDiscriminator(union, gen);
+		gen.writeEndObject();
+	}
+
+	/**
+	 * Writes the OpenAPI {@code discriminator} of a class with a type mapping registry: the
+	 * property, and a mapping entry for every subclass whose value is not its schema name.
+	 */
+	private void writeDiscriminator(EClass base, JsonGenerator gen) throws IOException {
+		for (EAnnotation annotation : base.getEAnnotations()) {
+			String source = annotation.getSource();
+			String path = annotation.getDetails().get(CodecAnnotationConstants.KEY_TYPE_DISCRIMINATOR_PATH);
+			if (source == null || !source.startsWith(AnnotationSources.TYPE_MAPPING_PREFIX) || path == null) {
+				continue;
+			}
+			gen.writeObjectPropertyStart("discriminator");
+			gen.writeStringProperty("propertyName", path);
+			boolean mappingStarted = false;
+			for (EClassifier classifier : currentPackage.getEClassifiers()) {
+				EAnnotation registration = classifier.getEAnnotation(source);
+				String value = registration != null
+						? registration.getDetails().get(CodecAnnotationConstants.KEY_TYPE_DISCRIMINATOR) : null;
+				if (value != null && !value.equals(getOriginalName(classifier))) {
+					if (!mappingStarted) {
+						gen.writeObjectPropertyStart("mapping");
+						mappingStarted = true;
+					}
+					gen.writeStringProperty(value, buildRef(getOriginalName(classifier), null, classifier));
+				}
+			}
+			if (mappingStarted) {
+				gen.writeEndObject();
+			}
+			gen.writeEndObject();
+			return;
 		}
 	}
 
@@ -545,7 +625,7 @@ public class EPackageToJsonSchemaConverter {
 		}
 
 		gen.writeStringProperty("type", "object");
-		gen.writeBooleanProperty("additionalProperties", false);
+		writeClassAdditionalProperties(variant, gen);
 
 		// Collect all properties (from base + variant)
 		List<EStructuralFeature> allFeatures = new ArrayList<>();
@@ -589,7 +669,6 @@ public class EPackageToJsonSchemaConverter {
 
 	private void writeEClassContent(EClass eClass, JsonGenerator gen) throws IOException {
 		String topLevelArray = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "source");
-		String additionalProperties = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "additionalProperties");
 		String description = extractAnnotationDetail(eClass, AnnotationSources.GEN_MODEL, "documentation");
 		String comment = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "comment");
 		String deprecated = extractAnnotationDetail(eClass, AnnotationSources.GEN_MODEL, "deprecated");
@@ -624,12 +703,8 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeBooleanProperty("x-interface", true);
 		}
 
-		if (!isSuppressed("additionalProperties")) {
-			if (additionalProperties != null) {
-				writeAdditionalProperties(additionalProperties, gen);
-			} else if (!"TopLevelArray".equals(topLevelArray)) {
-				gen.writeBooleanProperty("additionalProperties", false);
-			}
+		if (!"TopLevelArray".equals(topLevelArray)) {
+			writeClassAdditionalProperties(eClass, gen);
 		}
 
 		if ("TopLevelArray".equals(topLevelArray)) {
@@ -686,7 +761,7 @@ public class EPackageToJsonSchemaConverter {
 		this.inlineStack.clear();
 		this.suppressedKeywords = resolveSuppressedKeywords(this.options);
 		this.suppressVendorExtensions = Boolean.TRUE.equals(this.options.get(CodecJsonSchemaOptions.OPTION_SUPPRESS_VENDOR_EXTENSIONS));
-		this.configurationResolver = resolver != null ? resolver : ConfigurationResolver.defaults();
+		this.configurationResolver = ModelAnnotations.withAnnotationsOf(resolver, currentPackage);
 		this.featureDiagnostics = new DiagnosticCollector();
 		if (currentPackage != null) {
 			precomputeAnchors(currentPackage);
@@ -831,6 +906,34 @@ public class EPackageToJsonSchemaConverter {
 		}
 	}
 
+	/**
+	 * {@code additionalProperties} of a class (spec 21 §6.2, decision of 2026-10-16): as the
+	 * source schema had it, otherwise from the catch-all map - {@code true} for raw members, a
+	 * {@code $ref} for a map of a class. A class without either says nothing.
+	 */
+	private void writeClassAdditionalProperties(EClass eClass, JsonGenerator gen) throws IOException {
+		if (isSuppressed("additionalProperties")) {
+			return;
+		}
+		String additionalProperties = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "additionalProperties");
+		if (additionalProperties != null) {
+			writeAdditionalProperties(additionalProperties, gen);
+			return;
+		}
+		ClassConfig classConfig = configurationResolver.resolveClassConfig(eClass, featureDiagnostics);
+		String catchAll = classConfig != null ? classConfig.getAdditionalPropertiesFeature() : null;
+		if (catchAll != null && eClass.getEStructuralFeature(catchAll) instanceof EReference map) {
+			EStructuralFeature value = map.getEReferenceType().getEStructuralFeature("value");
+			if (value instanceof EReference valueReference && valueReference.getEType() != null) {
+				gen.writeObjectPropertyStart("additionalProperties");
+				gen.writeStringProperty("$ref", buildRefForType(valueReference, valueReference.getEType()));
+				gen.writeEndObject();
+			} else {
+				gen.writeBooleanProperty("additionalProperties", true);
+			}
+		}
+	}
+
 	private void writeAdditionalProperties(String additionalProperties, JsonGenerator gen) throws IOException {
 		if (additionalProperties.contains("{")) {
 			ObjectMapper mapper = new ObjectMapper();
@@ -852,10 +955,14 @@ public class EPackageToJsonSchemaConverter {
 	}
 
 	private void writeObjectClass(EClass eClass, JsonGenerator gen) throws IOException {
+		writeDiscriminator(eClass, gen);
+		// A oneOf union names its members, the members do not name it (spec 21 §2.1)
 		List<EClass> artificialParents = eClass.getESuperTypes().stream()
+				.filter(st -> !isRefUnion(st))
 				.filter(st -> extractAnnotationDetail(st, AnnotationSources.JSONSCHEMA, "artificial") != null)
 				.toList();
 		List<EClass> nonArtificialParents = eClass.getESuperTypes().stream()
+				.filter(st -> !isRefUnion(st))
 				.filter(st -> extractAnnotationDetail(st, AnnotationSources.JSONSCHEMA, "artificial") == null)
 				.toList();
 
@@ -875,7 +982,7 @@ public class EPackageToJsonSchemaConverter {
 		gen.writeStringProperty("type", "object");
 
 		List<String> requiredProperties = new LinkedList<>();
-		boolean isPropertiesWritten = false;
+		boolean isPropertiesWritten = writeMetadataProperties(eClass, requiredProperties, gen);
 		java.util.Set<String> writtenFeatureNames = new java.util.LinkedHashSet<>();
 
 		// Write own features
@@ -885,7 +992,7 @@ public class EPackageToJsonSchemaConverter {
 				isPropertiesWritten = true;
 			}
 			if (isAllFieldsRequired() || feature.isRequired()) {
-				requiredProperties.add(feature.getName());
+				requiredProperties.add(jsonKey(feature));
 			}
 			writeFeature(feature, gen);
 			writtenFeatureNames.add(feature.getName());
@@ -903,7 +1010,7 @@ public class EPackageToJsonSchemaConverter {
 					isPropertiesWritten = true;
 				}
 				if (isAllFieldsRequired() || feature.isRequired()) {
-					requiredProperties.add(feature.getName());
+					requiredProperties.add(jsonKey(feature));
 				}
 				writeFeature(feature, gen);
 				writtenFeatureNames.add(feature.getName());
@@ -934,7 +1041,7 @@ public class EPackageToJsonSchemaConverter {
 		gen.writeStringProperty("type", "object");
 
 		List<String> requiredProperties = new LinkedList<>();
-		boolean isPropertiesWritten = false;
+		boolean isPropertiesWritten = writeMetadataProperties(eClass, requiredProperties, gen);
 
 		for (EStructuralFeature feature : schemaFeatures(eClass)) {
 			if (!isPropertiesWritten) {
@@ -942,7 +1049,7 @@ public class EPackageToJsonSchemaConverter {
 				isPropertiesWritten = true;
 			}
 			if (isAllFieldsRequired() || feature.isRequired()) {
-				requiredProperties.add(feature.getName());
+				requiredProperties.add(jsonKey(feature));
 			}
 			writeFeature(feature, gen);
 		}
@@ -955,7 +1062,7 @@ public class EPackageToJsonSchemaConverter {
 					isPropertiesWritten = true;
 				}
 				if (isAllFieldsRequired() || feature.isRequired()) {
-					requiredProperties.add(feature.getName());
+					requiredProperties.add(jsonKey(feature));
 				}
 				writeFeature(feature, gen);
 			}
@@ -969,6 +1076,110 @@ public class EPackageToJsonSchemaConverter {
 
 		gen.writeEndObject();
 		gen.writeEndArray();
+	}
+
+	/** The JSON key the codec writes a feature under. */
+	private String jsonKey(EStructuralFeature feature) {
+		String key = configurationResolver.resolveFeatureConfig(feature, featureDiagnostics).getKey();
+		return key != null ? key : feature.getName();
+	}
+
+	/**
+	 * Starts {@code properties} with the members the codec writes for the object itself - type,
+	 * supertypes and id - as the resolved configuration of the class has them (spec 21 §4).
+	 *
+	 * @return whether {@code properties} was started
+	 */
+	private boolean writeMetadataProperties(EClass eClass, List<String> requiredProperties, JsonGenerator gen)
+			throws IOException {
+		boolean started = false;
+		TypeConfig type = configurationResolver.resolveTypeConfig(eClass, featureDiagnostics);
+		boolean structuredType = false;
+		if (type != null && type.isInclude() && type.getStrategy() != TypeStrategy.NONE) {
+			started = startProperties(started, gen);
+			structuredType = type.getFormat() == SerializationFormat.STRUCTURED;
+			gen.writeObjectPropertyStart(type.getTypeKey());
+			if (structuredType) {
+				gen.writeStringProperty("type", "object");
+				gen.writeObjectPropertyStart("properties");
+				gen.writeObjectPropertyStart(type.getNameKey());
+				gen.writeStringProperty("type", "string");
+				gen.writeEndObject();
+				gen.writeEndObject();
+			} else {
+				gen.writeStringProperty("type", "string");
+			}
+			writeCodecRole("type", null, gen);
+			gen.writeEndObject();
+		}
+		SuperTypeConfig superTypes = configurationResolver.resolveSuperTypeConfig(eClass, featureDiagnostics);
+		if (superTypes != null && superTypes.isSerialize() && !structuredType) {
+			started = startProperties(started, gen);
+			gen.writeObjectPropertyStart(superTypes.getSuperTypeKey());
+			if (superTypes.isAsArray()) {
+				gen.writeStringProperty("type", "array");
+				gen.writeObjectPropertyStart("items");
+				gen.writeStringProperty("type", "string");
+				gen.writeEndObject();
+			} else {
+				gen.writeStringProperty("type", "string");
+			}
+			writeCodecRole("superType", null, gen);
+			gen.writeEndObject();
+		}
+		IdConfig id = configurationResolver.resolveIdConfig(eClass, featureDiagnostics);
+		if (writesIdKey(eClass, id)) {
+			started = startProperties(started, gen);
+			gen.writeObjectPropertyStart(id.getKey());
+			if (id.getFormat() == SerializationFormat.STRUCTURED) {
+				gen.writeStringProperty("type", "object");
+				gen.writeObjectPropertyStart("properties");
+				gen.writeObjectPropertyStart(id.getValueKey());
+				gen.writeStringProperty("type", "string");
+				gen.writeEndObject();
+				gen.writeEndObject();
+			} else {
+				gen.writeStringProperty("type", "string");
+			}
+			writeCodecRole("id", eClass.getEIDAttribute() != null ? eClass.getEIDAttribute().getName() : null, gen);
+			gen.writeEndObject();
+			if (eClass.getEIDAttribute() != null && eClass.getEIDAttribute().isRequired()) {
+				requiredProperties.add(id.getKey());
+			}
+		}
+		return started;
+	}
+
+	/**
+	 * Marks a member the codec writes for the object itself, so a reader turns it back into codec
+	 * configuration instead of a feature; {@code x-codec-feature} names the id attribute the id
+	 * key stands for.
+	 */
+	private void writeCodecRole(String role, String feature, JsonGenerator gen) throws IOException {
+		if (suppressVendorExtensions) {
+			return;
+		}
+		gen.writeStringProperty("x-codec", role);
+		if (feature != null) {
+			gen.writeStringProperty("x-codec-feature", feature);
+		}
+	}
+
+	private static boolean startProperties(boolean started, JsonGenerator gen) throws IOException {
+		if (!started) {
+			gen.writeObjectPropertyStart("properties");
+		}
+		return true;
+	}
+
+	/** Whether the codec writes the id key for objects of the class: an id source and a key mode with key. */
+	private static boolean writesIdKey(EClass eClass, IdConfig id) {
+		if (id == null || (id.getKeyMode() != IdKeyMode.ID_ONLY && id.getKeyMode() != IdKeyMode.BOTH)) {
+			return false;
+		}
+		boolean combined = id.getStrategy() == IdStrategy.COMBINED && id.getIdFeatures() != null
+				&& !id.getIdFeatures().isEmpty();
+		return combined || eClass.getEIDAttribute() != null;
 	}
 
 	private void writeFeature(EStructuralFeature feature, JsonGenerator gen) throws IOException {
@@ -987,7 +1198,7 @@ public class EPackageToJsonSchemaConverter {
 		String uniqueItems = extractAnnotationDetail(eAttribute, AnnotationSources.JSONSCHEMA, "uniqueItems");
 
 		EDataType type = eAttribute.getEAttributeType();
-		gen.writeName(eAttribute.getName());
+		gen.writeName(jsonKey(eAttribute));
 
 		if (eAttribute.isMany()) {
 			writeMultiValuedAttribute(eAttribute, type, documentation, noTypeInfo, format, writeOnly, uniqueItems, gen);
@@ -1052,15 +1263,14 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeStringProperty("description", documentation);
 		}
 
-		boolean nullable = !eAttribute.isRequired() && !eAttribute.isMany();
+		// null is part of the wire format only where the codec writes it (spec 21 §4)
+		boolean nullable = !eAttribute.isMany()
+				&& configurationResolver.resolveFeatureConfig(eAttribute, featureDiagnostics).isSerializeNull();
 
 		if (type instanceof EEnum eEnum) {
 			writeEnumLiterals(eEnum.getELiterals(), gen);
 			if (!"true".equals(noTypeInfo)) {
 				gen.writeStringProperty("type", "string");
-			}
-			if (nullable && !eEnum.getELiterals().isEmpty()) {
-				gen.writeStringProperty("default", eEnum.getELiterals().get(0).getLiteral());
 			}
 		}
 
@@ -1120,7 +1330,7 @@ public class EPackageToJsonSchemaConverter {
 		String uniqueItems = extractAnnotationDetail(eReference, AnnotationSources.JSONSCHEMA, "uniqueItems");
 
 		EClassifier type = eReference.getEType();
-		gen.writeName(eReference.getName());
+		gen.writeName(jsonKey(eReference));
 
 		// Check if this references an artificial classifier that should be expanded inline
 		if (type instanceof EClass eClass) {
@@ -1204,7 +1414,7 @@ public class EPackageToJsonSchemaConverter {
 			}
 		} else if (variantFeatures.isEmpty()) {
 			gen.writeStringProperty("type", "object");
-			gen.writeBooleanProperty("additionalProperties", false);
+			writeClassAdditionalProperties(variant, gen);
 		} else {
 			writeVariantWithProperties(variant, gen);
 		}
@@ -1217,7 +1427,7 @@ public class EPackageToJsonSchemaConverter {
 	 */
 	private void writeVariantWithProperties(EClass variant, JsonGenerator gen) throws IOException {
 		gen.writeStringProperty("type", "object");
-		gen.writeBooleanProperty("additionalProperties", false);
+		writeClassAdditionalProperties(variant, gen);
 
 		List<EStructuralFeature> variantFeatures = schemaFeatures(variant);
 		List<String> requiredProps = new ArrayList<>();
@@ -1281,12 +1491,7 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeEndArray();
 		}
 
-		String additionalProperties = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "additionalProperties");
-		if (additionalProperties != null) {
-			writeAdditionalProperties(additionalProperties, gen);
-		} else {
-			gen.writeBooleanProperty("additionalProperties", false);
-		}
+		writeClassAdditionalProperties(eClass, gen);
 
 		gen.writeEndObject();
 	}
@@ -1338,7 +1543,7 @@ public class EPackageToJsonSchemaConverter {
 				gen.writeEndObject();
 			}
 		} else {
-			writeNonContainmentReferenceItems(eReference, type, gen);
+			writeReferenceShape(eReference, type, false, gen);
 		}
 
 		// Write x-containment extension
@@ -1384,31 +1589,7 @@ public class EPackageToJsonSchemaConverter {
 				}
 			}
 		} else {
-			// A reader takes a $ref for an inlined object; x-containment: false keeps the
-			// reference a non-containment one (spec 21 §3)
-			if (type instanceof EClass eClass && eClass.isAbstract()) {
-				gen.writeStartObject();
-				gen.writeName(abstractRefKeyword());
-				gen.writeStartArray();
-				writeSubclassRefsOrInline(type, gen);
-				gen.writeEndArray();
-				if (!suppressVendorExtensions) {
-					gen.writeBooleanProperty("x-containment", false);
-				}
-				gen.writeEndObject();
-			} else {
-				if (isInlineRefs()) {
-					writeInlinedRefOrCycleGuard((EClass) type, gen, false);
-				} else {
-					gen.writeStartObject();
-					String refPath = buildRefForType(eReference, type);
-					gen.writeStringProperty("$ref", refPath);
-					if (!suppressVendorExtensions) {
-						gen.writeBooleanProperty("x-containment", false);
-					}
-					gen.writeEndObject();
-				}
-			}
+			writeReferenceShape(eReference, type, true, gen);
 		}
 	}
 
@@ -1447,6 +1628,45 @@ public class EPackageToJsonSchemaConverter {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * A non-containment reference as the codec writes it (spec 21 §4): an object with the reference
+	 * and the type key ({@code STRUCTURED}), or the reference string ({@code PLAIN}). {@code x-ref}
+	 * names the target schema, so a reader recovers the reference type.
+	 *
+	 * @param markContainment whether to write {@code x-containment: false} here; a multi-valued
+	 *        reference carries it on the array
+	 */
+	private void writeReferenceShape(EReference eReference, EClassifier type, boolean markContainment,
+			JsonGenerator gen) throws IOException {
+		ReferenceConfig reference = configurationResolver.resolveReferenceConfig(eReference, featureDiagnostics);
+		gen.writeStartObject();
+		if (reference.getFormat() == SerializationFormat.PLAIN) {
+			gen.writeStringProperty("type", "string");
+		} else {
+			gen.writeStringProperty("type", "object");
+			gen.writeObjectPropertyStart("properties");
+			gen.writeObjectPropertyStart(reference.getRefKey());
+			gen.writeStringProperty("type", "string");
+			gen.writeEndObject();
+			gen.writeObjectPropertyStart(reference.getRefTypeKey());
+			gen.writeStringProperty("type", "string");
+			gen.writeEndObject();
+			gen.writeEndObject();
+			gen.writeArrayPropertyStart("required");
+			gen.writeString(reference.getRefKey());
+			gen.writeEndArray();
+		}
+		if (!suppressVendorExtensions) {
+			if (markContainment) {
+				gen.writeBooleanProperty("x-containment", false);
+			}
+			if (type != null) {
+				gen.writeStringProperty("x-ref", buildRefForType(eReference, type));
+			}
+		}
+		gen.writeEndObject();
 	}
 
 	private void writeNonContainmentReferenceItems(EReference eReference, EClassifier type, JsonGenerator gen) throws IOException {
@@ -2060,8 +2280,27 @@ public class EPackageToJsonSchemaConverter {
 	}
 
 	private boolean isSchemaFeature(EStructuralFeature feature) {
-		return configurationResolver.resolveFeatureConfig(feature, featureDiagnostics).shouldSerialize()
-				&& !isCatchAllFeature(feature);
+		FeatureConfig featureConfig = configurationResolver.resolveFeatureConfig(feature, featureDiagnostics);
+		return featureConfig.shouldSerialize() && !isCatchAllFeature(feature)
+				&& (featureConfig.isForceWrite() || !isIdOnlyComponent(feature));
+	}
+
+	/**
+	 * Under {@code idKeyMode=ID_ONLY} the id attributes live only under the id key (spec 09 §2),
+	 * so they are not properties of their own.
+	 */
+	private boolean isIdOnlyComponent(EStructuralFeature feature) {
+		EClass owner = feature.getEContainingClass();
+		if (!(feature instanceof EAttribute attribute) || owner == null) {
+			return false;
+		}
+		IdConfig id = configurationResolver.resolveIdConfig(owner, featureDiagnostics);
+		if (!writesIdKey(owner, id) || id.getKeyMode() != IdKeyMode.ID_ONLY) {
+			return false;
+		}
+		return id.getStrategy() == IdStrategy.COMBINED
+				? id.getIdFeatures() != null && id.getIdFeatures().contains(attribute.getName())
+				: attribute.isID();
 	}
 
 	/**

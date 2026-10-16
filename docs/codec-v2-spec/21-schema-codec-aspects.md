@@ -1,8 +1,7 @@
 # 21 - Schemas and Codec Aspects
 
-> **Status:** reading (§3) is implemented, including the catch-all map (#278) and the
-> structural type inference (#279). Writing (§4) is open (#271). The decisions of §6 were taken on
-> 2026-10-16.
+> **Status:** implemented - reading (§3, #277, #278, #279) and writing (§4, #271). The decisions
+> of §6 were taken on 2026-10-16.
 
 ## 1. Principle
 
@@ -61,32 +60,46 @@ repeats a default.
 
 ## 4. Writing: codec aspect → schema
 
-The writer resolves the configuration per class and feature (`ConfigurationResolver`) with the
-save options of the schema resource and describes what the codec writes:
+The writer resolves the configuration per class and feature (`ConfigurationResolver`) - the codec
+annotations of the package being written included, also when no metadata service knows it - with
+the save options of the schema resource, and describes what the codec writes:
 
 | Resolved configuration | Schema |
 |---|---|
-| type info written (`typeStrategy` other than `NONE`) | optional property `typeKey` (`_type`), `type: string` |
-| id written (`idKeyMode` `ID_ONLY` / `BOTH`) | property `idKey` (`_id`); under `ID_ONLY` the id attribute itself is not a property |
-| `superTypeSerialize=true` | optional property `superTypeKey`, array or string per `superTypeAsArray` |
-| containment reference | `$ref` to the target schema |
-| non-containment reference, `STRUCTURED` | object with `refKey` (`_ref`) and `refTypeKey` (`_type`) |
-| non-containment reference, `PLAIN` | `type: string` |
-| feature `key` | property name |
-| ignored feature / `ignoreWrite` | not a property |
-
-Implemented already, because the reader depends on it: enum values are listed as their literals,
-`int32` / `float` mark the number types that differ from the reader's defaults, and a
-non-containment reference carries `x-containment: false`.
+| type info written (`typeStrategy` other than `NONE`) | optional property `typeKey` (`_type`), `type: string` (`STRUCTURED`: an object with `typeNameKey`), `x-codec: type` |
+| `superTypeSerialize=true` | optional property `superTypeKey`, array or string per `superTypeAsArray`, `x-codec: superType` |
+| id written (`idKeyMode` `ID_ONLY` / `BOTH`, the class has an id attribute or `COMBINED` id features) | property `idKey` (`_id`), required when the id attribute is, `x-codec: id`, `x-codec-feature: <id attribute>`; under `ID_ONLY` the id attributes are not properties |
+| containment reference | `$ref` to the target schema, `x-containment: true` |
+| non-containment reference, `STRUCTURED` | object with `refKey` (`_ref`, required) and `refTypeKey` (`_type`), `x-containment: false`, `x-ref: <target>` |
+| non-containment reference, `PLAIN` | `type: string`, `x-containment: false`, `x-ref: <target>` |
+| feature `key` | property name, also in `required` |
+| ignored feature / `ignoreWrite` / catch-all map | not a property |
+| `serializeNull=true` | `null` allowed (`type: [x, "null"]`, OpenAPI 3.0 `nullable: true`); otherwise not |
+| catch-all map | `additionalProperties: true`, or `{ "$ref": <value class> }` |
+| source `additionalProperties` annotation | written as read; a class with neither says nothing |
+| enum | the literals; `default` only as the source schema stated it; an enum the reader derived from an inline property stays inline |
+| `oneOf` union read from a schema | `oneOf` of its members in their order, and its `discriminator`; the members name no `allOf` to it |
+| type mapping registry (discriminator) | OpenAPI `discriminator`: `propertyName`, `mapping` for values other than the schema name |
+| number types | `format: int32` / `float` where the type differs from the reader's defaults (long, double) |
 
 A class read from a foreign schema (§3) resolves to `typeStrategy=NONE`, no id, containment
 references and its original keys, so writing it reproduces the foreign schema (§2.1).
 
 ## 5. Vendor extensions
 
-`x-containment`, `x-abstract` and `x-interface` stay as they are: the writer emits them unless
-`codec.jsonschema.suppressVendorExtensions=true`, the reader honours them. They are what lets a
-codec-written schema round-trip an Ecore that a foreign schema could not express.
+The writer emits them unless `codec.jsonschema.suppressVendorExtensions=true`, the reader honours
+them. They are what lets a codec-written schema be read back into the same Ecore, which a plain
+schema could not express:
+
+| Extension | Meaning | Reader |
+|---|---|---|
+| `x-abstract`, `x-interface` | abstract class, interface | sets the flag |
+| `x-containment` | containment (`true`) or not (`false`) | sets containment |
+| `x-codec` | a member the codec writes for the object itself: `type`, `superType`, `id` | codec configuration instead of a feature: type info kept (no `typeStrategy=NONE`), `superTypeSerialize`, the id attribute named by `x-codec-feature` (`iD=true`); a key other than the default becomes `typeKey` / `idKey` |
+| `x-ref` | target schema of a non-containment reference | a non-containment reference of that type |
+
+Without them, a codec-written schema reads as a foreign one: `_type` and `_id` become ordinary
+attributes and a non-containment reference an object of its own.
 
 ## 6. Decisions
 

@@ -224,92 +224,49 @@ public class JsonSchemaOneOfIntegrationTest {
 		}
 
 		@Test
-		@DisplayName("single-valued non-containment ref to abstract type uses oneOf with $ref")
+		@DisplayName("single-valued non-containment ref to abstract type is written as the codec writes it")
 		void singleNonContainment_usesOneOfWithRef() throws IOException {
+			// A non-containment reference is written as the codec writes it: {_ref, _type},
+			// x-ref names the declared type (spec 21 §4)
 			JsonNode schema = serializeToSchema(null);
 			JsonNode myClassDef = getMyClassDef(schema);
-
-			// nonContainedAddress: single-valued non-containment → AbstractAddress
 			JsonNode prop = getProperty(myClassDef, "nonContainedAddress");
-			assertNotNull(prop.get("oneOf"),
-					"single non-containment to abstract should use oneOf: " + prop);
-			assertNull(prop.get("anyOf"),
-					"should not use anyOf by default");
-
-			JsonNode oneOf = prop.get("oneOf");
-			assertEquals(3, oneOf.size(), "should have 3 concrete subclasses (Address, BusinessAddress, VerySpecificAddress)");
-
-			// Non-containment: uses $ref
-			for (JsonNode entry : oneOf) {
-				assertNotNull(entry.get("$ref"), "non-containment should use $ref: " + entry);
-			}
+			assertReferenceShape(prop, "AbstractAddress");
 		}
 
 		@Test
-		@DisplayName("single-valued non-containment ref to abstract type with inherited attributes uses oneOf with $ref")
+		@DisplayName("single-valued non-containment ref to abstract type with inherited attributes is a reference")
 		void singleNonContainmentWithInheritance_usesOneOfWithRef() throws IOException {
+			// A non-containment reference is written as the codec writes it: {_ref, _type},
+			// x-ref names the declared type (spec 21 §4)
 			JsonNode schema = serializeToSchema(null);
 			JsonNode myClassDef = getMyClassDef(schema);
-
-			// nonContainedName: single-valued non-containment → AbstractName
 			JsonNode prop = getProperty(myClassDef, "nonContainedName");
-			assertNotNull(prop.get("oneOf"),
-					"single non-containment to abstract should use oneOf: " + prop);
-
-			JsonNode oneOf = prop.get("oneOf");
-			assertEquals(2, oneOf.size(), "should have 2 concrete subclasses");
-
-			for (JsonNode entry : oneOf) {
-				assertNotNull(entry.get("$ref"), "non-containment should use $ref: " + entry);
-			}
+			assertReferenceShape(prop, "AbstractName");
 		}
 
 		@Test
-		@DisplayName("multi-valued non-containment ref to abstract type uses oneOf with $ref in items")
+		@DisplayName("multi-valued non-containment ref to abstract type is written as the codec writes it")
 		void multiNonContainment_usesOneOfWithRefInItems() throws IOException {
+			// A non-containment reference is written as the codec writes it: {_ref, _type},
+			// x-ref names the declared type (spec 21 §4)
 			JsonNode schema = serializeToSchema(null);
 			JsonNode myClassDef = getMyClassDef(schema);
-
-			// nonContainedAddresses: multi-valued non-containment → AbstractAddress
 			JsonNode prop = getProperty(myClassDef, "nonContainedAddresses");
 			assertEquals("array", prop.get("type").asString());
-
-			JsonNode items = prop.get("items");
-			assertNotNull(items, "array should have items");
-			assertNotNull(items.get("oneOf"),
-					"multi non-containment items to abstract should use oneOf: " + items);
-			assertNull(items.get("anyOf"),
-					"should not use anyOf by default");
-
-			assertEquals(3, items.get("oneOf").size(),
-					"should have 3 concrete subclasses (Address, BusinessAddress, VerySpecificAddress)");
-
-			for (JsonNode entry : items.get("oneOf")) {
-				assertNotNull(entry.get("$ref"), "non-containment should use $ref: " + entry);
-			}
+			assertReferenceShape(prop.get("items"), "AbstractAddress");
 		}
 
 		@Test
-		@DisplayName("multi-valued non-containment ref to abstract type with inherited attributes uses oneOf with $ref in items")
+		@DisplayName("multi-valued non-containment ref to abstract type with inherited attributes is a reference")
 		void multiNonContainmentWithInheritance_usesOneOfWithRefInItems() throws IOException {
+			// A non-containment reference is written as the codec writes it: {_ref, _type},
+			// x-ref names the declared type (spec 21 §4)
 			JsonNode schema = serializeToSchema(null);
 			JsonNode myClassDef = getMyClassDef(schema);
-
-			// nonContainedNames: multi-valued non-containment → AbstractName
 			JsonNode prop = getProperty(myClassDef, "nonContainedNames");
 			assertEquals("array", prop.get("type").asString());
-
-			JsonNode items = prop.get("items");
-			assertNotNull(items, "array should have items");
-			assertNotNull(items.get("oneOf"),
-					"multi non-containment items to abstract should use oneOf: " + items);
-
-			assertEquals(2, items.get("oneOf").size(),
-					"should have 2 concrete subclasses (MiddleName, LastName)");
-
-			for (JsonNode entry : items.get("oneOf")) {
-				assertNotNull(entry.get("$ref"), "non-containment should use $ref: " + entry);
-			}
+			assertReferenceShape(prop.get("items"), "AbstractName");
 		}
 
 		@Test
@@ -349,28 +306,14 @@ public class JsonSchemaOneOfIntegrationTest {
 		}
 
 		@Test
-		@DisplayName("deep hierarchy — non-containment ref also includes VerySpecificAddress via $ref")
+		@DisplayName("deep hierarchy - a non-containment ref names its declared type, not the subclasses")
 		void deepHierarchy_nonContainmentIncludesDeepSubclass() throws IOException {
+			// A non-containment reference is written as the codec writes it: {_ref, _type},
+			// x-ref names the declared type (spec 21 §4)
 			JsonNode schema = serializeToSchema(null);
 			JsonNode myClassDef = getMyClassDef(schema);
-
-			// nonContainedAddress: single non-containment → AbstractAddress
 			JsonNode prop = getProperty(myClassDef, "nonContainedAddress");
-			JsonNode oneOf = prop.get("oneOf");
-			assertNotNull(oneOf, "should have oneOf: " + prop);
-			assertEquals(3, oneOf.size(),
-					"deep subclass VerySpecificAddress must be included via $ref: " + oneOf);
-
-			// Verify one of the $refs points to VerySpecificAddress
-			boolean foundVerySpecificRef = false;
-			for (JsonNode entry : oneOf) {
-				JsonNode ref = entry.get("$ref");
-				if (ref != null && ref.asString().contains("VerySpecificAddress")) {
-					foundVerySpecificRef = true;
-				}
-			}
-			assertTrue(foundVerySpecificRef,
-					"VerySpecificAddress $ref should be present in oneOf entries: " + oneOf);
+			assertReferenceShape(prop, "AbstractAddress");
 		}
 	}
 
@@ -417,38 +360,26 @@ public class JsonSchemaOneOfIntegrationTest {
 		}
 
 		@Test
-		@DisplayName("single-valued non-containment ref uses anyOf when option is set")
+		@DisplayName("single-valued non-containment ref is a reference also with the anyOf option")
 		void singleNonContainment_usesAnyOf() throws IOException {
+			// A non-containment reference is written as the codec writes it: {_ref, _type},
+			// x-ref names the declared type (spec 21 §4)
 			JsonNode schema = serializeWithAnyOf();
 			JsonNode myClassDef = getMyClassDef(schema);
-
 			JsonNode prop = getProperty(myClassDef, "nonContainedAddress");
-			assertNotNull(prop.get("anyOf"),
-					"should use anyOf when option is set: " + prop);
-			assertNull(prop.get("oneOf"),
-					"should not use oneOf when anyOf option is set");
-
-			for (JsonNode entry : prop.get("anyOf")) {
-				assertNotNull(entry.get("$ref"), "non-containment should use $ref: " + entry);
-			}
+			assertReferenceShape(prop, "AbstractAddress");
 		}
 
 		@Test
-		@DisplayName("multi-valued non-containment ref uses anyOf in items when option is set")
+		@DisplayName("multi-valued non-containment ref is a reference also with the anyOf option")
 		void multiNonContainment_usesAnyOfInItems() throws IOException {
+			// A non-containment reference is written as the codec writes it: {_ref, _type},
+			// x-ref names the declared type (spec 21 §4)
 			JsonNode schema = serializeWithAnyOf();
 			JsonNode myClassDef = getMyClassDef(schema);
-
 			JsonNode prop = getProperty(myClassDef, "nonContainedAddresses");
-			JsonNode items = prop.get("items");
-			assertNotNull(items.get("anyOf"),
-					"should use anyOf in items when option is set: " + items);
-			assertNull(items.get("oneOf"),
-					"should not use oneOf when anyOf option is set");
-
-			for (JsonNode entry : items.get("anyOf")) {
-				assertNotNull(entry.get("$ref"), "non-containment should use $ref: " + entry);
-			}
+			assertEquals("array", prop.get("type").asString());
+			assertReferenceShape(prop.get("items"), "AbstractAddress");
 		}
 	}
 
@@ -547,21 +478,15 @@ public class JsonSchemaOneOfIntegrationTest {
 		}
 
 		@Test
-		@DisplayName("flatAllOf + oneOf: non-containment refs still use $ref (not affected by flatAllOf)")
+		@DisplayName("flatAllOf: a non-containment ref is a reference")
 		void flatAllOf_nonContainmentStillUsesRef() throws IOException {
+			// A non-containment reference is written as the codec writes it: {_ref, _type},
+			// x-ref names the declared type (spec 21 §4)
 			JsonNode schema = serializeWithFlatAllOf();
 			JsonNode myClassDef = getMyClassDef(schema);
-
-			// nonContainedNames: multi non-containment → AbstractName
 			JsonNode prop = getProperty(myClassDef, "nonContainedNames");
-			JsonNode items = prop.get("items");
-			assertNotNull(items.get("oneOf"),
-					"should use oneOf for non-containment: " + items);
-
-			for (JsonNode entry : items.get("oneOf")) {
-				assertNotNull(entry.get("$ref"),
-						"non-containment should still use $ref even with flatAllOf: " + entry);
-			}
+			assertEquals("array", prop.get("type").asString());
+			assertReferenceShape(prop.get("items"), "AbstractName");
 		}
 
 		@Test
@@ -580,23 +505,15 @@ public class JsonSchemaOneOfIntegrationTest {
 		}
 
 		@Test
-		@DisplayName("flatAllOf + anyOf option: non-containment uses anyOf with $ref")
+		@DisplayName("flatAllOf + anyOf option: a non-containment ref is a reference")
 		void flatAllOfWithAnyOfOption_nonContainmentUsesAnyOf() throws IOException {
+			// A non-containment reference is written as the codec writes it: {_ref, _type},
+			// x-ref names the declared type (spec 21 §4)
 			JsonNode schema = serializeWithFlatAllOfAndAnyOf();
 			JsonNode myClassDef = getMyClassDef(schema);
-
-			// nonContainedAddresses: multi non-containment → AbstractAddress
 			JsonNode prop = getProperty(myClassDef, "nonContainedAddresses");
-			JsonNode items = prop.get("items");
-			assertNotNull(items.get("anyOf"),
-					"should use anyOf when both options set: " + items);
-			assertNull(items.get("oneOf"),
-					"should not use oneOf when anyOf option is set");
-
-			for (JsonNode entry : items.get("anyOf")) {
-				assertNotNull(entry.get("$ref"),
-						"non-containment should use $ref: " + entry);
-			}
+			assertEquals("array", prop.get("type").asString());
+			assertReferenceShape(prop.get("items"), "AbstractAddress");
 		}
 	}
 
@@ -701,5 +618,13 @@ public class JsonSchemaOneOfIntegrationTest {
 			assertNotNull(loadedMyClass,
 					"MyClass should survive anyOf round-trip. Schema: " + json);
 		}
+	}
+
+	private static void assertReferenceShape(JsonNode node, String target) {
+		assertNotNull(node, "reference schema expected");
+		assertNull(node.get("oneOf"), node.toString());
+		assertNull(node.get("anyOf"), node.toString());
+		assertFalse(node.at("/properties/_ref").isMissingNode(), node.toString());
+		assertTrue(node.path("x-ref").asString().endsWith("/" + target), node.toString());
 	}
 }

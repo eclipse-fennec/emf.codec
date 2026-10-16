@@ -31,6 +31,7 @@ import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
@@ -43,6 +44,8 @@ import org.junit.jupiter.api.Test;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ArrayNode;
 
 /**
  * A foreign schema produces the codec aspects under which the codec reads and writes the JSON the
@@ -199,6 +202,14 @@ class ForeignSchemaCodecAspectsTest {
 	}
 
 	@Test
+	@DisplayName("an enum value equal to the first literal is written again, an absent one stays absent")
+	void enumFirstLiteral() throws IOException {
+		assertPayloadRoundTrip(convert(SCHEMAS), "Pet", """
+				{ "id": 1, "name": "Rex", "status": "available" }
+				""");
+	}
+
+	@Test
 	@DisplayName("an absent nullable member stays absent")
 	void absentNullableStaysAbsent() throws IOException {
 		assertPayloadRoundTrip(convert(SCHEMAS), "Pet", """
@@ -320,6 +331,100 @@ class ForeignSchemaCodecAspectsTest {
 		assertEquals(List.of("Circle", "Rect"), shapes.stream().map(o -> o.eClass().getName()).toList());
 		assertEquals(List.of("Created", "Deleted"), events.stream().map(o -> o.eClass().getName()).toList());
 		assertPayloadRoundTrip(ePackage, "Drawing", payload);
+	}
+
+	@Test
+	@DisplayName("a foreign schema comes back unchanged, apart from vendor extensions (#271, spec 21 §2.1)")
+	void foreignSchemaRoundTrip() throws IOException {
+		String schemas = """
+				{
+				  "Pet": {
+				    "type": "object", "required": ["id", "name"],
+				    "properties": {
+				      "id": { "type": "integer", "format": "int64" },
+				      "name": { "type": "string" },
+				      "tag": { "type": ["string", "null"] },
+				      "age": { "type": "integer" },
+				      "status": { "type": "string", "enum": ["available", "sold-out"] },
+				      "category": { "$ref": "#/$defs/Category" },
+				      "tags": { "type": "array", "items": { "$ref": "#/$defs/Tag" } }
+				    }
+				  },
+				  "Category": {
+				    "type": "object", "properties": { "name": { "type": "string" } },
+				    "additionalProperties": true
+				  },
+				  "Tag": { "type": "object", "properties": { "name": { "type": "string" } }, "additionalProperties": false },
+				  "Shape": { "oneOf": [ { "$ref": "#/$defs/Tag" }, { "$ref": "#/$defs/Category" } ] }
+				}
+				""";
+		EPackage ePackage = new JsonSchemaToEPackageConverter().convert(mapper.readTree("{\"$defs\": " + schemas + "}"), null);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new EPackageToJsonSchemaConverter().convert(ePackage, out, "$defs", false, Map.of(), null);
+
+		JsonNode written = withoutVendorExtensions(mapper.readTree(out.toString(StandardCharsets.UTF_8)).get("$defs"));
+		assertEquals(mapper.readTree(schemas), written);
+	}
+
+	@Test
+	@DisplayName("the schema of a codec model describes type, id and reference as the codec writes them (#271, spec 21 §4)")
+	void codecModelSchema() throws IOException {
+		EPackage ePackage = EcoreFactory.eINSTANCE.createEPackage();
+		ePackage.setName("people");
+		ePackage.setNsPrefix("people");
+		ePackage.setNsURI("https://example.org/people/1.0.0");
+		EClass person = EcoreFactory.eINSTANCE.createEClass();
+		person.setName("Person");
+		ePackage.getEClassifiers().add(person);
+		EAttribute id = EcoreFactory.eINSTANCE.createEAttribute();
+		id.setName("id");
+		id.setEType(EcorePackage.Literals.ESTRING);
+		id.setID(true);
+		id.setLowerBound(1);
+		person.getEStructuralFeatures().add(id);
+		EReference friend = EcoreFactory.eINSTANCE.createEReference();
+		friend.setName("friend");
+		friend.setEType(person);
+		person.getEStructuralFeatures().add(friend);
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new EPackageToJsonSchemaConverter().convert(ePackage, out, "$defs", false, Map.of(), null);
+		JsonNode schema = mapper.readTree(out.toString(StandardCharsets.UTF_8));
+		JsonNode properties = schema.at("/$defs/Person/properties");
+
+		assertEquals("string", properties.at("/_type/type").asString(), properties.toString());
+		assertEquals("string", properties.at("/_id/type").asString(), properties.toString());
+		assertTrue(properties.get("id") == null, "under ID_ONLY the id attribute is written as _id");
+		assertEquals("string", properties.at("/friend/properties/_ref/type").asString(), properties.toString());
+		assertTrue(schema.at("/$defs/Person/required").toString().contains("_id"), schema.toString());
+
+		// ... and reads back into the same model
+		EClass reread = (EClass) new JsonSchemaToEPackageConverter().convert(schema, "$defs").getEClassifier("Person");
+		EAttribute rereadId = (EAttribute) reread.getEStructuralFeature("id");
+		assertTrue(rereadId.isID());
+		assertEquals(1, rereadId.getLowerBound());
+		EReference rereadFriend = (EReference) reread.getEStructuralFeature("friend");
+		assertFalse(rereadFriend.isContainment());
+		assertEquals("Person", rereadFriend.getEReferenceType().getName());
+		assertEquals(null, reread.getEStructuralFeature("_type"));
+	}
+
+	private static JsonNode withoutVendorExtensions(JsonNode node) {
+		if (node instanceof ObjectNode object) {
+			ObjectNode copy = object.objectNode();
+			for (String name : object.propertyNames()) {
+				if (!name.startsWith("x-")) {
+					copy.set(name, withoutVendorExtensions(object.get(name)));
+				}
+			}
+			return copy;
+		}
+		if (node instanceof ArrayNode array) {
+			ArrayNode copy = array.arrayNode();
+			array.forEach(element -> copy.add(withoutVendorExtensions(element)));
+			return copy;
+		}
+		return node;
 	}
 
 	private void assertPayloadRoundTrip(EPackage ePackage, String rootClass, String payload) throws IOException {

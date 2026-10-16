@@ -215,13 +215,14 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         // These checks apply regardless of forceWrite.
         // forceWrite allows volatile features to pass visibility gate,
         // but value-based conditions (null, empty) still apply.
+        // An unsettable reference that is not set is never written: it tells an explicit null from
+        // an absent one (#277)
+        if (reference.isUnsettable() && !state.getEObject().eIsSet(reference)) {
+            return false;
+        }
         Object value = state.getValue(reference);
 
         if (value == null) {
-            // serializeNull writes an explicit null: an unsettable reference tells it from an unset one
-            if (reference.isUnsettable() && !state.getEObject().eIsSet(reference)) {
-                return false;
-            }
             return config.isSerializeNull();
         }
 

@@ -141,6 +141,31 @@ class AttributeSerializationEntryTest extends SerializationEntryTestBase {
         }
 
         @Test
+        @DisplayName("serializeDefault writes an unsettable attribute only when it is set (#277)")
+        void serializeDefaultRespectsUnsetOfUnsettableAttribute() {
+            EAttribute count = EcoreFactory.eINSTANCE.createEAttribute();
+            count.setName("count");
+            count.setEType(EcorePackage.Literals.EINT);
+            count.setUnsettable(true);
+            EClass stock = EcoreFactory.eINSTANCE.createEClass();
+            stock.setName("Stock");
+            stock.getEStructuralFeatures().add(count);
+            EPackage ePackage = EcoreFactory.eINSTANCE.createEPackage();
+            ePackage.setName("stock");
+            ePackage.setNsURI("https://example.org/stock");
+            ePackage.getEClassifiers().add(stock);
+
+            FeatureConfig config = FeatureConfig.builder().key("count").serializeDefault(true).build();
+            AttributeSerializationEntry entry = new AttributeSerializationEntry(config, count);
+            EObject unset = EcoreUtil.create(stock);
+            EObject explicitDefault = EcoreUtil.create(stock);
+            explicitDefault.eSet(count, 0);
+
+            assertFalse(entry.shouldSerialize(createState(unset)), "unset is not written");
+            assertTrue(entry.shouldSerialize(createState(explicitDefault)), "an explicit default is written");
+        }
+
+        @Test
         @DisplayName("returns false for empty list by default")
         void returnsFalseForEmptyListByDefault() {
             FeatureConfig config = createDefaultConfig("tags", tagsAttribute);
