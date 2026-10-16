@@ -66,6 +66,7 @@ resource.save(out, null);
 {
   "openapi": "3.0.3",
   "info": { "title": "Person API", "version": "1.0.0" },
+  "paths": {},
   "components": {
     "schemas": {
       "Person": {
@@ -92,8 +93,8 @@ resource.save(out, null);
 }
 ```
 
-`paths` is written only when it has entries; OpenAPI 3.0 requires the member, so a document meant
-for other tools needs at least one path.
+`paths` is always written, as `{}` when there are no entries: OpenAPI 3.0 requires the member
+(#276).
 
 ## `components/schemas`
 

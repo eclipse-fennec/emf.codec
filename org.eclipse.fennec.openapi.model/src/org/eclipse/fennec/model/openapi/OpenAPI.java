@@ -122,6 +122,7 @@ public interface OpenAPI extends EObject {
 	 * @return the value of the '<em>Paths</em>' map.
 	 * @see org.eclipse.fennec.model.openapi.OpenApiPackage#getOpenAPI_Paths()
 	 * @model mapType="org.eclipse.fennec.model.openapi.PathEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.openapi.PathItem&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, PathItem> getPaths();
