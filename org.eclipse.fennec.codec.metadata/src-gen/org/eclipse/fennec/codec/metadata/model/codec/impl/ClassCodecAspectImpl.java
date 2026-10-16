@@ -25,6 +25,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.CodecPackage;
 import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeInference;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
 
 /**
@@ -44,6 +45,8 @@ import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ClassCodecAspectImpl#isStrictOnMissing <em>Strict On Missing</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ClassCodecAspectImpl#isMetadataMerge <em>Metadata Merge</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ClassCodecAspectImpl#getMetadataKey <em>Metadata Key</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ClassCodecAspectImpl#getAdditionalPropertiesFeature <em>Additional Properties Feature</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.impl.ClassCodecAspectImpl#getTypeInference <em>Type Inference</em>}</li>
  * </ul>
  *
  * @generated
@@ -198,6 +201,46 @@ public class ClassCodecAspectImpl extends MinimalEObjectImpl.Container implement
 	 * @ordered
 	 */
 	protected String metadataKey = METADATA_KEY_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getAdditionalPropertiesFeature() <em>Additional Properties Feature</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getAdditionalPropertiesFeature()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String ADDITIONAL_PROPERTIES_FEATURE_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getAdditionalPropertiesFeature() <em>Additional Properties Feature</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getAdditionalPropertiesFeature()
+	 * @generated
+	 * @ordered
+	 */
+	protected String additionalPropertiesFeature = ADDITIONAL_PROPERTIES_FEATURE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getTypeInference() <em>Type Inference</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getTypeInference()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final TypeInference TYPE_INFERENCE_EDEFAULT = TypeInference.NONE;
+
+	/**
+	 * The cached value of the '{@link #getTypeInference() <em>Type Inference</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getTypeInference()
+	 * @generated
+	 * @ordered
+	 */
+	protected TypeInference typeInference = TYPE_INFERENCE_EDEFAULT;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -497,6 +540,52 @@ public class ClassCodecAspectImpl extends MinimalEObjectImpl.Container implement
 	 * @generated
 	 */
 	@Override
+	public String getAdditionalPropertiesFeature() {
+		return additionalPropertiesFeature;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setAdditionalPropertiesFeature(String newAdditionalPropertiesFeature) {
+		String oldAdditionalPropertiesFeature = additionalPropertiesFeature;
+		additionalPropertiesFeature = newAdditionalPropertiesFeature;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.CLASS_CODEC_ASPECT__ADDITIONAL_PROPERTIES_FEATURE, oldAdditionalPropertiesFeature, additionalPropertiesFeature));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public TypeInference getTypeInference() {
+		return typeInference;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setTypeInference(TypeInference newTypeInference) {
+		TypeInference oldTypeInference = typeInference;
+		typeInference = newTypeInference == null ? TYPE_INFERENCE_EDEFAULT : newTypeInference;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, CodecPackage.CLASS_CODEC_ASPECT__TYPE_INFERENCE, oldTypeInference, typeInference));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
 		switch (featureID) {
 			case CodecPackage.CLASS_CODEC_ASPECT__TYPE_CONFIG:
@@ -535,6 +624,10 @@ public class ClassCodecAspectImpl extends MinimalEObjectImpl.Container implement
 				return isMetadataMerge();
 			case CodecPackage.CLASS_CODEC_ASPECT__METADATA_KEY:
 				return getMetadataKey();
+			case CodecPackage.CLASS_CODEC_ASPECT__ADDITIONAL_PROPERTIES_FEATURE:
+				return getAdditionalPropertiesFeature();
+			case CodecPackage.CLASS_CODEC_ASPECT__TYPE_INFERENCE:
+				return getTypeInference();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -573,6 +666,12 @@ public class ClassCodecAspectImpl extends MinimalEObjectImpl.Container implement
 				return;
 			case CodecPackage.CLASS_CODEC_ASPECT__METADATA_KEY:
 				setMetadataKey((String)newValue);
+				return;
+			case CodecPackage.CLASS_CODEC_ASPECT__ADDITIONAL_PROPERTIES_FEATURE:
+				setAdditionalPropertiesFeature((String)newValue);
+				return;
+			case CodecPackage.CLASS_CODEC_ASPECT__TYPE_INFERENCE:
+				setTypeInference((TypeInference)newValue);
 				return;
 		}
 		super.eSet(featureID, newValue);
@@ -613,6 +712,12 @@ public class ClassCodecAspectImpl extends MinimalEObjectImpl.Container implement
 			case CodecPackage.CLASS_CODEC_ASPECT__METADATA_KEY:
 				setMetadataKey(METADATA_KEY_EDEFAULT);
 				return;
+			case CodecPackage.CLASS_CODEC_ASPECT__ADDITIONAL_PROPERTIES_FEATURE:
+				setAdditionalPropertiesFeature(ADDITIONAL_PROPERTIES_FEATURE_EDEFAULT);
+				return;
+			case CodecPackage.CLASS_CODEC_ASPECT__TYPE_INFERENCE:
+				setTypeInference(TYPE_INFERENCE_EDEFAULT);
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -643,6 +748,10 @@ public class ClassCodecAspectImpl extends MinimalEObjectImpl.Container implement
 				return metadataMerge != METADATA_MERGE_EDEFAULT;
 			case CodecPackage.CLASS_CODEC_ASPECT__METADATA_KEY:
 				return METADATA_KEY_EDEFAULT == null ? metadataKey != null : !METADATA_KEY_EDEFAULT.equals(metadataKey);
+			case CodecPackage.CLASS_CODEC_ASPECT__ADDITIONAL_PROPERTIES_FEATURE:
+				return ADDITIONAL_PROPERTIES_FEATURE_EDEFAULT == null ? additionalPropertiesFeature != null : !ADDITIONAL_PROPERTIES_FEATURE_EDEFAULT.equals(additionalPropertiesFeature);
+			case CodecPackage.CLASS_CODEC_ASPECT__TYPE_INFERENCE:
+				return typeInference != TYPE_INFERENCE_EDEFAULT;
 		}
 		return super.eIsSet(featureID);
 	}
@@ -669,6 +778,10 @@ public class ClassCodecAspectImpl extends MinimalEObjectImpl.Container implement
 		result.append(metadataMerge);
 		result.append(", metadataKey: ");
 		result.append(metadataKey);
+		result.append(", additionalPropertiesFeature: ");
+		result.append(additionalPropertiesFeature);
+		result.append(", typeInference: ");
+		result.append(typeInference);
 		result.append(')');
 		return result.toString();
 	}

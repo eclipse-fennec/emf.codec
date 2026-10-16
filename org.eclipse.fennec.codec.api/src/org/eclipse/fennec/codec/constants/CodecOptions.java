@@ -724,6 +724,21 @@ public final class CodecOptions {
     public static final String CODEC_STRICT_ON_UNKNOWN = "codec.strictOnUnknown";
 
     /**
+     * Names the catch-all map feature of a class: document fields that match no feature are read
+     * into it, its entries are written as fields (spec 21 §6.2). Per class, in a
+     * {@link #CODEC_ECLASS_CONFIG} property map.
+     * <p>Value: {@code String} (feature name), default: none</p>
+     */
+    public static final String CODEC_ADDITIONAL_PROPERTIES_FEATURE = "codec.additionalPropertiesFeature";
+
+    /**
+     * Infers the subclass of an object without type information from the fields present
+     * (spec 21 §6.3). Global or per class (the abstract base), read only.
+     * <p>Value: {@code NONE} or {@code STRUCTURAL}, default: {@code NONE}</p>
+     */
+    public static final String CODEC_TYPE_INFERENCE = "codec.typeInference";
+
+    /**
      * Report a required feature missing from the document as an ERROR, which fails the load,
      * instead of a WARNING. Global or per class, read only (spec 15).
      * <p>Value: {@code Boolean}, default: false</p>

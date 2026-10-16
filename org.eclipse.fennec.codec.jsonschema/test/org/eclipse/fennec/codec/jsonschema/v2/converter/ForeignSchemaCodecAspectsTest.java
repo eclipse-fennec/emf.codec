@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -226,6 +227,99 @@ class ForeignSchemaCodecAspectsTest {
 		assertEquals("dog", pets.get(0).eGet(pets.get(0).eClass().getEStructuralFeature("petType")));
 
 		assertEquals(mapper.readTree(payload), save(resource));
+	}
+
+	private static final String OPEN = """
+			{
+			  "Settings": {
+			    "type": "object",
+			    "properties": { "name": { "type": "string" } },
+			    "additionalProperties": true
+			  },
+			  "Inventory": {
+			    "type": "object",
+			    "properties": { "owner": { "type": "string" } },
+			    "additionalProperties": { "$ref": "#/components/schemas/Stock" }
+			  },
+			  "Stock": {
+			    "type": "object",
+			    "properties": { "count": { "type": "integer" } }
+			  }
+			}
+			""";
+
+	private static final String UNIONS = """
+			{
+			  "Circle": {
+			    "type": "object", "required": ["radius"],
+			    "properties": { "radius": { "type": "number" } }
+			  },
+			  "Rect": {
+			    "type": "object", "required": ["width", "height"],
+			    "properties": { "width": { "type": "number" }, "height": { "type": "number" } }
+			  },
+			  "Shape": { "oneOf": [ { "$ref": "#/components/schemas/Circle" }, { "$ref": "#/components/schemas/Rect" } ] },
+			  "Event": {
+			    "oneOf": [ { "$ref": "#/components/schemas/Created" }, { "$ref": "#/components/schemas/Deleted" } ],
+			    "discriminator": { "propertyName": "kind", "mapping": { "created": "#/components/schemas/Created" } }
+			  },
+			  "Created": {
+			    "type": "object", "properties": { "kind": { "type": "string" }, "at": { "type": "string" } }
+			  },
+			  "Deleted": {
+			    "type": "object", "properties": { "kind": { "type": "string" }, "id": { "type": "string" } }
+			  },
+			  "Drawing": {
+			    "type": "object",
+			    "properties": {
+			      "shapes": { "type": "array", "items": { "$ref": "#/components/schemas/Shape" } },
+			      "events": { "type": "array", "items": { "$ref": "#/components/schemas/Event" } }
+			    }
+			  }
+			}
+			""";
+
+	@Test
+	@DisplayName("additionalProperties: true keeps undeclared members (#278)")
+	void additionalPropertiesRaw() throws IOException {
+		assertPayloadRoundTrip(convert(OPEN), "Settings", """
+				{ "name": "s", "theme": "dark", "limits": { "max": 3 }, "beta": false }
+				""");
+	}
+
+	@Test
+	@DisplayName("additionalProperties with $ref reads undeclared members as objects (#278)")
+	void additionalPropertiesRef() throws IOException {
+		EPackage ePackage = convert(OPEN);
+		String payload = """
+				{ "owner": "o", "apples": { "count": 3 }, "pears": { "count": 0 } }
+				""";
+		assertPayloadRoundTrip(ePackage, "Inventory", payload);
+		EObject inventory = load(ePackage, "Inventory", payload).getContents().get(0);
+		@SuppressWarnings("unchecked")
+		EMap<String, EObject> stock = (EMap<String, EObject>) inventory.eGet(
+				inventory.eClass().getEStructuralFeature("additionalProperties"));
+		assertEquals("Stock", stock.get("apples").eClass().getName());
+	}
+
+	@Test
+	@DisplayName("oneOf without discriminator infers the subclass, with discriminator maps it (#279)")
+	void unions() throws IOException {
+		EPackage ePackage = convert(UNIONS);
+		String payload = """
+				{
+				  "shapes": [ { "radius": 1.5 }, { "width": 1.0, "height": 2.0 } ],
+				  "events": [ { "kind": "created", "at": "now" }, { "kind": "Deleted", "id": "x" } ]
+				}
+				""";
+		EObject drawing = load(ePackage, "Drawing", payload).getContents().get(0);
+		@SuppressWarnings("unchecked")
+		List<EObject> shapes = (List<EObject>) drawing.eGet(drawing.eClass().getEStructuralFeature("shapes"));
+		@SuppressWarnings("unchecked")
+		List<EObject> events = (List<EObject>) drawing.eGet(drawing.eClass().getEStructuralFeature("events"));
+		assertEquals(List.of("Circle", "Rect"), shapes.stream().map(o -> o.eClass().getName()).toList());
+		assertEquals(List.of("Created", "Deleted"), events.stream().map(o -> o.eClass().getName()).toList());
+		assertPayloadRoundTrip(ePackage, "Drawing", payload);
 	}
 
 	private void assertPayloadRoundTrip(EPackage ePackage, String rootClass, String payload) throws IOException {

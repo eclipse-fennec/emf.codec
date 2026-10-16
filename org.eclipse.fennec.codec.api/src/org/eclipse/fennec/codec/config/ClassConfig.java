@@ -13,10 +13,13 @@
 package org.eclipse.fennec.codec.config;
 
 import static org.eclipse.fennec.codec.config.ConfigMergeHelper.getBoolean;
+import static org.eclipse.fennec.codec.config.ConfigMergeHelper.getEnum;
+import static org.eclipse.fennec.codec.config.ConfigMergeHelper.getString;
 
 import java.util.Map;
 
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeInference;
 
 /**
  * Immutable class-level codec configuration for strictness handling.
@@ -44,11 +47,15 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
     private final boolean strictOnUnknown;
     private final boolean strictOnMissing;
     private final boolean strictOnConversion;
+    private final String additionalPropertiesFeature;
+    private final TypeInference typeInference;
 
     private ClassConfig(Builder builder) {
         this.strictOnUnknown = builder.strictOnUnknown;
         this.strictOnMissing = builder.strictOnMissing;
         this.strictOnConversion = builder.strictOnConversion;
+        this.additionalPropertiesFeature = builder.additionalPropertiesFeature;
+        this.typeInference = builder.typeInference;
     }
 
     // ========================================================================
@@ -98,6 +105,26 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
         return strictOnConversion;
     }
 
+    /**
+     * Returns the name of the catch-all map feature (spec 21 §6.2): document fields that match
+     * no feature are read into it, its entries are written as fields.
+     *
+     * @return the feature name, or {@code null} for no catch-all map
+     */
+    public String getAdditionalPropertiesFeature() {
+        return additionalPropertiesFeature;
+    }
+
+    /**
+     * Returns how the subclass of an object of this class without type information is found
+     * (spec 21 §6.3).
+     *
+     * @return the inference mode, {@link TypeInference#NONE} by default
+     */
+    public TypeInference getTypeInference() {
+        return typeInference;
+    }
+
     // ========================================================================
     // Merge support
     // ========================================================================
@@ -118,6 +145,9 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
                 .strictOnUnknown(getBoolean(source, ConfigProperty.STRICT_ON_UNKNOWN, this.strictOnUnknown))
                 .strictOnMissing(getBoolean(source, ConfigProperty.STRICT_ON_MISSING, this.strictOnMissing))
                 .strictOnConversion(getBoolean(source, ConfigProperty.STRICT_ON_CONVERSION, this.strictOnConversion))
+                .additionalPropertiesFeature(getString(source, ConfigProperty.ADDITIONAL_PROPERTIES_FEATURE,
+                        this.additionalPropertiesFeature))
+                .typeInference(getEnum(source, ConfigProperty.TYPE_INFERENCE, TypeInference.class, this.typeInference))
                 .build();
     }
 
@@ -149,7 +179,9 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
         return new Builder()
                 .strictOnUnknown(this.strictOnUnknown)
                 .strictOnMissing(this.strictOnMissing)
-                .strictOnConversion(this.strictOnConversion);
+                .strictOnConversion(this.strictOnConversion)
+                .additionalPropertiesFeature(this.additionalPropertiesFeature)
+                .typeInference(this.typeInference);
     }
 
     /**
@@ -163,8 +195,32 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
         private boolean strictOnUnknown = ConfigProperty.STRICT_ON_UNKNOWN.getDefaultValue();
         private boolean strictOnMissing = ConfigProperty.STRICT_ON_MISSING.getDefaultValue();
         private boolean strictOnConversion = ConfigProperty.STRICT_ON_CONVERSION.getDefaultValue();
+        private String additionalPropertiesFeature;
+        private TypeInference typeInference = TypeInference.NONE;
 
         private Builder() {}
+
+        /**
+         * Sets the catch-all map feature (spec 21 §6.2).
+         *
+         * @param additionalPropertiesFeature the feature name, or {@code null} for none
+         * @return this builder
+         */
+        public Builder additionalPropertiesFeature(String additionalPropertiesFeature) {
+            this.additionalPropertiesFeature = additionalPropertiesFeature;
+            return this;
+        }
+
+        /**
+         * Sets how the subclass of an object without type information is found (spec 21 §6.3).
+         *
+         * @param typeInference the inference mode, {@code null} means {@link TypeInference#NONE}
+         * @return this builder
+         */
+        public Builder typeInference(TypeInference typeInference) {
+            this.typeInference = typeInference != null ? typeInference : TypeInference.NONE;
+            return this;
+        }
 
         public Builder strictOnUnknown(boolean strictOnUnknown) {
             this.strictOnUnknown = strictOnUnknown;
@@ -196,6 +252,8 @@ public final class ClassConfig implements Mergeable<ClassConfig> {
     public String toString() {
         return "ClassConfig[strictOnUnknown=" + strictOnUnknown
                 + ", strictOnMissing=" + strictOnMissing
-                + ", strictOnConversion=" + strictOnConversion + "]";
+                + ", strictOnConversion=" + strictOnConversion
+                + ", additionalPropertiesFeature=" + additionalPropertiesFeature
+                + ", typeInference=" + typeInference + "]";
     }
 }

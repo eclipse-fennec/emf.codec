@@ -113,6 +113,8 @@ public class CodecFactoryImpl extends EFactoryImpl implements CodecFactory {
 				return createSuperTypeSelectionFromString(eDataType, initialValue);
 			case CodecPackage.ENUM_SERIALIZATION_STRATEGY:
 				return createEnumSerializationStrategyFromString(eDataType, initialValue);
+			case CodecPackage.TYPE_INFERENCE:
+				return createTypeInferenceFromString(eDataType, initialValue);
 			default:
 				throw new IllegalArgumentException("The datatype '" + eDataType.getName() + "' is not a valid classifier");
 		}
@@ -148,6 +150,8 @@ public class CodecFactoryImpl extends EFactoryImpl implements CodecFactory {
 				return convertSuperTypeSelectionToString(eDataType, instanceValue);
 			case CodecPackage.ENUM_SERIALIZATION_STRATEGY:
 				return convertEnumSerializationStrategyToString(eDataType, instanceValue);
+			case CodecPackage.TYPE_INFERENCE:
+				return convertTypeInferenceToString(eDataType, instanceValue);
 			default:
 				throw new IllegalArgumentException("The datatype '" + eDataType.getName() + "' is not a valid classifier");
 		}
@@ -491,6 +495,26 @@ public class CodecFactoryImpl extends EFactoryImpl implements CodecFactory {
 	 * @generated
 	 */
 	public String convertEnumSerializationStrategyToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public TypeInference createTypeInferenceFromString(EDataType eDataType, String initialValue) {
+		TypeInference result = TypeInference.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertTypeInferenceToString(EDataType eDataType, Object instanceValue) {
 		return instanceValue == null ? null : instanceValue.toString();
 	}
 

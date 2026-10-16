@@ -1371,6 +1371,21 @@ Controls how deserializer handles unexpected mismatches.
 
 ---
 
+## Foreign Schema Payloads
+
+Class keys that let the codec read and write the JSON a foreign schema describes ([21](21-schema-codec-aspects.md) §6.2, §6.3). The JSON Schema / OpenAPI reader sets them; they work on any model.
+
+| Annotation Key | Property Key | Global | EPkg | EClass | Default | Description |
+|----------------|--------------|:------:|:----:|:------:|---------|-------------|
+| `additionalPropertiesFeature` | `codec.additionalPropertiesFeature` | ❌ | ❌ | ✅ | — | Name of the catch-all map feature: undeclared fields are read into it, its entries are written as fields after the declared features; the map itself is never a key |
+| `typeInference` | `codec.typeInference` | ✅ | ❌ | ✅ | `NONE` | `STRUCTURAL`: an object without type information is read as the concrete subclass of the declared type whose required fields are present and which declares every field (unless it has a catch-all map); of several, the one declaring most present fields, a tie by declaration order with a warning; none is an error |
+
+A discriminator, a type key and a root type hint come before inference. The catch-all map is a multi-valued containment of map entries (`key`, `value`): `EStringToStringMapEntry` keeps each field's raw JSON text, an entry class with a containment `value` reads each field as an object of that class.
+
+**Implementation:** `CodecAnnotationConstants.KEY_ADDITIONAL_PROPERTIES_FEATURE`, `KEY_TYPE_INFERENCE`; `ClassCodecAspect.additionalPropertiesFeature`, `typeInference`; `ClassConfig`
+
+---
+
 ## Global Options Summary (Codec-wide)
 
 This section summarizes all global-level runtime options. Most are described in detail in their respective sections.

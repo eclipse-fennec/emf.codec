@@ -40,7 +40,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = CodecPackage.eNS_URI, fingerprint = "fp1:3aee2d346dace5b3020dc9f0ec76252f01840ced8d0f0f27f168878aed656b1a", genModel = "/model/codec.genmodel", genModelSourceLocations = {"model/codec.genmodel","org.eclipse.fennec.codec.metadata/model/codec.genmodel"}, ecore = "/model/codec.ecore", ecoreSourceLocations = "/model/codec.ecore")
+@EPackage(uri = CodecPackage.eNS_URI, fingerprint = "fp1:8bbc0389dd3357cdd2a1dfe5d6e9b9939236a52780dc1c01e099382f1995b670", genModel = "/model/codec.genmodel", genModelSourceLocations = {"model/codec.genmodel","org.eclipse.fennec.codec.metadata/model/codec.genmodel"}, ecore = "/model/codec.ecore", ecoreSourceLocations = "/model/codec.ecore")
 public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.
@@ -1229,13 +1229,31 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	int CLASS_CODEC_ASPECT__METADATA_KEY = 8;
 
 	/**
+	 * The feature id for the '<em><b>Additional Properties Feature</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int CLASS_CODEC_ASPECT__ADDITIONAL_PROPERTIES_FEATURE = 9;
+
+	/**
+	 * The feature id for the '<em><b>Type Inference</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int CLASS_CODEC_ASPECT__TYPE_INFERENCE = 10;
+
+	/**
 	 * The number of structural features of the '<em>Class Codec Aspect</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int CLASS_CODEC_ASPECT_FEATURE_COUNT = 9;
+	int CLASS_CODEC_ASPECT_FEATURE_COUNT = 11;
 
 	/**
 	 * The number of operations of the '<em>Class Codec Aspect</em>' class.
@@ -2017,6 +2035,16 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 */
 	int ENUM_SERIALIZATION_STRATEGY = 26;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeInference <em>Type Inference</em>}' enum.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.TypeInference
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getTypeInference()
+	 * @generated
+	 */
+	int TYPE_INFERENCE = 27;
 
 
 	/**
@@ -2823,6 +2851,28 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getClassCodecAspect_MetadataKey();
 
 	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#getAdditionalPropertiesFeature <em>Additional Properties Feature</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Additional Properties Feature</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#getAdditionalPropertiesFeature()
+	 * @see #getClassCodecAspect()
+	 * @generated
+	 */
+	EAttribute getClassCodecAspect_AdditionalPropertiesFeature();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#getTypeInference <em>Type Inference</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Type Inference</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#getTypeInference()
+	 * @see #getClassCodecAspect()
+	 * @generated
+	 */
+	EAttribute getClassCodecAspect_TypeInference();
+
+	/**
 	 * Returns the meta object for class '{@link org.eclipse.fennec.codec.metadata.model.codec.FeatureCodecAspect <em>Feature Codec Aspect</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -3478,6 +3528,16 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 	EEnum getEnumSerializationStrategy();
 
 	/**
+	 * Returns the meta object for enum '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeInference <em>Type Inference</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for enum '<em>Type Inference</em>'.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.TypeInference
+	 * @generated
+	 */
+	EEnum getTypeInference();
+
+	/**
 	 * Returns the factory that creates the instances of the model.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -4115,6 +4175,22 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 		EAttribute CLASS_CODEC_ASPECT__METADATA_KEY = eINSTANCE.getClassCodecAspect_MetadataKey();
 
 		/**
+		 * The meta object literal for the '<em><b>Additional Properties Feature</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute CLASS_CODEC_ASPECT__ADDITIONAL_PROPERTIES_FEATURE = eINSTANCE.getClassCodecAspect_AdditionalPropertiesFeature();
+
+		/**
+		 * The meta object literal for the '<em><b>Type Inference</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute CLASS_CODEC_ASPECT__TYPE_INFERENCE = eINSTANCE.getClassCodecAspect_TypeInference();
+
+		/**
 		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.impl.FeatureCodecAspectImpl <em>Feature Codec Aspect</em>}' class.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
@@ -4633,6 +4709,16 @@ public interface CodecPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EEnum ENUM_SERIALIZATION_STRATEGY = eINSTANCE.getEnumSerializationStrategy();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.codec.metadata.model.codec.TypeInference <em>Type Inference</em>}' enum.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.TypeInference
+		 * @see org.eclipse.fennec.codec.metadata.model.codec.impl.CodecPackageImpl#getTypeInference()
+		 * @generated
+		 */
+		EEnum TYPE_INFERENCE = eINSTANCE.getTypeInference();
 
 	}
 

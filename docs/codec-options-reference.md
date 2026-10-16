@@ -154,6 +154,8 @@ These options apply to every format. Java constants are in
 | `codec.maxStringLength` | `CODEC_MAX_STRING_LENGTH` | Integer | `10000000` | Maximum length of one string value, in every readable format. |
 | `codec.maxNameLength` | `CODEC_MAX_NAME_LENGTH` | Integer | `10000` | Maximum length of one property name, in every readable format. |
 | `codec.maxCollectionSize` | `CODEC_MAX_COLLECTION_SIZE` | Integer | `100000` | Maximum number of elements collected into one untyped collection (`EJavaObject`, values read before their type); further elements are skipped with a warning. |
+| `codec.additionalPropertiesFeature` | `CODEC_ADDITIONAL_PROPERTIES_FEATURE` | String | — | Per class (property map or `additionalPropertiesFeature` annotation): names a map feature that takes the document fields the class does not declare, and whose entries are written as fields. A map of `EStringToStringMapEntry` keeps each field as raw JSON text; a map of an entry class with a containment `value` reads each field as an object of that class. Spec 21 §6.2. |
+| `codec.typeInference` | `CODEC_TYPE_INFERENCE` | String | `NONE` | Read only, global or per class (the abstract base): `STRUCTURAL` infers the subclass of an object without type information from the fields present. Spec 21 §6.3. |
 | `codec.inherit` | `CODEC_INHERIT` | Boolean | `true` | Option pair of the class-level `inherit` annotation. **Accepted, no effect yet** (#222): type configuration is always inherited through the full hierarchy, other configuration never. See spec 12 §2. |
 
 ### Runtime (load/save only)

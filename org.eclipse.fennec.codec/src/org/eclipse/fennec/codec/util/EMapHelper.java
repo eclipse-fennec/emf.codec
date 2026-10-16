@@ -111,4 +111,24 @@ public final class EMapHelper {
         }
         return entryClass.getEStructuralFeature("value");
     }
+
+    /**
+     * The catch-all map feature of a class (spec 21 §6.2): the feature named by
+     * {@code additionalPropertiesFeature}, when it is a multi-valued containment of map entries.
+     *
+     * @param eClass the class
+     * @param featureName the configured feature name, may be {@code null}
+     * @return the map feature, or {@code null} when there is none
+     */
+    public static EReference getCatchAllFeature(EClass eClass, String featureName) {
+        if (eClass == null || featureName == null) {
+            return null;
+        }
+        if (eClass.getEStructuralFeature(featureName) instanceof EReference map && map.isMany()
+                && map.isContainment() && getKeyFeature(map.getEReferenceType()) != null
+                && getValueFeature(map.getEReferenceType()) != null) {
+            return map;
+        }
+        return null;
+    }
 }
