@@ -21,6 +21,10 @@ This document provides context for continuing codec development across sessions.
   default, non-containment), OpenApiSchemaNullableTest/RefTest, JsonSchemaOneOfIntegrationTest
   (non-containment = reference shape); gap baselines shrank (unions, enums). Acceptance:
   `foreignSchemaRoundTrip`, `codecModelSchema` in ForeignSchemaCodecAspectsTest.
+- Real-world payloads: `OpenApiExamplePayloadTest` assembles a payload per schema from the property
+  `example`s of petstore and sevdesk (60 schemas) and round-trips it through the read
+  `schemasPackage`. Examples invalid against their own schema (sevdesk: `0`/`1` for booleans,
+  `null` for non-nullable) are skipped; numbers compare by value. Kubernetes has no examples.
 
 **Session Summary (2026-10-16, wave/issue-277-schema-codec-aspects) — #278, #279 (phase 2):**
 
