@@ -582,8 +582,29 @@ public class JsonSchemaToEPackageConverter {
 		for (EClassifier classifier : ePackage.getEClassifiers()) {
 			if (classifier instanceof EClass eClass) {
 				addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_TYPE_STRATEGY, "NONE");
+				if (needsTypeInference(eClass, ePackage)) {
+					addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_TYPE_INFERENCE,
+							"STRUCTURAL");
+				}
 			}
 		}
+	}
+
+	/**
+	 * Without type information an abstract class with subclasses can only be read by inferring
+	 * the subclass from the members present - unless a discriminator decides (spec 21 §6.3).
+	 */
+	private boolean needsTypeInference(EClass eClass, EPackage ePackage) {
+		if (!eClass.isAbstract() || discriminators.containsKey(eClass)) {
+			return false;
+		}
+		for (EClassifier classifier : ePackage.getEClassifiers()) {
+			if (classifier instanceof EClass candidate && candidate != eClass && !candidate.isAbstract()
+					&& eClass.isSuperTypeOf(candidate)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -842,6 +863,9 @@ public class JsonSchemaToEPackageConverter {
 					"documentation", schemaNode.get("description").asString());
 		}
 		addEAnnotation(abstractBase, AnnotationSources.JSONSCHEMA, "oneOfRefUnion", "true");
+		if (schemaNode.has("discriminator")) {
+			discriminators.put(abstractBase, schemaNode.get("discriminator"));
+		}
 
 		classifierMap.put(qualifiedName, abstractBase);
 
@@ -1326,6 +1350,9 @@ public class JsonSchemaToEPackageConverter {
 			JsonNode additionalProps = classNode.get("additionalProperties");
 			String value = additionalProps.isBoolean() ? String.valueOf(additionalProps.asBoolean()) : additionalProps.toPrettyString();
 			addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "additionalProperties", value);
+			if (propertiesNode != null && !(additionalProps.isBoolean() && !additionalProps.asBoolean())) {
+				addCatchAllMap(eClass, additionalProps, qualifiedName);
+			}
 		}
 
 		// Handle anyOf constraint
@@ -1960,6 +1987,48 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		return reference;
+	}
+
+	/**
+	 * Members a class with declared properties does not declare, allowed by
+	 * {@code additionalProperties}, go into a catch-all map (spec 21 §6.2): a map of that class
+	 * when the schema is a {@code $ref}, otherwise a map of the members' raw JSON text.
+	 */
+	private void addCatchAllMap(EClass eClass, JsonNode additionalProps, String qualifiedName) {
+		String featureName = "additionalProperties";
+		for (int i = 1; eClass.getEStructuralFeature(featureName) != null; i++) {
+			featureName = "additionalProperties" + i;
+		}
+		EReference map = ecoreFactory.createEReference();
+		map.setName(featureName);
+		map.setContainment(true);
+		map.setUpperBound(-1);
+		if (additionalProps.isObject() && additionalProps.has("$ref")) {
+			EClass entryClass = ecoreFactory.createEClass();
+			entryClass.setName(eClass.getName() + "AdditionalPropertiesEntry");
+			entryClass.setInstanceClassName("java.util.Map$Entry");
+			EAttribute keyAttr = ecoreFactory.createEAttribute();
+			keyAttr.setName("key");
+			keyAttr.setEType(EcorePackage.Literals.ESTRING);
+			entryClass.getEStructuralFeatures().add(keyAttr);
+			EReference valueRef = ecoreFactory.createEReference();
+			valueRef.setName("value");
+			valueRef.setContainment(true);
+			entryClass.getEStructuralFeatures().add(valueRef);
+			String refName = extractSchemaNameFromRef(additionalProps.get("$ref").asString());
+			if (classifierMap.containsKey(refName)) {
+				valueRef.setEType(classifierMap.get(refName));
+			} else {
+				deferredReferences.add(new DeferredTypeReference(valueRef, refName));
+			}
+			classifierMap.put(qualifiedName + "/" + entryClass.getName(), entryClass);
+			map.setEType(entryClass);
+		} else {
+			map.setEType(EcorePackage.Literals.ESTRING_TO_STRING_MAP_ENTRY);
+		}
+		eClass.getEStructuralFeatures().add(map);
+		addEAnnotation(eClass, AnnotationSources.CODEC, CodecAnnotationConstants.KEY_ADDITIONAL_PROPERTIES_FEATURE,
+				featureName);
 	}
 
 	/**

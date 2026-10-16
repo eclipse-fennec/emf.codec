@@ -47,6 +47,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.StrategyScope;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeHintMode;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeInference;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 
@@ -245,6 +246,13 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 	 * @generated
 	 */
 	private EEnum enumSerializationStrategyEEnum = null;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	private EEnum typeInferenceEEnum = null;
 
 	/**
 	 * Creates an instance of the model <b>Package</b>, registered with
@@ -1052,6 +1060,26 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 	 * @generated
 	 */
 	@Override
+	public EAttribute getClassCodecAspect_AdditionalPropertiesFeature() {
+		return (EAttribute)classCodecAspectEClass.getEStructuralFeatures().get(9);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EAttribute getClassCodecAspect_TypeInference() {
+		return (EAttribute)classCodecAspectEClass.getEStructuralFeatures().get(10);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EClass getFeatureCodecAspect() {
 		return featureCodecAspectEClass;
 	}
@@ -1662,6 +1690,16 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 	 * @generated
 	 */
 	@Override
+	public EEnum getTypeInference() {
+		return typeInferenceEEnum;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public CodecFactory getCodecFactory() {
 		return (CodecFactory)getEFactoryInstance();
 	}
@@ -1769,6 +1807,8 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		createEAttribute(classCodecAspectEClass, CLASS_CODEC_ASPECT__STRICT_ON_MISSING);
 		createEAttribute(classCodecAspectEClass, CLASS_CODEC_ASPECT__METADATA_MERGE);
 		createEAttribute(classCodecAspectEClass, CLASS_CODEC_ASPECT__METADATA_KEY);
+		createEAttribute(classCodecAspectEClass, CLASS_CODEC_ASPECT__ADDITIONAL_PROPERTIES_FEATURE);
+		createEAttribute(classCodecAspectEClass, CLASS_CODEC_ASPECT__TYPE_INFERENCE);
 
 		featureCodecAspectEClass = createEClass(FEATURE_CODEC_ASPECT);
 		createEAttribute(featureCodecAspectEClass, FEATURE_CODEC_ASPECT__EFFECTIVE_KEY);
@@ -1837,6 +1877,7 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		idKeyModeEEnum = createEEnum(ID_KEY_MODE);
 		superTypeSelectionEEnum = createEEnum(SUPER_TYPE_SELECTION);
 		enumSerializationStrategyEEnum = createEEnum(ENUM_SERIALIZATION_STRATEGY);
+		typeInferenceEEnum = createEEnum(TYPE_INFERENCE);
 	}
 
 	/**
@@ -1959,6 +2000,8 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		initEAttribute(getClassCodecAspect_StrictOnMissing(), ecorePackage.getEBoolean(), "strictOnMissing", "false", 0, 1, ClassCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getClassCodecAspect_MetadataMerge(), ecorePackage.getEBoolean(), "metadataMerge", "false", 0, 1, ClassCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getClassCodecAspect_MetadataKey(), ecorePackage.getEString(), "metadataKey", "_metadata", 0, 1, ClassCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getClassCodecAspect_AdditionalPropertiesFeature(), ecorePackage.getEString(), "additionalPropertiesFeature", null, 0, 1, ClassCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getClassCodecAspect_TypeInference(), this.getTypeInference(), "typeInference", "NONE", 0, 1, ClassCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(featureCodecAspectEClass, FeatureCodecAspect.class, "FeatureCodecAspect", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getFeatureCodecAspect_EffectiveKey(), ecorePackage.getEString(), "effectiveKey", null, 0, 1, FeatureCodecAspect.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -2072,6 +2115,10 @@ public class CodecPackageImpl extends EPackageImpl implements CodecPackage {
 		addEEnumLiteral(enumSerializationStrategyEEnum, EnumSerializationStrategy.LITERAL);
 		addEEnumLiteral(enumSerializationStrategyEEnum, EnumSerializationStrategy.VALUE);
 		addEEnumLiteral(enumSerializationStrategyEEnum, EnumSerializationStrategy.NAME);
+
+		initEEnum(typeInferenceEEnum, TypeInference.class, "TypeInference");
+		addEEnumLiteral(typeInferenceEEnum, TypeInference.NONE);
+		addEEnumLiteral(typeInferenceEEnum, TypeInference.STRUCTURAL);
 
 		// Create resource
 		createResource(eNS_URI);

@@ -38,6 +38,8 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#isStrictOnMissing <em>Strict On Missing</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#isMetadataMerge <em>Metadata Merge</em>}</li>
  *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#getMetadataKey <em>Metadata Key</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#getAdditionalPropertiesFeature <em>Additional Properties Feature</em>}</li>
+ *   <li>{@link org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#getTypeInference <em>Type Inference</em>}</li>
  * </ul>
  *
  * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getClassCodecAspect()
@@ -275,5 +277,59 @@ public interface ClassCodecAspect extends EObject {
 	 * @generated
 	 */
 	void setMetadataKey(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Additional Properties Feature</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * Name of the catch-all map feature: undeclared JSON members are read into it and its entries are written as members (spec 21 §6.2, issue #278). Unset: no catch-all map.
+	 * <!-- end-model-doc -->
+	 * @return the value of the '<em>Additional Properties Feature</em>' attribute.
+	 * @see #setAdditionalPropertiesFeature(String)
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getClassCodecAspect_AdditionalPropertiesFeature()
+	 * @model
+	 * @generated
+	 */
+	String getAdditionalPropertiesFeature();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#getAdditionalPropertiesFeature <em>Additional Properties Feature</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Additional Properties Feature</em>' attribute.
+	 * @see #getAdditionalPropertiesFeature()
+	 * @generated
+	 */
+	void setAdditionalPropertiesFeature(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Type Inference</b></em>' attribute.
+	 * The default value is <code>"NONE"</code>.
+	 * The literals are from the enumeration {@link org.eclipse.fennec.codec.metadata.model.codec.TypeInference}.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * How the subclass of an object of this (abstract) class without type information is found (spec 21 §6.3, issue #279). Default NONE.
+	 * <!-- end-model-doc -->
+	 * @return the value of the '<em>Type Inference</em>' attribute.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.TypeInference
+	 * @see #setTypeInference(TypeInference)
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.CodecPackage#getClassCodecAspect_TypeInference()
+	 * @model default="NONE"
+	 * @generated
+	 */
+	TypeInference getTypeInference();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.codec.metadata.model.codec.ClassCodecAspect#getTypeInference <em>Type Inference</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Type Inference</em>' attribute.
+	 * @see org.eclipse.fennec.codec.metadata.model.codec.TypeInference
+	 * @see #getTypeInference()
+	 * @generated
+	 */
+	void setTypeInference(TypeInference value);
 
 } // ClassCodecAspect

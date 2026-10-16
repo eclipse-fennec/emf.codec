@@ -47,6 +47,8 @@ import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstant
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_SERIALIZE_NULL;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_METADATA_KEY;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_METADATA_MERGE;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_ADDITIONAL_PROPERTIES_FEATURE;
+import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_TYPE_INFERENCE;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_STRICT_ON_MISSING;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_STRICT_ON_UNKNOWN;
 import static org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants.KEY_SUPERTYPE_AS_ARRAY;
@@ -101,6 +103,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeInference;
 import org.eclipse.fennec.codec.metadata.util.AnnotationParseHelper;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataHandler;
 import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
@@ -628,6 +631,12 @@ public class CodecAspectProvider implements MetadataHandler {
         // Parse metadata merge flags (class-level output assembly)
         AnnotationParseHelper.ifBooleanPresent(details, KEY_METADATA_MERGE, aspect::setMetadataMerge);
         AnnotationParseHelper.ifStringPresent(details, KEY_METADATA_KEY, aspect::setMetadataKey);
+
+        // Foreign schemas: catch-all map and subclass inference (spec 21 §6.2/§6.3)
+        AnnotationParseHelper.ifStringPresent(details, KEY_ADDITIONAL_PROPERTIES_FEATURE,
+                aspect::setAdditionalPropertiesFeature);
+        AnnotationParseHelper.ifEnumPresent(details, KEY_TYPE_INFERENCE, TypeInference.class,
+                aspect::setTypeInference);
     }
 
     /**

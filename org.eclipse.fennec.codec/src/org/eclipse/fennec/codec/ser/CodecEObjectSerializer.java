@@ -25,7 +25,9 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.fennec.codec.config.ClassConfig;
 import org.eclipse.fennec.codec.config.FeatureConfig;
+import org.eclipse.fennec.codec.util.EMapHelper;
 import org.eclipse.fennec.codec.config.IdConfig;
 import org.eclipse.fennec.codec.config.ReferenceConfig;
 import org.eclipse.fennec.codec.config.SuperTypeConfig;
@@ -255,8 +257,14 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
             }
         }
 
+        // A catch-all map is written as members after the declared features (spec 21 §6.2)
+        EReference catchAll = catchAllFeature(eClass);
+
         // Add feature entries
         for (EStructuralFeature feature : eClass.getEAllStructuralFeatures()) {
+            if (feature == catchAll) {
+                continue;
+            }
             // Get effective feature configuration (cached by resolver)
             FeatureConfig featureConfig = config.resolveFeatureConfig(feature);
 
@@ -291,7 +299,22 @@ public class CodecEObjectSerializer extends ValueSerializer<EObject> {
             entries.put(featureEntry.getKey(), featureEntry);
         }
 
+        if (catchAll != null) {
+            SerializationEntry catchAllEntry = new AdditionalPropertiesSerializationEntry(catchAll);
+            entries.put(catchAllEntry.getKey(), catchAllEntry);
+        }
+
         return entries;
+    }
+
+    /**
+     * The catch-all map feature named by {@code additionalPropertiesFeature} (spec 21 §6.2), or
+     * {@code null} when the class has none.
+     */
+    private EReference catchAllFeature(EClass eClass) {
+        ClassConfig classConfig = config.resolveClassConfig(eClass);
+        return EMapHelper.getCatchAllFeature(eClass,
+                classConfig != null ? classConfig.getAdditionalPropertiesFeature() : null);
     }
 
     /**

@@ -1,8 +1,8 @@
 # 21 - Schemas and Codec Aspects
 
-> **Status:** reading (§3) is implemented for all rows except `additionalProperties` (#278) and
-> `oneOf` / `anyOf` without discriminator (#279). Writing (§4) is open (#271). The decisions of §6
-> were taken on 2026-10-16.
+> **Status:** reading (§3) is implemented, including the catch-all map (#278) and the
+> structural type inference (#279). Writing (§4) is open (#271). The decisions of §6 were taken on
+> 2026-10-16.
 
 ## 1. Principle
 
@@ -93,24 +93,30 @@ codec-written schema round-trip an Ecore that a foreign schema could not express
 1. **Nullable values.** Features of a `nullable` / `type: [x, "null"]` property are unsettable and
    get `serializeNull=true`: an explicit `null` in the payload is read as a set `null` and written
    again. An absent member stays unset and is not written ([11 §1](11-feature.md)).
-2. **`additionalProperties`.** `true` or a schema maps to a catch-all map feature on the class.
-   - New class aspect `additionalPropertiesFeature` (option `codec.additionalPropertiesFeature`,
-     a property map per EClass): names the map feature. On read, every member the class does not
-     declare goes into that map; on write, the map entries are written as members after the
-     declared features. The map feature itself is never a JSON key.
-   - Value type: `additionalProperties: <schema with $ref>` gives a containment map of that class;
-     `true` or `{}` gives a map of JSON values, kept as the raw JSON text of each member.
-   - The feature name is `additionalProperties`, made unique when the class declares a property of
+2. **`additionalProperties`.** `true` or a schema on a class with declared properties maps to a
+   catch-all map feature on the class.
+   - Class aspect `additionalPropertiesFeature` (option `codec.additionalPropertiesFeature`, see
+     [16](16-annotation-reference.md#foreign-schema-payloads)): names the map feature. On read,
+     every member the class does not declare goes into that map, in document order; on write, the
+     map entries are written as members after the declared features. The map feature itself is
+     never a JSON key, and the schema writer does not list it as a property.
+   - Value type: `additionalProperties: <schema with $ref>` gives a map of an entry class
+     `<Class>AdditionalPropertiesEntry` with a containment `value` of that class; any other schema
+     (`true`, `{}`, a scalar schema) gives an `EStringToStringMapEntry` map that keeps the raw JSON
+     text of each member (`"red"` with its quotes, `{"max":3}`, `null`).
+   - The feature name is `additionalProperties`, numbered when the class declares a property of
      that name.
    - `additionalProperties: false` or absent: no map; an undeclared member is dropped with a
-     warning, as today.
+     warning, as before.
 3. **`oneOf` / `anyOf` without `discriminator`.** The subclass is inferred from the members present.
-   - New class aspect `typeInference=STRUCTURAL` on the abstract base (option
-     `codec.typeInference`, values `NONE` (default) and `STRUCTURAL`).
-   - A subclass is a candidate when every required property is present and, for a class without
-     catch-all map, no member is undeclared in it. Exactly one candidate: that class. Several: the
-     one declaring the most of the present members; a tie is decided by declaration order, with a
-     warning. None: `fallbackStrategy` of [08](08-discriminator-mapping.md).
+   - Class aspect `typeInference=STRUCTURAL` (option `codec.typeInference`, values `NONE`
+     (default) and `STRUCTURAL`). The reader sets it on every abstract class with concrete
+     subclasses that has no discriminator - the unions of `oneOf` / `anyOf` as well as
+     `x-abstract` classes: without type information there is no other way to read them.
+   - A concrete subclass (or the declared class itself) is a candidate when every required member
+     is present and, for a class without catch-all map, no member is undeclared in it. Exactly one
+     candidate: that class. Several: the one declaring the most of the present members; a tie is
+     decided by declaration order, with a warning. None: an error, the object is not read.
    - A discriminator, an explicit type key or a root type hint wins over inference.
 4. **Discriminator property.** The discriminator property stays an ordinary attribute in the
    subclasses: reading uses its value for the type decision **and** sets the attribute; writing

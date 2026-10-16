@@ -4,6 +4,22 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-10-16
 
+**Session Summary (2026-10-16, wave/issue-277-schema-codec-aspects) — #278, #279 (phase 2):**
+
+- New class aspects in `codec.ecore` (regenerated): `ClassCodecAspect.additionalPropertiesFeature`,
+  `typeInference` + enum `TypeInference` (NONE/STRUCTURAL). Chain: `CodecAnnotationConstants`,
+  `CodecAspectProvider`, `AspectToPropertiesConverter`, `ConfigProperty`, `ClassConfig`,
+  `CodecOptions` (`codec.additionalPropertiesFeature`, `codec.typeInference`), spec 16.
+- Codec: undeclared members into the catch-all map (raw JSON text or objects of the entry's value
+  class), written back by `AdditionalPropertiesSerializationEntry`; `inferSubclass` in
+  `CodecEObjectDeserializer` at the fallback to the hint. Deferred members are a `LinkedHashMap`
+  now (document order). Tests: `ForeignSchemaAspectsTest` (codec), more in
+  `ForeignSchemaCodecAspectsTest`.
+- Reader: catch-all map for `additionalProperties` on classes with properties; `typeInference` on
+  every abstract class with subclasses and no discriminator; a `oneOf` definition's discriminator
+  is registered too. Writer skips the catch-all feature as property.
+- Open: #271 (writing direction), test data Petstore + a larger public API.
+
 **Session Summary (2026-10-16, wave/issue-277-schema-codec-aspects) — #277 phase 1, foreign schemas:**
 
 - Spec 21 (new): schema and codec configuration describe the same wire format; the reader produces

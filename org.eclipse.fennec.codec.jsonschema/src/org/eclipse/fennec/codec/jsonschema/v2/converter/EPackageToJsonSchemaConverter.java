@@ -37,6 +37,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.fennec.codec.config.ClassConfig;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.diagnostic.DiagnosticCollector;
@@ -2059,7 +2060,18 @@ public class EPackageToJsonSchemaConverter {
 	}
 
 	private boolean isSchemaFeature(EStructuralFeature feature) {
-		return configurationResolver.resolveFeatureConfig(feature, featureDiagnostics).shouldSerialize();
+		return configurationResolver.resolveFeatureConfig(feature, featureDiagnostics).shouldSerialize()
+				&& !isCatchAllFeature(feature);
+	}
+
+	/**
+	 * A catch-all map is not a property: its entries are the members the class does not declare,
+	 * described by {@code additionalProperties} (spec 21 §6.2).
+	 */
+	private boolean isCatchAllFeature(EStructuralFeature feature) {
+		EClass owner = feature.getEContainingClass();
+		ClassConfig classConfig = owner != null ? configurationResolver.resolveClassConfig(owner, featureDiagnostics) : null;
+		return classConfig != null && feature.getName().equals(classConfig.getAdditionalPropertiesFeature());
 	}
 
 	/**

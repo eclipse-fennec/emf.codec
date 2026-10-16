@@ -28,6 +28,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.IdSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceCodecAspect;
 import org.eclipse.fennec.codec.metadata.model.codec.ReferenceSerializationConfig;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSerializationConfig;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeInference;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeSerializationConfig;
 import org.eclipse.fennec.codec.metadata.provider.CodecAspectProvider;
 import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
@@ -252,6 +253,12 @@ public final class AspectToPropertiesConverter {
         if (aspect.isMetadataMerge()) {
             props.put("metadataMerge", true);
             putIfNotDefault(props, "metadataKey", aspect.getMetadataKey(), "_metadata");
+        }
+
+        // Foreign schemas: catch-all map and subclass inference (spec 21 §6.2/§6.3)
+        putIfNotNull(props, "additionalPropertiesFeature", aspect.getAdditionalPropertiesFeature());
+        if (aspect.getTypeInference() != null && aspect.getTypeInference() != TypeInference.NONE) {
+            props.put("typeInference", aspect.getTypeInference().name());
         }
     }
 

@@ -35,6 +35,7 @@ import org.eclipse.fennec.codec.metadata.model.codec.SerializationFormat;
 import org.eclipse.fennec.codec.metadata.model.codec.StrategyScope;
 import org.eclipse.fennec.codec.metadata.model.codec.SuperTypeSelection;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeHintMode;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeInference;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 
 /**
@@ -362,6 +363,16 @@ public enum ConfigProperty {
         levels(GLOBAL, ECLASS), directions(READ)),
 
     DESERIALIZATION_MODE("deserializationMode", String.class, "LENIENT", DeserializationMode.class,
+        levels(GLOBAL, ECLASS), directions(READ)),
+
+    // ========================================================================
+    // Foreign schema properties (spec 21 §6.2/§6.3)
+    // ========================================================================
+
+    ADDITIONAL_PROPERTIES_FEATURE("additionalPropertiesFeature", String.class, null,
+        levels(ECLASS), directions(READ, WRITE)),
+
+    TYPE_INFERENCE("typeInference", String.class, "NONE", TypeInference.class,
         levels(GLOBAL, ECLASS), directions(READ)),
 
     // ========================================================================

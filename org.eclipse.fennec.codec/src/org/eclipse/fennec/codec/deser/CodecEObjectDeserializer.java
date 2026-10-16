@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,11 +27,13 @@ import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.config.ClassConfig;
 import org.eclipse.fennec.codec.config.DiscriminatorConfig;
 import org.eclipse.fennec.codec.config.FeatureConfig;
@@ -44,6 +47,7 @@ import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.prefix.CodecPrefixReader;
 import org.eclipse.fennec.codec.context.EMFCodecReadContext;
 import org.eclipse.fennec.codec.constants.CodecOptions;
+import org.eclipse.fennec.codec.metadata.model.codec.TypeInference;
 import org.eclipse.fennec.codec.metadata.model.codec.TypeStrategy;
 import org.eclipse.fennec.codec.metadata.type.TypeDiscriminatorReader;
 import org.eclipse.fennec.codec.util.ConversionFailures;
@@ -251,7 +255,8 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         }
 
         // Standard deserialization flow
-        Map<String, Object> deferredProperties = new HashMap<>();
+        // Document order: the catch-all map and the inference tie-break depend on it (spec 21 §6)
+        Map<String, Object> deferredProperties = new LinkedHashMap<>();
         EClass resolvedEClass = null;
         EObject eObject = null;
         boolean typeFieldProcessed = false;
@@ -356,9 +361,13 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             }
         }
 
-        // If no _type field was found, fall back to hint
+        // If no _type field was found, fall back to hint - or to the subclass the members
+        // present point to, when the hint class asks for inference (spec 21 §6.3)
         if (!typeFieldProcessed && hintEClass != null) {
-            resolvedEClass = hintEClass;
+            resolvedEClass = inferSubclass(hintEClass, deferredProperties.keySet(), ctxt, parser);
+            if (resolvedEClass == null) {
+                return null;
+            }
             state.setResolvedEClass(resolvedEClass);
         }
 
@@ -1122,6 +1131,8 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             } else if (deserEntry == null && (prefixReader = resolvePrefixReader(propertyName, ctxt)) != null) {
                 // A backend-owned prefix key, met before the type was known (issue #193)
                 readPrefix(state, propertyName, prefixReader, value, ctxt);
+            } else if (deserEntry == null && catchAllFeature(eClass) != null) {
+                replayIntoCatchAll(state, propertyName, value, ctxt);
             } else if (deserEntry == null && unsettableFeature(propertyName, eClass) != null) {
                 ContextHelper.addWarning(ctxt, unsettableMessage(propertyName, eClass), null,
                         "CodecEObjectDeserializer");
@@ -1203,6 +1214,135 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         tools.jackson.databind.util.TokenBuffer buffer = ctxt.bufferForInputBuffering(ctxt.getParser());
         writeValueToBuffer(buffer, value);
         return buffer;
+    }
+
+    /**
+     * The catch-all map feature of a class (spec 21 §6.2): a multi-valued containment of map
+     * entries, named by {@code additionalPropertiesFeature}.
+     *
+     * @return the map feature, or {@code null} when the class has none
+     */
+    private EReference catchAllFeature(EClass eClass) {
+        if (eClass == null) {
+            return null;
+        }
+        ClassConfig classConfig = config.resolveClassConfig(eClass);
+        return EMapHelper.getCatchAllFeature(eClass,
+                classConfig != null ? classConfig.getAdditionalPropertiesFeature() : null);
+    }
+
+    /**
+     * Reads an undeclared member into the catch-all map: an entry whose value is the member's raw
+     * JSON text, or - for a map of a class - an object of that class (spec 21 §6.2).
+     *
+     * @return {@code false} when the class has no catch-all map
+     */
+    @SuppressWarnings("unchecked")
+    private boolean readIntoCatchAll(DeserializationState state, String propertyName, JsonParser parser,
+            DeserializationContext ctxt) {
+        EReference map = catchAllFeature(state.getResolvedEClass());
+        if (map == null || state.getEObject() == null) {
+            return false;
+        }
+        EClass entryClass = map.getEReferenceType();
+        EStructuralFeature valueFeature = entryClass.getEStructuralFeature("value");
+        EObject entry = EcoreUtil.create(entryClass);
+        entry.eSet(entryClass.getEStructuralFeature("key"), propertyName);
+        if (valueFeature instanceof EReference valueReference) {
+            if (parser.currentToken() != JsonToken.VALUE_NULL) {
+                entry.eSet(valueFeature, readNestedObject(valueReference.getEReferenceType(), parser, ctxt));
+            }
+        } else {
+            entry.eSet(valueFeature, ctxt.readTree(parser).toString());
+        }
+        ((List<EObject>) state.getEObject().eGet(map)).add(entry);
+        return true;
+    }
+
+    private void replayIntoCatchAll(DeserializationState state, String propertyName, Object value,
+            DeserializationContext ctxt) {
+        try (JsonParser bufferParser = bufferFor(value, ctxt).asParser(ctxt)) {
+            bufferParser.nextToken();
+            readIntoCatchAll(state, propertyName, bufferParser, ctxt);
+        }
+    }
+
+    /** Reads the object at the parser position as an instance of the given class. */
+    private EObject readNestedObject(EClass type, JsonParser parser, DeserializationContext ctxt) {
+        EClass previous = ContextHelper.getExpectedType(ctxt);
+        ContextHelper.setExpectedType(ctxt, type);
+        try {
+            ValueDeserializer<Object> deserializer = ctxt.findRootValueDeserializer(ctxt.constructType(EObject.class));
+            return (EObject) deserializer.deserialize(parser, ctxt);
+        } finally {
+            if (previous != null) {
+                ContextHelper.setExpectedType(ctxt, previous);
+            } else {
+                ContextHelper.clearExpectedType(ctxt);
+            }
+        }
+    }
+
+    /**
+     * The class to read an object without type information as (spec 21 §6.3). Without
+     * {@code typeInference=STRUCTURAL} on the hint class that is the hint itself. Otherwise it is
+     * the concrete class among the hint and its subclasses whose required members are all present
+     * and which declares every member (unless it has a catch-all map); of several, the one
+     * declaring most of the present members, a tie going to declaration order with a warning.
+     *
+     * @return the class, or {@code null} when no class matches - reported as an error
+     */
+    private EClass inferSubclass(EClass hint, Set<String> members, DeserializationContext ctxt, JsonParser parser) {
+        ClassConfig hintConfig = config.resolveClassConfig(hint);
+        if (hintConfig == null || hintConfig.getTypeInference() != TypeInference.STRUCTURAL) {
+            return hint;
+        }
+        EClass best = null;
+        int bestScore = -1;
+        boolean tie = false;
+        for (EClassifier classifier : hint.getEPackage().getEClassifiers()) {
+            if (!(classifier instanceof EClass candidate) || candidate.isAbstract() || candidate.isInterface()
+                    || !hint.isSuperTypeOf(candidate)) {
+                continue;
+            }
+            Set<String> declared = buildDeserializationEntries(candidate, ctxt).keySet();
+            if (catchAllFeature(candidate) == null && !declared.containsAll(members)) {
+                continue;
+            }
+            if (!members.containsAll(requiredKeys(candidate))) {
+                continue;
+            }
+            int score = (int) members.stream().filter(declared::contains).count();
+            if (score > bestScore) {
+                best = candidate;
+                bestScore = score;
+                tie = false;
+            } else if (score == bestScore) {
+                tie = true;
+            }
+        }
+        if (best == null) {
+            String msg = "Cannot infer the type of a " + hint.getName() + ": no subclass matches the members "
+                    + members;
+            LOGGER.warning(msg);
+            ContextHelper.addError(ctxt, msg, parser, "CodecEObjectDeserializer");
+        } else if (tie) {
+            ContextHelper.addWarning(ctxt, "Several subclasses of " + hint.getName() + " match the members "
+                    + members + "; read as " + best.getName(), parser, "CodecEObjectDeserializer");
+        }
+        return best;
+    }
+
+    /** The keys of the required features of a class that are read. */
+    private Set<String> requiredKeys(EClass eClass) {
+        Set<String> keys = new HashSet<>();
+        for (EStructuralFeature feature : eClass.getEAllStructuralFeatures()) {
+            FeatureConfig featureConfig = config.resolveFeatureConfig(feature);
+            if (feature.getLowerBound() >= 1 && featureConfig.shouldDeserialize()) {
+                keys.add(featureConfig.getKey() != null ? featureConfig.getKey() : feature.getName());
+            }
+        }
+        return keys;
     }
 
     private void replayDeferredValue(DeserializationState state, DeserializationEntry entry,
@@ -1302,6 +1442,8 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             // A backend-owned prefix key with a registered reader is known (issue #193). The
             // value is buffered first so a failing reader can never leave the stream half read.
             readPrefix(state, propertyName, prefixReader, readCurrentValue(parser, ctxt), ctxt);
+        } else if (readIntoCatchAll(state, propertyName, parser, ctxt)) {
+            // An undeclared member of a class with a catch-all map (spec 21 §6.2)
         } else if (unsettableFeature(propertyName, eClass) != null) {
             ContextHelper.addWarning(ctxt, unsettableMessage(propertyName, eClass), parser,
                     "CodecEObjectDeserializer");

@@ -241,6 +241,21 @@
       </eAnnotations>
     </eLiterals>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="TypeInference">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="How the subclass of an object without type information is found (spec 21 §6.3, issue #279)."/>
+    </eAnnotations>
+    <eLiterals name="NONE" literal="NONE">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="No inference: the declared type, a discriminator or a type key decides. This is the default."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="STRUCTURAL" value="1" literal="STRUCTURAL">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Infer the concrete subclass from the members present: every required member present and, for a class without catch-all map, no undeclared member."/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="BaseTypeConfig" abstract="true">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
       <details key="documentation" value="Base configuration for type information serialization. Controls how EClass type identity is written to the output. Shared by class-level and reference-level type configurations."/>
@@ -650,6 +665,18 @@
         defaultValueLiteral="_metadata">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="JSON key for the merged metadata object. Only meaningful when metadataMerge=true. Default '_metadata'."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="additionalPropertiesFeature"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Name of the catch-all map feature: undeclared JSON members are read into it and its entries are written as members (spec 21 §6.2, issue #278). Unset: no catch-all map."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeInference" eType="#//TypeInference"
+        defaultValueLiteral="NONE">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="How the subclass of an object of this (abstract) class without type information is found (spec 21 §6.3, issue #279). Default NONE."/>
       </eAnnotations>
     </eStructuralFeatures>
   </eClassifiers>

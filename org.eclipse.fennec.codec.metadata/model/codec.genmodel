@@ -65,6 +65,10 @@
       <genEnumLiterals ecoreEnumLiteral="codec.ecore#//EnumSerializationStrategy/VALUE"/>
       <genEnumLiterals ecoreEnumLiteral="codec.ecore#//EnumSerializationStrategy/NAME"/>
     </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="codec.ecore#//TypeInference">
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//TypeInference/NONE"/>
+      <genEnumLiterals ecoreEnumLiteral="codec.ecore#//TypeInference/STRUCTURAL"/>
+    </genEnums>
     <genClasses image="false" ecoreClass="codec.ecore#//BaseTypeConfig">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseTypeConfig/format"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//BaseTypeConfig/strategy"/>
@@ -149,6 +153,8 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//ClassCodecAspect/strictOnMissing"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//ClassCodecAspect/metadataMerge"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//ClassCodecAspect/metadataKey"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//ClassCodecAspect/additionalPropertiesFeature"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//ClassCodecAspect/typeInference"/>
     </genClasses>
     <genClasses ecoreClass="codec.ecore#//FeatureCodecAspect">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute codec.ecore#//FeatureCodecAspect/effectiveKey"/>

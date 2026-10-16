@@ -212,6 +212,22 @@ public final class CodecAnnotationConstants {
      */
     public static final String KEY_METADATA_KEY = "metadataKey";
 
+    /**
+     * Detail key naming the catch-all map feature of a class: undeclared JSON members are read
+     * into it and its entries are written as members (spec 21 §6.2, issue #278).
+     * Value: the feature name. Default: none.
+     * Valid on: EClass.
+     */
+    public static final String KEY_ADDITIONAL_PROPERTIES_FEATURE = "additionalPropertiesFeature";
+
+    /**
+     * Detail key for inferring the subclass of an object without type information from the
+     * members present (spec 21 §6.3, issue #279).
+     * Value: "NONE" or "STRUCTURAL". Default: "NONE".
+     * Valid on: EClass (the abstract base).
+     */
+    public static final String KEY_TYPE_INFERENCE = "typeInference";
+
     // ------------------------------------------------------------------------
     // ID configuration detail keys (prefix: id*)
     // ------------------------------------------------------------------------
