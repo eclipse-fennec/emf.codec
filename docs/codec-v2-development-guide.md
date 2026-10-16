@@ -4,13 +4,14 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-10-16
 
-**Session Summary (2026-10-16) — #272 OpenAPI guide:**
+**Session Summary (2026-10-16) — #272 OpenAPI guide, #276 empty paths:**
 
 - `docs/codec-openapi-guide.md` (in the docs-site allowlist): setup (OSGi properties, plain Java,
   root type on load), `components/schemas` as `EPackage` (containment - set a copy, one package,
   entry names, `nullable` by `openapi` version, `x-containment`, `additionalProperties: false`),
   the rest of the model, known gaps (#271, YAML, external `$ref`). Example output taken from a run.
-- Found while writing: an empty `paths` is not written, although OpenAPI 3.0 requires the member.
+- #276 (found while writing): `OpenAPI.paths` carries `serializeEmpty=true`, an empty document
+  writes `"paths": {}` as OpenAPI 3.0 requires; model regenerated (new fingerprint).
 - Closed #268, #269, #270, #273 (fixed on snapshot, no auto-close since snapshot is not default).
 
 **Session Summary (2026-10-02, wave/oscal-models) — #253-#257 OSCAL models through the API, guide:**

@@ -3745,6 +3745,12 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 	protected void createCodecAnnotations() {
 		String source = "http://eclipse.org/fennec/codec";
 		addAnnotation
+		  (getOpenAPI_Paths(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
 		  (getOpenAPI_Security(),
 		   source,
 		   new String[] {
