@@ -131,8 +131,16 @@ The other JSON Schema options (`codec.jsonschema.*`, see the
 as save options.
 
 **Reading.** A loaded document's `components/schemas` is converted to a new EPackage in
-`schemasPackage`; `$ref`s between the entries become references and supertypes. Saving it again
-writes the refs as they were read.
+`schemasPackage`, together with the codec configuration under which the codec reads and writes the
+API's payloads as the schemas describe them ([spec 21](/guides/21-schema-codec-aspects)):
+
+- no `_type` or `_id` is written; a `$ref` is an inlined (containment) object, `allOf` a supertype
+- a `discriminator` picks the subclass; its property stays an ordinary attribute
+- numbers, booleans and enums keep `0`, `false`, large `int64` values and literals like
+  `sold-out`; an explicit `null` of a `nullable` property is written again
+
+Register the package with the metadata service and load a payload with the root type option.
+Saving the document again writes the refs as they were read.
 
 ## The rest of the document
 

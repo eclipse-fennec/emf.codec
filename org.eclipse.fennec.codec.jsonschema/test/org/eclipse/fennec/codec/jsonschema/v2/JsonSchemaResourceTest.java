@@ -156,7 +156,7 @@ class JsonSchemaResourceTest {
 
             EAttribute age = (EAttribute) person.getEStructuralFeature("age");
             assertNotNull(age);
-            assertEquals(EcorePackage.Literals.EINT, age.getEAttributeType());
+            assertEquals(EcorePackage.Literals.ELONG_OBJECT, age.getEAttributeType());
             assertEquals(0, age.getLowerBound()); // not required
         }
 
@@ -286,7 +286,8 @@ class JsonSchemaResourceTest {
 
             EReference ceo = (EReference) company.getEStructuralFeature("ceo");
             assertNotNull(ceo);
-            assertFalse(ceo.isContainment());
+            // A $ref describes the object inlined in the JSON (spec 21 §3)
+            assertTrue(ceo.isContainment());
 
             EClass employee = (EClass) ePackage.getEClassifier("Employee");
             assertEquals(employee, ceo.getEReferenceType());
@@ -394,11 +395,11 @@ class JsonSchemaResourceTest {
 
             assertEquals(EcorePackage.Literals.ESTRING,
                     ((EAttribute) allTypes.getEStructuralFeature("stringVal")).getEAttributeType());
-            assertEquals(EcorePackage.Literals.EINT,
+            assertEquals(EcorePackage.Literals.ELONG_OBJECT,
                     ((EAttribute) allTypes.getEStructuralFeature("intVal")).getEAttributeType());
-            assertEquals(EcorePackage.Literals.EDOUBLE,
+            assertEquals(EcorePackage.Literals.EDOUBLE_OBJECT,
                     ((EAttribute) allTypes.getEStructuralFeature("numberVal")).getEAttributeType());
-            assertEquals(EcorePackage.Literals.EBOOLEAN,
+            assertEquals(EcorePackage.Literals.EBOOLEAN_OBJECT,
                     ((EAttribute) allTypes.getEStructuralFeature("boolVal")).getEAttributeType());
         }
     }
@@ -1356,7 +1357,7 @@ class JsonSchemaResourceTest {
                     if (f instanceof EAttribute expectedAttr) {
                         assertInstanceOf(EAttribute.class, af, f.getName() + " should be EAttribute");
                         EAttribute actualAttr = (EAttribute) af;
-                        assertEquals(expectedAttr.getEAttributeType().getInstanceClassName(),
+                        assertEquals(boxed(expectedAttr.getEAttributeType().getInstanceClassName()),
                                 actualAttr.getEAttributeType().getInstanceClassName(),
                                 f.getName() + " type");
                         assertEquals(expectedAttr.getLowerBound(), actualAttr.getLowerBound(),
@@ -1556,7 +1557,7 @@ class JsonSchemaResourceTest {
                 if (f instanceof EAttribute expectedAttr) {
                     assertInstanceOf(EAttribute.class, af, f.getName() + " should be EAttribute");
                     EAttribute actualAttr = (EAttribute) af;
-                    assertEquals(expectedAttr.getEAttributeType().getInstanceClassName(),
+                    assertEquals(boxed(expectedAttr.getEAttributeType().getInstanceClassName()),
                             actualAttr.getEAttributeType().getInstanceClassName(),
                             f.getName() + " type");
                 } else if (f instanceof EReference expectedRef) {
@@ -1748,5 +1749,21 @@ class JsonSchemaResourceTest {
             a.setEType(type);
             return a;
         }
+    }
+
+    /** A primitive type read back from a schema is its wrapper type (spec 21 §3). */
+    private static String boxed(String instanceClassName) {
+        if (instanceClassName == null) {
+            return null;
+        }
+        return switch (instanceClassName) {
+            case "int" -> "java.lang.Integer";
+            case "long" -> "java.lang.Long";
+            case "short" -> "java.lang.Integer";
+            case "float" -> "java.lang.Float";
+            case "double" -> "java.lang.Double";
+            case "boolean" -> "java.lang.Boolean";
+            default -> instanceClassName;
+        };
     }
 }

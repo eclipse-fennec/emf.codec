@@ -1111,7 +1111,9 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             if (deserEntry != null && prefixReader != null) {
                 reportPrefixClash(propertyName, eClass, ctxt);
             }
-            if (deserEntry != null && value != null) {
+            if (deserEntry != null) {
+                // A deferred null is replayed like any value: read directly it is set as well,
+                // and an unsettable feature keeps it as an explicit null (#277)
                 replayDeferredValue(state, deserEntry, value, ctxt);
             } else if (deserEntry == null && isDeliberatelyNotRead(propertyName, eClass)) {
                 // Written by the codec itself, or excluded from reading - not unknown.

@@ -65,9 +65,10 @@ import org.osgi.test.common.annotation.InjectService;
  * {@code <OwningClass><Property>}, {@code oneOf}-of-{@code $ref}s modeled as an
  * abstract supertype, {@code additionalProperties} maps as {@code …MapEntry}
  * classes). Modeling choices that are <em>not</em> expressible in the schema —
- * curated enum names like {@code HttpMethod}/{@code EdgeKind}, collapsing
- * {@code MappingField} into {@code MappingOperation}, or treating {@code $ref}
- * collections as containment — are intentionally absent from the references.
+ * curated enum names like {@code HttpMethod}/{@code EdgeKind} or collapsing
+ * {@code MappingField} into {@code MappingOperation} — are intentionally absent
+ * from the references. A {@code $ref} is a containment and scalars are wrapper
+ * types, as the converter reads every schema (spec 21, issue #277).
  * </p>
  */
 @ExtendWith(BundleContextExtension.class)

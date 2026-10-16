@@ -163,7 +163,7 @@ class RealWorldSchemaTest {
             // Check id attribute (required, integer)
             EAttribute id = (EAttribute) meterReading.getEStructuralFeature("id");
             assertNotNull(id);
-            assertEquals(EcorePackage.Literals.EINT, id.getEAttributeType());
+            assertEquals(EcorePackage.Literals.ELONG_OBJECT, id.getEAttributeType());
             assertEquals(1, id.getLowerBound(), "id should be required");
 
             // Check meter_id attribute (required, string)
@@ -175,7 +175,7 @@ class RealWorldSchemaTest {
             // Check value attribute (required, number → double)
             EAttribute value = (EAttribute) meterReading.getEStructuralFeature("value");
             assertNotNull(value);
-            assertEquals(EcorePackage.Literals.EDOUBLE, value.getEAttributeType());
+            assertEquals(EcorePackage.Literals.EDOUBLE_OBJECT, value.getEAttributeType());
             assertEquals(1, value.getLowerBound(), "value should be required");
 
             // Check timestamp attribute (required, string with format)

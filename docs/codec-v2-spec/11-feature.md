@@ -63,6 +63,13 @@ Map<String, Object> options = Map.of(
 }
 ```
 
+**`serializeNull` and unsettable features (#277).** For an ordinary feature an unset value and
+an explicit `null` are the same, so `serializeNull=true` writes every `null`. An **unsettable**
+feature tells them apart: `serializeNull=true` writes its `null` only when the feature is set
+(`eIsSet`), an unset one is left out. Reading an explicit `null` sets the feature, also when the
+value was buffered until the type was known, so `{"tag": null}` survives load and save while an
+absent `tag` stays absent.
+
 **With serializeEmpty=true:**
 ```json
 {

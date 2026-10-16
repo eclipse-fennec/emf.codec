@@ -1059,12 +1059,15 @@ public class EPackageToJsonSchemaConverter {
 				gen.writeStringProperty("type", "string");
 			}
 			if (nullable && !eEnum.getELiterals().isEmpty()) {
-				gen.writeStringProperty("default", eEnum.getELiterals().get(0).getName());
+				gen.writeStringProperty("default", eEnum.getELiterals().get(0).getLiteral());
 			}
 		}
 
 		writeConstValue(eAttribute, false, gen);
 
+		if (format == null && !(type instanceof EEnum) && !"true".equals(noTypeInfo)) {
+			format = getNumberFormat(type);
+		}
 		if (format != null && !isSuppressed("format")) {
 			gen.writeStringProperty("format", format);
 		}
@@ -1380,12 +1383,17 @@ public class EPackageToJsonSchemaConverter {
 				}
 			}
 		} else {
+			// A reader takes a $ref for an inlined object; x-containment: false keeps the
+			// reference a non-containment one (spec 21 §3)
 			if (type instanceof EClass eClass && eClass.isAbstract()) {
 				gen.writeStartObject();
 				gen.writeName(abstractRefKeyword());
 				gen.writeStartArray();
 				writeSubclassRefsOrInline(type, gen);
 				gen.writeEndArray();
+				if (!suppressVendorExtensions) {
+					gen.writeBooleanProperty("x-containment", false);
+				}
 				gen.writeEndObject();
 			} else {
 				if (isInlineRefs()) {
@@ -1394,6 +1402,9 @@ public class EPackageToJsonSchemaConverter {
 					gen.writeStartObject();
 					String refPath = buildRefForType(eReference, type);
 					gen.writeStringProperty("$ref", refPath);
+					if (!suppressVendorExtensions) {
+						gen.writeBooleanProperty("x-containment", false);
+					}
 					gen.writeEndObject();
 				}
 			}
@@ -1576,6 +1587,9 @@ public class EPackageToJsonSchemaConverter {
 
 		gen.writeObjectPropertyStart("items");
 
+		if (format == null && !(type instanceof EEnum) && !"true".equals(noArrayItemsTypeInfo)) {
+			format = getNumberFormat(type);
+		}
 		if (format != null) {
 			gen.writeStringProperty("format", format);
 		}
@@ -1695,8 +1709,9 @@ public class EPackageToJsonSchemaConverter {
 
 	private void writeEnumLiterals(List<EEnumLiteral> literals, JsonGenerator gen) throws IOException {
 		gen.writeArrayPropertyStart("enum");
+		// The codec writes an enum value as its literal, so the schema lists the literals
 		for (EEnumLiteral literal : literals) {
-			gen.writeString(literal.getName());
+			gen.writeString(literal.getLiteral());
 		}
 		gen.writeEndArray();
 	}
@@ -1920,11 +1935,29 @@ public class EPackageToJsonSchemaConverter {
 		if (EcorePackage.Literals.EFLOAT.equals(eDataType) || EcorePackage.Literals.EFLOAT_OBJECT.equals(eDataType)) return "number";
 		if (EcorePackage.Literals.EDOUBLE.equals(eDataType) || EcorePackage.Literals.EDOUBLE_OBJECT.equals(eDataType)) return "number";
 		if (EcorePackage.Literals.EINT.equals(eDataType) || EcorePackage.Literals.EINTEGER_OBJECT.equals(eDataType)) return "integer";
+		if (EcorePackage.Literals.ELONG.equals(eDataType) || EcorePackage.Literals.ELONG_OBJECT.equals(eDataType)) return "integer";
+		if (EcorePackage.Literals.ESHORT.equals(eDataType) || EcorePackage.Literals.ESHORT_OBJECT.equals(eDataType)) return "integer";
 		if (EcorePackage.Literals.EBIG_DECIMAL.equals(eDataType)) return "number";
 		if (EcorePackage.Literals.EBIG_INTEGER.equals(eDataType)) return "integer";
 		if (EcorePackage.Literals.EBYTE.equals(eDataType)) return "binary";
 		if (EcorePackage.Literals.EBOOLEAN.equals(eDataType) || EcorePackage.Literals.EBOOLEAN_OBJECT.equals(eDataType)) return "boolean";
 		return "javaObject";
+	}
+
+	/**
+	 * The format that tells the reader which number type to create. Only the types that differ
+	 * from the reader's defaults - a long for an integer, a double for a number - need one
+	 * (spec 21 §3).
+	 */
+	private String getNumberFormat(EDataType eDataType) {
+		if (EcorePackage.Literals.EINT.equals(eDataType) || EcorePackage.Literals.EINTEGER_OBJECT.equals(eDataType)
+				|| EcorePackage.Literals.ESHORT.equals(eDataType) || EcorePackage.Literals.ESHORT_OBJECT.equals(eDataType)) {
+			return "int32";
+		}
+		if (EcorePackage.Literals.EFLOAT.equals(eDataType) || EcorePackage.Literals.EFLOAT_OBJECT.equals(eDataType)) {
+			return "float";
+		}
+		return null;
 	}
 
 	/**

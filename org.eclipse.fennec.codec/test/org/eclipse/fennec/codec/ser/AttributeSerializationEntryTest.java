@@ -21,7 +21,12 @@ import java.util.List;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EcoreFactory;
+import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.config.FeatureConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -108,6 +113,31 @@ class AttributeSerializationEntryTest extends SerializationEntryTestBase {
             // name is null by default
 
             assertTrue(entry.shouldSerialize(createState(person)));
+        }
+
+        @Test
+        @DisplayName("serializeNull writes an unsettable attribute only when it is set (#277)")
+        void serializeNullRespectsUnsetOfUnsettableAttribute() {
+            EAttribute tag = EcoreFactory.eINSTANCE.createEAttribute();
+            tag.setName("tag");
+            tag.setEType(EcorePackage.Literals.ESTRING);
+            tag.setUnsettable(true);
+            EClass pet = EcoreFactory.eINSTANCE.createEClass();
+            pet.setName("Pet");
+            pet.getEStructuralFeatures().add(tag);
+            EPackage ePackage = EcoreFactory.eINSTANCE.createEPackage();
+            ePackage.setName("pets");
+            ePackage.setNsURI("https://example.org/pets");
+            ePackage.getEClassifiers().add(pet);
+
+            FeatureConfig config = FeatureConfig.builder().key("tag").serializeNull(true).build();
+            AttributeSerializationEntry entry = new AttributeSerializationEntry(config, tag);
+            EObject unset = EcoreUtil.create(pet);
+            EObject explicitNull = EcoreUtil.create(pet);
+            explicitNull.eSet(tag, null);
+
+            assertFalse(entry.shouldSerialize(createState(unset)), "unset is not written");
+            assertTrue(entry.shouldSerialize(createState(explicitNull)), "an explicit null is written");
         }
 
         @Test

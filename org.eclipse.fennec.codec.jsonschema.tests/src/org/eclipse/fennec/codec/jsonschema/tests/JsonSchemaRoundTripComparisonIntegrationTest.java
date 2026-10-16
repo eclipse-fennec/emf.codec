@@ -138,11 +138,17 @@ public class JsonSchemaRoundTripComparisonIntegrationTest {
 			"#/$defs/PipelineNode/oneOf: present on original only",
 			"#/$defs/PipelineNode/type: type expected [] but was [object]",
 
-			// (4) $ref collections emitted as non-containment lose their required
-			//     membership. (Until issue #43 they also lost type:array — the
-			//     feature inherited a spurious noTypeInfo annotation from its
-			//     items node, suppressing "type": "array" on write.)
-			"#/$defs/Pipeline/required: required expected [edges, id, nodes] but was [id]");
+			// (4) $ref collections lose their required membership. (Until issue #43
+			//     they also lost type:array — the feature inherited a spurious
+			//     noTypeInfo annotation from its items node, suppressing
+			//     "type": "array" on write.)
+			"#/$defs/Pipeline/required: required expected [edges, id, nodes] but was [id]",
+
+			// (5) A $ref is a containment (issue #277); a containment of an abstract
+			//     class is written as a oneOf of its subclasses instead of a $ref to
+			//     the base (writing direction, issue #271).
+			"#/$defs/Pipeline/properties/nodes/items/$ref: missing '$ref' (expected \"#/$defs/PipelineNode\")",
+			"#/$defs/Pipeline/properties/nodes/items/oneOf: present on round-trip only");
 
 	/** The known reverse-conversion gaps for {@code mapping.schema.json}; see {@link #EXPECTED_CORE_IR_GAPS}. */
 	private static final List<String> EXPECTED_MAPPING_GAPS = List.of(

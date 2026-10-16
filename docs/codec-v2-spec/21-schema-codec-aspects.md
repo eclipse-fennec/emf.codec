@@ -1,8 +1,8 @@
 # 21 - Schemas and Codec Aspects
 
-> **Status: draft** for #277 (reading) and #271 (writing). Nothing in this chapter is implemented
-> yet. The decisions of §6 were taken on 2026-10-16; the new codec aspects of §6 still need their
-> option counterparts in [16](16-annotation-reference.md).
+> **Status:** reading (§3) is implemented for all rows except `additionalProperties` (#278) and
+> `oneOf` / `anyOf` without discriminator (#279). Writing (§4) is open (#271). The decisions of §6
+> were taken on 2026-10-16.
 
 ## 1. Principle
 
@@ -47,7 +47,8 @@ For a foreign schema `S` and a payload `P` that is valid against `S`:
 | `type: boolean` | `EBooleanObject` | none |
 | `type: string` (any `format`) | `EString`, the `format` kept as annotation | none — the string is kept exactly |
 | `enum` | `EEnum`, literal = the value as written, name = a valid Ecore name derived from it | none — the codec writes the literal |
-| `nullable: true` / `type: [x, "null"]` | feature as above | `serializeNull=true` (§6.1) |
+| `nullable: true` / `type: [x, "null"]` | feature as above, `unsettable=true` | `serializeNull=true` (§6.1) |
+| `$ref` to an enum or data type schema | `EAttribute` of that type | none |
 | `additionalProperties: true` or a schema | catch-all map feature (§6.2) | `additionalPropertiesFeature=<feature>` on the class |
 | `discriminator.propertyName` | ordinary attribute in the subclasses (§6.4) | none |
 | `id` or any other property | ordinary attribute, no `eID` (§6.5) | none — with no id attribute no `_id` is written |
@@ -74,6 +75,10 @@ save options of the schema resource and describes what the codec writes:
 | feature `key` | property name |
 | ignored feature / `ignoreWrite` | not a property |
 
+Implemented already, because the reader depends on it: enum values are listed as their literals,
+`int32` / `float` mark the number types that differ from the reader's defaults, and a
+non-containment reference carries `x-containment: false`.
+
 A class read from a foreign schema (§3) resolves to `typeStrategy=NONE`, no id, containment
 references and its original keys, so writing it reproduces the foreign schema (§2.1).
 
@@ -85,9 +90,9 @@ codec-written schema round-trip an Ecore that a foreign schema could not express
 
 ## 6. Decisions
 
-1. **Nullable values.** Features of a `nullable` / `type: [x, "null"]` property get
-   `serializeNull=true`: an explicit `null` in the payload is read as a set `null` and written
-   again. An absent member stays unset and is not written.
+1. **Nullable values.** Features of a `nullable` / `type: [x, "null"]` property are unsettable and
+   get `serializeNull=true`: an explicit `null` in the payload is read as a set `null` and written
+   again. An absent member stays unset and is not written ([11 §1](11-feature.md)).
 2. **`additionalProperties`.** `true` or a schema maps to a catch-all map feature on the class.
    - New class aspect `additionalPropertiesFeature` (option `codec.additionalPropertiesFeature`,
      a property map per EClass): names the map feature. On read, every member the class does not

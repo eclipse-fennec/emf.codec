@@ -286,7 +286,7 @@ class SchemaMapConversionTest {
 			EClass personClass = (EClass) result.getEClassifier("Person");
 			EAttribute ageAttr = (EAttribute) personClass.getEStructuralFeature("age");
 			assertNotNull(ageAttr);
-			assertEquals(EcorePackage.Literals.EINT, ageAttr.getEType());
+			assertEquals(EcorePackage.Literals.ELONG_OBJECT, ageAttr.getEType());
 		}
 
 		@Test
@@ -303,7 +303,7 @@ class SchemaMapConversionTest {
 			EClass itemClass = (EClass) result.getEClassifier("Item");
 			EAttribute activeAttr = (EAttribute) itemClass.getEStructuralFeature("active");
 			assertNotNull(activeAttr);
-			assertEquals(EcorePackage.Literals.EBOOLEAN, activeAttr.getEType());
+			assertEquals(EcorePackage.Literals.EBOOLEAN_OBJECT, activeAttr.getEType());
 		}
 
 		@Test
@@ -320,7 +320,7 @@ class SchemaMapConversionTest {
 			EClass productClass = (EClass) result.getEClassifier("Product");
 			EAttribute priceAttr = (EAttribute) productClass.getEStructuralFeature("price");
 			assertNotNull(priceAttr);
-			assertEquals(EcorePackage.Literals.EDOUBLE, priceAttr.getEType());
+			assertEquals(EcorePackage.Literals.EDOUBLE_OBJECT, priceAttr.getEType());
 		}
 
 		@Test
