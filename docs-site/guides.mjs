@@ -36,6 +36,7 @@ export const GUIDES = [
   { file: 'codec-v2-reference.md', title: 'Codec V2 Reference', group: 'References' },
   { file: 'tabular-exporter-examples.md', title: 'Tabular Exporter Examples', group: 'References' },
   { file: 'codec-oscal-guide.md', title: 'OSCAL Codec', group: 'References' },
+  { file: 'codec-openapi-guide.md', title: 'OpenAPI Codec', group: 'References' },
 ];
 
 // Route name for a guide: the file's base name without the .md extension.
