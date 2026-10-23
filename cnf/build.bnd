@@ -7,7 +7,7 @@
 	fennecTest,\
 	fennecJacoco,\
 	fennecEMF,\
-	fennecEMFModels,\
+	fennecEMFCommonModels,\
 	jakartaREST,\
 	fennecM2X
 
