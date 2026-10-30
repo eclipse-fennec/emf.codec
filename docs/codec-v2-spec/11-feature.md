@@ -636,6 +636,13 @@ EAttributes can have array data types (EDataTypes with array instance classes). 
 > every machine, so textual fields (`zzz`, `MMM`, `EEE`, `a`) never depend on the JVM default
 > locale. On read a configured `dateFormat` is applied before EMF's own `EDate` patterns,
 > which would otherwise read the value in the JVM default zone (issue #287).
+>
+> **A configured `dateFormat` is exclusive**, for single values as it has always been for
+> arrays: EMF's own patterns (canonical form, `yyyy-MM-dd`, `yyyy-MM-dd'T'HH:mm:ss`) are the
+> read fallback only when no format is configured. A value that does not match the configured
+> format is a **conversion failure** - a diagnostic and an unset feature by default, a failed
+> load under `strictOnConversion` - and is never re-read with EMF's patterns, which would store
+> a wrong instant instead of reporting the mismatch (issue #288).
 
 ### 7.2 Defining Array Data Types in Ecore
 

@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -289,6 +290,35 @@ class TabularDocumentBuilderCellTypingTest {
         Cell c = buildAndExtractFirstCell(obj, null, null);
         StringCell sc = assertInstanceOf(StringCell.class, c);
         assertEquals("red;large;sale", sc.getValue());
+    }
+
+    @Test
+    @DisplayName("multi-valued EDate with a zone-name format does not depend on the JVM default locale")
+    void multiValuedDateJoinsLocaleIndependently() {
+        Locale defaultLocale = Locale.getDefault();
+        TimeZone defaultZone = TimeZone.getDefault();
+        Locale.setDefault(Locale.GERMANY);
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+        try {
+            createScalarPackage(EcorePackage.Literals.EDATE, true);
+            EObject obj = pkg.getEFactoryInstance().create(thingClass);
+            @SuppressWarnings("unchecked")
+            List<Date> values = (List<Date>) obj.eGet(valueAttr);
+            // 2026-01-07T11:07:08 in Berlin - CET in English, MEZ in German
+            values.add(new Date(1_767_780_428_000L));
+
+            ConfigurationResolver resolver = ConfigurationResolver.builder()
+                    .optionsProperties(Map.of("dateFormat", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'zzz"))
+                    .build();
+
+            Cell c = buildAndExtractFirstCell(obj, null, resolver);
+            StringCell sc = assertInstanceOf(StringCell.class, c);
+            assertEquals("2026-01-07T11:07:08.000ZCET", sc.getValue(),
+                    "a joined date column must read the same as a single-valued one (issue #287)");
+        } finally {
+            Locale.setDefault(defaultLocale);
+            TimeZone.setDefault(defaultZone);
+        }
     }
 
     // ========================================================================

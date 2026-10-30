@@ -13,6 +13,9 @@
 package org.eclipse.fennec.codec.resource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -119,8 +122,53 @@ class DateFormatLocaleTest {
         assertEquals(WINTER_MORNING, resource.getContents().get(0).eGet(at));
     }
 
+    /**
+     * A configured {@code dateFormat} is exclusive, as it has always been for arrays: EMF's own
+     * EDate patterns apply only when no format is configured. Falling back to them would read a
+     * non-matching value in the JVM default zone - the silently wrong instant of issue #288 - so
+     * the value is dropped with a diagnostic instead.
+     */
+    @Test
+    @DisplayName("a value that does not match the configured dateFormat is a conversion failure")
+    void valueNotMatchingTheConfiguredFormatIsDropped() throws IOException {
+        CodecResource resource = resource(ConfigurationResolver.defaults());
+
+        resource.load(new ByteArrayInputStream(canonicalEmfValue().getBytes(StandardCharsets.UTF_8)),
+                Map.of(CodecOptions.CODEC_DATE_FORMAT, ZONE_NAME_PATTERN));
+
+        assertTrue(resource.getErrors().isEmpty(), resource.getErrors().toString());
+        assertFalse(resource.getWarnings().isEmpty(),
+                "the dropped value's only trace is a diagnostic");
+        assertNull(resource.getContents().get(0).eGet(at),
+                "EMF's own patterns must not re-read the value in the JVM default zone");
+    }
+
+    @Test
+    @DisplayName("strictOnConversion turns the non-matching value into a failure")
+    void valueNotMatchingTheConfiguredFormatFailsStrictly() {
+        ConfigurationResolver strict = ConfigurationResolver.builder()
+                .resourceProperties(Map.of("strictOnConversion", true))
+                .build();
+        CodecResource resource = resource(strict);
+
+        assertThrows(Exception.class, () -> resource.load(
+                new ByteArrayInputStream(canonicalEmfValue().getBytes(StandardCharsets.UTF_8)),
+                Map.of(CodecOptions.CODEC_DATE_FORMAT, ZONE_NAME_PATTERN)));
+    }
+
+    /** EMF's canonical form - what the codec writes without a dateFormat - under the zone-name format. */
+    private String canonicalEmfValue() {
+        return """
+            {"_type": "%s#//Stamp", "at": "2026-01-07T11:07:08.000+0100"}
+            """.formatted(NS_URI);
+    }
+
     private CodecResource resource() {
+        return resource(ConfigurationResolver.defaults());
+    }
+
+    private CodecResource resource(ConfigurationResolver resolver) {
         return new CodecResource(URI.createURI("test://dateformat.json"), metadataService,
-                ConfigurationResolver.defaults(), null);
+                resolver, null);
     }
 }
