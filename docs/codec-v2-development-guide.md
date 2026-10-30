@@ -2,7 +2,24 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-10-16
+**Last Updated:** 2026-10-30
+
+**Session Summary (2026-10-30, issue285_hint_free_with_wrong_descriminator) — #285 hint-free load:**
+
+- A hint-free load no longer lets the untargeted discriminator probe overrule the document. With
+  no `CODEC_ROOT_TYPE` there is no `mapId`, so `getAnyDiscriminatorPath()` returns whatever nested
+  path some unrelated package registered; entering that branch made a document naming its own
+  class under the type key fail ("featurePath resolution failed for 'info.profileName'"), and the
+  outcome depended on registry iteration order.
+- `CodecEObjectDeserializer`: the standard flow moved into `deserializeStandard(parser, …)` so it
+  can replay a buffered parser; `deserializeWithUntargetedProbe` buffers the object, and the probe
+  only decides when the document carries no value under the type key (`carriesTypeValue`). A probe
+  without a match is "no match" — the standard flow continues, no error (same rule as 08 §7.3 /
+  issue #238).
+- Spec 08 §7.1.2 got the rule; tests: `CodecResourceFeaturePathTypeTest` nested group
+  "Hint-Free Load With Unrelated Discriminator Path" (type key wins, foreign package next to a
+  nested path, probe still works without a type key, missing-type error instead of a featurePath
+  one).
 
 **Session Summary (2026-10-16, fix/issue-265-document-errors-400) — #265 REST 400 for document errors:**
 

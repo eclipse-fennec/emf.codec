@@ -52,6 +52,7 @@ import org.junit.jupiter.api.Test;
 class CodecResourceFeaturePathTypeTest {
 
     private static final String TEST_ECORE = "/org/eclipse/fennec/codec/resource/test-featurepath-type.ecore";
+    private static final String BIKE_ECORE = "/org/eclipse/fennec/codec/resource/bike.ecore";
 
     private EcoreHelper ecoreHelper;
     private EPackage testPackage;
@@ -369,6 +370,143 @@ class CodecResourceFeaturePathTypeTest {
     }
 
     // ========================================================================
+    // Hint-free load next to an unrelated discriminator path (issue #285)
+    // ========================================================================
+
+    @Nested
+    @DisplayName("Hint-Free Load With Unrelated Discriminator Path")
+    class HintFreeLoadWithUnrelatedDiscriminatorPath {
+
+        /**
+         * The issue's own reproduction: DeviceInfo carries no discriminator configuration, but
+         * UplinkMessage in the same model registers "info.profileName", and the hint-free probe
+         * took that path for a document that names its class under the type key.
+         */
+        @Test
+        @DisplayName("type key wins over a nested path registered by another class of the model")
+        void typeKeyWinsOverNestedPathOfAnotherClass() throws IOException {
+            String json = """
+                {
+                    "_type": "%s#//DeviceInfo",
+                    "deviceId": "d-1"
+                }
+                """.formatted(testPackage.getNsURI());
+
+            CodecResource resource = loadWithoutHint(json);
+
+            assertTrue(resource.getErrors().isEmpty(),
+                    "Load should not fail: " + resource.getErrors());
+            assertFalse(resource.getContents().isEmpty(), "Root object should have been read");
+
+            EObject result = resource.getContents().get(0);
+            assertEquals(deviceInfoClass, result.eClass(),
+                    "Root should be resolved from its own type value, not through 'info.profileName'");
+            assertEquals("d-1", result.eGet(deviceInfoClass.getEStructuralFeature("deviceId")));
+        }
+
+        /**
+         * The real-world case: two models in one whiteboard, only one of them with a nested
+         * discriminator path, and a document of the other one loaded without a hint.
+         */
+        @Test
+        @DisplayName("a foreign package's document loads although another package registers a nested path")
+        void foreignPackageDocumentLoadsNextToNestedPath() throws IOException {
+            EPackage bikePackage = ecoreHelper.loadEcore(BIKE_ECORE, CodecResourceFeaturePathTypeTest.class);
+            EPackage.Registry.INSTANCE.put(bikePackage.getNsURI(), bikePackage);
+            metadataService.registerPackage(bikePackage);
+            try {
+                EClass locationClass = EcoreHelper.getEClass(bikePackage, "Location");
+                String json = """
+                    {
+                        "_type": "%s#//Location",
+                        "lat": 53.55,
+                        "lon": 9.99
+                    }
+                    """.formatted(bikePackage.getNsURI());
+
+                CodecResource resource = loadWithoutHint(json);
+
+                assertTrue(resource.getErrors().isEmpty(),
+                        "Load should not fail: " + resource.getErrors());
+                assertFalse(resource.getContents().isEmpty(), "Root object should have been read");
+
+                EObject result = resource.getContents().get(0);
+                assertEquals(locationClass, result.eClass(),
+                        "Root should be resolved through the URI strategy (06-type.md 6.3, step 3)");
+                assertEquals(53.55, (Double) result.eGet(locationClass.getEStructuralFeature("lat")), 0.001);
+            } finally {
+                EPackage.Registry.INSTANCE.remove(bikePackage.getNsURI());
+            }
+        }
+
+        @Test
+        @DisplayName("type key wins over a discriminator value the probe does match")
+        void typeKeyWinsOverMatchingDiscriminatorValue() throws IOException {
+            String json = """
+                {
+                    "_type": "%s#//HumidityMessage",
+                    "info": {
+                        "deviceId": "device-001",
+                        "profileName": "temperature-profile"
+                    },
+                    "humidity": 65.5
+                }
+                """.formatted(testPackage.getNsURI());
+
+            CodecResource resource = loadWithoutHint(json);
+
+            assertTrue(resource.getErrors().isEmpty(),
+                    "Load should not fail: " + resource.getErrors());
+            assertFalse(resource.getContents().isEmpty(), "Root object should have been read");
+
+            EObject result = resource.getContents().get(0);
+            assertEquals(humidityMessageClass, result.eClass(),
+                    "The document's own type value wins over the probed 'temperature-profile'");
+            assertEquals(65.5, (Double) result.eGet(humidityMessageClass.getEStructuralFeature("humidity")), 0.001);
+        }
+
+        @Test
+        @DisplayName("probe still resolves the type when the document carries no type key")
+        void probeStillResolvesWithoutTypeKey() throws IOException {
+            String json = """
+                {
+                    "info": {
+                        "deviceId": "device-001",
+                        "profileName": "humidity-profile"
+                    },
+                    "humidity": 65.5
+                }
+                """;
+
+            EObject result = deserializeWithoutHint(json);
+
+            assertNotNull(result, "Probe should still apply when the document states no type");
+            assertEquals(humidityMessageClass, result.eClass(),
+                    "Should resolve to HumidityMessage based on info.profileName");
+        }
+
+        @Test
+        @DisplayName("no type key and no discriminator match reports the missing-type error, not a featurePath one")
+        void noTypeKeyAndNoMatchReportsMissingType() throws IOException {
+            String json = """
+                {
+                    "deviceId": "d-1",
+                    "profileName": "temperature-profile"
+                }
+                """;
+
+            CodecResource resource = loadWithoutHint(json);
+
+            assertTrue(resource.getContents().isEmpty(), "Nothing should be read without a type");
+            assertFalse(resource.getErrors().isEmpty(), "A missing type must be reported");
+            String message = resource.getErrors().get(0).getMessage();
+            assertTrue(message.contains("no type information found"),
+                    "A failed untargeted probe is 'no match', the error must come from the"
+                            + " standard flow, got: " + message);
+        }
+    }
+
+    // ========================================================================
     // Round-Trip Tests
     // ========================================================================
 
@@ -489,6 +627,15 @@ class CodecResourceFeaturePathTypeTest {
         resource.load(in, options);
 
         return resource.getContents().isEmpty() ? null : resource.getContents().get(0);
+    }
+
+    private CodecResource loadWithoutHint(String json) throws IOException {
+        CodecResource resource = createResource();
+
+        ByteArrayInputStream in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+        resource.load(in, new HashMap<>());
+
+        return resource;
     }
 
     private EObject deserializeWithoutHint(String json) throws IOException {

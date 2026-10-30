@@ -512,6 +512,24 @@ Note: FeaturePathTypeResolver consumes the original parser. All further
 
 **When to use FeaturePathTypeResolver:** Only when `discriminatorPath` is a nested/non-standard path that differs from the type key. When `discriminatorPath == typeKey`, the standard flow handles it (§7.1.1) — no buffering needed.
 
+**Hint-free load — the document speaks first.** Without a `CODEC_ROOT_TYPE` hint there is no
+expected EClass, so there is no `mapId` and no targeted registry: §7.1 never enters discriminator
+mapping mode. A nested path may still be **probed** across everything registered — a document
+whose type lives only in its content has no other way in — but the probe is subordinate to the
+document:
+
+1. The object is buffered while scanning, because the type key may sit anywhere in it.
+2. If the document carries a value under the type key, that value decides. The buffered object is
+   read through the standard flow and the probe result is discarded.
+3. A probe that finds no value, or a value no registry maps, is **no match** — not an error.
+   Resolution continues with the type strategy ([06-type.md §6.3](06-type.md#630-type-resolution-flow),
+   step 3), exactly as §7.3 requires for the type-key path.
+4. No `fallbackStrategy` applies: the probe targets no registry (§7.3).
+
+Which path such a probe returns depends on registry iteration order, so a probe allowed to decide
+would make a load depend on which bundles happen to be installed: a document naming its own class
+would fail as soon as some unrelated package registered a nested path (issue #285).
+
 #### 7.1.3 Config Data Flow
 
 The following config data must be available when deserializing a contained object with Type Mapping Registry:
