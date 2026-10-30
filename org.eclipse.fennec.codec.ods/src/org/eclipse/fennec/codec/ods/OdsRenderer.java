@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.emf.ecore.EClass;
@@ -213,7 +214,7 @@ public class OdsRenderer implements TabularDocumentRenderer<OutputStream> {
                 if (fmt != null && !fmt.isBlank()) {
                     // Use the configured format for display fidelity. Keeping it as a
                     // string sidesteps locale-specific date rendering by sods.
-                    cell.setValue(new SimpleDateFormat(fmt).format(c.getValue()));
+                    cell.setValue(new SimpleDateFormat(fmt, Locale.ENGLISH).format(c.getValue()));
                 } else {
                     cell.setValue(c.getValue());
                 }

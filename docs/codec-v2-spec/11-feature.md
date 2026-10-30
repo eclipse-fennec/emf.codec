@@ -631,6 +631,11 @@ EAttributes can have array data types (EDataTypes with array instance classes). 
 > used to be `Date.toString()` — a form neither EMF nor this codec can parse, so such a value
 > was silently lost on read. A configured `dateFormat` still wins, and formats with a native
 > date-time type (BSON) keep using it.
+>
+> **`dateFormat` is wire syntax.** The codec formats and parses it with `Locale.ENGLISH` on
+> every machine, so textual fields (`zzz`, `MMM`, `EEE`, `a`) never depend on the JVM default
+> locale. On read a configured `dateFormat` is applied before EMF's own `EDate` patterns,
+> which would otherwise read the value in the JVM default zone (issue #287).
 
 ### 7.2 Defining Array Data Types in Ecore
 
