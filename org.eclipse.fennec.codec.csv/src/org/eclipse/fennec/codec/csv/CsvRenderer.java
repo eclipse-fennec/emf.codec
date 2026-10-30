@@ -20,6 +20,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -244,7 +245,7 @@ public class CsvRenderer implements TabularDocumentRenderer<OutputStream> {
             }
             String fmt = c.getDateFormat();
             if (fmt != null && !fmt.isBlank()) {
-                return new SimpleDateFormat(fmt).format(c.getValue());
+                return new SimpleDateFormat(fmt, Locale.ENGLISH).format(c.getValue());
             }
             return c.getValue().toString();
         }

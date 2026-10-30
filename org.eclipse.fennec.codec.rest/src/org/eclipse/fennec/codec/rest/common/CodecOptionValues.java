@@ -14,6 +14,7 @@
 package org.eclipse.fennec.codec.rest.common;
 
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 /**
  * Parses a codec option value supplied as a {@link String} into the declared value type.
@@ -56,7 +57,7 @@ public final class CodecOptionValues {
         } else if (valueType.equals(Boolean.class)) {
             return Boolean.parseBoolean(value);
         } else if (valueType.equals(SimpleDateFormat.class)) {
-            return new SimpleDateFormat(value);
+            return new SimpleDateFormat(value, Locale.ENGLISH);
         }
         // Unknown type — pass the string through; downstream option resolvers often parse strings.
         return value;

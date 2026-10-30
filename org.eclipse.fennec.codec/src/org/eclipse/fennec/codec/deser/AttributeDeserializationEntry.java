@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -744,7 +745,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         if (targetType == Date.class) {
             String dateFormat = config.getDateFormat();
             if (dateFormat != null) {
-                return new SimpleDateFormat(dateFormat).parse(stringValue);
+                return new SimpleDateFormat(dateFormat, Locale.ENGLISH).parse(stringValue);
             }
             // No configured format: EMF's canonical form first - that is what the writer
             // produces, and it carries the zone offset, which the patterns below drop
@@ -753,9 +754,9 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
                 return (Date) EcoreUtil.createFromString(EcorePackage.Literals.EDATE, stringValue);
             } catch (Exception emfFailure) {
                 try {
-                    return new SimpleDateFormat("yyyy-MM-dd").parse(stringValue);
+                    return new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(stringValue);
                 } catch (ParseException e) {
-                    return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(stringValue);
+                    return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH).parse(stringValue);
                 }
             }
         }
@@ -800,6 +801,16 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
         // For enums, try both name and literal lookup for better compatibility
         if (dataType instanceof EEnum eEnum) {
             return convertEnumFromString(stringValue, eEnum);
+        }
+        // A configured dateFormat describes the document, so it beats EMF's own Date patterns,
+        // which would read the value in the JVM default zone (issue #287)
+        if (instanceClass == Date.class && config.getDateFormat() != null) {
+            try {
+                return convertObjectFromString(stringValue, instanceClass);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Date '" + stringValue + "' does not match dateFormat '"
+                        + config.getDateFormat() + "'", e);
+            }
         }
         // Use EMF's conversion mechanism for other data types. Dynamic EDataTypes
         // have no factory conversion — fall back to the safe reflection targets

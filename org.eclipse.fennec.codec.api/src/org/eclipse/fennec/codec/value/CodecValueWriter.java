@@ -52,7 +52,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
  *         // Access effective configuration
  *         EffectiveCodecConfig config = ctx.getConfig();
  *         String format = config.getDateFormat().orElse("yyyy-MM-dd'T'HH:mm:ss'Z'");
- *         SimpleDateFormat sdf = new SimpleDateFormat(format);
+ *         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.ENGLISH);
  *         ctx.getGenerator().writeString(sdf.format(value));
  *     }
  * }

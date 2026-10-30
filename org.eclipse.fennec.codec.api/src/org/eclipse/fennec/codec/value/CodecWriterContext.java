@@ -36,7 +36,7 @@ import tools.jackson.databind.SerializationContext;
  *         // Access configuration to determine format
  *         EffectiveCodecConfig config = ctx.getConfig();
  *         String format = config.getDateFormat().orElse("yyyy-MM-dd'T'HH:mm:ss'Z'");
- *         SimpleDateFormat sdf = new SimpleDateFormat(format);
+ *         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.ENGLISH);
  *         ctx.getGenerator().writeString(sdf.format(value));
  *     }
  * }

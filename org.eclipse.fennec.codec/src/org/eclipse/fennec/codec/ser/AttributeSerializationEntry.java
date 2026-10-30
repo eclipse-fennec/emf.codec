@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -306,7 +307,7 @@ public class AttributeSerializationEntry implements SerializationEntry {
     private void writeDateValue(JsonGenerator gen, Date date) {
         String dateFormat = config.getDateFormat();
         if (dateFormat != null) {
-            gen.writeString(new SimpleDateFormat(dateFormat).format(date));
+            gen.writeString(new SimpleDateFormat(dateFormat, Locale.ENGLISH).format(date));
         } else if (gen instanceof FormatDelegateGenerator<?> delegating && delegating.supportsNativeDateTime()) {
             delegating.writeDateTime(date.getTime());
         } else {

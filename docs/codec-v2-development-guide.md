@@ -4,6 +4,19 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-10-30
 
+**Session Summary (2026-10-30, fix/issue-287-date-format-locale) — #287/#288 `dateFormat` locale and read side:**
+
+- `codec.dateFormat` is wire syntax: every `SimpleDateFormat` the codec builds from it now uses
+  `Locale.ENGLISH` (JSON read and write, CSV and ODS renderers, REST option converter), so `zzz`,
+  `MMM`, `EEE` and `a` no longer depend on the JVM default locale. `Locale.ROOT` was no option: it
+  has no zone names at all.
+- A single-valued `Date` ignored `dateFormat` on read (#288): `convertFromString` handed the value
+  to `EcoreUtil.createFromString` first, whose `EDate` patterns read the leading
+  `yyyy-MM-dd'T'HH:mm:ss.SSS` in the default zone and ignore the rest. A configured format now wins
+  on read, as it already did for arrays.
+- Spec 11-feature.md §7 note; test `resource/DateFormatLocaleTest` (German locale, Berlin zone:
+  writer emits `ZCET`, `ZEST` reads back to the right instant).
+
 **Session Summary (2026-10-30, issue285_hint_free_with_wrong_descriminator) — #285 hint-free load:**
 
 - A hint-free load no longer lets the untargeted discriminator probe overrule the document. With
@@ -2417,7 +2430,7 @@ All tests pass with 0 failures, 0 errors, 0 skipped.
    - P2 Advanced: 10 advanced feature suites
    - Bug fixes: array root serialization, `supportsArrayRoot()` capability, BSON reader `valueConsumed` fix
 
-**OPEN (as of 2026-08-07):**
+**OPEN (as of 2026-10-30):**
 1. **#110** — the asymmetry campaign bracket. Every ticket under it is done; it stays open only
    until someone decides the bracket has served its purpose.
 2. **#83** — `XMLURIHandler.resolve()` crashes with `ArrayIndexOutOfBoundsException`. Untouched.
