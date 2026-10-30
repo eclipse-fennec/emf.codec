@@ -242,18 +242,45 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         // See spec 08-discriminator-mapping.md §7.1.1 vs §7.1.2.
         String discriminatorPath = getDiscriminatorPath(hintEClass);
 
-        // If no hint provided, try to find ANY discriminatorPath from registered types
+        // With no hint there is no mapId, so no registry is targeted and the path below is a
+        // probe across everything registered: whichever nested path some package happens to
+        // declare (issue #285). It stays, because a document whose type is only in its content
+        // has no other way in - but it may not speak before the document itself has.
+        boolean untargetedProbe = false;
         if (!FeaturePathTypeResolver.hasDiscriminatorPath(discriminatorPath)
                 && hintEClass == null
                 && config.getTypeDiscriminatorReader() != null) {
             discriminatorPath = config.getTypeDiscriminatorReader().getAnyDiscriminatorPath();
+            untargetedProbe = FeaturePathTypeResolver.hasDiscriminatorPath(discriminatorPath);
         }
 
         if (FeaturePathTypeResolver.hasDiscriminatorPath(discriminatorPath)
                 && config.getTypeDiscriminatorReader() != null
                 && !isTypeKey(discriminatorPath, hintEClass)) {
-            return deserializeWithFeaturePath(parser, ctxt, state, hintEClass, discriminatorPath);
+            return untargetedProbe
+                    ? deserializeWithUntargetedProbe(parser, ctxt, state, emfContext, discriminatorPath)
+                    : deserializeWithFeaturePath(parser, ctxt, state, hintEClass, discriminatorPath);
         }
+
+        return deserializeStandard(parser, ctxt, state, hintEClass, emfContext);
+    }
+
+    /**
+     * Reads one EObject through the standard flow: the type comes from the document's type key,
+     * from the hint, or from member-based inference.
+     * <p>
+     * Takes its parser as an argument rather than reading the one {@code deserializeObject} was
+     * called with, because the untargeted discriminator probe has to buffer the object before it
+     * can tell whether the document names its own type (§7.1.2) - the flow then replays that
+     * buffer instead of the consumed source parser.
+     * </p>
+     */
+    private EObject deserializeStandard(
+            JsonParser parser,
+            DeserializationContext ctxt,
+            DeserializationState state,
+            EClass hintEClass,
+            EMFCodecReadContext emfContext) {
 
         // Standard deserialization flow
         // Document order: the catch-all map and the inference tie-break depend on it (spec 21 §6)
@@ -1015,7 +1042,7 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             case VALUE_NUMBER_FLOAT:
                 // Kept as written (issue #258): a double would cut a BigDecimal attribute
                 // short. Replayed as the same literal, every target reads it as from the stream.
-                return new FloatLiteral(parser.getText());
+                return new FloatLiteral(parser.getString());
             case VALUE_TRUE:
                 return Boolean.TRUE;
             case VALUE_FALSE:
@@ -1652,6 +1679,80 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             return tds.getMapIdForEClass(eClass);
         }
         return null;
+    }
+
+    /**
+     * Reads one EObject in the hint-free case, where the discriminator path was not taken from a
+     * targeted registry but probed from whatever the whiteboard holds (issue #285).
+     * <p>
+     * The probe only has a say about a document that says nothing about its own type. With no
+     * hint there is no {@code mapId}, so §7.1 never enters discriminator mode here, and a path
+     * some unrelated package registered must neither re-type the object nor fail it - the same
+     * rule §7.3 already states for the type-key path (issue #238). Which path such a probe even
+     * returns depends on registry iteration order, so letting it decide would make a load depend
+     * on which bundles happen to be installed.
+     * </p>
+     * <p>
+     * The object is buffered while scanning, since the type key may sit anywhere in it; the
+     * buffer is then replayed either as the resolved class or through the standard flow. A scan
+     * that finds no match is "no match", not an error: resolution continues with the type
+     * strategy (06-type.md §6.3, step 3).
+     * </p>
+     */
+    private EObject deserializeWithUntargetedProbe(
+            JsonParser parser,
+            DeserializationContext ctxt,
+            DeserializationState state,
+            EMFCodecReadContext emfContext,
+            String discriminatorPath) {
+
+        LOGGER.fine("Probing for a discriminator path without a type hint: " + discriminatorPath);
+
+        FeaturePathTypeResolver resolver = new FeaturePathTypeResolver(
+                discriminatorPath, config.getTypeDiscriminatorReader());
+        resolver.scan(parser, ctxt);
+
+        JsonParser bufferedParser = resolver.getBufferedParser(ctxt, parser);
+        if (bufferedParser == null) {
+            String msg = "No buffered content available for deserialization";
+            LOGGER.severe(msg);
+            ContextHelper.addError(ctxt, msg, parser, "CodecEObjectDeserializer");
+            return null;
+        }
+
+        EClass resolvedEClass = resolver.getResolvedEClass();
+        if (resolvedEClass != null && !carriesTypeValue(resolver.getBufferedParser(ctxt, parser))) {
+            state.setResolvedEClass(resolvedEClass);
+            return deserializeFromBufferedParser(bufferedParser, ctxt, state);
+        }
+
+        return deserializeStandard(bufferedParser, ctxt, state, null, emfContext);
+    }
+
+    /**
+     * Tells whether the buffered object carries a value under the type key.
+     * <p>
+     * Only the object's own members count: a type key further down belongs to a contained
+     * object, which is read with its own context.
+     * </p>
+     *
+     * @param bufferedParser a replay parser positioned at the object's START_OBJECT, consumed here
+     */
+    private boolean carriesTypeValue(JsonParser bufferedParser) {
+        if (bufferedParser == null || bufferedParser.currentToken() != JsonToken.START_OBJECT) {
+            return false;
+        }
+        while (TokenLoops.hasNextField(bufferedParser)) {
+            String propertyName = bufferedParser.currentName();
+            JsonToken token = bufferedParser.nextToken();
+            if (isTypeKey(propertyName, null) && token != JsonToken.VALUE_NULL) {
+                return true;
+            }
+            if (token == JsonToken.START_OBJECT || token == JsonToken.START_ARRAY) {
+                bufferedParser.skipChildren();
+            }
+        }
+        return false;
     }
 
     /**
