@@ -2,7 +2,19 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-10-30
+**Last Updated:** 2026-11-06
+
+**Session Summary (2026-11-06, fix/issue-290-detached-reference-warning) — #290 warning, #291 map entries:**
+
+- #290 closed as won't fix: a non-containment target that is resolved but in no resource has no
+  URI that would resolve, so the type URI fallback (spec 10 §5.1) stays — an invented id URI would
+  only produce proxies that never resolve. The host fixes it (target into a resource, or a
+  reference `uriWriter`). What changed: `ReferenceSerializationEntry.getReferenceUri` now reports
+  a write-side warning for that fallback (spec 15 §5.2). Tests in `SerializationDiagnosticsTest`.
+- #291: `EMapHelper.isMapEntryClass` only accepts `instanceClassName == java.util.Map$Entry`, as
+  EMF does. The `key` + `value` feature-name fallback (from the initial commit) wrote ordinary
+  classes such as emf.streaming's `SlotValue` as maps and dropped their other features. Spec 10
+  §8.1; tests `EMapHelperTest` (flipped) and `resource/KeyValueClassRoundTripTest`.
 
 **Session Summary (2026-10-30, fix/issue-287-date-format-locale) — #287/#288 `dateFormat` locale and read side:**
 
