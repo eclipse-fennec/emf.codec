@@ -293,6 +293,7 @@ written, but not the way you configured it".
 | `IdSerializationEntry` | ID writing | the configured `idValueWriterName` is not registered — the default is used | #184 |
 | `ReferenceSerializationEntry` | Reference writing | a configured `ReferenceValueWriter` answered `canHandle() == false` — the default is used (twice: by name, and by instance) | #184 |
 | `ReferenceSerializationEntry` | Reference writing | `CODEC_FEATURE_VALUE_WRITERS` is deprecated and ignored for references | #184 |
+| `ReferenceSerializationEntry` | Reference writing | a non-containment target is resolved but in no resource — it is written as the type URI (10-reference.md §5.1) and cannot be resolved | #290 |
 | `AttributeSerializationEntry` | Attribute writing | a configured `AttributeValueWriter` answered `canHandle() == false` — the default is used | #184 |
 | `ConfigurationResolver` and the `*Config.validate` methods | Configuration | see Layers 2, 2a and 3 above; these reach the resource on save as well as load | #182 |
 | `PrefixSerializationEntry` | Prefix keys (14-custom-values.md §13) | a `CodecPrefixWriter` threw — the field is skipped; a prefix key equals a feature name of the class — the feature is written, the writer skipped (once per class and key) | #193 |

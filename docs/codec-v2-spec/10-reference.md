@@ -482,7 +482,7 @@ INPUT: EReference, target EObject (resolved or proxy), effective ReferenceConfig
 | Scenario | Behavior |
 |----------|----------|
 | Reference to unresolved proxy | Serialize using proxy URI |
-| Reference to object with no resource | Use fallback EClass URI |
+| Reference to object with no resource | Use fallback EClass URI and report a warning (15-error-handling.md §5.2) — the target's identity is lost; the host puts the target into a resource or registers a reference `uriWriter` (14-custom-values.md) |
 | Bidirectional reference with expand | Skip if `expandIgnoreBidirectional=true`, fall through to proxy |
 | Multi-valued reference | Array of proxy/expanded objects (each element through same flow) |
 | Proxy + expand enabled | Expand is skipped (proxy not resolved), serialize as proxy |
