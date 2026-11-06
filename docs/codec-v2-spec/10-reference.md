@@ -705,6 +705,10 @@ and is always inlined, even when it also reports no container (models generated 
 
 ## 8.1 EMap keys
 
+A reference is an EMap when its type's `instanceClassName` is `java.util.Map$Entry`, as in EMF.
+Features named `key` and `value` alone do not make a class a map entry: an ordinary class may
+have both, and writing it as a map would drop its other features (#291).
+
 An EMap is written as a JSON object whose **field names are the entry keys**. A field name is
 a string, so a key feature that is not an `EString` is converted in both directions:
 

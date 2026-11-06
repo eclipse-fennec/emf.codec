@@ -177,8 +177,8 @@ class EMapHelperTest {
         }
 
         @Test
-        @DisplayName("returns true for class with key and value features but no instanceClassName (fallback)")
-        void returnsTrueForFallbackDetection() {
+        @DisplayName("returns false for class with key and value features but no instanceClassName (#291)")
+        void returnsFalseForKeyAndValueWithoutMapEntryInstanceClass() {
             // Create a dynamic EClass with "key" and "value" but no instanceClassName
             EClass dynamicEntry = EcoreFactory.eINSTANCE.createEClass();
             dynamicEntry.setName("DynamicEntry");
@@ -193,10 +193,12 @@ class EMapHelperTest {
             valueAttr.setEType(EcorePackage.Literals.ESTRING);
             dynamicEntry.getEStructuralFeatures().add(valueAttr);
 
-            // No instanceClassName set — fallback should detect key+value
+            // An ordinary class may have features named key and value (e.g. a change-stream
+            // SlotValue). Only java.util.Map$Entry makes a map entry, as in EMF; guessing from
+            // feature names wrote such objects as maps and dropped their other features.
             assertNull(dynamicEntry.getInstanceClassName());
-            assertTrue(EMapHelper.isMapEntryClass(dynamicEntry),
-                    "Should detect map entry class via key+value fallback");
+            assertFalse(EMapHelper.isMapEntryClass(dynamicEntry),
+                    "key and value features alone do not make a map entry");
         }
 
         @Test
