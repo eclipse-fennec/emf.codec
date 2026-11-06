@@ -61,11 +61,10 @@ public final class EMapHelper {
     /**
      * Checks if the given EClass represents a Map.Entry type.
      * <p>
-     * Detection is performed by:
-     * <ol>
-     *   <li>Checking if {@code instanceClassName} equals {@code "java.util.Map$Entry"}</li>
-     *   <li>Falling back to checking if the class has both {@code "key"} and {@code "value"} features</li>
-     * </ol>
+     * As in EMF, a class is a map entry only when its {@code instanceClassName} is
+     * {@code "java.util.Map$Entry"}. Features named {@code key} and {@code value} alone do not
+     * make one: an ordinary class may have both, and treating it as an entry drops its other
+     * features (#291).
      * </p>
      *
      * @param eClass the EClass to check
@@ -76,14 +75,7 @@ public final class EMapHelper {
             return false;
         }
 
-        String instanceClassName = eClass.getInstanceClassName();
-        if (MAP_ENTRY_CLASS_NAME.equals(instanceClassName)) {
-            return true;
-        }
-
-        // Fallback: check for key and value features
-        return eClass.getEStructuralFeature("key") != null
-                && eClass.getEStructuralFeature("value") != null;
+        return MAP_ENTRY_CLASS_NAME.equals(eClass.getInstanceClassName());
     }
 
     /**
