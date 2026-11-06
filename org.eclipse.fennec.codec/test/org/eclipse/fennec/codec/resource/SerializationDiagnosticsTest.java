@@ -64,6 +64,7 @@ class SerializationDiagnosticsTest {
     private EAttribute firstName;
     private EAttribute lastName;
     private EReference friend;
+    private EReference knows;
 
     @BeforeEach
     void setUp() {
@@ -84,6 +85,10 @@ class SerializationDiagnosticsTest {
         friend.setEType(personClass);
         friend.setContainment(true);
         personClass.getEStructuralFeatures().add(friend);
+        knows = f.createEReference();
+        knows.setName("knows");
+        knows.setEType(personClass);
+        personClass.getEStructuralFeatures().add(knows);
 
         testPackage = f.createEPackage();
         testPackage.setName("serdiag");
@@ -148,6 +153,42 @@ class SerializationDiagnosticsTest {
         assertTrue(warnings(resource).stream()
                         .anyMatch(m -> m.contains("deprecated") || m.contains("ignored")),
                 "an option the codec refuses to honour has to say so, was: "
+                        + warnings(resource));
+    }
+
+    @Test
+    @DisplayName("a reference to a target in no resource is reported (#290)")
+    void referenceToTargetInNoResourceIsReported() throws IOException {
+        // The target is resolved but lives in no resource, so there is no URI that would ever
+        // resolve to it. The codec writes the type URI (spec 10 §5.1); the target's identity is
+        // lost, and the caller has to learn about it.
+        CodecResource resource = newResource(Map.of());
+        EObject ada = person("Ada", "Lovelace");
+        ada.eSet(knows, person("Charles", "Babbage"));
+        resource.getContents().add(ada);
+
+        resource.save(new ByteArrayOutputStream(), null);
+
+        assertTrue(warnings(resource).stream()
+                        .anyMatch(m -> m.contains("knows") && m.contains("no resource")),
+                "a reference that lost its target's identity must not be silent, was: "
+                        + warnings(resource));
+    }
+
+    @Test
+    @DisplayName("a reference to a target in the same resource reports nothing")
+    void referenceToTargetInSameResourceIsSilent() throws IOException {
+        CodecResource resource = newResource(Map.of());
+        EObject ada = person("Ada", "Lovelace");
+        EObject charles = person("Charles", "Babbage");
+        ada.eSet(knows, charles);
+        resource.getContents().add(ada);
+        resource.getContents().add(charles);
+
+        resource.save(new ByteArrayOutputStream(), null);
+
+        assertTrue(warnings(resource).isEmpty(),
+                "a fragment identifies the target, so nothing is reported, was: "
                         + warnings(resource));
     }
 

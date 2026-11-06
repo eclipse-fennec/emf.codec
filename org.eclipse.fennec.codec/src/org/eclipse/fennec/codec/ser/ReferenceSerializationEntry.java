@@ -590,6 +590,13 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         if (targetResource != null) {
             return targetResource.getURIFragment(target);
         }
+
+        // No resource: no URI exists that would resolve to the target. The type URI is the
+        // specified fallback (spec 10 §5.1), but it loses the target's identity, so say so (#290).
+        report("Reference '" + reference.getName() + "' of " + source.eClass().getName()
+                + " points to a " + target.eClass().getName()
+                + " that is in no resource; it is written as the type URI and cannot be resolved. "
+                + "Put the target into a resource or register a reference uriWriter.");
         return target.eClass().getEPackage().getNsURI() + "#//" + target.eClass().getName();
     }
 
