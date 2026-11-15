@@ -4,6 +4,22 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-11-15
 
+**Session Summary (2026-11-15, feature/openapi-3.1-3.2) — JSON Schema → Ecore (#318):**
+
+- The converter takes the JSON Schema model: `convert(Schema, schemaFeature)`,
+  `convertDefinitions(Map<String, Schema>)` (names taken literally - `OasSchemas` uses it for
+  `components/schemas`). Internally it still works on `JsonNode` (my decision: `SchemaJson` is
+  lossless, a rewrite would only risk regressions); `SchemaJson.write(schema, trace)` and an identity
+  map of what each node became set `Schema.classifier` on definitions and their property schemas.
+- Spec `docs/codec-v2-spec/22-json-schema-to-ecore.md`: the mapping per construct. New mappings:
+  alias definitions (`{$ref}` only) are another name of the target's classifier; `patternProperties`
+  members go into the catch-all map; `if`/`then`/`else` branch properties become optional features
+  and tuples (`prefixItems`, `items: [...]`) an `EJavaObject` list (maintainer: "pragmatic"); the
+  keywords are written back as read. One scalar table (`JsonSchemaToEPackageConverter.dataType`) for
+  definitions and OpenAPI use sites: `integer` without `format` is `ELongObject` everywhere.
+- Open: a top-level tuple definition keeps no positions; m2x/QVT evaluation; #303, #305, #304/#308,
+  #306/#307, #299 cleanup.
+
 **Session Summary (2026-11-15, feature/openapi-3.1-3.2) — JSON Schema model, lossless OpenAPI (#315-#319):**
 
 - A fidelity check (source JSON vs. written JSON) showed ~12,600 differences for GitHub, mostly in
