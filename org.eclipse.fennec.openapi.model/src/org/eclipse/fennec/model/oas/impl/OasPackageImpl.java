@@ -1453,7 +1453,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getParameter_Description() {
+	public EAttribute getParameter_Summary() {
 		return (EAttribute)parameterEClass.getEStructuralFeatures().get(4);
 	}
 
@@ -1463,7 +1463,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getParameter_Required() {
+	public EAttribute getParameter_Description() {
 		return (EAttribute)parameterEClass.getEStructuralFeatures().get(5);
 	}
 
@@ -1473,7 +1473,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getParameter_Deprecated() {
+	public EAttribute getParameter_Required() {
 		return (EAttribute)parameterEClass.getEStructuralFeatures().get(6);
 	}
 
@@ -1483,7 +1483,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getParameter_AllowEmptyValue() {
+	public EAttribute getParameter_Deprecated() {
 		return (EAttribute)parameterEClass.getEStructuralFeatures().get(7);
 	}
 
@@ -1493,7 +1493,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getParameter_Style() {
+	public EAttribute getParameter_AllowEmptyValue() {
 		return (EAttribute)parameterEClass.getEStructuralFeatures().get(8);
 	}
 
@@ -1503,7 +1503,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getParameter_Explode() {
+	public EAttribute getParameter_Style() {
 		return (EAttribute)parameterEClass.getEStructuralFeatures().get(9);
 	}
 
@@ -1513,7 +1513,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getParameter_AllowReserved() {
+	public EAttribute getParameter_Explode() {
 		return (EAttribute)parameterEClass.getEStructuralFeatures().get(10);
 	}
 
@@ -1523,8 +1523,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
+	public EAttribute getParameter_AllowReserved() {
+		return (EAttribute)parameterEClass.getEStructuralFeatures().get(11);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EReference getParameter_Schema() {
-		return (EReference)parameterEClass.getEStructuralFeatures().get(11);
+		return (EReference)parameterEClass.getEStructuralFeatures().get(12);
 	}
 
 	/**
@@ -1534,7 +1544,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 */
 	@Override
 	public EAttribute getParameter_Example() {
-		return (EAttribute)parameterEClass.getEStructuralFeatures().get(12);
+		return (EAttribute)parameterEClass.getEStructuralFeatures().get(13);
 	}
 
 	/**
@@ -1544,16 +1554,6 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 */
 	@Override
 	public EReference getParameter_Examples() {
-		return (EReference)parameterEClass.getEStructuralFeatures().get(13);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EReference getParameter_Content() {
 		return (EReference)parameterEClass.getEStructuralFeatures().get(14);
 	}
 
@@ -1563,8 +1563,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getParameter_Extensions() {
+	public EReference getParameter_Content() {
 		return (EReference)parameterEClass.getEStructuralFeatures().get(15);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EReference getParameter_Extensions() {
+		return (EReference)parameterEClass.getEStructuralFeatures().get(16);
 	}
 
 	/**
@@ -1603,7 +1613,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getRequestBody_Description() {
+	public EAttribute getRequestBody_Summary() {
 		return (EAttribute)requestBodyEClass.getEStructuralFeatures().get(2);
 	}
 
@@ -1613,8 +1623,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
+	public EAttribute getRequestBody_Description() {
+		return (EAttribute)requestBodyEClass.getEStructuralFeatures().get(3);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EReference getRequestBody_Content() {
-		return (EReference)requestBodyEClass.getEStructuralFeatures().get(3);
+		return (EReference)requestBodyEClass.getEStructuralFeatures().get(4);
 	}
 
 	/**
@@ -1624,7 +1644,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 */
 	@Override
 	public EAttribute getRequestBody_Required() {
-		return (EAttribute)requestBodyEClass.getEStructuralFeatures().get(4);
+		return (EAttribute)requestBodyEClass.getEStructuralFeatures().get(5);
 	}
 
 	/**
@@ -1634,7 +1654,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 */
 	@Override
 	public EReference getRequestBody_Extensions() {
-		return (EReference)requestBodyEClass.getEStructuralFeatures().get(5);
+		return (EReference)requestBodyEClass.getEStructuralFeatures().get(6);
 	}
 
 	/**
@@ -1673,7 +1693,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getMediaType_Description() {
+	public EAttribute getMediaType_Summary() {
 		return (EAttribute)mediaTypeEClass.getEStructuralFeatures().get(2);
 	}
 
@@ -1683,8 +1703,8 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getMediaType_Schema() {
-		return (EReference)mediaTypeEClass.getEStructuralFeatures().get(3);
+	public EAttribute getMediaType_Description() {
+		return (EAttribute)mediaTypeEClass.getEStructuralFeatures().get(3);
 	}
 
 	/**
@@ -1693,7 +1713,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getMediaType_ItemSchema() {
+	public EReference getMediaType_Schema() {
 		return (EReference)mediaTypeEClass.getEStructuralFeatures().get(4);
 	}
 
@@ -1703,8 +1723,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
+	public EReference getMediaType_ItemSchema() {
+		return (EReference)mediaTypeEClass.getEStructuralFeatures().get(5);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EAttribute getMediaType_Example() {
-		return (EAttribute)mediaTypeEClass.getEStructuralFeatures().get(5);
+		return (EAttribute)mediaTypeEClass.getEStructuralFeatures().get(6);
 	}
 
 	/**
@@ -1714,16 +1744,6 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 */
 	@Override
 	public EReference getMediaType_Examples() {
-		return (EReference)mediaTypeEClass.getEStructuralFeatures().get(6);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EReference getMediaType_Encoding() {
 		return (EReference)mediaTypeEClass.getEStructuralFeatures().get(7);
 	}
 
@@ -1733,7 +1753,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getMediaType_PrefixEncoding() {
+	public EReference getMediaType_Encoding() {
 		return (EReference)mediaTypeEClass.getEStructuralFeatures().get(8);
 	}
 
@@ -1743,7 +1763,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getMediaType_ItemEncoding() {
+	public EReference getMediaType_PrefixEncoding() {
 		return (EReference)mediaTypeEClass.getEStructuralFeatures().get(9);
 	}
 
@@ -1753,8 +1773,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getMediaType_Extensions() {
+	public EReference getMediaType_ItemEncoding() {
 		return (EReference)mediaTypeEClass.getEStructuralFeatures().get(10);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EReference getMediaType_Extensions() {
+		return (EReference)mediaTypeEClass.getEStructuralFeatures().get(11);
 	}
 
 	/**
@@ -2163,7 +2193,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getLink_Description() {
+	public EAttribute getLink_Summary() {
 		return (EAttribute)linkEClass.getEStructuralFeatures().get(6);
 	}
 
@@ -2173,8 +2203,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
+	public EAttribute getLink_Description() {
+		return (EAttribute)linkEClass.getEStructuralFeatures().get(7);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EReference getLink_Server() {
-		return (EReference)linkEClass.getEStructuralFeatures().get(7);
+		return (EReference)linkEClass.getEStructuralFeatures().get(8);
 	}
 
 	/**
@@ -2184,7 +2224,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 */
 	@Override
 	public EReference getLink_Extensions() {
-		return (EReference)linkEClass.getEStructuralFeatures().get(8);
+		return (EReference)linkEClass.getEStructuralFeatures().get(9);
 	}
 
 	/**
@@ -2223,7 +2263,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getHeader_Description() {
+	public EAttribute getHeader_Summary() {
 		return (EAttribute)headerEClass.getEStructuralFeatures().get(2);
 	}
 
@@ -2233,7 +2273,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getHeader_Required() {
+	public EAttribute getHeader_Description() {
 		return (EAttribute)headerEClass.getEStructuralFeatures().get(3);
 	}
 
@@ -2243,7 +2283,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getHeader_Deprecated() {
+	public EAttribute getHeader_Required() {
 		return (EAttribute)headerEClass.getEStructuralFeatures().get(4);
 	}
 
@@ -2253,7 +2293,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getHeader_AllowEmptyValue() {
+	public EAttribute getHeader_Deprecated() {
 		return (EAttribute)headerEClass.getEStructuralFeatures().get(5);
 	}
 
@@ -2263,7 +2303,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getHeader_Style() {
+	public EAttribute getHeader_AllowEmptyValue() {
 		return (EAttribute)headerEClass.getEStructuralFeatures().get(6);
 	}
 
@@ -2273,7 +2313,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getHeader_Explode() {
+	public EAttribute getHeader_Style() {
 		return (EAttribute)headerEClass.getEStructuralFeatures().get(7);
 	}
 
@@ -2283,7 +2323,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getHeader_AllowReserved() {
+	public EAttribute getHeader_Explode() {
 		return (EAttribute)headerEClass.getEStructuralFeatures().get(8);
 	}
 
@@ -2293,8 +2333,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
+	public EAttribute getHeader_AllowReserved() {
+		return (EAttribute)headerEClass.getEStructuralFeatures().get(9);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EReference getHeader_Schema() {
-		return (EReference)headerEClass.getEStructuralFeatures().get(9);
+		return (EReference)headerEClass.getEStructuralFeatures().get(10);
 	}
 
 	/**
@@ -2304,7 +2354,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 */
 	@Override
 	public EAttribute getHeader_Example() {
-		return (EAttribute)headerEClass.getEStructuralFeatures().get(10);
+		return (EAttribute)headerEClass.getEStructuralFeatures().get(11);
 	}
 
 	/**
@@ -2314,16 +2364,6 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 */
 	@Override
 	public EReference getHeader_Examples() {
-		return (EReference)headerEClass.getEStructuralFeatures().get(11);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EReference getHeader_Content() {
 		return (EReference)headerEClass.getEStructuralFeatures().get(12);
 	}
 
@@ -2333,8 +2373,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getHeader_Extensions() {
+	public EReference getHeader_Content() {
 		return (EReference)headerEClass.getEStructuralFeatures().get(13);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EReference getHeader_Extensions() {
+		return (EReference)headerEClass.getEStructuralFeatures().get(14);
 	}
 
 	/**
@@ -2473,7 +2523,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getSecurityScheme_Description() {
+	public EAttribute getSecurityScheme_Summary() {
 		return (EAttribute)securitySchemeEClass.getEStructuralFeatures().get(3);
 	}
 
@@ -2483,7 +2533,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getSecurityScheme_Name() {
+	public EAttribute getSecurityScheme_Description() {
 		return (EAttribute)securitySchemeEClass.getEStructuralFeatures().get(4);
 	}
 
@@ -2493,7 +2543,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getSecurityScheme_In() {
+	public EAttribute getSecurityScheme_Name() {
 		return (EAttribute)securitySchemeEClass.getEStructuralFeatures().get(5);
 	}
 
@@ -2503,7 +2553,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getSecurityScheme_Scheme() {
+	public EAttribute getSecurityScheme_In() {
 		return (EAttribute)securitySchemeEClass.getEStructuralFeatures().get(6);
 	}
 
@@ -2513,7 +2563,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getSecurityScheme_BearerFormat() {
+	public EAttribute getSecurityScheme_Scheme() {
 		return (EAttribute)securitySchemeEClass.getEStructuralFeatures().get(7);
 	}
 
@@ -2523,8 +2573,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
+	public EAttribute getSecurityScheme_BearerFormat() {
+		return (EAttribute)securitySchemeEClass.getEStructuralFeatures().get(8);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EReference getSecurityScheme_Flows() {
-		return (EReference)securitySchemeEClass.getEStructuralFeatures().get(8);
+		return (EReference)securitySchemeEClass.getEStructuralFeatures().get(9);
 	}
 
 	/**
@@ -2534,16 +2594,6 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 */
 	@Override
 	public EAttribute getSecurityScheme_OpenIdConnectUrl() {
-		return (EAttribute)securitySchemeEClass.getEStructuralFeatures().get(9);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSecurityScheme_Oauth2MetadataUrl() {
 		return (EAttribute)securitySchemeEClass.getEStructuralFeatures().get(10);
 	}
 
@@ -2553,7 +2603,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EAttribute getSecurityScheme_Deprecated() {
+	public EAttribute getSecurityScheme_Oauth2MetadataUrl() {
 		return (EAttribute)securitySchemeEClass.getEStructuralFeatures().get(11);
 	}
 
@@ -2563,8 +2613,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
+	public EAttribute getSecurityScheme_Deprecated() {
+		return (EAttribute)securitySchemeEClass.getEStructuralFeatures().get(12);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EReference getSecurityScheme_Extensions() {
-		return (EReference)securitySchemeEClass.getEStructuralFeatures().get(12);
+		return (EReference)securitySchemeEClass.getEStructuralFeatures().get(13);
 	}
 
 	/**
@@ -3446,6 +3506,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		createEReference(parameterEClass, PARAMETER__TARGET);
 		createEAttribute(parameterEClass, PARAMETER__NAME);
 		createEAttribute(parameterEClass, PARAMETER__IN);
+		createEAttribute(parameterEClass, PARAMETER__SUMMARY);
 		createEAttribute(parameterEClass, PARAMETER__DESCRIPTION);
 		createEAttribute(parameterEClass, PARAMETER__REQUIRED);
 		createEAttribute(parameterEClass, PARAMETER__DEPRECATED);
@@ -3462,6 +3523,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		requestBodyEClass = createEClass(REQUEST_BODY);
 		createEAttribute(requestBodyEClass, REQUEST_BODY__REF);
 		createEReference(requestBodyEClass, REQUEST_BODY__TARGET);
+		createEAttribute(requestBodyEClass, REQUEST_BODY__SUMMARY);
 		createEAttribute(requestBodyEClass, REQUEST_BODY__DESCRIPTION);
 		createEReference(requestBodyEClass, REQUEST_BODY__CONTENT);
 		createEAttribute(requestBodyEClass, REQUEST_BODY__REQUIRED);
@@ -3470,6 +3532,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		mediaTypeEClass = createEClass(MEDIA_TYPE);
 		createEAttribute(mediaTypeEClass, MEDIA_TYPE__REF);
 		createEReference(mediaTypeEClass, MEDIA_TYPE__TARGET);
+		createEAttribute(mediaTypeEClass, MEDIA_TYPE__SUMMARY);
 		createEAttribute(mediaTypeEClass, MEDIA_TYPE__DESCRIPTION);
 		createEReference(mediaTypeEClass, MEDIA_TYPE__SCHEMA);
 		createEReference(mediaTypeEClass, MEDIA_TYPE__ITEM_SCHEMA);
@@ -3524,6 +3587,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		createEAttribute(linkEClass, LINK__OPERATION_ID);
 		createEReference(linkEClass, LINK__PARAMETERS);
 		createEAttribute(linkEClass, LINK__REQUEST_BODY);
+		createEAttribute(linkEClass, LINK__SUMMARY);
 		createEAttribute(linkEClass, LINK__DESCRIPTION);
 		createEReference(linkEClass, LINK__SERVER);
 		createEReference(linkEClass, LINK__EXTENSIONS);
@@ -3531,6 +3595,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		headerEClass = createEClass(HEADER);
 		createEAttribute(headerEClass, HEADER__REF);
 		createEReference(headerEClass, HEADER__TARGET);
+		createEAttribute(headerEClass, HEADER__SUMMARY);
 		createEAttribute(headerEClass, HEADER__DESCRIPTION);
 		createEAttribute(headerEClass, HEADER__REQUIRED);
 		createEAttribute(headerEClass, HEADER__DEPRECATED);
@@ -3558,6 +3623,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		createEAttribute(securitySchemeEClass, SECURITY_SCHEME__REF);
 		createEReference(securitySchemeEClass, SECURITY_SCHEME__TARGET);
 		createEAttribute(securitySchemeEClass, SECURITY_SCHEME__TYPE);
+		createEAttribute(securitySchemeEClass, SECURITY_SCHEME__SUMMARY);
 		createEAttribute(securitySchemeEClass, SECURITY_SCHEME__DESCRIPTION);
 		createEAttribute(securitySchemeEClass, SECURITY_SCHEME__NAME);
 		createEAttribute(securitySchemeEClass, SECURITY_SCHEME__IN);
@@ -3810,6 +3876,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEReference(getParameter_Target(), this.getParameter(), null, "target", null, 0, 1, Parameter.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_Name(), ecorePackage.getEString(), "name", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_In(), this.getParameterLocation(), "in", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getParameter_Summary(), ecorePackage.getEString(), "summary", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_Description(), ecorePackage.getEString(), "description", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_Required(), ecorePackage.getEBooleanObject(), "required", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_Deprecated(), ecorePackage.getEBooleanObject(), "deprecated", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -3826,6 +3893,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEClass(requestBodyEClass, RequestBody.class, "RequestBody", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getRequestBody_Ref(), ecorePackage.getEString(), "ref", null, 0, 1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getRequestBody_Target(), this.getRequestBody(), null, "target", null, 0, 1, RequestBody.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRequestBody_Summary(), ecorePackage.getEString(), "summary", null, 0, 1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getRequestBody_Description(), ecorePackage.getEString(), "description", null, 0, 1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getRequestBody_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getRequestBody_Required(), ecorePackage.getEBooleanObject(), "required", null, 0, 1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -3834,6 +3902,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEClass(mediaTypeEClass, MediaType.class, "MediaType", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getMediaType_Ref(), ecorePackage.getEString(), "ref", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getMediaType_Target(), this.getMediaType(), null, "target", null, 0, 1, MediaType.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getMediaType_Summary(), ecorePackage.getEString(), "summary", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getMediaType_Description(), ecorePackage.getEString(), "description", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getMediaType_Schema(), theJsonSchemaPackage.getSchema(), null, "schema", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getMediaType_ItemSchema(), theJsonSchemaPackage.getSchema(), null, "itemSchema", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -3888,6 +3957,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getLink_OperationId(), ecorePackage.getEString(), "operationId", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getLink_Parameters(), this.getAnyEntry(), null, "parameters", null, 0, -1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getLink_RequestBody(), ecorePackage.getEJavaObject(), "requestBody", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getLink_Summary(), ecorePackage.getEString(), "summary", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getLink_Description(), ecorePackage.getEString(), "description", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getLink_Server(), this.getServer(), null, "server", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getLink_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -3895,6 +3965,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEClass(headerEClass, Header.class, "Header", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getHeader_Ref(), ecorePackage.getEString(), "ref", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getHeader_Target(), this.getHeader(), null, "target", null, 0, 1, Header.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getHeader_Summary(), ecorePackage.getEString(), "summary", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_Description(), ecorePackage.getEString(), "description", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_Required(), ecorePackage.getEBooleanObject(), "required", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_Deprecated(), ecorePackage.getEBooleanObject(), "deprecated", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -3922,6 +3993,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getSecurityScheme_Ref(), ecorePackage.getEString(), "ref", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getSecurityScheme_Target(), this.getSecurityScheme(), null, "target", null, 0, 1, SecurityScheme.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getSecurityScheme_Type(), this.getSecuritySchemeType(), "type", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getSecurityScheme_Summary(), ecorePackage.getEString(), "summary", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getSecurityScheme_Description(), ecorePackage.getEString(), "description", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getSecurityScheme_Name(), ecorePackage.getEString(), "name", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getSecurityScheme_In(), this.getApiKeyLocation(), "in", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -4846,6 +4918,24 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "since", "3.2"
 		   });
 		addAnnotation
+		  (getParameter_Summary(),
+		   source,
+		   new String[] {
+			   "since", "3.1"
+		   });
+		addAnnotation
+		  (getRequestBody_Summary(),
+		   source,
+		   new String[] {
+			   "since", "3.1"
+		   });
+		addAnnotation
+		  (getMediaType_Summary(),
+		   source,
+		   new String[] {
+			   "since", "3.1"
+		   });
+		addAnnotation
 		  (getMediaType_Description(),
 		   source,
 		   new String[] {
@@ -4906,6 +4996,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "since", "3.2"
 		   });
 		addAnnotation
+		  (getLink_Summary(),
+		   source,
+		   new String[] {
+			   "since", "3.1"
+		   });
+		addAnnotation
+		  (getHeader_Summary(),
+		   source,
+		   new String[] {
+			   "since", "3.1"
+		   });
+		addAnnotation
 		  (getTag_Summary(),
 		   source,
 		   new String[] {
@@ -4928,6 +5030,12 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		   source,
 		   new String[] {
 			   "since", "3.2"
+		   });
+		addAnnotation
+		  (getSecurityScheme_Summary(),
+		   source,
+		   new String[] {
+			   "since", "3.1"
 		   });
 		addAnnotation
 		  (getSecurityScheme_Oauth2MetadataUrl(),

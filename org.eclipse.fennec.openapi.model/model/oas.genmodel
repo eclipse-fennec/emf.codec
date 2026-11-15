@@ -152,6 +152,7 @@
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//Parameter/target"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/name"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/in"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/summary"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/description"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/required"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/deprecated"/>
@@ -168,6 +169,7 @@
     <genClasses ecoreClass="oas.ecore#//RequestBody">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//RequestBody/ref"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//RequestBody/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//RequestBody/summary"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//RequestBody/description"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//RequestBody/content"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//RequestBody/required"/>
@@ -176,6 +178,7 @@
     <genClasses ecoreClass="oas.ecore#//MediaType">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//MediaType/ref"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//MediaType/summary"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//MediaType/description"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/schema"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/itemSchema"/>
@@ -230,6 +233,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Link/operationId"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Link/parameters"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Link/requestBody"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Link/summary"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Link/description"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Link/server"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Link/extensions"/>
@@ -237,6 +241,7 @@
     <genClasses ecoreClass="oas.ecore#//Header">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/ref"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//Header/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/summary"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/description"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/required"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/deprecated"/>
@@ -264,6 +269,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/ref"/>
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//SecurityScheme/target"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/summary"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/description"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/name"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/in"/>

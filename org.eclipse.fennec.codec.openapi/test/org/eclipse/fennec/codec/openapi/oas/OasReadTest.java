@@ -84,7 +84,9 @@ class OasReadTest {
 	static Stream<String> allFiles() throws IOException {
 		try (Stream<Path> files = Files.walk(DATA)) {
 			return files.filter(p -> p.toString().endsWith(".json") || p.toString().endsWith(".yaml"))
-					.map(p -> DATA.relativize(p).toString()).sorted().toList().stream();
+					.map(p -> DATA.relativize(p).toString())
+					.filter(p -> !p.startsWith("conformance")) // OasConformanceTest
+					.sorted().toList().stream();
 		}
 	}
 

@@ -40,7 +40,7 @@ public class OasEPackageConfigurator implements EPackageConfigurator {
 	 * service property.
 	 * @generated
 	 */
-	public static final String FINGERPRINT = "fp1:64a2fdf2701c38f632c56d2902de938cb0a5d33ddff81ec3be08cdebe332057a";
+	public static final String FINGERPRINT = "fp1:414f076916e03368ad7f6893bc50e79b79c80ea1a4586e7ac074e2341b205d29";
 
 	private OasPackage ePackage;
 

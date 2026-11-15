@@ -121,10 +121,12 @@ public class OasResourceImpl extends CodecResource {
 			effective.putIfAbsent(YAML_MINIMIZE_QUOTES, Boolean.TRUE);
 			effective.putIfAbsent(YAML_LITERAL_BLOCK_STYLE, Boolean.TRUE);
 		}
-		// components that only hold the derived package of a document without components is not written
+		// components created only to hold the derived package of a document without components are not
+		// written; an empty components the document had is
 		Map<OpenAPI, Components> hidden = new HashMap<>();
 		for (EObject content : getContents()) {
-			if (content instanceof OpenAPI api && onlyInlineSchemas(api.getComponents())) {
+			if (content instanceof OpenAPI api && OasSchemas.isDerived(api.getComponents())
+					&& onlyInlineSchemas(api.getComponents())) {
 				hidden.put(api, api.getComponents());
 				api.eSetDeliver(false);
 				api.setComponents(null);

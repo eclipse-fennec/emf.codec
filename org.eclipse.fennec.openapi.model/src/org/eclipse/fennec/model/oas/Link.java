@@ -33,6 +33,7 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.model.oas.Link#getOperationId <em>Operation Id</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Link#getParameters <em>Parameters</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Link#getRequestBody <em>Request Body</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.Link#getSummary <em>Summary</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Link#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Link#getServer <em>Server</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Link#getExtensions <em>Extensions</em>}</li>
@@ -224,6 +225,31 @@ public interface Link extends EObject {
 	 * @generated
 	 */
 	boolean isSetRequestBody();
+
+	/**
+	 * Returns the value of the '<em><b>Summary</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * The summary of a Reference Object: overrides the summary of the referenced component.
+	 * <!-- end-model-doc -->
+	 * @return the value of the '<em>Summary</em>' attribute.
+	 * @see #setSummary(String)
+	 * @see org.eclipse.fennec.model.oas.OasPackage#getLink_Summary()
+	 * @model annotation="http://eclipse.org/fennec/openapi since='3.1'"
+	 * @generated
+	 */
+	String getSummary();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Link#getSummary <em>Summary</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Summary</em>' attribute.
+	 * @see #getSummary()
+	 * @generated
+	 */
+	void setSummary(String value);
 
 	/**
 	 * Returns the value of the '<em><b>Description</b></em>' attribute.
