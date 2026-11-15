@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" copyrightText="Copyright (c) 2026 Contributors to the Eclipse Foundation.&#xA;&#xA;This program and the accompanying materials are made&#xA;available under the terms of the Eclipse Public License 2.0&#xA;which is available at https://www.eclipse.org/legal/epl-2.0/&#xA;&#xA;SPDX-License-Identifier: EPL-2.0&#xA;&#xA;Contributors:&#xA;  Data In Motion Consulting - initial implementation"
+    modelDirectory="/org.eclipse.fennec.codec.jsonschema.model/src" modelPluginID="org.eclipse.fennec.codec.jsonschema.model"
+    modelName="JsonSchema" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    importerID="org.eclipse.emf.importer.ecore" complianceLevel="17.0" copyrightFields="false"
+    operationReflection="true" importOrganizing="true" oSGiCompatible="true">
+  <foreignModel>jsonschema.ecore</foreignModel>
+  <genPackages prefix="JsonSchema" basePackage="org.eclipse.fennec.codec.jsonschema" resource="XMI" disposableProviderFactory="true"
+      ecorePackage="jsonschema.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="jsonschema.ecore#//SimpleType">
+      <genEnumLiterals ecoreEnumLiteral="jsonschema.ecore#//SimpleType/array"/>
+      <genEnumLiterals ecoreEnumLiteral="jsonschema.ecore#//SimpleType/boolean"/>
+      <genEnumLiterals ecoreEnumLiteral="jsonschema.ecore#//SimpleType/integer"/>
+      <genEnumLiterals ecoreEnumLiteral="jsonschema.ecore#//SimpleType/null"/>
+      <genEnumLiterals ecoreEnumLiteral="jsonschema.ecore#//SimpleType/number"/>
+      <genEnumLiterals ecoreEnumLiteral="jsonschema.ecore#//SimpleType/object"/>
+      <genEnumLiterals ecoreEnumLiteral="jsonschema.ecore#//SimpleType/string"/>
+    </genEnums>
+    <genClasses ecoreClass="jsonschema.ecore#//Schema">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/booleanSchema"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/schema"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/id"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/legacyId"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/ref"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/anchor"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/dynamicRef"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/dynamicAnchor"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/recursiveRef"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/recursiveAnchor"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/vocabulary"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/comment"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/defs"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/definitions"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/title"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/default"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/deprecated"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/readOnly"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/writeOnly"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/examples"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/typeAsList"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/enum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/const"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/multipleOf"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/maximum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/exclusiveMaximum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/exclusiveMaximumFlag"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/minimum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/exclusiveMinimum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/exclusiveMinimumFlag"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/maxLength"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/minLength"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/pattern"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/maxItems"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/minItems"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/uniqueItems"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/maxContains"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/minContains"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/maxProperties"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/minProperties"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/required"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/dependentRequired"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/format"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/allOf"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/anyOf"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/oneOf"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/not"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/if"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/then"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/else"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/dependentSchemas"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/dependencies"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/prefixItems"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/items"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/itemsList"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/additionalItems"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/contains"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/properties"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/patternProperties"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/additionalProperties"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/propertyNames"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/unevaluatedItems"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/unevaluatedProperties"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/contentEncoding"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/contentMediaType"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/contentSchema"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/nullable"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/discriminator"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/xml"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/externalDocs"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Schema/example"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/keywords"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Schema/classifier"/>
+    </genClasses>
+    <genClasses ecoreClass="jsonschema.ecore#//Discriminator">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Discriminator/propertyName"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Discriminator/mapping"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Discriminator/defaultMapping"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Discriminator/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="jsonschema.ecore#//Xml">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Xml/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Xml/namespace"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Xml/prefix"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Xml/attribute"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Xml/wrapped"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Xml/nodeType"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Xml/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="jsonschema.ecore#//ExternalDocumentation">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//ExternalDocumentation/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//ExternalDocumentation/url"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//ExternalDocumentation/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="jsonschema.ecore#//Dependency">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//Dependency/schema"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//Dependency/properties"/>
+    </genClasses>
+    <genClasses ecoreClass="jsonschema.ecore#//SchemaEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//SchemaEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//SchemaEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="jsonschema.ecore#//DependencyEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//DependencyEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference jsonschema.ecore#//DependencyEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="jsonschema.ecore#//StringListEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//StringListEntry/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//StringListEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="jsonschema.ecore#//StringEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//StringEntry/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//StringEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="jsonschema.ecore#//VocabularyEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//VocabularyEntry/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//VocabularyEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="jsonschema.ecore#//KeywordEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//KeywordEntry/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute jsonschema.ecore#//KeywordEntry/value"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>
