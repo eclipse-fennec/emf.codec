@@ -385,8 +385,14 @@ the same escalation path as every other dropped value, it has no flag of its own
 |----------|--------|---------|------------------|----------|
 | Unknown feature in JSON | ERROR | WARNING | `Unknown feature '{name}' for EClass {class}` | Field skipped |
 | Value conversion failure | ERROR | WARNING | `Cannot convert value '{value}' to type {type}` | Default used |
+| YAML 1.1 boolean word for a boolean feature | ERROR | WARNING | `Attribute '{name}': '{value}' read as {true\|false} (YAML 1.1 boolean)` | Value used |
 | Required feature missing | ERROR | WARNING | `Required feature '{name}' not found in JSON` | Default used |
 | Type mismatch | ERROR | WARNING | `Expected {expected} but found {actual} for '{name}'` | Best-effort conversion |
+
+The YAML 1.1 boolean words (`y|Y|yes|Yes|YES|n|N|no|No|NO|on|On|ON|off|Off|OFF`) are strings in
+YAML 1.2 and JSON. Where the model expects a boolean the target type makes them unambiguous: they
+are read as `true` / `false` and reported like a conversion, so `strictOnConversion` refuses them
+(issue #297). Keys, enum values and string features keep them as strings.
 
 ### Serialization Errors
 
