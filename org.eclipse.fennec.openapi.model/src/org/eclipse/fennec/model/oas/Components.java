@@ -53,13 +53,13 @@ public interface Components extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * components/schemas as EPackage; its classifiers are the named schemas.
+	 * components/schemas as EPackage; its classifiers are the named schemas, its sub-package inline holds the classifiers of inline schemas.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Schemas</em>' containment reference.
 	 * @see #setSchemas(EPackage)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getComponents_Schemas()
 	 * @model containment="true"
-	 *        annotation="http://eclipse.org/fennec/codec key='schemas' valueReaderName='jsonSchemaToEPackage' valueWriterName='ePackageToOpenApiSchemas'"
+	 *        annotation="http://eclipse.org/fennec/codec key='schemas' valueReaderName='oasSchemas' valueWriterName='ePackageToOpenApiSchemas'"
 	 * @generated
 	 */
 	EPackage getSchemas();

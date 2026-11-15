@@ -104,6 +104,7 @@ public interface MediaType extends EObject {
 	 * @see #setSchema(SchemaReference)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getMediaType_Schema()
 	 * @model containment="true"
+	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='oasSchema' valueWriterName='oasSchema'"
 	 * @generated
 	 */
 	SchemaReference getSchema();
@@ -129,6 +130,7 @@ public interface MediaType extends EObject {
 	 * @see #setItemSchema(SchemaReference)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getMediaType_ItemSchema()
 	 * @model containment="true"
+	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='oasSchema' valueWriterName='oasSchema'"
 	 *        annotation="http://eclipse.org/fennec/openapi since='3.2'"
 	 * @generated
 	 */
