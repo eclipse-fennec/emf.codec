@@ -334,7 +334,7 @@ public class EPackageToJsonSchemaConverter {
 			// a named schema of the source and is written back as an array (issue #309)
 			String artificial = extractAnnotationDetail(classifier, AnnotationSources.JSONSCHEMA, "artificial");
 			String source = extractAnnotationDetail(classifier, AnnotationSources.JSONSCHEMA, "source");
-			if ("true".equals(artificial) && !"TopLevelArray".equals(source)) {
+			if ("true".equals(artificial) && (!"TopLevelArray".equals(source) || isNestedArray(classifier))) {
 				continue;
 			}
 
@@ -1363,6 +1363,22 @@ public class EPackageToJsonSchemaConverter {
 		EClassifier type = eReference.getEType();
 		gen.writeName(jsonKey(eReference));
 
+		// An array schema: a named one as $ref, a nested one inline (issue #302)
+		if (type instanceof EClass wrapper
+				&& "TopLevelArray".equals(extractAnnotationDetail(wrapper, AnnotationSources.JSONSCHEMA, "source"))) {
+			if (eReference.isMany()) {
+				gen.writeStartObject();
+				gen.writeStringProperty("type", "array");
+				writeArrayBounds(eReference, gen);
+				gen.writeName("items");
+				writeArrayWrapperUse(wrapper, gen);
+				gen.writeEndObject();
+			} else {
+				writeArrayWrapperUse(wrapper, gen);
+			}
+			return;
+		}
+
 		// Check if this references an artificial classifier that should be expanded inline
 		if (type instanceof EClass eClass) {
 			String artificial = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "artificial");
@@ -1548,7 +1564,9 @@ public class EPackageToJsonSchemaConverter {
 		writeArrayBounds(eReference, gen);
 
 		gen.writeName("items");
-		if (isInlineRefs()) {
+		if (writeArrayWrapperUse(type, gen)) {
+			// an array of arrays, or of a named array
+		} else if (isInlined(type)) {
 			if (type instanceof EClass eClass && eClass.isAbstract()) {
 				gen.writeStartObject();
 				gen.writeName(abstractRefKeyword());
@@ -1595,6 +1613,9 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeEndObject();
 			return;
 		}
+		if (writeArrayWrapperUse(type, gen)) {
+			return;
+		}
 		if (eReference.isContainment()) {
 			if (((EClass) type).isAbstract()) {
 				gen.writeStartObject();
@@ -1607,7 +1628,7 @@ public class EPackageToJsonSchemaConverter {
 				}
 				gen.writeEndObject();
 			} else {
-				if (isInlineRefs()) {
+				if (isInlined(type)) {
 					writeInlinedRefOrCycleGuard((EClass) type, gen, eReference.isContainment());
 				} else {
 					gen.writeStartObject();
@@ -1758,7 +1779,7 @@ public class EPackageToJsonSchemaConverter {
 	 * references depending on whether inline refs mode is enabled.
 	 */
 	private void writeSubclassRefsOrInline(EClassifier type, JsonGenerator gen) throws IOException {
-		if (isInlineRefs()) {
+		if (isInlined(type)) {
 			writeInlinedSubclassDefinitions(type, gen);
 		} else {
 			writeSubclassRefs(type, gen);
@@ -2010,8 +2031,38 @@ public class EPackageToJsonSchemaConverter {
 	 * instead of inlining its type (issue #302).
 	 */
 	private boolean isNamedDataType(EDataType type) {
-		return type != null && !(type instanceof EEnum) && currentPackage != null
-				&& type.getEPackage() == currentPackage;
+		if (type == null || currentPackage == null || type.getEPackage() != currentPackage || isInlineRefs()
+				|| Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_INLINE_LOCAL_REFS))) {
+			return false;
+		}
+		// an enum read from a definition of its own is a $ref; any other enum is written inline
+		return !(type instanceof EEnum) || "true".equals(extractAnnotationDetail(type, AnnotationSources.JSONSCHEMA, "definition"));
+	}
+
+	private boolean isNestedArray(EClassifier classifier) {
+		return "true".equals(extractAnnotationDetail(classifier, AnnotationSources.JSONSCHEMA, "nestedArray"));
+	}
+
+	/**
+	 * A use of an array wrapper class (issue #302): the wrapper of a named array schema is referred to
+	 * with {@code $ref}, the wrapper of a nested array is written inline as the array it stands for.
+	 *
+	 * @return whether the type was such a wrapper and is written
+	 */
+	private boolean writeArrayWrapperUse(EClassifier type, JsonGenerator gen) throws IOException {
+		if (!(type instanceof EClass eClass)
+				|| !"TopLevelArray".equals(extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "source"))) {
+			return false;
+		}
+		gen.writeStartObject();
+		if (isNestedArray(eClass) || isInlined(eClass)) {
+			writeTopLevelArrayClass(eClass, gen);
+		} else {
+			gen.writeStringProperty("$ref", buildRef(getOriginalName(eClass),
+					extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "namespacePath"), eClass));
+		}
+		gen.writeEndObject();
+		return true;
 	}
 
 	private void writeDataTypeRef(EAttribute eAttribute, EDataType type, String documentation, JsonGenerator gen)
@@ -2301,6 +2352,16 @@ public class EPackageToJsonSchemaConverter {
 
 	private boolean isInlineRefs() {
 		return Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_INLINE_REFS));
+	}
+
+	/**
+	 * Whether a reference to the given classifier is written inline: always with
+	 * {@link CodecJsonSchemaOptions#OPTION_INLINE_REFS}, for a classifier of the package being
+	 * written with {@link CodecJsonSchemaOptions#OPTION_INLINE_LOCAL_REFS} (issue #301).
+	 */
+	private boolean isInlined(EClassifier type) {
+		return isInlineRefs() || (Boolean.TRUE.equals(options.get(CodecJsonSchemaOptions.OPTION_INLINE_LOCAL_REFS))
+				&& type != null && currentPackage != null && type.getEPackage() == currentPackage);
 	}
 
 	private boolean isNullableKeyword() {
