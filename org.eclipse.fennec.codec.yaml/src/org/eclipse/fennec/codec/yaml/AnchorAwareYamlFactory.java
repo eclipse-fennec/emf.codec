@@ -24,7 +24,7 @@ import tools.jackson.dataformat.yaml.YAMLParser;
 
 /**
  * A {@link YAMLFactory} whose parsers are {@link AnchorAwareYamlParser}s (issue #297), so that the
- * anchors of scalars can be resolved as well.
+ * anchors of scalars can be resolved as well, reading through a {@link BlankLineReader} (issue #298).
  */
 class AnchorAwareYamlFactory extends YAMLFactory {
 
@@ -61,8 +61,9 @@ class AnchorAwareYamlFactory extends YAMLFactory {
 	}
 
 	private YAMLParser create(ObjectReadContext readCtxt, IOContext ioCtxt, Reader reader) {
+		// blank lines emptied first: works around a snakeyaml-engine block scalar bug (issue #298)
 		return new AnchorAwareYamlParser(readCtxt, ioCtxt, _getBufferRecycler(),
 				readCtxt.getStreamReadFeatures(_streamReadFeatures),
-				readCtxt.getFormatReadFeatures(_formatReadFeatures), _loadSettings, reader);
+				readCtxt.getFormatReadFeatures(_formatReadFeatures), _loadSettings, new BlankLineReader(reader));
 	}
 }

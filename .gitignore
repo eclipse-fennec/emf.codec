@@ -14,3 +14,6 @@ venv/
 __pycache__/
 *.pyc
 /.mcp.json
+
+# Large OpenAPI descriptions, downloaded by fetchOpenApiCorpus (issue #298)
+org.eclipse.fennec.codec.openapi/test-data/external/
