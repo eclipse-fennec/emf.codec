@@ -42,7 +42,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = OasPackage.eNS_URI, fingerprint = "fp1:48a0a5f33f1a9302a446ccea4102351e09223f38d3dbc0a726df660e0d36d21a", genModel = "/model/oas.genmodel", genModelSourceLocations = {"model/oas.genmodel","org.eclipse.fennec.openapi.model/model/oas.genmodel"}, ecore = "/model/oas.ecore", ecoreSourceLocations = "/model/oas.ecore")
+@EPackage(uri = OasPackage.eNS_URI, fingerprint = "fp1:9a6cd6e486f78769b168c65d2754a2a38262b08e0e5d285f0d1c3e6c4308dddc", genModel = "/model/oas.genmodel", genModelSourceLocations = {"model/oas.genmodel","org.eclipse.fennec.openapi.model/model/oas.genmodel"}, ecore = "/model/oas.ecore", ecoreSourceLocations = "/model/oas.ecore")
 public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.
@@ -1395,13 +1395,22 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int MEDIA_TYPE__TARGET = 1;
 
 	/**
+	 * The feature id for the '<em><b>Description</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MEDIA_TYPE__DESCRIPTION = 2;
+
+	/**
 	 * The feature id for the '<em><b>Schema</b></em>' containment reference.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__SCHEMA = 2;
+	int MEDIA_TYPE__SCHEMA = 3;
 
 	/**
 	 * The feature id for the '<em><b>Item Schema</b></em>' containment reference.
@@ -1410,7 +1419,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__ITEM_SCHEMA = 3;
+	int MEDIA_TYPE__ITEM_SCHEMA = 4;
 
 	/**
 	 * The feature id for the '<em><b>Example</b></em>' attribute.
@@ -1419,7 +1428,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__EXAMPLE = 4;
+	int MEDIA_TYPE__EXAMPLE = 5;
 
 	/**
 	 * The feature id for the '<em><b>Examples</b></em>' map.
@@ -1428,7 +1437,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__EXAMPLES = 5;
+	int MEDIA_TYPE__EXAMPLES = 6;
 
 	/**
 	 * The feature id for the '<em><b>Encoding</b></em>' map.
@@ -1437,7 +1446,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__ENCODING = 6;
+	int MEDIA_TYPE__ENCODING = 7;
 
 	/**
 	 * The feature id for the '<em><b>Prefix Encoding</b></em>' containment reference list.
@@ -1446,7 +1455,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__PREFIX_ENCODING = 7;
+	int MEDIA_TYPE__PREFIX_ENCODING = 8;
 
 	/**
 	 * The feature id for the '<em><b>Item Encoding</b></em>' containment reference.
@@ -1455,7 +1464,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__ITEM_ENCODING = 8;
+	int MEDIA_TYPE__ITEM_ENCODING = 9;
 
 	/**
 	 * The feature id for the '<em><b>Extensions</b></em>' map.
@@ -1464,7 +1473,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__EXTENSIONS = 9;
+	int MEDIA_TYPE__EXTENSIONS = 10;
 
 	/**
 	 * The number of structural features of the '<em>Media Type</em>' class.
@@ -1473,7 +1482,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE_FEATURE_COUNT = 10;
+	int MEDIA_TYPE_FEATURE_COUNT = 11;
 
 	/**
 	 * The number of operations of the '<em>Media Type</em>' class.
@@ -2022,13 +2031,22 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int HEADER__DEPRECATED = 4;
 
 	/**
+	 * The feature id for the '<em><b>Allow Empty Value</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int HEADER__ALLOW_EMPTY_VALUE = 5;
+
+	/**
 	 * The feature id for the '<em><b>Style</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__STYLE = 5;
+	int HEADER__STYLE = 6;
 
 	/**
 	 * The feature id for the '<em><b>Explode</b></em>' attribute.
@@ -2037,7 +2055,16 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__EXPLODE = 6;
+	int HEADER__EXPLODE = 7;
+
+	/**
+	 * The feature id for the '<em><b>Allow Reserved</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int HEADER__ALLOW_RESERVED = 8;
 
 	/**
 	 * The feature id for the '<em><b>Schema</b></em>' containment reference.
@@ -2046,7 +2073,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__SCHEMA = 7;
+	int HEADER__SCHEMA = 9;
 
 	/**
 	 * The feature id for the '<em><b>Example</b></em>' attribute.
@@ -2055,7 +2082,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__EXAMPLE = 8;
+	int HEADER__EXAMPLE = 10;
 
 	/**
 	 * The feature id for the '<em><b>Examples</b></em>' map.
@@ -2064,7 +2091,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__EXAMPLES = 9;
+	int HEADER__EXAMPLES = 11;
 
 	/**
 	 * The feature id for the '<em><b>Content</b></em>' map.
@@ -2073,7 +2100,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__CONTENT = 10;
+	int HEADER__CONTENT = 12;
 
 	/**
 	 * The feature id for the '<em><b>Extensions</b></em>' map.
@@ -2082,7 +2109,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__EXTENSIONS = 11;
+	int HEADER__EXTENSIONS = 13;
 
 	/**
 	 * The number of structural features of the '<em>Header</em>' class.
@@ -2091,7 +2118,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER_FEATURE_COUNT = 12;
+	int HEADER_FEATURE_COUNT = 14;
 
 	/**
 	 * The number of operations of the '<em>Header</em>' class.
@@ -4979,6 +5006,17 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EReference getMediaType_Target();
 
 	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.MediaType#getDescription <em>Description</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Description</em>'.
+	 * @see org.eclipse.fennec.model.oas.MediaType#getDescription()
+	 * @see #getMediaType()
+	 * @generated
+	 */
+	EAttribute getMediaType_Description();
+
+	/**
 	 * Returns the meta object for the containment reference '{@link org.eclipse.fennec.model.oas.MediaType#getSchema <em>Schema</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -5600,6 +5638,17 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getHeader_Deprecated();
 
 	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#isAllowEmptyValue <em>Allow Empty Value</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Allow Empty Value</em>'.
+	 * @see org.eclipse.fennec.model.oas.Header#isAllowEmptyValue()
+	 * @see #getHeader()
+	 * @generated
+	 */
+	EAttribute getHeader_AllowEmptyValue();
+
+	/**
 	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#getStyle <em>Style</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -5620,6 +5669,17 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 */
 	EAttribute getHeader_Explode();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#isAllowReserved <em>Allow Reserved</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Allow Reserved</em>'.
+	 * @see org.eclipse.fennec.model.oas.Header#isAllowReserved()
+	 * @see #getHeader()
+	 * @generated
+	 */
+	EAttribute getHeader_AllowReserved();
 
 	/**
 	 * Returns the meta object for the containment reference '{@link org.eclipse.fennec.model.oas.Header#getSchema <em>Schema</em>}'.
@@ -8065,6 +8125,14 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		EReference MEDIA_TYPE__TARGET = eINSTANCE.getMediaType_Target();
 
 		/**
+		 * The meta object literal for the '<em><b>Description</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute MEDIA_TYPE__DESCRIPTION = eINSTANCE.getMediaType_Description();
+
+		/**
 		 * The meta object literal for the '<em><b>Schema</b></em>' containment reference feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
@@ -8533,6 +8601,14 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		EAttribute HEADER__DEPRECATED = eINSTANCE.getHeader_Deprecated();
 
 		/**
+		 * The meta object literal for the '<em><b>Allow Empty Value</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute HEADER__ALLOW_EMPTY_VALUE = eINSTANCE.getHeader_AllowEmptyValue();
+
+		/**
 		 * The meta object literal for the '<em><b>Style</b></em>' attribute feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
@@ -8547,6 +8623,14 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EAttribute HEADER__EXPLODE = eINSTANCE.getHeader_Explode();
+
+		/**
+		 * The meta object literal for the '<em><b>Allow Reserved</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute HEADER__ALLOW_RESERVED = eINSTANCE.getHeader_AllowReserved();
 
 		/**
 		 * The meta object literal for the '<em><b>Schema</b></em>' containment reference feature.
