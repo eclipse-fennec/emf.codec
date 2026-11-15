@@ -185,6 +185,7 @@ public class JsonSchemaToEPackageConverter {
 		resolveAnyOfReferences();
 		resolveAllOfReferences();
 		resolveAnyOfPropertyReferences();
+		typeUnresolvedReferences(ePackage);
 
 		return ePackage;
 	}
@@ -573,6 +574,7 @@ public class JsonSchemaToEPackageConverter {
 
 		applyDiscriminators();
 		applyTypeStrategy(ePackage);
+		typeUnresolvedReferences(ePackage);
 
 		return ePackage;
 	}
@@ -1730,6 +1732,10 @@ public class JsonSchemaToEPackageConverter {
 			addEAnnotation(eEnum, AnnotationSources.JSONSCHEMA, "namespacePath", namespacePath);
 		}
 
+		// example, default, ... of the enum schema (issue #302)
+		if (enumNode.has("example")) {
+			addEAnnotation(eEnum, AnnotationSources.JSONSCHEMA, "example", enumNode.get("example").toString());
+		}
 		JsonNode enumValues = enumNode.get("enum");
 		String defaultValue = enumNode.has("default") ? enumNode.get("default").asString() : null;
 
@@ -1876,9 +1882,24 @@ public class JsonSchemaToEPackageConverter {
 		}
 		// Handle anyOf/oneOf at property level
 		else if (propertyNode.has("anyOf")) {
-			feature = createMultiValueReference(propertyNode.get("anyOf"), name, contextPath);
-			if (feature != null) {
-				addEAnnotation(feature, AnnotationSources.JSONSCHEMA, "source", "anyOf");
+			JsonNode unwrapped = unwrapNullableUnion(propertyNode);
+			if (unwrapped != propertyNode) {
+				// one type or null: that type (issue #302)
+				feature = createStructuralFeature(unwrapped, name, contextPath);
+			} else if (hasRefBranch(propertyNode.get("anyOf"))) {
+				feature = createMultiValueReference(propertyNode.get("anyOf"), name, contextPath);
+				if (feature != null) {
+					addEAnnotation(feature, AnnotationSources.JSONSCHEMA, "source", "anyOf");
+				}
+			} else {
+				// alternatives without $ref (anyOf: [string, number, ...]): any value; the alternatives
+				// have no other place in the model, they are kept for writing (issue #302)
+				EAttribute attribute = ecoreFactory.createEAttribute();
+				attribute.setName(name);
+				attribute.setEType(EcorePackage.Literals.EJAVA_OBJECT);
+				addEAnnotation(attribute, AnnotationSources.JSONSCHEMA, "anyOf", propertyNode.get("anyOf").toString());
+				preserveAdditionalSchemaProperties(propertyNode, attribute);
+				feature = attribute;
 			}
 		}
 		else if (propertyNode.has("oneOf")) {
@@ -2316,6 +2337,39 @@ public class JsonSchemaToEPackageConverter {
 		mapRef.setContainment(true);
 		mapRef.setUpperBound(-1);
 		return mapRef;
+	}
+
+	private static boolean hasRefBranch(JsonNode union) {
+		if (union != null && union.isArray()) {
+			for (JsonNode branch : union) {
+				if (branch.has("$ref")) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * A reference whose target could not be resolved gets {@code EObject}, so that the package stays
+	 * usable (metadata, saving); reported as an unresolved reference (issue #302).
+	 */
+	private void typeUnresolvedReferences(EPackage ePackage) {
+		for (EClassifier classifier : ePackage.getEClassifiers()) {
+			if (classifier instanceof EClass eClass) {
+				for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
+					if (feature.getEType() == null) {
+						feature.setEType(feature instanceof EReference ? EcorePackage.Literals.EOBJECT
+								: EcorePackage.Literals.EJAVA_OBJECT);
+						addEAnnotation(feature, AnnotationSources.JSONSCHEMA, "unresolvedType", "true");
+						diagnostics.add(JsonSchemaConversionDiagnostic.unresolvedReference(eClass.getName() + "." + feature.getName()));
+					}
+				}
+			}
+		}
+		for (EPackage sub : ePackage.getESubpackages()) {
+			typeUnresolvedReferences(sub);
+		}
 	}
 
 	private EReference createMultiValueReference(JsonNode jsonNode, String name, String contextPath) {
@@ -2779,7 +2833,7 @@ public class JsonSchemaToEPackageConverter {
 			"default", "minItems", "maxItems", "uniqueItems",
 			"minLength", "maxLength", "pattern", "format",
 			"minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
-			"multipleOf", "const", "title", "description", "examples",
+			"multipleOf", "const", "title", "description", "example", "examples",
 			// Content keywords
 			"contentEncoding", "contentMediaType"
 		};
