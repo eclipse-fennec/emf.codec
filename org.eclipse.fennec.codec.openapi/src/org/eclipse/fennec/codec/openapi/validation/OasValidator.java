@@ -10,7 +10,7 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.openapi.model.validation;
+package org.eclipse.fennec.codec.openapi.validation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +63,7 @@ import org.eclipse.fennec.model.oas.ServerVariable;
 public class OasValidator extends EObjectValidator {
 
 	/** The source of the diagnostics. */
-	public static final String DIAGNOSTIC_SOURCE = "org.eclipse.fennec.openapi.model";
+	public static final String DIAGNOSTIC_SOURCE = "org.eclipse.fennec.codec.openapi";
 
 	private static final Pattern OPENAPI = Pattern.compile("^3\\.[0-2]\\.[0-9]+(-.+)?$");
 	private static final Pattern COMPONENT_KEY = Pattern.compile("^[a-zA-Z0-9._-]+$");

@@ -346,8 +346,8 @@ type: the component class for a `$ref`, a class of the `inline` package for an i
 The codec reads as much as it can. With the load option `codec.openapi.validate=true` the
 description is validated after loading (#305); the findings are errors on the resource, each with
 its place (`/components/parameters/animal: 'example' and 'examples' exclude each other`), and fail
-the load under `codec.deserializationMode=STRICT`. The validator, `OasValidator` in the model bundle
-(`org.eclipse.fennec.openapi.model.validation`), can also be run on a model directly:
+the load under `codec.deserializationMode=STRICT`. The validator, `OasValidator` in this bundle
+(`org.eclipse.fennec.codec.openapi.validation`), can also be run on a model directly:
 `OasValidator.validate(api)` returns an EMF `Diagnostic`.
 
 It checks what the model's structure cannot express: the `openapi` version, `paths` / `components` /
