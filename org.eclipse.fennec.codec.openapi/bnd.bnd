@@ -14,4 +14,8 @@ Bundle-Description: EMF / Codec extension to handle OpenAPI
 	tools.jackson.core.jackson-core;version=latest,\
 	tools.jackson.core.jackson-databind;version=latest,\
 	com.fasterxml.jackson.core.jackson-annotations;version=latest
-	
+
+-testpath: \
+	org.eclipse.fennec.codec.yaml;version=snapshot,\
+	tools.jackson.dataformat.jackson-dataformat-yaml;version=latest,\
+	org.snakeyaml.engine;version=latest

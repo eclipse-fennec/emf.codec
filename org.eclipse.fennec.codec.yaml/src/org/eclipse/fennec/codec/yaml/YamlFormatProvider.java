@@ -42,8 +42,11 @@ public class YamlFormatProvider extends JacksonFormatProvider {
     /**
      * Creates a new YAML format provider.
      */
+    /** The {@link #getFormatId() format id}, also the value of the service property {@code codec.format.id}. */
+    public static final String FORMAT_ID = "yaml";
+
     public YamlFormatProvider() {
-        super("yaml", new YAMLFactory(),
+        super(FORMAT_ID, new YAMLFactory(),
                 new String[] { "yaml", "yml" },
                 new String[] { "application/yaml", "text/yaml" });
     }

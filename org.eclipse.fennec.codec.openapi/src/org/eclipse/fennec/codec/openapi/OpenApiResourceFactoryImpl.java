@@ -18,6 +18,7 @@ import java.util.Map;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
+import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.jsonschema.v2.value.EPackageValueReader;
 import org.eclipse.fennec.codec.openapi.value.OpenApiSchemasValueWriter;
 import org.eclipse.fennec.codec.openapi.value.OperationValueReader;
@@ -53,6 +54,13 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 	/** The IANA media type for OpenAPI documents in JSON (issue #268). */
 	public static final String CONTENT_TYPE_OPENAPI_JSON = "application/vnd.oai.openapi+json";
 
+	/**
+	 * The IANA media type for OpenAPI documents in YAML (issue #296). The factory for it is
+	 * registered by content type only: the file extensions {@code yaml} / {@code yml} belong to
+	 * the generic YAML factory.
+	 */
+	public static final String CONTENT_TYPE_OPENAPI_YAML = "application/vnd.oai.openapi";
+
 	/** The configurator name the bundle announces as {@code emf.configurator} capability. */
 	public static final String CONFIGURATOR_NAME = "FennecCodecOpenApi";
 
@@ -61,6 +69,8 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 
 	private final MetadataService metadataService;
 	private final CodecValueRegistry valueRegistry;
+	private final CodecFormatProvider<?, ?> formatProvider;
+	private final String contentType;
 
 	/**
 	 * Creates a factory on a given metadata service and value registry.
@@ -75,7 +85,24 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 	 */
 	public OpenApiResourceFactoryImpl(MetadataService metadataService,
 			CodecValueRegistry valueRegistry) {
+		this(metadataService, valueRegistry, null, CONTENT_TYPE_OPENAPI_JSON);
+	}
+
+	/**
+	 * Creates a factory for another syntax than JSON on a given metadata service and value
+	 * registry (issue #296), e.g. YAML with {@link #CONTENT_TYPE_OPENAPI_YAML}.
+	 *
+	 * @param metadataService the metadata service, which has to know the OpenAPI model
+	 * @param valueRegistry the registry to use and to fill with the OpenAPI value handlers
+	 * @param formatProvider the syntax, {@code null} for JSON
+	 * @param contentType the media type the factory is registered for
+	 * @since 1.1
+	 */
+	public OpenApiResourceFactoryImpl(MetadataService metadataService, CodecValueRegistry valueRegistry,
+			CodecFormatProvider<?, ?> formatProvider, String contentType) {
 		this.metadataService = metadataService;
+		this.formatProvider = formatProvider;
+		this.contentType = contentType;
 		// Keyed by the EPackage instance, not the nsURI: the nsURI overload is best-effort and
 		// answers with the most recently registered version (issue #89).
 		this.metadataService.getPackageMetadata(OpenApiPackage.eINSTANCE)
@@ -90,6 +117,20 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 	 * Builds a local registry with the readers/writers needed by OpenAPI resources.
 	 */
 	public OpenApiResourceFactoryImpl() {
+		this(null, CONTENT_TYPE_OPENAPI_JSON);
+	}
+
+	/**
+	 * Non-OSGi constructor for another syntax than JSON (issue #296), e.g.
+	 * {@code new OpenApiResourceFactoryImpl(new YamlFormatProvider(), CONTENT_TYPE_OPENAPI_YAML)}.
+	 *
+	 * @param formatProvider the syntax, {@code null} for JSON
+	 * @param contentType the media type the factory is registered for
+	 * @since 1.1
+	 */
+	public OpenApiResourceFactoryImpl(CodecFormatProvider<?, ?> formatProvider, String contentType) {
+		this.formatProvider = formatProvider;
+		this.contentType = contentType;
 		MetadataWhiteboard whiteboard = MetadataServiceFactory.create();
 		whiteboard.registerPackage(OpenApiPackage.eINSTANCE);
 		this.metadataService = whiteboard;
@@ -142,7 +183,17 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 
 	@Override
 	public Resource createResource(URI uri) {
-		return new OpenApiResourceImpl(uri, metadataService, valueRegistry);
+		return new OpenApiResourceImpl(uri, metadataService, valueRegistry, formatProvider);
+	}
+
+	/**
+	 * Returns the syntax of the resources this factory creates.
+	 *
+	 * @return the format provider, {@code null} for JSON
+	 * @since 1.1
+	 */
+	public CodecFormatProvider<?, ?> getFormatProvider() {
+		return formatProvider;
 	}
 
 	/**
@@ -153,9 +204,11 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 	public Map<String, Object> getServiceProperties() {
 		Map<String, Object> properties = new HashMap<>();
 		properties.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, CONFIGURATOR_NAME);
-		properties.put(EMFNamespaces.EMF_MODEL_FILE_EXT, FILE_EXTENSION);
+		if (formatProvider == null) {
+			properties.put(EMFNamespaces.EMF_MODEL_FILE_EXT, FILE_EXTENSION);
+		}
 		properties.put(EMFNamespaces.EMF_MODEL_VERSION, "1.0");
-		properties.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE, CONTENT_TYPE_OPENAPI_JSON);
+		properties.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE, contentType);
 		return properties;
 	}
 }

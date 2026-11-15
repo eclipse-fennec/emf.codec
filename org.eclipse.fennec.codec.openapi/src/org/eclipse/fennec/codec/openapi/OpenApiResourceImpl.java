@@ -14,6 +14,7 @@ package org.eclipse.fennec.codec.openapi;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.openapi.value.OpenApiSchemasValueWriter;
 import org.eclipse.fennec.codec.openapi.value.OperationValueReader;
 import org.eclipse.fennec.codec.resource.CodecResource;
@@ -53,7 +54,23 @@ public class OpenApiResourceImpl extends CodecResource {
 	 * @param valueRegistry registry containing the OpenAPI-specific readers/writers
 	 */
 	public OpenApiResourceImpl(URI uri, MetadataService metadataService, CodecValueRegistry valueRegistry) {
-		super(uri, metadataService, createResolver(), valueRegistry, null);
+		this(uri, metadataService, valueRegistry, null);
+	}
+
+	/**
+	 * Creates an OpenAPI resource in another syntax than JSON, e.g. YAML through
+	 * {@code org.eclipse.fennec.codec.yaml.YamlFormatProvider} (issue #296). The model and the
+	 * mapping are the same as for JSON; only the token stream comes from the format provider.
+	 *
+	 * @param uri the resource URI
+	 * @param metadataService the metadata service for codec configuration
+	 * @param valueRegistry registry containing the OpenAPI-specific readers/writers
+	 * @param formatProvider the syntax, {@code null} for JSON
+	 * @since 1.1
+	 */
+	public OpenApiResourceImpl(URI uri, MetadataService metadataService, CodecValueRegistry valueRegistry,
+			CodecFormatProvider<?, ?> formatProvider) {
+		super(uri, metadataService, createResolver(), valueRegistry, null, formatProvider);
 	}
 
 	private static ConfigurationResolver createResolver() {
