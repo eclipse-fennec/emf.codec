@@ -457,7 +457,12 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
         JsonToken token = parser.currentToken();
 
         if (token != JsonToken.START_ARRAY) {
-            // Single object provided for multi-valued - treat as single element
+            // Single object provided for multi-valued - read as the only element, but reported: it
+            // is written back as an array (spec 15 §6.5)
+            String msg = "Expected START_ARRAY for multi-valued reference '" + reference.getName() + "', got: " + token
+                    + " - read as its only element";
+            LOGGER.fine(msg);
+            ContextHelper.addWarning(ctxt, msg, parser, "ReferenceDeserializationEntry");
             deserializeSingleElement(state, parser, ctxt, eObject, 0);
             return;
         }

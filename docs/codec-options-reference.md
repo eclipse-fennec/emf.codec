@@ -368,6 +368,7 @@ See also [Tabular shared](#tabular-shared) below.
 | Option key | Constant | Type | Default | Description |
 |---|---|---|---|---|
 | `codec.openapi.schemasNsURI` | `OPTION_SCHEMAS_NS_URI` | String | derived | Load option. nsURI of the `EPackage` built from `components/schemas`; without it `urn:openapi:<title>:<version>` from `info` (#311). |
+| `codec.openapi.validate` | `OPTION_VALIDATE` | Boolean | `false` | Load option of the oas model. Validates the description after loading (`OasValidator`, #305): key syntax, mutual exclusions, version rules, unknown fields, wrong JSON types. Findings are errors on the resource; with `codec.deserializationMode=STRICT` they fail the load. |
 
 The oas model (OpenAPI 3.0-3.2, #299) registers its factories by content type with the `version`
 parameter: `application/vnd.oai.openapi+json;version=3.1|3.2` and `application/vnd.oai.openapi;version=3.1|3.2`.

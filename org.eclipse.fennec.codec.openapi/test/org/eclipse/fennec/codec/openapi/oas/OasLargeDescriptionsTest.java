@@ -37,6 +37,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.codec.jsonschema.model.Schema;
 import org.eclipse.fennec.codec.jsonschema.model.SimpleType;
+import org.eclipse.fennec.codec.openapi.constants.CodecOpenApiOptions;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.yaml.YamlFormatProvider;
 import org.eclipse.fennec.model.oas.OasPackage;
@@ -72,7 +73,9 @@ class OasLargeDescriptionsTest {
 		Resource resource = new OasResourceFactoryImpl(OasVersion.of(version),
 				file.endsWith(".yaml") ? new YamlFormatProvider() : null).createResource(URI.createURI("test://" + file));
 		try (InputStream in = Files.newInputStream(path)) {
-			resource.load(in, Map.of(CodecResource.CODEC_ROOT_TYPE, OasPackage.Literals.OPEN_API));
+			// validated as well (#305): real descriptions are no fail documents
+			resource.load(in, Map.of(CodecResource.CODEC_ROOT_TYPE, OasPackage.Literals.OPEN_API,
+					CodecOpenApiOptions.OPTION_VALIDATE, true));
 		}
 
 		assertTrue(resource.getErrors().isEmpty(), resource.getErrors().toString());
