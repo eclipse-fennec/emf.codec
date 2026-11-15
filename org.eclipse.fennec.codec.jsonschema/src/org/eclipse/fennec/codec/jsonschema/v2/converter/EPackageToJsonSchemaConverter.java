@@ -1227,6 +1227,27 @@ public class EPackageToJsonSchemaConverter {
 		EDataType type = eAttribute.getEAttributeType();
 		gen.writeName(jsonKey(eAttribute));
 
+		// alternatives without $ref, kept as read (issue #302)
+		String anyOf = extractAnnotationDetail(eAttribute, AnnotationSources.JSONSCHEMA, "anyOf");
+		if (anyOf != null) {
+			gen.writeStartObject();
+			if (documentation != null && !isSuppressed("description")) {
+				gen.writeStringProperty("description", documentation);
+			}
+			if (eAttribute.isMany()) {
+				gen.writeStringProperty("type", "array");
+				writeArrayBounds(eAttribute, gen);
+				gen.writeObjectPropertyStart("items");
+			}
+			gen.writeName("anyOf");
+			gen.writeTree(new ObjectMapper().readTree(anyOf));
+			if (eAttribute.isMany()) {
+				gen.writeEndObject();
+			}
+			gen.writeEndObject();
+			return;
+		}
+
 		if (eAttribute.isMany()) {
 			writeMultiValuedAttribute(eAttribute, type, documentation, noTypeInfo, format, writeOnly, uniqueItems, gen);
 		} else {
@@ -1953,6 +1974,11 @@ public class EPackageToJsonSchemaConverter {
 
 		writeEnumLiterals(eEnum.getELiterals(), gen);
 		gen.writeStringProperty("type", "string");
+		String example = extractAnnotationDetail(eEnum, AnnotationSources.JSONSCHEMA, "example");
+		if (example != null && !isSuppressed("example")) {
+			gen.writeName("example");
+			gen.writeTree(new ObjectMapper().readTree(example));
+		}
 
 		gen.writeEndObject();
 	}
@@ -2098,12 +2124,12 @@ public class EPackageToJsonSchemaConverter {
 		String[] schemaProperties = {
 			"default", "minItems", "maxItems", "minLength", "maxLength",
 			"pattern", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
-			"multipleOf", "examples",
+			"multipleOf", "example", "examples",
 			// Content keywords
 			"contentEncoding", "contentMediaType"
 		};
 
-		String[] jsonProperties = {"default", "examples"};
+		String[] jsonProperties = {"default", "example", "examples"};
 		String[] booleanProperties = {"exclusiveMinimum", "exclusiveMaximum"};
 		String[] numberProperties = {"minItems", "maxItems", "minLength", "maxLength", "minimum", "maximum", "multipleOf"};
 
