@@ -32,6 +32,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * <ul>
  *   <li>{@link org.eclipse.fennec.model.oas.MediaType#getRef <em>Ref</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.MediaType#getTarget <em>Target</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.MediaType#getSummary <em>Summary</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.MediaType#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.MediaType#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.MediaType#getItemSchema <em>Item Schema</em>}</li>
@@ -98,6 +99,31 @@ public interface MediaType extends EObject {
 	 * @generated
 	 */
 	void setTarget(MediaType value);
+
+	/**
+	 * Returns the value of the '<em><b>Summary</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * <!-- begin-model-doc -->
+	 * The summary of a Reference Object: overrides the summary of the referenced component.
+	 * <!-- end-model-doc -->
+	 * @return the value of the '<em>Summary</em>' attribute.
+	 * @see #setSummary(String)
+	 * @see org.eclipse.fennec.model.oas.OasPackage#getMediaType_Summary()
+	 * @model annotation="http://eclipse.org/fennec/openapi since='3.1'"
+	 * @generated
+	 */
+	String getSummary();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getSummary <em>Summary</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Summary</em>' attribute.
+	 * @see #getSummary()
+	 * @generated
+	 */
+	void setSummary(String value);
 
 	/**
 	 * Returns the value of the '<em><b>Description</b></em>' attribute.

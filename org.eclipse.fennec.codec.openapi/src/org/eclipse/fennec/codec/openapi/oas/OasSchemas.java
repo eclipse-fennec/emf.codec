@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.emf.common.notify.impl.AdapterImpl;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -71,6 +72,15 @@ final class OasSchemas {
 			"unevaluatedProperties", "discriminator", "required");
 
 	private OasSchemas() {
+	}
+
+	/** Marks a {@link Components} created only to hold the derived package: it is not written. */
+	static final class Derived extends AdapterImpl {
+	}
+
+	/** @return whether the components were created only to hold the derived package */
+	static boolean isDerived(Components components) {
+		return components != null && components.eAdapters().stream().anyMatch(Derived.class::isInstance);
 	}
 
 	/**
@@ -139,6 +149,7 @@ final class OasSchemas {
 		if (!componentDefs.isEmpty() || !inline.isEmpty() || components != null) {
 			if (components == null) {
 				components = OasFactory.eINSTANCE.createComponents();
+				components.eAdapters().add(new Derived());
 				api.setComponents(components);
 			}
 			components.setSchemasPackage(schemas);
@@ -254,7 +265,7 @@ final class OasSchemas {
 		ObjectNode all = MAPPER.createObjectNode();
 		all.setAll(componentDefs);
 		all.setAll(inlineDefs);
-		EPackage converted = new JsonSchemaToEPackageConverter().convert(all, null);
+		EPackage converted = new JsonSchemaToEPackageConverter().convertDefinitions(all);
 		Map<EClassifier, EClassifier> duplicates = new HashMap<>();
 		for (String key : componentDefs.propertyNames()) {
 			EClassifier copy = OpenApiReferences.classifier(converted, key);

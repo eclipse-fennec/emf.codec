@@ -41,6 +41,7 @@ import org.eclipse.fennec.model.oas.RequestBody;
  * <ul>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getRef <em>Ref</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getTarget <em>Target</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getSummary <em>Summary</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getContent <em>Content</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getRequired <em>Required</em>}</li>
@@ -79,6 +80,26 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 	 * @ordered
 	 */
 	protected RequestBody target;
+
+	/**
+	 * The default value of the '{@link #getSummary() <em>Summary</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSummary()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String SUMMARY_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getSummary() <em>Summary</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSummary()
+	 * @generated
+	 * @ordered
+	 */
+	protected String summary = SUMMARY_EDEFAULT;
 
 	/**
 	 * The default value of the '{@link #getDescription() <em>Description</em>}' attribute.
@@ -237,6 +258,29 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 	 * @generated
 	 */
 	@Override
+	public String getSummary() {
+		return summary;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setSummary(String newSummary) {
+		String oldSummary = summary;
+		summary = newSummary;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.REQUEST_BODY__SUMMARY, oldSummary, summary));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public String getDescription() {
 		return description;
 	}
@@ -379,6 +423,8 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 			case OasPackage.REQUEST_BODY__TARGET:
 				if (resolve) return getTarget();
 				return basicGetTarget();
+			case OasPackage.REQUEST_BODY__SUMMARY:
+				return getSummary();
 			case OasPackage.REQUEST_BODY__DESCRIPTION:
 				return getDescription();
 			case OasPackage.REQUEST_BODY__CONTENT:
@@ -406,6 +452,9 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 				return;
 			case OasPackage.REQUEST_BODY__TARGET:
 				setTarget((RequestBody)newValue);
+				return;
+			case OasPackage.REQUEST_BODY__SUMMARY:
+				setSummary((String)newValue);
 				return;
 			case OasPackage.REQUEST_BODY__DESCRIPTION:
 				setDescription((String)newValue);
@@ -437,6 +486,9 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 			case OasPackage.REQUEST_BODY__TARGET:
 				setTarget((RequestBody)null);
 				return;
+			case OasPackage.REQUEST_BODY__SUMMARY:
+				setSummary(SUMMARY_EDEFAULT);
+				return;
 			case OasPackage.REQUEST_BODY__DESCRIPTION:
 				setDescription(DESCRIPTION_EDEFAULT);
 				return;
@@ -465,6 +517,8 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 				return REF_EDEFAULT == null ? ref != null : !REF_EDEFAULT.equals(ref);
 			case OasPackage.REQUEST_BODY__TARGET:
 				return target != null;
+			case OasPackage.REQUEST_BODY__SUMMARY:
+				return SUMMARY_EDEFAULT == null ? summary != null : !SUMMARY_EDEFAULT.equals(summary);
 			case OasPackage.REQUEST_BODY__DESCRIPTION:
 				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
 			case OasPackage.REQUEST_BODY__CONTENT:
@@ -489,6 +543,8 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 		StringBuilder result = new StringBuilder(super.toString());
 		result.append(" (ref: ");
 		result.append(ref);
+		result.append(", summary: ");
+		result.append(summary);
 		result.append(", description: ");
 		result.append(description);
 		result.append(", required: ");

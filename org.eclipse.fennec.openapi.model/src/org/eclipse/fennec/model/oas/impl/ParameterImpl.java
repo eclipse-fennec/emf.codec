@@ -48,6 +48,7 @@ import org.eclipse.fennec.model.oas.ParameterStyle;
  *   <li>{@link org.eclipse.fennec.model.oas.impl.ParameterImpl#getTarget <em>Target</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.ParameterImpl#getName <em>Name</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.ParameterImpl#getIn <em>In</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.ParameterImpl#getSummary <em>Summary</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.ParameterImpl#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.ParameterImpl#getRequired <em>Required</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.ParameterImpl#getDeprecated <em>Deprecated</em>}</li>
@@ -134,6 +135,26 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 	 * @ordered
 	 */
 	protected ParameterLocation in = IN_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getSummary() <em>Summary</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSummary()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String SUMMARY_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getSummary() <em>Summary</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSummary()
+	 * @generated
+	 * @ordered
+	 */
+	protected String summary = SUMMARY_EDEFAULT;
 
 	/**
 	 * The default value of the '{@link #getDescription() <em>Description</em>}' attribute.
@@ -515,6 +536,29 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 		in = newIn == null ? IN_EDEFAULT : newIn;
 		if (eNotificationRequired())
 			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.PARAMETER__IN, oldIn, in));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getSummary() {
+		return summary;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setSummary(String newSummary) {
+		String oldSummary = summary;
+		summary = newSummary;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.PARAMETER__SUMMARY, oldSummary, summary));
 	}
 
 	/**
@@ -1024,6 +1068,8 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 				return getName();
 			case OasPackage.PARAMETER__IN:
 				return getIn();
+			case OasPackage.PARAMETER__SUMMARY:
+				return getSummary();
 			case OasPackage.PARAMETER__DESCRIPTION:
 				return getDescription();
 			case OasPackage.PARAMETER__REQUIRED:
@@ -1074,6 +1120,9 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 				return;
 			case OasPackage.PARAMETER__IN:
 				setIn((ParameterLocation)newValue);
+				return;
+			case OasPackage.PARAMETER__SUMMARY:
+				setSummary((String)newValue);
 				return;
 			case OasPackage.PARAMETER__DESCRIPTION:
 				setDescription((String)newValue);
@@ -1135,6 +1184,9 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 			case OasPackage.PARAMETER__IN:
 				setIn(IN_EDEFAULT);
 				return;
+			case OasPackage.PARAMETER__SUMMARY:
+				setSummary(SUMMARY_EDEFAULT);
+				return;
 			case OasPackage.PARAMETER__DESCRIPTION:
 				setDescription(DESCRIPTION_EDEFAULT);
 				return;
@@ -1191,6 +1243,8 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 				return NAME_EDEFAULT == null ? name != null : !NAME_EDEFAULT.equals(name);
 			case OasPackage.PARAMETER__IN:
 				return in != IN_EDEFAULT;
+			case OasPackage.PARAMETER__SUMMARY:
+				return SUMMARY_EDEFAULT == null ? summary != null : !SUMMARY_EDEFAULT.equals(summary);
 			case OasPackage.PARAMETER__DESCRIPTION:
 				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
 			case OasPackage.PARAMETER__REQUIRED:
@@ -1235,6 +1289,8 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 		result.append(name);
 		result.append(", in: ");
 		result.append(in);
+		result.append(", summary: ");
+		result.append(summary);
 		result.append(", description: ");
 		result.append(description);
 		result.append(", required: ");

@@ -45,6 +45,7 @@ import org.eclipse.fennec.model.oas.Server;
  *   <li>{@link org.eclipse.fennec.model.oas.impl.LinkImpl#getOperationId <em>Operation Id</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.LinkImpl#getParameters <em>Parameters</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.LinkImpl#getRequestBody <em>Request Body</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.LinkImpl#getSummary <em>Summary</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.LinkImpl#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.LinkImpl#getServer <em>Server</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.LinkImpl#getExtensions <em>Extensions</em>}</li>
@@ -161,6 +162,26 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 	 * @ordered
 	 */
 	protected boolean requestBodyESet;
+
+	/**
+	 * The default value of the '{@link #getSummary() <em>Summary</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSummary()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String SUMMARY_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getSummary() <em>Summary</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSummary()
+	 * @generated
+	 * @ordered
+	 */
+	protected String summary = SUMMARY_EDEFAULT;
 
 	/**
 	 * The default value of the '{@link #getDescription() <em>Description</em>}' attribute.
@@ -419,6 +440,29 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 	 * @generated
 	 */
 	@Override
+	public String getSummary() {
+		return summary;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setSummary(String newSummary) {
+		String oldSummary = summary;
+		summary = newSummary;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.LINK__SUMMARY, oldSummary, summary));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public String getDescription() {
 		return description;
 	}
@@ -534,6 +578,8 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 				else return getParameters().map();
 			case OasPackage.LINK__REQUEST_BODY:
 				return getRequestBody();
+			case OasPackage.LINK__SUMMARY:
+				return getSummary();
 			case OasPackage.LINK__DESCRIPTION:
 				return getDescription();
 			case OasPackage.LINK__SERVER:
@@ -570,6 +616,9 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 				return;
 			case OasPackage.LINK__REQUEST_BODY:
 				setRequestBody(newValue);
+				return;
+			case OasPackage.LINK__SUMMARY:
+				setSummary((String)newValue);
 				return;
 			case OasPackage.LINK__DESCRIPTION:
 				setDescription((String)newValue);
@@ -610,6 +659,9 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 			case OasPackage.LINK__REQUEST_BODY:
 				unsetRequestBody();
 				return;
+			case OasPackage.LINK__SUMMARY:
+				setSummary(SUMMARY_EDEFAULT);
+				return;
 			case OasPackage.LINK__DESCRIPTION:
 				setDescription(DESCRIPTION_EDEFAULT);
 				return;
@@ -643,6 +695,8 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 				return isSetParameters();
 			case OasPackage.LINK__REQUEST_BODY:
 				return isSetRequestBody();
+			case OasPackage.LINK__SUMMARY:
+				return SUMMARY_EDEFAULT == null ? summary != null : !SUMMARY_EDEFAULT.equals(summary);
 			case OasPackage.LINK__DESCRIPTION:
 				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
 			case OasPackage.LINK__SERVER:
@@ -671,6 +725,8 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 		result.append(operationId);
 		result.append(", requestBody: ");
 		if (requestBodyESet) result.append(requestBody); else result.append("<unset>");
+		result.append(", summary: ");
+		result.append(summary);
 		result.append(", description: ");
 		result.append(description);
 		result.append(')');

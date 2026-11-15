@@ -178,12 +178,24 @@ public class JsonSchemaToEPackageConverter {
 		for (Map.Entry<String, Schema> entry : definitions.entrySet()) {
 			defs.set(entry.getKey(), SchemaJson.write(entry.getValue(), trace));
 		}
+		EPackage ePackage = convertDefinitions(defs);
+		applyTrace(trace);
+		return ePackage;
+	}
+
+	/**
+	 * Converts named schemas given as JSON - an object of name → schema - like
+	 * {@link #convertDefinitions(Map)}: the names are taken as they are.
+	 *
+	 * @param definitions the schemas by name
+	 * @return the created EPackage
+	 */
+	public EPackage convertDefinitions(JsonNode definitions) {
 		this.schemaFeature = null;
 		resetState();
 		EPackage ePackage = ecoreFactory.createEPackage();
-		processDefinitions(defs, ePackage, "");
+		processDefinitions(definitions, ePackage, "");
 		completePackage(ePackage);
-		applyTrace(trace);
 		return ePackage;
 	}
 

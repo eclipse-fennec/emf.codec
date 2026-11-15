@@ -51,6 +51,10 @@ Test data:
 * **OpenAPI examples** (`org.eclipse.fennec.codec.openapi/test-data/oas`) — Creative Commons
   Attribution 4.0 International, © OpenAPI Initiative; source: "Learn OpenAPI",
   https://github.com/OAI/learn.openapis.org (directory `examples`)
+* **OpenAPI conformance documents** (`org.eclipse.fennec.codec.openapi/test-data/oas/conformance`) —
+  Apache License 2.0, © The Linux Foundation; source:
+  https://github.com/OAI/OpenAPI-Specification (directory `tests/schema`, branches `v3.1-dev` and
+  `v3.2-dev`)
 
 ## Cryptography
 

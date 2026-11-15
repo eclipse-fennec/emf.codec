@@ -42,7 +42,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = OasPackage.eNS_URI, fingerprint = "fp1:64a2fdf2701c38f632c56d2902de938cb0a5d33ddff81ec3be08cdebe332057a", genModel = "/model/oas.genmodel", genModelSourceLocations = {"model/oas.genmodel","org.eclipse.fennec.openapi.model/model/oas.genmodel"}, ecore = "/model/oas.ecore", ecoreSourceLocations = "/model/oas.ecore")
+@EPackage(uri = OasPackage.eNS_URI, fingerprint = "fp1:414f076916e03368ad7f6893bc50e79b79c80ea1a4586e7ac074e2341b205d29", genModel = "/model/oas.genmodel", genModelSourceLocations = {"model/oas.genmodel","org.eclipse.fennec.openapi.model/model/oas.genmodel"}, ecore = "/model/oas.ecore", ecoreSourceLocations = "/model/oas.ecore")
 public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.
@@ -1168,13 +1168,22 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int PARAMETER__IN = 3;
 
 	/**
+	 * The feature id for the '<em><b>Summary</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int PARAMETER__SUMMARY = 4;
+
+	/**
 	 * The feature id for the '<em><b>Description</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__DESCRIPTION = 4;
+	int PARAMETER__DESCRIPTION = 5;
 
 	/**
 	 * The feature id for the '<em><b>Required</b></em>' attribute.
@@ -1183,7 +1192,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__REQUIRED = 5;
+	int PARAMETER__REQUIRED = 6;
 
 	/**
 	 * The feature id for the '<em><b>Deprecated</b></em>' attribute.
@@ -1192,7 +1201,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__DEPRECATED = 6;
+	int PARAMETER__DEPRECATED = 7;
 
 	/**
 	 * The feature id for the '<em><b>Allow Empty Value</b></em>' attribute.
@@ -1201,7 +1210,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__ALLOW_EMPTY_VALUE = 7;
+	int PARAMETER__ALLOW_EMPTY_VALUE = 8;
 
 	/**
 	 * The feature id for the '<em><b>Style</b></em>' attribute.
@@ -1210,7 +1219,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__STYLE = 8;
+	int PARAMETER__STYLE = 9;
 
 	/**
 	 * The feature id for the '<em><b>Explode</b></em>' attribute.
@@ -1219,7 +1228,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__EXPLODE = 9;
+	int PARAMETER__EXPLODE = 10;
 
 	/**
 	 * The feature id for the '<em><b>Allow Reserved</b></em>' attribute.
@@ -1228,7 +1237,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__ALLOW_RESERVED = 10;
+	int PARAMETER__ALLOW_RESERVED = 11;
 
 	/**
 	 * The feature id for the '<em><b>Schema</b></em>' containment reference.
@@ -1237,7 +1246,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__SCHEMA = 11;
+	int PARAMETER__SCHEMA = 12;
 
 	/**
 	 * The feature id for the '<em><b>Example</b></em>' attribute.
@@ -1246,7 +1255,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__EXAMPLE = 12;
+	int PARAMETER__EXAMPLE = 13;
 
 	/**
 	 * The feature id for the '<em><b>Examples</b></em>' map.
@@ -1255,7 +1264,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__EXAMPLES = 13;
+	int PARAMETER__EXAMPLES = 14;
 
 	/**
 	 * The feature id for the '<em><b>Content</b></em>' map.
@@ -1264,7 +1273,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__CONTENT = 14;
+	int PARAMETER__CONTENT = 15;
 
 	/**
 	 * The feature id for the '<em><b>Extensions</b></em>' map.
@@ -1273,7 +1282,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER__EXTENSIONS = 15;
+	int PARAMETER__EXTENSIONS = 16;
 
 	/**
 	 * The number of structural features of the '<em>Parameter</em>' class.
@@ -1282,7 +1291,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int PARAMETER_FEATURE_COUNT = 16;
+	int PARAMETER_FEATURE_COUNT = 17;
 
 	/**
 	 * The number of operations of the '<em>Parameter</em>' class.
@@ -1322,13 +1331,22 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int REQUEST_BODY__TARGET = 1;
 
 	/**
+	 * The feature id for the '<em><b>Summary</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int REQUEST_BODY__SUMMARY = 2;
+
+	/**
 	 * The feature id for the '<em><b>Description</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int REQUEST_BODY__DESCRIPTION = 2;
+	int REQUEST_BODY__DESCRIPTION = 3;
 
 	/**
 	 * The feature id for the '<em><b>Content</b></em>' map.
@@ -1337,7 +1355,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REQUEST_BODY__CONTENT = 3;
+	int REQUEST_BODY__CONTENT = 4;
 
 	/**
 	 * The feature id for the '<em><b>Required</b></em>' attribute.
@@ -1346,7 +1364,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REQUEST_BODY__REQUIRED = 4;
+	int REQUEST_BODY__REQUIRED = 5;
 
 	/**
 	 * The feature id for the '<em><b>Extensions</b></em>' map.
@@ -1355,7 +1373,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REQUEST_BODY__EXTENSIONS = 5;
+	int REQUEST_BODY__EXTENSIONS = 6;
 
 	/**
 	 * The number of structural features of the '<em>Request Body</em>' class.
@@ -1364,7 +1382,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int REQUEST_BODY_FEATURE_COUNT = 6;
+	int REQUEST_BODY_FEATURE_COUNT = 7;
 
 	/**
 	 * The number of operations of the '<em>Request Body</em>' class.
@@ -1404,13 +1422,22 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int MEDIA_TYPE__TARGET = 1;
 
 	/**
+	 * The feature id for the '<em><b>Summary</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MEDIA_TYPE__SUMMARY = 2;
+
+	/**
 	 * The feature id for the '<em><b>Description</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__DESCRIPTION = 2;
+	int MEDIA_TYPE__DESCRIPTION = 3;
 
 	/**
 	 * The feature id for the '<em><b>Schema</b></em>' containment reference.
@@ -1419,7 +1446,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__SCHEMA = 3;
+	int MEDIA_TYPE__SCHEMA = 4;
 
 	/**
 	 * The feature id for the '<em><b>Item Schema</b></em>' containment reference.
@@ -1428,7 +1455,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__ITEM_SCHEMA = 4;
+	int MEDIA_TYPE__ITEM_SCHEMA = 5;
 
 	/**
 	 * The feature id for the '<em><b>Example</b></em>' attribute.
@@ -1437,7 +1464,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__EXAMPLE = 5;
+	int MEDIA_TYPE__EXAMPLE = 6;
 
 	/**
 	 * The feature id for the '<em><b>Examples</b></em>' map.
@@ -1446,7 +1473,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__EXAMPLES = 6;
+	int MEDIA_TYPE__EXAMPLES = 7;
 
 	/**
 	 * The feature id for the '<em><b>Encoding</b></em>' map.
@@ -1455,7 +1482,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__ENCODING = 7;
+	int MEDIA_TYPE__ENCODING = 8;
 
 	/**
 	 * The feature id for the '<em><b>Prefix Encoding</b></em>' containment reference list.
@@ -1464,7 +1491,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__PREFIX_ENCODING = 8;
+	int MEDIA_TYPE__PREFIX_ENCODING = 9;
 
 	/**
 	 * The feature id for the '<em><b>Item Encoding</b></em>' containment reference.
@@ -1473,7 +1500,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__ITEM_ENCODING = 9;
+	int MEDIA_TYPE__ITEM_ENCODING = 10;
 
 	/**
 	 * The feature id for the '<em><b>Extensions</b></em>' map.
@@ -1482,7 +1509,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE__EXTENSIONS = 10;
+	int MEDIA_TYPE__EXTENSIONS = 11;
 
 	/**
 	 * The number of structural features of the '<em>Media Type</em>' class.
@@ -1491,7 +1518,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int MEDIA_TYPE_FEATURE_COUNT = 11;
+	int MEDIA_TYPE_FEATURE_COUNT = 12;
 
 	/**
 	 * The number of operations of the '<em>Media Type</em>' class.
@@ -1940,13 +1967,22 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int LINK__REQUEST_BODY = 5;
 
 	/**
+	 * The feature id for the '<em><b>Summary</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int LINK__SUMMARY = 6;
+
+	/**
 	 * The feature id for the '<em><b>Description</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int LINK__DESCRIPTION = 6;
+	int LINK__DESCRIPTION = 7;
 
 	/**
 	 * The feature id for the '<em><b>Server</b></em>' containment reference.
@@ -1955,7 +1991,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int LINK__SERVER = 7;
+	int LINK__SERVER = 8;
 
 	/**
 	 * The feature id for the '<em><b>Extensions</b></em>' map.
@@ -1964,7 +2000,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int LINK__EXTENSIONS = 8;
+	int LINK__EXTENSIONS = 9;
 
 	/**
 	 * The number of structural features of the '<em>Link</em>' class.
@@ -1973,7 +2009,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int LINK_FEATURE_COUNT = 9;
+	int LINK_FEATURE_COUNT = 10;
 
 	/**
 	 * The number of operations of the '<em>Link</em>' class.
@@ -2013,13 +2049,22 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int HEADER__TARGET = 1;
 
 	/**
+	 * The feature id for the '<em><b>Summary</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int HEADER__SUMMARY = 2;
+
+	/**
 	 * The feature id for the '<em><b>Description</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__DESCRIPTION = 2;
+	int HEADER__DESCRIPTION = 3;
 
 	/**
 	 * The feature id for the '<em><b>Required</b></em>' attribute.
@@ -2028,7 +2073,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__REQUIRED = 3;
+	int HEADER__REQUIRED = 4;
 
 	/**
 	 * The feature id for the '<em><b>Deprecated</b></em>' attribute.
@@ -2037,7 +2082,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__DEPRECATED = 4;
+	int HEADER__DEPRECATED = 5;
 
 	/**
 	 * The feature id for the '<em><b>Allow Empty Value</b></em>' attribute.
@@ -2046,7 +2091,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__ALLOW_EMPTY_VALUE = 5;
+	int HEADER__ALLOW_EMPTY_VALUE = 6;
 
 	/**
 	 * The feature id for the '<em><b>Style</b></em>' attribute.
@@ -2055,7 +2100,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__STYLE = 6;
+	int HEADER__STYLE = 7;
 
 	/**
 	 * The feature id for the '<em><b>Explode</b></em>' attribute.
@@ -2064,7 +2109,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__EXPLODE = 7;
+	int HEADER__EXPLODE = 8;
 
 	/**
 	 * The feature id for the '<em><b>Allow Reserved</b></em>' attribute.
@@ -2073,7 +2118,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__ALLOW_RESERVED = 8;
+	int HEADER__ALLOW_RESERVED = 9;
 
 	/**
 	 * The feature id for the '<em><b>Schema</b></em>' containment reference.
@@ -2082,7 +2127,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__SCHEMA = 9;
+	int HEADER__SCHEMA = 10;
 
 	/**
 	 * The feature id for the '<em><b>Example</b></em>' attribute.
@@ -2091,7 +2136,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__EXAMPLE = 10;
+	int HEADER__EXAMPLE = 11;
 
 	/**
 	 * The feature id for the '<em><b>Examples</b></em>' map.
@@ -2100,7 +2145,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__EXAMPLES = 11;
+	int HEADER__EXAMPLES = 12;
 
 	/**
 	 * The feature id for the '<em><b>Content</b></em>' map.
@@ -2109,7 +2154,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__CONTENT = 12;
+	int HEADER__CONTENT = 13;
 
 	/**
 	 * The feature id for the '<em><b>Extensions</b></em>' map.
@@ -2118,7 +2163,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER__EXTENSIONS = 13;
+	int HEADER__EXTENSIONS = 14;
 
 	/**
 	 * The number of structural features of the '<em>Header</em>' class.
@@ -2127,7 +2172,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int HEADER_FEATURE_COUNT = 14;
+	int HEADER_FEATURE_COUNT = 15;
 
 	/**
 	 * The number of operations of the '<em>Header</em>' class.
@@ -2276,13 +2321,22 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int SECURITY_SCHEME__TYPE = 2;
 
 	/**
+	 * The feature id for the '<em><b>Summary</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SECURITY_SCHEME__SUMMARY = 3;
+
+	/**
 	 * The feature id for the '<em><b>Description</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME__DESCRIPTION = 3;
+	int SECURITY_SCHEME__DESCRIPTION = 4;
 
 	/**
 	 * The feature id for the '<em><b>Name</b></em>' attribute.
@@ -2291,7 +2345,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME__NAME = 4;
+	int SECURITY_SCHEME__NAME = 5;
 
 	/**
 	 * The feature id for the '<em><b>In</b></em>' attribute.
@@ -2300,7 +2354,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME__IN = 5;
+	int SECURITY_SCHEME__IN = 6;
 
 	/**
 	 * The feature id for the '<em><b>Scheme</b></em>' attribute.
@@ -2309,7 +2363,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME__SCHEME = 6;
+	int SECURITY_SCHEME__SCHEME = 7;
 
 	/**
 	 * The feature id for the '<em><b>Bearer Format</b></em>' attribute.
@@ -2318,7 +2372,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME__BEARER_FORMAT = 7;
+	int SECURITY_SCHEME__BEARER_FORMAT = 8;
 
 	/**
 	 * The feature id for the '<em><b>Flows</b></em>' containment reference.
@@ -2327,7 +2381,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME__FLOWS = 8;
+	int SECURITY_SCHEME__FLOWS = 9;
 
 	/**
 	 * The feature id for the '<em><b>Open Id Connect Url</b></em>' attribute.
@@ -2336,7 +2390,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME__OPEN_ID_CONNECT_URL = 9;
+	int SECURITY_SCHEME__OPEN_ID_CONNECT_URL = 10;
 
 	/**
 	 * The feature id for the '<em><b>Oauth2 Metadata Url</b></em>' attribute.
@@ -2345,7 +2399,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME__OAUTH2_METADATA_URL = 10;
+	int SECURITY_SCHEME__OAUTH2_METADATA_URL = 11;
 
 	/**
 	 * The feature id for the '<em><b>Deprecated</b></em>' attribute.
@@ -2354,7 +2408,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME__DEPRECATED = 11;
+	int SECURITY_SCHEME__DEPRECATED = 12;
 
 	/**
 	 * The feature id for the '<em><b>Extensions</b></em>' map.
@@ -2363,7 +2417,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME__EXTENSIONS = 12;
+	int SECURITY_SCHEME__EXTENSIONS = 13;
 
 	/**
 	 * The number of structural features of the '<em>Security Scheme</em>' class.
@@ -2372,7 +2426,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int SECURITY_SCHEME_FEATURE_COUNT = 13;
+	int SECURITY_SCHEME_FEATURE_COUNT = 14;
 
 	/**
 	 * The number of operations of the '<em>Security Scheme</em>' class.
@@ -4543,6 +4597,17 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getParameter_In();
 
 	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Parameter#getSummary <em>Summary</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Summary</em>'.
+	 * @see org.eclipse.fennec.model.oas.Parameter#getSummary()
+	 * @see #getParameter()
+	 * @generated
+	 */
+	EAttribute getParameter_Summary();
+
+	/**
 	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Parameter#getDescription <em>Description</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -4707,6 +4772,17 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EReference getRequestBody_Target();
 
 	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.RequestBody#getSummary <em>Summary</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Summary</em>'.
+	 * @see org.eclipse.fennec.model.oas.RequestBody#getSummary()
+	 * @see #getRequestBody()
+	 * @generated
+	 */
+	EAttribute getRequestBody_Summary();
+
+	/**
 	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.RequestBody#getDescription <em>Description</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -4781,6 +4857,17 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 */
 	EReference getMediaType_Target();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.MediaType#getSummary <em>Summary</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Summary</em>'.
+	 * @see org.eclipse.fennec.model.oas.MediaType#getSummary()
+	 * @see #getMediaType()
+	 * @generated
+	 */
+	EAttribute getMediaType_Summary();
 
 	/**
 	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.MediaType#getDescription <em>Description</em>}'.
@@ -5317,6 +5404,17 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getLink_RequestBody();
 
 	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Link#getSummary <em>Summary</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Summary</em>'.
+	 * @see org.eclipse.fennec.model.oas.Link#getSummary()
+	 * @see #getLink()
+	 * @generated
+	 */
+	EAttribute getLink_Summary();
+
+	/**
 	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Link#getDescription <em>Description</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -5380,6 +5478,17 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 */
 	EReference getHeader_Target();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#getSummary <em>Summary</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Summary</em>'.
+	 * @see org.eclipse.fennec.model.oas.Header#getSummary()
+	 * @see #getHeader()
+	 * @generated
+	 */
+	EAttribute getHeader_Summary();
 
 	/**
 	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#getDescription <em>Description</em>}'.
@@ -5653,6 +5762,17 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 */
 	EAttribute getSecurityScheme_Type();
+
+	/**
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SecurityScheme#getSummary <em>Summary</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Summary</em>'.
+	 * @see org.eclipse.fennec.model.oas.SecurityScheme#getSummary()
+	 * @see #getSecurityScheme()
+	 * @generated
+	 */
+	EAttribute getSecurityScheme_Summary();
 
 	/**
 	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SecurityScheme#getDescription <em>Description</em>}'.
@@ -7436,6 +7556,14 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		EAttribute PARAMETER__IN = eINSTANCE.getParameter_In();
 
 		/**
+		 * The meta object literal for the '<em><b>Summary</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute PARAMETER__SUMMARY = eINSTANCE.getParameter_Summary();
+
+		/**
 		 * The meta object literal for the '<em><b>Description</b></em>' attribute feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
@@ -7558,6 +7686,14 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		EReference REQUEST_BODY__TARGET = eINSTANCE.getRequestBody_Target();
 
 		/**
+		 * The meta object literal for the '<em><b>Summary</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute REQUEST_BODY__SUMMARY = eINSTANCE.getRequestBody_Summary();
+
+		/**
 		 * The meta object literal for the '<em><b>Description</b></em>' attribute feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
@@ -7614,6 +7750,14 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EReference MEDIA_TYPE__TARGET = eINSTANCE.getMediaType_Target();
+
+		/**
+		 * The meta object literal for the '<em><b>Summary</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute MEDIA_TYPE__SUMMARY = eINSTANCE.getMediaType_Summary();
 
 		/**
 		 * The meta object literal for the '<em><b>Description</b></em>' attribute feature.
@@ -8018,6 +8162,14 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		EAttribute LINK__REQUEST_BODY = eINSTANCE.getLink_RequestBody();
 
 		/**
+		 * The meta object literal for the '<em><b>Summary</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute LINK__SUMMARY = eINSTANCE.getLink_Summary();
+
+		/**
 		 * The meta object literal for the '<em><b>Description</b></em>' attribute feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
@@ -8066,6 +8218,14 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EReference HEADER__TARGET = eINSTANCE.getHeader_Target();
+
+		/**
+		 * The meta object literal for the '<em><b>Summary</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute HEADER__SUMMARY = eINSTANCE.getHeader_Summary();
 
 		/**
 		 * The meta object literal for the '<em><b>Description</b></em>' attribute feature.
@@ -8270,6 +8430,14 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EAttribute SECURITY_SCHEME__TYPE = eINSTANCE.getSecurityScheme_Type();
+
+		/**
+		 * The meta object literal for the '<em><b>Summary</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute SECURITY_SCHEME__SUMMARY = eINSTANCE.getSecurityScheme_Summary();
 
 		/**
 		 * The meta object literal for the '<em><b>Description</b></em>' attribute feature.

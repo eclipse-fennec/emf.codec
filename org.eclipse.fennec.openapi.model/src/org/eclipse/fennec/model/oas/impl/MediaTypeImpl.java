@@ -48,6 +48,7 @@ import org.eclipse.fennec.model.oas.OasPackage;
  * <ul>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getRef <em>Ref</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getTarget <em>Target</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getSummary <em>Summary</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getItemSchema <em>Item Schema</em>}</li>
@@ -91,6 +92,26 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * @ordered
 	 */
 	protected MediaType target;
+
+	/**
+	 * The default value of the '{@link #getSummary() <em>Summary</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSummary()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String SUMMARY_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getSummary() <em>Summary</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSummary()
+	 * @generated
+	 * @ordered
+	 */
+	protected String summary = SUMMARY_EDEFAULT;
 
 	/**
 	 * The default value of the '{@link #getDescription() <em>Description</em>}' attribute.
@@ -291,6 +312,29 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 		target = newTarget;
 		if (eNotificationRequired())
 			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.MEDIA_TYPE__TARGET, oldTarget, target));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getSummary() {
+		return summary;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setSummary(String newSummary) {
+		String oldSummary = summary;
+		summary = newSummary;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.MEDIA_TYPE__SUMMARY, oldSummary, summary));
 	}
 
 	/**
@@ -652,6 +696,8 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 			case OasPackage.MEDIA_TYPE__TARGET:
 				if (resolve) return getTarget();
 				return basicGetTarget();
+			case OasPackage.MEDIA_TYPE__SUMMARY:
+				return getSummary();
 			case OasPackage.MEDIA_TYPE__DESCRIPTION:
 				return getDescription();
 			case OasPackage.MEDIA_TYPE__SCHEMA:
@@ -691,6 +737,9 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 				return;
 			case OasPackage.MEDIA_TYPE__TARGET:
 				setTarget((MediaType)newValue);
+				return;
+			case OasPackage.MEDIA_TYPE__SUMMARY:
+				setSummary((String)newValue);
 				return;
 			case OasPackage.MEDIA_TYPE__DESCRIPTION:
 				setDescription((String)newValue);
@@ -738,6 +787,9 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 			case OasPackage.MEDIA_TYPE__TARGET:
 				setTarget((MediaType)null);
 				return;
+			case OasPackage.MEDIA_TYPE__SUMMARY:
+				setSummary(SUMMARY_EDEFAULT);
+				return;
 			case OasPackage.MEDIA_TYPE__DESCRIPTION:
 				setDescription(DESCRIPTION_EDEFAULT);
 				return;
@@ -781,6 +833,8 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 				return REF_EDEFAULT == null ? ref != null : !REF_EDEFAULT.equals(ref);
 			case OasPackage.MEDIA_TYPE__TARGET:
 				return target != null;
+			case OasPackage.MEDIA_TYPE__SUMMARY:
+				return SUMMARY_EDEFAULT == null ? summary != null : !SUMMARY_EDEFAULT.equals(summary);
 			case OasPackage.MEDIA_TYPE__DESCRIPTION:
 				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
 			case OasPackage.MEDIA_TYPE__SCHEMA:
@@ -815,6 +869,8 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 		StringBuilder result = new StringBuilder(super.toString());
 		result.append(" (ref: ");
 		result.append(ref);
+		result.append(", summary: ");
+		result.append(summary);
 		result.append(", description: ");
 		result.append(description);
 		result.append(", example: ");
