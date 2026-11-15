@@ -44,6 +44,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import tools.jackson.databind.node.JsonNodeFactory;
+
 /**
  * Abstract TCK for custom value reader/writer tests.
  */
@@ -123,6 +125,42 @@ public abstract class AbstractCustomValueTCK {
         assertEquals("rec-1", loaded.eGet(idAttr));
         assertEquals("hello", loaded.eGet(labelAttr), "Label should be lowercase after custom reader");
         assertEquals(3.14, (Double) loaded.eGet(valueAttr), 0.001);
+    }
+
+    @Test
+    @DisplayName("a value writer can write a POJO through the generator")
+    void writerWritesPojo() throws IOException {
+        assertEquals("pojo", saveAndReloadLabel(new PojoWriter()));
+    }
+
+    @Test
+    @DisplayName("a value writer can write a tree through the generator")
+    void writerWritesTree() throws IOException {
+        assertEquals("tree", saveAndReloadLabel(new TreeWriter()));
+    }
+
+    private Object saveAndReloadLabel(CodecValueWriter<?, ?> labelWriter) throws IOException {
+        EObject record = testPackage.getEFactoryInstance().create(dataRecordClass);
+        record.eSet(idAttr, "rec-1");
+        record.eSet(labelAttr, "ignored");
+
+        CodecResource saveResource = createResource();
+        saveResource.getContents().add(record);
+        Map<String, Object> saveOptions = new HashMap<>();
+        Map<EStructuralFeature, CodecValueWriter<?, ?>> writers = new HashMap<>();
+        writers.put(labelAttr, labelWriter);
+        saveOptions.put(CodecOptions.CODEC_FEATURE_VALUE_WRITER_INSTANCES, writers);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        saveResource.save(out, saveOptions);
+
+        CodecResource loadResource = createResource();
+        Map<String, Object> loadOptions = new HashMap<>();
+        loadOptions.put(CodecResource.CODEC_ROOT_TYPE, dataRecordClass);
+        loadResource.load(new ByteArrayInputStream(out.toByteArray()), loadOptions);
+        assertEquals(1, loadResource.getContents().size());
+        EObject loaded = loadResource.getContents().get(0);
+        assertEquals("rec-1", loaded.eGet(idAttr));
+        return loaded.eGet(labelAttr);
     }
 
     @SuppressWarnings("deprecation")
@@ -217,6 +255,37 @@ public abstract class AbstractCustomValueTCK {
         @Override
         public void write(String value, EAttribute feature, CodecWriterContext ctx) throws IOException {
             ctx.getGenerator().writeString(value != null ? value.toUpperCase() : null);
+        }
+    }
+
+    /**
+     * Writes the value with {@code writePOJO}, which the generator hands to its object write
+     * context - also when the generator bridges to another format.
+     */
+    static class PojoWriter implements CodecValueWriter<String, EAttribute> {
+
+        @Override
+        public String getName() {
+            return "pojoWriter";
+        }
+
+        @Override
+        public void write(String value, EAttribute feature, CodecWriterContext ctx) throws IOException {
+            ctx.getGenerator().writePOJO("pojo");
+        }
+    }
+
+    /** Writes the value with {@code writeTree}. */
+    static class TreeWriter implements CodecValueWriter<String, EAttribute> {
+
+        @Override
+        public String getName() {
+            return "treeWriter";
+        }
+
+        @Override
+        public void write(String value, EAttribute feature, CodecWriterContext ctx) throws IOException {
+            ctx.getGenerator().writeTree(JsonNodeFactory.instance.stringNode("tree"));
         }
     }
 
