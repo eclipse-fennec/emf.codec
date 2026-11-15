@@ -308,6 +308,32 @@ The OpenAI (3.1) and GitHub (3.1 and 3.0.3) descriptions load into the oas model
 warnings, every response schema typed (`OasLargeDescriptionsTest`), and are written back unchanged
 (`OasLosslessTest`).
 
+### Writing in another version
+
+A resource writes in its version (`OasResourceFactoryImpl(version, …)`), whatever version the
+description was read in (#303):
+
+- A field or value the version does not know - `webhooks` in 3.0, `Tag.parent` or
+  `in: querystring` below 3.2, `discriminator.defaultMapping` below 3.2 - is written and reported as
+  a warning.
+- An `openapi` member of another version is reported and written as the resource's version
+  (`3.0.4`, `3.1.1`, `3.2.0`).
+- The schemas of a description of another version are rewritten into the target's dialect where
+  that is unambiguous:
+
+  | to 3.1 / 3.2 | to 3.0 |
+  |---|---|
+  | `type: x, nullable: true` → `type: [x, "null"]` (`nullable` without `type` is dropped: it had no effect) | `type: [x, "null"]` → `type: x, nullable: true` |
+  | `minimum: n, exclusiveMinimum: true` → `exclusiveMinimum: n` (maximum alike) | `exclusiveMinimum: n` → `minimum: n, exclusiveMinimum: true` |
+  | | `const: v` → `enum: [v]`; `examples: [a, …]` → `example: a` |
+
+  What has no form in the target (several types in 3.0, `prefixItems`, `$defs`, … in 3.0) is written
+  as it is and reported. Each warning names how often it occurred.
+- With `codec.deserializationMode=STRICT` in the save options, a save with any of these warnings
+  fails with an `IOException` and writes nothing.
+- The model is not changed: the rewrite is undone after writing. A description written in its own
+  version is written as it was read, without warnings about its schemas.
+
 ### Streamed responses (3.2)
 
 A sequential media type (`text/event-stream`, `application/jsonl`, `application/json-seq`,

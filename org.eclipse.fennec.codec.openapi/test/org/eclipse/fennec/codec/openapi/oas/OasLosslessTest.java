@@ -110,6 +110,7 @@ class OasLosslessTest {
 		out.getContents().addAll(in.getContents());
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		out.save(bytes, Map.of());
+		assertTrue(out.getWarnings().isEmpty(), () -> file + ": " + out.getWarnings()); // in its own version (#303)
 
 		// blank lines emptied as the codec does (snakeyaml-engine block scalar bug, #298)
 		JsonNode source = yaml ? YAML.readTree(Files.readString(path).replaceAll("(?m)^[ \\t]+$", ""))
