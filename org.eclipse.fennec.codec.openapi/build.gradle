@@ -1,0 +1,28 @@
+// Large real-world OpenAPI descriptions for the tests (issue #298), pinned to a commit and
+// downloaded rather than checked in, so the regular build stays offline. The tests that use them
+// are skipped while the files are missing. Run once:  ./gradlew :org.eclipse.fennec.codec.openapi:fetchOpenApiCorpus
+def corpus = [
+    // OpenAI API, OpenAPI 3.1.0, MIT
+    'openai-openapi.yaml'         : 'https://raw.githubusercontent.com/openai/openai-openapi/f437d0eccb8ca02f47be33ccc243b849b5bb0b74/openapi.yaml',
+    // GitHub REST API, OpenAPI 3.1.0, MIT
+    'github-api.next.yaml'        : 'https://raw.githubusercontent.com/github/rest-api-description/6804275cdb9b87c9637adc1781e0582890b8d347/descriptions-next/api.github.com/api.github.com.yaml',
+    // GitHub REST API, OpenAPI 3.0.3, MIT
+    'github-api.2022-11-28.json'  : 'https://raw.githubusercontent.com/github/rest-api-description/4754642742db86eba8971da648439698b46ac2ec/descriptions/api.github.com/api.github.com.2022-11-28.json'
+]
+
+tasks.register('fetchOpenApiCorpus') {
+    group = 'verification'
+    description = 'Downloads the large real-world OpenAPI descriptions into test-data/external (issue #298).'
+    def target = file('test-data/external')
+    outputs.dir(target)
+    doLast {
+        target.mkdirs()
+        corpus.each { name, url ->
+            def file = new File(target, name)
+            if (!file.exists()) {
+                logger.lifecycle("Downloading ${name}")
+                new URL(url).withInputStream { input -> file.withOutputStream { it << input } }
+            }
+        }
+    }
+}

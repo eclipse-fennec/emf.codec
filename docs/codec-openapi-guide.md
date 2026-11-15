@@ -189,6 +189,10 @@ YAML is read with the YAML 1.2 core schema, as the OpenAPI specification recomme
   expansion is bounded by `codec.yaml.maxAliasTokens` (default 1,000,000 tokens) against
   "billion laughs". Merge keys (`<<: *a`) are not resolved.
 - Block scalars (`|`, `>`) are read as text; comments are dropped.
+- Lines of only spaces and tabs are emptied before parsing. This works around a snakeyaml-engine
+  bug (3.0.1 to 3.2) that refuses a block scalar whose only line is blank but deeper indented than
+  the next line, as in the OpenAI description; the value reads as the line break it means
+  (issue #298). Spaces on blank lines inside a literal block are therefore not kept.
 - **Size**: `codec.maxPayloadSize` (default 16 MiB) bounds a YAML document as well, so the large
   published descriptions (GitHub ~11 MB) load with the defaults.
 
@@ -247,6 +251,13 @@ EClass; it refers to the generated types with `ref` (`"$ref": "#/components/sche
 | `in`, `style`, `type` of a security scheme | enums with a `NULL` literal 0 | an absent value stays unset; an explicit value is always written |
 | `explode` | `Boolean` | only written when set |
 | `x-*` extensions | - | dropped when reading |
+
+## Tests with large descriptions
+
+The OpenAI (4.3 MB YAML) and GitHub (11 MB YAML, 14 MB JSON) descriptions are not checked in.
+`./gradlew :org.eclipse.fennec.codec.openapi:fetchOpenApiCorpus` downloads them, pinned to a commit,
+into `test-data/external` (git-ignored); `OpenApiLargeDescriptionsTest` is skipped while they are
+missing, so the regular build stays offline.
 
 ## Known gaps
 
