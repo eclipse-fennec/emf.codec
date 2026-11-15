@@ -23,7 +23,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
  * Test helper: names the first place two models differ, so a failing equality assertion says
  * where instead of only that.
  */
-final class ModelDiff {
+public final class ModelDiff {
 
 	private ModelDiff() {
 	}
@@ -32,7 +32,7 @@ final class ModelDiff {
 	 * @return a path and the two differing values, or {@code null} when the models are equal in
 	 *         the containment tree and the attribute values
 	 */
-	static String firstDifference(EObject a, EObject b) {
+	public static String firstDifference(EObject a, EObject b) {
 		return diff(a, b, "/" + (a == null ? "null" : a.eClass().getName()));
 	}
 
