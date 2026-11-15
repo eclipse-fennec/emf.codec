@@ -12,6 +12,7 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.jsonschema.v2.converter;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -329,9 +330,11 @@ public class EPackageToJsonSchemaConverter {
 		namespaceMap.put("", new ArrayList<>());
 
 		for (EClassifier classifier : ePackage.getEClassifiers()) {
-			// Skip artificial classifiers
+			// Skip artificial classifiers - except the wrapper of a top-level array schema, which is
+			// a named schema of the source and is written back as an array (issue #309)
 			String artificial = extractAnnotationDetail(classifier, AnnotationSources.JSONSCHEMA, "artificial");
-			if ("true".equals(artificial)) {
+			String source = extractAnnotationDetail(classifier, AnnotationSources.JSONSCHEMA, "source");
+			if ("true".equals(artificial) && !"TopLevelArray".equals(source)) {
 				continue;
 			}
 
@@ -945,13 +948,37 @@ public class EPackageToJsonSchemaConverter {
 		}
 	}
 
+	/**
+	 * Writes the wrapper class of a top-level array schema as the array schema it came from: the
+	 * array shape of its {@code items} feature - {@code type}, {@code minItems} / {@code maxItems}
+	 * from the bounds, {@code items} - inside the object already opened for the class, whose
+	 * description is already written (issue #309).
+	 */
 	private void writeTopLevelArrayClass(EClass eClass, JsonGenerator gen) throws IOException {
-		gen.writeStringProperty("type", "array");
-
 		EStructuralFeature items = eClass.getEStructuralFeature("items");
-		if (items != null) {
-			writeFeature(items, gen);
+		if (items == null) {
+			gen.writeStringProperty("type", "array");
+			return;
 		}
+		JsonNode shape = renderFeatureShape(items);
+		for (Map.Entry<String, JsonNode> entry : shape.properties()) {
+			if (!"description".equals(entry.getKey())) {
+				gen.writeName(entry.getKey());
+				gen.writeTree(entry.getValue());
+			}
+		}
+	}
+
+	/** Renders the schema of a feature, as it is written under {@code properties}, to a tree. */
+	private JsonNode renderFeatureShape(EStructuralFeature feature) throws IOException {
+		ObjectMapper mapper = JsonMapper.builder().build();
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		try (JsonGenerator shapeGen = mapper.createGenerator(buffer)) {
+			shapeGen.writeStartObject();
+			writeFeature(feature, shapeGen);
+			shapeGen.writeEndObject();
+		}
+		return mapper.readTree(buffer.toByteArray()).get(jsonKey(feature));
 	}
 
 	private void writeObjectClass(EClass eClass, JsonGenerator gen) throws IOException {

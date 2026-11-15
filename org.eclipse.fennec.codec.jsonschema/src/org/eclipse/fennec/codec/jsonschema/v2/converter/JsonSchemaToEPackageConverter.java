@@ -1534,8 +1534,9 @@ public class JsonSchemaToEPackageConverter {
 			allOfRefMap.put(eClass, parentNames);
 		}
 
-		// Store allOf annotation
-		addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "allOf", allOfNode.toString());
+		// No copy of the allOf source text: the supertypes and the merged features carry it, and the
+		// writer derives allOf from them. A copy goes stale on the first change and differs in key
+		// order after every round trip (issue #309).
 
 		return eClass;
 	}
@@ -1556,8 +1557,9 @@ public class JsonSchemaToEPackageConverter {
 			EStructuralFeature itemsFeature = createStructuralFeature(
 				schemaNode.get("items"), "items", qualifiedName);
 			if (itemsFeature != null) {
-				itemsFeature.setLowerBound(0);
-				itemsFeature.setUpperBound(-1);
+				// minItems / maxItems of the array are the bounds of its items (issue #309)
+				itemsFeature.setLowerBound(schemaNode.has("minItems") ? schemaNode.get("minItems").asInt() : 0);
+				itemsFeature.setUpperBound(schemaNode.has("maxItems") ? schemaNode.get("maxItems").asInt() : -1);
 				eClass.getEStructuralFeatures().add(itemsFeature);
 			}
 		}
