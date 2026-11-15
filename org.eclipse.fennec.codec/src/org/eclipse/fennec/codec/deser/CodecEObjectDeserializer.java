@@ -1261,7 +1261,8 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
 
     /**
      * Reads an undeclared member into the catch-all map: an entry whose value is the member's raw
-     * JSON text, or - for a map of a class - an object of that class (spec 21 §6.2).
+     * JSON text, for a map of {@code EJavaObject} values the native JSON value, or - for a map of a
+     * class - an object of that class (spec 21 §6.2).
      *
      * @return {@code false} when the class has no catch-all map
      */
@@ -1280,6 +1281,9 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             if (parser.currentToken() != JsonToken.VALUE_NULL) {
                 entry.eSet(valueFeature, readNestedObject(valueReference.getEReferenceType(), parser, ctxt));
             }
+        } else if (valueFeature.getEType().getInstanceClass() == Object.class) {
+            // a map of EJavaObject values holds native JSON values: String, Number, Boolean, List, Map
+            entry.eSet(valueFeature, ctxt.readValue(parser, Object.class));
         } else {
             entry.eSet(valueFeature, ctxt.readTree(parser).toString());
         }
