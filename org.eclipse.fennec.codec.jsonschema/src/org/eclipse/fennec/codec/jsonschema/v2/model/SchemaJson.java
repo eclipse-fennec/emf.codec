@@ -368,6 +368,18 @@ public final class SchemaJson {
 	 * @return its JSON: an object, or a boolean for a boolean schema
 	 */
 	public static JsonNode write(Schema schema) {
+		return write(schema, null);
+	}
+
+	/**
+	 * Writes a schema and records which JSON object each schema of the tree became, so that what is
+	 * derived from the JSON can be traced back to the model (#318).
+	 *
+	 * @param schema a schema of the model
+	 * @param trace receives each written JSON object with its schema, by identity; may be {@code null}
+	 * @return its JSON: an object, or a boolean for a boolean schema
+	 */
+	public static JsonNode write(Schema schema, Map<JsonNode, Schema> trace) {
 		if (schema == null) {
 			return NODES.nullNode();
 		}
@@ -379,13 +391,17 @@ public final class SchemaJson {
 		}
 		ObjectNode json = NODES.objectNode();
 		for (EStructuralFeature feature : schema.eClass().getEAllStructuralFeatures()) {
-			writeFeature(schema, feature, json);
+			writeFeature(schema, feature, json, trace);
+		}
+		if (trace != null) {
+			trace.put(json, schema);
 		}
 		return json;
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void writeFeature(Schema schema, EStructuralFeature feature, ObjectNode json) {
+	private static void writeFeature(Schema schema, EStructuralFeature feature, ObjectNode json,
+			Map<JsonNode, Schema> trace) {
 		if (feature == P.getSchema_Type()) {
 			if (schema.eIsSet(feature)) {
 				if (schema.getType().size() == 1 && !schema.isTypeAsList()) {
@@ -397,12 +413,12 @@ public final class SchemaJson {
 			}
 		} else if (feature == P.getSchema_Items()) {
 			if (schema.getItems() != null) {
-				json.set("items", write(schema.getItems()));
+				json.set("items", write(schema.getItems(), trace));
 			}
 		} else if (feature == P.getSchema_ItemsList()) {
 			if (schema.eIsSet(feature)) {
 				ArrayNode items = json.putArray("items");
-				schema.getItemsList().forEach(item -> items.add(write(item)));
+				schema.getItemsList().forEach(item -> items.add(write(item, trace)));
 			}
 		} else if (feature == P.getSchema_ExclusiveMinimum() || feature == P.getSchema_ExclusiveMaximum()) {
 			if (schema.eIsSet(feature)) {
@@ -422,7 +438,7 @@ public final class SchemaJson {
 				for (Map.Entry<String, Dependency> entry : schema.getDependencies()) {
 					Dependency dependency = entry.getValue();
 					if (dependency.getSchema() != null) {
-						dependencies.set(entry.getKey(), write(dependency.getSchema()));
+						dependencies.set(entry.getKey(), write(dependency.getSchema(), trace));
 					} else {
 						ArrayNode names = dependencies.putArray(entry.getKey());
 						dependency.getProperties().forEach(names::add);
@@ -434,12 +450,13 @@ public final class SchemaJson {
 				json.set(keyword.getKey(), MAPPER.valueToTree(keyword.getValue()));
 			}
 		} else if (feature != P.getSchema_BooleanSchema() && feature != P.getSchema_TypeAsList() && !feature.isTransient()) {
-			writeGeneric(schema, feature, json);
+			writeGeneric(schema, feature, json, trace);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void writeGeneric(EObject owner, EStructuralFeature feature, ObjectNode json) {
+	private static void writeGeneric(EObject owner, EStructuralFeature feature, ObjectNode json,
+			Map<JsonNode, Schema> trace) {
 		if (!owner.eIsSet(feature)) {
 			return;
 		}
@@ -455,29 +472,29 @@ public final class SchemaJson {
 		if (type == P.getSchema()) {
 			if (reference.isMany()) {
 				ArrayNode list = json.putArray(key);
-				((List<Schema>) value).forEach(s -> list.add(write(s)));
+				((List<Schema>) value).forEach(s -> list.add(write(s, trace)));
 			} else {
-				json.set(key, write((Schema) value));
+				json.set(key, write((Schema) value, trace));
 			}
 		} else if (type.getInstanceClass() == Map.Entry.class) {
 			ObjectNode map = json.putObject(key);
 			for (Map.Entry<String, Object> entry : (EMap<String, Object>) value) {
 				Object v = entry.getValue();
 				if (v instanceof Schema s) {
-					map.set(entry.getKey(), write(s));
+					map.set(entry.getKey(), write(s, trace));
 				} else if (v instanceof EObject o) {
-					map.set(entry.getKey(), writeObject(o));
+					map.set(entry.getKey(), writeObject(o, trace));
 				} else {
 					map.set(entry.getKey(), MAPPER.valueToTree(v));
 				}
 			}
 		} else {
-			json.set(key, writeObject((EObject) value));
+			json.set(key, writeObject((EObject) value, trace));
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private static ObjectNode writeObject(EObject object) {
+	private static ObjectNode writeObject(EObject object, Map<JsonNode, Schema> trace) {
 		ObjectNode json = NODES.objectNode();
 		for (EStructuralFeature feature : object.eClass().getEAllStructuralFeatures()) {
 			if ("extensions".equals(feature.getName())) {
@@ -485,7 +502,7 @@ public final class SchemaJson {
 					json.set(entry.getKey(), MAPPER.valueToTree(entry.getValue()));
 				}
 			} else {
-				writeGeneric(object, feature, json);
+				writeGeneric(object, feature, json, trace);
 			}
 		}
 		return json;

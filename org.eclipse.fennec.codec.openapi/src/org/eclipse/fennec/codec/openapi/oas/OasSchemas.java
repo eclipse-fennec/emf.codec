@@ -121,7 +121,7 @@ final class OasSchemas {
 		}
 
 		EPackage schemas = componentDefs.isEmpty() ? EcoreFactory.eINSTANCE.createEPackage()
-				: new JsonSchemaToEPackageConverter().convert(componentDefs, null);
+				: new JsonSchemaToEPackageConverter().convertDefinitions(components.getSchemas().map());
 		for (Map.Entry<Schema, String> entry : sameAsComponent.entrySet()) {
 			entry.getKey().setClassifier(OpenApiReferences.classifier(schemas, entry.getValue()));
 		}

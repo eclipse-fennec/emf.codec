@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,11 +38,14 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.ETypedElement;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import org.eclipse.fennec.codec.constants.AnnotationSources;
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+import org.eclipse.fennec.codec.jsonschema.v2.model.SchemaJson;
 import org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants;
 
 import tools.jackson.databind.JsonNode;
@@ -103,6 +107,8 @@ public class JsonSchemaToEPackageConverter {
 	private int artificialClassifierCounter;
 	private String schemaFeature;
 	private Map<EClass, JsonNode> discriminators;
+	/** What each schema node became - a classifier or a feature - by identity (#318). */
+	private Map<JsonNode, Object> derived;
 
 	/**
 	 * Converts JSON Schema from input stream to EPackage.
@@ -136,6 +142,68 @@ public class JsonSchemaToEPackageConverter {
 	}
 
 	/**
+	 * Converts a schema document of the JSON Schema model to an EPackage (#318). Afterwards every
+	 * schema of the document that became a classifier, or the type of a feature, has it as
+	 * {@link Schema#getClassifier() classifier} - unless it had one already.
+	 *
+	 * @param root the root schema of the document
+	 * @param schemaFeature the key for definitions (e.g., "definitions", "$defs"), {@code null} to detect it
+	 * @return the created EPackage
+	 */
+	public EPackage convert(Schema root, String schemaFeature) {
+		Map<JsonNode, Schema> trace = new IdentityHashMap<>();
+		JsonNode json = SchemaJson.write(root, trace);
+		EPackage ePackage = convert(json, schemaFeature);
+		applyTrace(trace);
+		return ePackage;
+	}
+
+	/**
+	 * Converts named schemas of the JSON Schema model - the definitions of a document, such as the
+	 * {@code components/schemas} of an OpenAPI description - to an EPackage with a classifier per
+	 * name (#318). The names are taken as they are: none is read as a definitions section or as the
+	 * properties of a root class. Afterwards every schema that became a classifier, or the type of a
+	 * feature, has it as {@link Schema#getClassifier() classifier} - unless it had one already.
+	 *
+	 * @param definitions the schemas by name, in the order of the document
+	 * @return the created EPackage
+	 */
+	public EPackage convertDefinitions(Map<String, Schema> definitions) {
+		Map<JsonNode, Schema> trace = new IdentityHashMap<>();
+		ObjectNode defs = JsonMapper.builder().build().createObjectNode();
+		for (Map.Entry<String, Schema> entry : definitions.entrySet()) {
+			defs.set(entry.getKey(), SchemaJson.write(entry.getValue(), trace));
+		}
+		this.schemaFeature = null;
+		resetState();
+		EPackage ePackage = ecoreFactory.createEPackage();
+		processDefinitions(defs, ePackage, "");
+		completePackage(ePackage);
+		applyTrace(trace);
+		return ePackage;
+	}
+
+	/** Sets what each traced schema became as its classifier; a feature gives its type. */
+	private void applyTrace(Map<JsonNode, Schema> trace) {
+		for (Map.Entry<JsonNode, Schema> entry : trace.entrySet()) {
+			Object result = derived.get(entry.getKey());
+			EClassifier classifier = result instanceof EClassifier c ? c
+					: result instanceof ETypedElement typed ? typed.getEType() : null;
+			if (classifier != null && entry.getValue().getClassifier() == null) {
+				entry.getValue().setClassifier(classifier);
+			}
+		}
+	}
+
+	/** Records what a schema node became, unless it is recorded already (#318). */
+	private <T> T derive(JsonNode node, T result) {
+		if (node != null && result != null) {
+			derived.putIfAbsent(node, result);
+		}
+		return result;
+	}
+
+	/**
 	 * Converts an EMap of Schema objects to an EPackage.
 	 * <p>
 	 * This method is used by OpenAPI resource to convert the deserialized
@@ -153,6 +221,15 @@ public class JsonSchemaToEPackageConverter {
 	public EPackage convertFromSchemaMap(EMap<String, ? extends EObject> schemaMap) {
 		if (schemaMap == null || schemaMap.isEmpty()) {
 			return null;
+		}
+		if (schemaMap.values().stream().allMatch(Schema.class::isInstance)) {
+			Map<String, Schema> definitions = new LinkedHashMap<>();
+			schemaMap.forEach(entry -> definitions.put(entry.getKey(), (Schema) entry.getValue()));
+			EPackage ePackage = convertDefinitions(definitions);
+			ePackage.setName("schemas");
+			ePackage.setNsURI("http://generated/schemas");
+			ePackage.setNsPrefix("schemas");
+			return ePackage;
 		}
 
 		resetState();
@@ -396,6 +473,7 @@ public class JsonSchemaToEPackageConverter {
 	private void resetState() {
 		classifierMap = new HashMap<>();
 		discriminators = new LinkedHashMap<>();
+		derived = new IdentityHashMap<>();
 		schemaDefinitions = new HashMap<>();
 		missingRefMap = new HashMap<>();
 		anyOfRefMap = new HashMap<>();
@@ -557,6 +635,12 @@ public class JsonSchemaToEPackageConverter {
 			processTopLevelProperties(propertiesNode, rootNode, ePackage);
 		}
 
+		completePackage(ePackage);
+		return ePackage;
+	}
+
+	/** Resolves what the definitions left open and adds every classifier to the package. */
+	private void completePackage(EPackage ePackage) {
 		// Resolve deferred references
 		resolveDeferredReferences();
 		resolveMissingReferences();
@@ -575,8 +659,6 @@ public class JsonSchemaToEPackageConverter {
 		applyDiscriminators();
 		applyTypeStrategy(ePackage);
 		typeUnresolvedReferences(ePackage);
-
-		return ePackage;
 	}
 
 	/**
@@ -683,6 +765,7 @@ public class JsonSchemaToEPackageConverter {
 				schemaDefinitions.put(qualifiedName, defNode);
 				EClassifier classifier = ownClassifier(processSchemaDefinition(defNode, defName, qualifiedName), defName);
 				if (classifier != null) {
+					derived.put(defNode, classifier);
 					markDefinitionEnum(classifier);
 					classifierMap.put(qualifiedName, classifier);
 					if (!parentPackage.getEClassifiers().contains(classifier)) {
@@ -1388,7 +1471,7 @@ public class JsonSchemaToEPackageConverter {
 	private EClass createEClass(JsonNode classNode, String name, String qualifiedName) {
 		// the cache is keyed by the schema text, which an enum or a data type may share (issue #302)
 		if (cachedClassifiers.get(classNode.toString()) instanceof EClass cached && name.startsWith(ARTIFICIAL_CLASSIFIER_PREFIX)) {
-			return cached;
+			return derive(classNode, cached);
 		}
 
 		EClass eClass = ecoreFactory.createEClass();
@@ -1474,7 +1557,7 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		cachedClassifiers.put(classNode.toString(), eClass);
-		return eClass;
+		return derive(classNode, eClass);
 	}
 
 	/**
@@ -1715,7 +1798,7 @@ public class JsonSchemaToEPackageConverter {
 
 	private EEnum createEEnum(JsonNode enumNode, String name, String qualifiedName) {
 		if (cachedClassifiers.get(enumNode.toString()) instanceof EEnum cached) {
-			return cached;
+			return derive(enumNode, cached);
 		}
 
 		EEnum eEnum = ecoreFactory.createEEnum();
@@ -1763,7 +1846,7 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		cachedClassifiers.put(enumNode.toString(), eEnum);
-		return eEnum;
+		return derive(enumNode, eEnum);
 	}
 
 	/**
@@ -1785,7 +1868,7 @@ public class JsonSchemaToEPackageConverter {
 	private EDataType createEDataType(JsonNode dtNode, String name) {
 		// the cache is keyed by the schema text, which a class may share (issue #302)
 		if (cachedClassifiers.get(dtNode.toString()) instanceof EDataType cached && !(cached instanceof EEnum)) {
-			return cached;
+			return derive(dtNode, cached);
 		}
 
 		EDataType dt = ecoreFactory.createEDataType();
@@ -1844,7 +1927,7 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		cachedClassifiers.put(dtNode.toString(), dt);
-		return dt;
+		return derive(dtNode, dt);
 	}
 
 	/**
@@ -1933,7 +2016,7 @@ public class JsonSchemaToEPackageConverter {
 			addCommonAnnotations(feature, propertyNode, false);
 		}
 
-		return feature;
+		return derive(propertyNode, feature);
 	}
 
 	private boolean isNullable(JsonNode propertyNode) {
