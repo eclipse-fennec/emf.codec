@@ -45,7 +45,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = OpenApiPackage.eNS_URI, fingerprint = "fp1:59ce23d312ae2798b378fa4997b047536949a71e8be5390f1e5a4f8e16bf883d", genModel = "/model/openapi_v3.genmodel", genModelSourceLocations = {"model/openapi_v3.genmodel","org.eclipse.fennec.openapi.model/model/openapi_v3.genmodel"}, ecore = "/model/openapi_v3.ecore", ecoreSourceLocations = "/model/openapi_v3.ecore")
+@EPackage(uri = OpenApiPackage.eNS_URI, fingerprint = "fp1:adf1465c52a722592c4d9f85a3913846d633a932ec2fa9c6c01c629ad86de059", genModel = "/model/openapi_v3.genmodel", genModelSourceLocations = {"model/openapi_v3.genmodel","org.eclipse.fennec.openapi.model/model/openapi_v3.genmodel"}, ecore = "/model/openapi_v3.ecore", ecoreSourceLocations = "/model/openapi_v3.ecore")
 public interface OpenApiPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.
@@ -1936,13 +1936,22 @@ public interface OpenApiPackage extends org.eclipse.emf.ecore.EPackage {
 	int SCHEMA__EXTERNAL_DOCS = 34;
 
 	/**
+	 * The feature id for the '<em><b>Classifier</b></em>' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SCHEMA__CLASSIFIER = 35;
+
+	/**
 	 * The number of structural features of the '<em>Schema</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int SCHEMA_FEATURE_COUNT = 35;
+	int SCHEMA_FEATURE_COUNT = 36;
 
 	/**
 	 * The number of operations of the '<em>Schema</em>' class.
@@ -5022,6 +5031,17 @@ public interface OpenApiPackage extends org.eclipse.emf.ecore.EPackage {
 	EReference getSchema_ExternalDocs();
 
 	/**
+	 * Returns the meta object for the reference '{@link org.eclipse.fennec.model.openapi.Schema#getClassifier <em>Classifier</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the reference '<em>Classifier</em>'.
+	 * @see org.eclipse.fennec.model.openapi.Schema#getClassifier()
+	 * @see #getSchema()
+	 * @generated
+	 */
+	EReference getSchema_Classifier();
+
+	/**
 	 * Returns the meta object for class '{@link org.eclipse.fennec.model.openapi.Discriminator <em>Discriminator</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -7416,6 +7436,14 @@ public interface OpenApiPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EReference SCHEMA__EXTERNAL_DOCS = eINSTANCE.getSchema_ExternalDocs();
+
+		/**
+		 * The meta object literal for the '<em><b>Classifier</b></em>' reference feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference SCHEMA__CLASSIFIER = eINSTANCE.getSchema_Classifier();
 
 		/**
 		 * The meta object literal for the '{@link org.eclipse.fennec.model.openapi.impl.DiscriminatorImpl <em>Discriminator</em>}' class.

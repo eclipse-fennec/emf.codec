@@ -13,11 +13,15 @@
 package org.eclipse.fennec.codec.openapi;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.fennec.codec.diagnostic.CodecDiagnostic;
+import org.eclipse.fennec.model.openapi.OpenAPI;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.openapi.value.OpenApiSchemasValueWriter;
@@ -87,6 +91,25 @@ public class OpenApiResourceImpl extends CodecResource {
 			CodecFormatProvider<?, ?> formatProvider) {
 		super(uri, metadataService, createResolver(), valueRegistry, null, formatProvider);
 		this.yaml = formatProvider != null && "yaml".equals(formatProvider.getFormatId());
+	}
+
+	/**
+	 * After loading, gives the package built from {@code components/schemas} an identity (issue #311)
+	 * and links the schemas' {@code $ref}s to their classifiers (issue #312); an internal reference
+	 * without target is a warning on the resource.
+	 */
+	@Override
+	protected void doLoad(InputStream inputStream, Map<?, ?> options) throws IOException {
+		super.doLoad(inputStream, options);
+		for (EObject content : getContents()) {
+			if (content instanceof OpenAPI api) {
+				SchemasPackageIdentity.apply(api, options);
+				for (String ref : OpenApiReferences.link(api)) {
+					getWarnings().add(CodecDiagnostic.warning("$ref '" + ref + "' has no target in this document",
+							"OpenApiReferences"));
+				}
+			}
+		}
 	}
 
 	/**

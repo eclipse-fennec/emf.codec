@@ -2126,6 +2126,16 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 	 * @generated
 	 */
 	@Override
+	public EReference getSchema_Classifier() {
+		return (EReference)schemaEClass.getEStructuralFeatures().get(35);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EClass getDiscriminator() {
 		return discriminatorEClass;
 	}
@@ -3244,6 +3254,7 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 		createEReference(schemaEClass, SCHEMA__NOT);
 		createEReference(schemaEClass, SCHEMA__DISCRIMINATOR);
 		createEReference(schemaEClass, SCHEMA__EXTERNAL_DOCS);
+		createEReference(schemaEClass, SCHEMA__CLASSIFIER);
 
 		discriminatorEClass = createEClass(DISCRIMINATOR);
 		createEAttribute(discriminatorEClass, DISCRIMINATOR__PROPERTY_NAME);
@@ -3577,6 +3588,7 @@ public class OpenApiPackageImpl extends EPackageImpl implements OpenApiPackage {
 		initEReference(getSchema_Not(), this.getSchema(), null, "not", null, 0, 1, Schema.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getSchema_Discriminator(), this.getDiscriminator(), null, "discriminator", null, 0, 1, Schema.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getSchema_ExternalDocs(), this.getExternalDocumentation(), null, "externalDocs", null, 0, 1, Schema.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getSchema_Classifier(), ecorePackage.getEClassifier(), null, "classifier", null, 0, 1, Schema.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(discriminatorEClass, Discriminator.class, "Discriminator", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getDiscriminator_PropertyName(), ecorePackage.getEString(), "propertyName", null, 1, 1, Discriminator.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);

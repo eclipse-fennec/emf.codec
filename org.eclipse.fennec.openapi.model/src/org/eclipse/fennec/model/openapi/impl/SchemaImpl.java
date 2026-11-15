@@ -23,6 +23,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.EMap;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.InternalEObject;
 
@@ -82,6 +83,7 @@ import org.eclipse.fennec.model.openapi.Schema;
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.SchemaImpl#getNot <em>Not</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.SchemaImpl#getDiscriminator <em>Discriminator</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.openapi.impl.SchemaImpl#getExternalDocs <em>External Docs</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.openapi.impl.SchemaImpl#getClassifier <em>Classifier</em>}</li>
  * </ul>
  *
  * @generated
@@ -676,6 +678,16 @@ public class SchemaImpl extends MinimalEObjectImpl.Container implements Schema {
 	 * @ordered
 	 */
 	protected ExternalDocumentation externalDocs;
+
+	/**
+	 * The cached value of the '{@link #getClassifier() <em>Classifier</em>}' reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getClassifier()
+	 * @generated
+	 * @ordered
+	 */
+	protected EClassifier classifier;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -1557,6 +1569,46 @@ public class SchemaImpl extends MinimalEObjectImpl.Container implements Schema {
 	 * @generated
 	 */
 	@Override
+	public EClassifier getClassifier() {
+		if (classifier != null && classifier.eIsProxy()) {
+			InternalEObject oldClassifier = (InternalEObject)classifier;
+			classifier = (EClassifier)eResolveProxy(oldClassifier);
+			if (classifier != oldClassifier) {
+				if (eNotificationRequired())
+					eNotify(new ENotificationImpl(this, Notification.RESOLVE, OpenApiPackage.SCHEMA__CLASSIFIER, oldClassifier, classifier));
+			}
+		}
+		return classifier;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EClassifier basicGetClassifier() {
+		return classifier;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setClassifier(EClassifier newClassifier) {
+		EClassifier oldClassifier = classifier;
+		classifier = newClassifier;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OpenApiPackage.SCHEMA__CLASSIFIER, oldClassifier, classifier));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
 		switch (featureID) {
 			case OpenApiPackage.SCHEMA__ITEMS:
@@ -1660,6 +1712,9 @@ public class SchemaImpl extends MinimalEObjectImpl.Container implements Schema {
 				return getDiscriminator();
 			case OpenApiPackage.SCHEMA__EXTERNAL_DOCS:
 				return getExternalDocs();
+			case OpenApiPackage.SCHEMA__CLASSIFIER:
+				if (resolve) return getClassifier();
+				return basicGetClassifier();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -1783,6 +1838,9 @@ public class SchemaImpl extends MinimalEObjectImpl.Container implements Schema {
 			case OpenApiPackage.SCHEMA__EXTERNAL_DOCS:
 				setExternalDocs((ExternalDocumentation)newValue);
 				return;
+			case OpenApiPackage.SCHEMA__CLASSIFIER:
+				setClassifier((EClassifier)newValue);
+				return;
 		}
 		super.eSet(featureID, newValue);
 	}
@@ -1900,6 +1958,9 @@ public class SchemaImpl extends MinimalEObjectImpl.Container implements Schema {
 			case OpenApiPackage.SCHEMA__EXTERNAL_DOCS:
 				setExternalDocs((ExternalDocumentation)null);
 				return;
+			case OpenApiPackage.SCHEMA__CLASSIFIER:
+				setClassifier((EClassifier)null);
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -1982,6 +2043,8 @@ public class SchemaImpl extends MinimalEObjectImpl.Container implements Schema {
 				return discriminator != null;
 			case OpenApiPackage.SCHEMA__EXTERNAL_DOCS:
 				return externalDocs != null;
+			case OpenApiPackage.SCHEMA__CLASSIFIER:
+				return classifier != null;
 		}
 		return super.eIsSet(featureID);
 	}
