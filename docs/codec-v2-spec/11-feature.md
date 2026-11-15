@@ -69,7 +69,9 @@ every default. An **unsettable** feature tells them apart: when it is not set (`
 is never written, whatever its value; when it is set, `serializeNull` and `serializeDefault`
 decide as usual. Reading an explicit `null` sets the feature, also when the
 value was buffered until the type was known, so `{"tag": null}` survives load and save while an
-absent `tag` stays absent.
+absent `tag` stays absent. Likewise an empty array or object read into an unsettable many-valued feature sets it, so with
+`serializeEmpty=true` `{"tags": []}` survives load and save while an absent `tags` stays absent
+(issue #319).
 
 **With serializeEmpty=true:**
 ```json

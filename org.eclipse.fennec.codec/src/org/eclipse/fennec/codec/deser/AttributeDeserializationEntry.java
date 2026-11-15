@@ -47,6 +47,7 @@ import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.util.TokenLoops;
+import org.eclipse.fennec.codec.util.UnsettableLists;
 import org.eclipse.fennec.codec.value.AttributeValueReader;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
@@ -244,6 +245,7 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
                 values.add(value);
             }
         }
+        UnsettableLists.markSetIfEmpty(eObject, attribute);
     }
 
     /**

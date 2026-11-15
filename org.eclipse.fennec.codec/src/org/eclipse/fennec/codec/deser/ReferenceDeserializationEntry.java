@@ -40,6 +40,7 @@ import org.eclipse.fennec.codec.util.ConversionFailures;
 import org.eclipse.fennec.codec.util.EMapHelper;
 import org.eclipse.fennec.codec.util.PackageResolver;
 import org.eclipse.fennec.codec.util.TokenLoops;
+import org.eclipse.fennec.codec.util.UnsettableLists;
 import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 import org.eclipse.fennec.codec.value.CodecReaderContext;
 import org.eclipse.fennec.codec.value.CodecValueReader;
@@ -482,6 +483,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             }
             index++;
         }
+        UnsettableLists.markSetIfEmpty(eObject, reference);
     }
 
     /**
@@ -1353,6 +1355,7 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
 
                 entries.add(entry);
             }
+            UnsettableLists.markSetIfEmpty(eObject, reference);
         } catch (IllegalStateException e) {
             // Propagate IllegalStateException (e.g., from discriminator ERROR strategy)
             throw e;
