@@ -4,6 +4,25 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-11-15
 
+**Session Summary (2026-11-15, feature/openapi-3.1-3.2) — JSON Schema model, lossless OpenAPI (#315-#319):**
+
+- A fidelity check (source JSON vs. written JSON) showed ~12,600 differences for GitHub, mostly in
+  schemas: the converter reads JSON Schema straight into Ecore and writes back *from* Ecore. Fix
+  (maintainer decision, #315): `org.eclipse.fennec.codec.jsonschema.model`, one EMF model for draft-04
+  to 2020-12 plus the OpenAPI vocabulary, as the lossless source; Ecore stays the target and is
+  derived. `SchemaJson` (codec.jsonschema, package `v2.model`) maps JSON ⇄ model; value reader/writer
+  `jsonSchema`. Lossless for 20,015 real schemas (meta-schemas, OAS schemas, GitHub, OpenAI, ...).
+- The oas model holds `Schema`s (`SchemaReference` removed, #319); `Components.schemasPackage`
+  (transient) is the derived Ecore. All examples and the large descriptions round-trip to the same
+  JSON (`OasLosslessTest`).
+- EMF pitfalls for lossless models: empty lists/maps (unsettable + mark set), explicit `null`
+  (unsettable), duplicates in attribute lists (`unique=false`), defaults like `required: false`
+  (`Boolean` + unsettable + `serializeDefault`). Codec core: map entry values honor the value
+  reader/writer of their value feature; an empty array read into an unsettable list sets it (spec 11).
+- Next: #318 - the converter takes the JSON Schema model (today `OasSchemas` feeds it JSON via
+  `SchemaJson.write`), then the mapping JSON Schema → Ecore is specified per construct. Later the
+  `jsonschema` and `oas` models may move to fennec-models (no code dependency on the codec).
+
 **Session Summary (2026-11-15, feature/openapi-3.1-3.2) — oas model for OpenAPI 3.0-3.2 (#299-#313):**
 
 - Maintainer decisions are in the comments of #299/#300/#301/#313: new model `org.eclipse.fennec.model.oas`
