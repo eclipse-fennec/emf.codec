@@ -390,6 +390,64 @@ class ForeignSchemaCodecAspectsTest {
 		assertEquals(mapper.readTree(schemas), written);
 	}
 
+	private static final String CONDITIONAL = """
+			{
+			  "Payment": {
+			    "type": "object",
+			    "properties": { "kind": { "type": "string" } },
+			    "if": { "properties": { "kind": { "const": "card" } } },
+			    "then": { "properties": { "cardNumber": { "type": "string" } }, "required": ["cardNumber"] },
+			    "else": { "properties": { "iban": { "type": "string" } } }
+			  },
+			  "Point": {
+			    "type": "object",
+			    "properties": {
+			      "coords": { "type": "array", "prefixItems": [ { "type": "number" }, { "type": "number" } ], "items": false },
+			      "legacy": { "type": "array", "items": [ { "type": "string" }, { "type": "integer" } ] }
+			    }
+			  }
+			}
+			""";
+
+	@Test
+	@DisplayName("the properties of then / else are optional features of the class (#318)")
+	void conditionalProperties() throws IOException {
+		EPackage ePackage = convert(CONDITIONAL);
+		EClass payment = (EClass) ePackage.getEClassifier("Payment");
+		assertEquals(0, payment.getEStructuralFeature("cardNumber").getLowerBound());
+		assertEquals(0, payment.getEStructuralFeature("iban").getLowerBound());
+		assertPayloadRoundTrip(ePackage, "Payment", """
+				{ "kind": "card", "cardNumber": "4111" }
+				""");
+		assertPayloadRoundTrip(ePackage, "Payment", """
+				{ "kind": "transfer", "iban": "DE00" }
+				""");
+	}
+
+	@Test
+	@DisplayName("prefixItems and the tuple form of items keep the values as they are (#318)")
+	void tuples() throws IOException {
+		EPackage ePackage = convert(CONDITIONAL);
+		EClass point = (EClass) ePackage.getEClassifier("Point");
+		assertTrue(point.getEStructuralFeature("coords").isMany());
+		assertTrue(point.getEStructuralFeature("legacy").isMany());
+		assertPayloadRoundTrip(ePackage, "Point", """
+				{ "coords": [ 1.5, 2.5 ], "legacy": [ "a", 3 ] }
+				""");
+	}
+
+	@Test
+	@DisplayName("if / then / else and tuples come back in the schema (#318)")
+	void conditionalSchemaRoundTrip() throws IOException {
+		String schemas = CONDITIONAL;
+		EPackage ePackage = new JsonSchemaToEPackageConverter().convert(mapper.readTree("{\"$defs\": " + schemas + "}"), null);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new EPackageToJsonSchemaConverter().convert(ePackage, out, "$defs", false, Map.of(), null);
+
+		JsonNode written = withoutVendorExtensions(mapper.readTree(out.toString(StandardCharsets.UTF_8)).get("$defs"));
+		assertEquals(mapper.readTree(schemas), written);
+	}
+
 	@Test
 	@DisplayName("oneOf without discriminator infers the subclass, with discriminator maps it (#279)")
 	void unions() throws IOException {

@@ -915,6 +915,13 @@ public class EPackageToJsonSchemaConverter {
 	 * {@code $ref} for a map of a class. A class without either says nothing.
 	 */
 	private void writeClassAdditionalProperties(EClass eClass, JsonGenerator gen) throws IOException {
+		for (String keyword : new String[] { "if", "then", "else" }) {
+			String condition = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, keyword);
+			if (condition != null && !isSuppressed(keyword)) {
+				gen.writeName(keyword);
+				gen.writeTree(new ObjectMapper().readTree(condition));
+			}
+		}
 		if (isSuppressed("additionalProperties")) {
 			return;
 		}
@@ -1218,6 +1225,13 @@ public class EPackageToJsonSchemaConverter {
 	}
 
 	private void writeFeature(EStructuralFeature feature, JsonGenerator gen) throws IOException {
+		String schema = extractAnnotationDetail(feature, AnnotationSources.JSONSCHEMA, "schema");
+		if (schema != null) {
+			// a schema Ecore cannot express (a tuple): as it was read (spec 22 §4)
+			gen.writeName(jsonKey(feature));
+			gen.writeTree(new ObjectMapper().readTree(schema));
+			return;
+		}
 		if (feature instanceof EAttribute eAttribute) {
 			writeEAttribute(eAttribute, gen);
 		} else if (feature instanceof EReference eReference) {
@@ -2453,6 +2467,8 @@ public class EPackageToJsonSchemaConverter {
 	private boolean isSchemaFeature(EStructuralFeature feature) {
 		FeatureConfig featureConfig = configurationResolver.resolveFeatureConfig(feature, featureDiagnostics);
 		return featureConfig.shouldSerialize() && !isCatchAllFeature(feature)
+				// a property of then / else: written within the condition (spec 22 §3.1)
+				&& extractAnnotationDetail(feature, AnnotationSources.JSONSCHEMA, "conditional") == null
 				&& (featureConfig.isForceWrite() || !isIdOnlyComponent(feature));
 	}
 

@@ -987,7 +987,7 @@ public class JsonSchemaToEPackageConverter {
 
 		// An object schema without "type" (issue #302)
 		if (schemaNode.has("properties") || schemaNode.has("additionalProperties") || schemaNode.has("patternProperties")
-				|| schemaNode.has("required")) {
+				|| schemaNode.has("required") || (schemaNode.has("if") && (schemaNode.has("then") || schemaNode.has("else")))) {
 			return createEClass(schemaNode, name, qualifiedName);
 		}
 		// No constraint on the type: any value (issue #302); a bare $ref alias is not modelled
@@ -1577,6 +1577,8 @@ public class JsonSchemaToEPackageConverter {
 				}
 			}
 		}
+
+		addConditionalFeatures(eClass, classNode, qualifiedName);
 
 		JsonNode patternProps = classNode.get("patternProperties");
 		boolean patterns = patternProps != null && patternProps.isObject() && !patternProps.isEmpty();
@@ -2306,7 +2308,15 @@ public class JsonSchemaToEPackageConverter {
 	private EStructuralFeature createArrayFeature(JsonNode propertyNode, String name, String contextPath) {
 		EStructuralFeature feature = null;
 
-		if (propertyNode.has("items")) {
+		if (propertyNode.has("prefixItems") || propertyNode.path("items").isArray()) {
+			// A tuple (spec 22 §4): the values as they are; the schema is written back as it was
+			EAttribute tuple = ecoreFactory.createEAttribute();
+			tuple.setName(name);
+			tuple.setEType(EcorePackage.Literals.EJAVA_OBJECT);
+			tuple.setUnique(false);
+			addEAnnotation(tuple, AnnotationSources.JSONSCHEMA, "schema", propertyNode.toString());
+			feature = tuple;
+		} else if (propertyNode.has("items")) {
 			feature = createStructuralFeature(propertyNode.get("items"), name, contextPath);
 			if (feature != null) {
 				addEAnnotation(feature, AnnotationSources.JSONSCHEMA, "items", "true");
@@ -2382,6 +2392,40 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		return reference;
+	}
+
+	/**
+	 * {@code if} / {@code then} / {@code else} (spec 22 §3.1): the properties of {@code then} and
+	 * {@code else} the class does not declare become optional features of it, so that their members
+	 * are read whichever branch applies. The condition is not checked; the three keywords are
+	 * annotated and written back as they were, the features are not written as properties.
+	 */
+	private void addConditionalFeatures(EClass eClass, JsonNode classNode, String qualifiedName) {
+		if (!classNode.has("if")) {
+			return;
+		}
+		for (String keyword : new String[] { "if", "then", "else" }) {
+			if (classNode.has(keyword)) {
+				addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, keyword, classNode.get(keyword).toString());
+			}
+		}
+		for (String branch : new String[] { "then", "else" }) {
+			JsonNode properties = classNode.path(branch).path("properties");
+			if (!properties.isObject()) {
+				continue;
+			}
+			for (String property : properties.propertyNames()) {
+				if (eClass.getEStructuralFeature(property) != null) {
+					continue;
+				}
+				EStructuralFeature feature = createStructuralFeature(properties.get(property), property, qualifiedName);
+				if (feature != null) {
+					feature.setLowerBound(0);
+					addEAnnotation(feature, AnnotationSources.JSONSCHEMA, "conditional", branch);
+					eClass.getEStructuralFeatures().add(feature);
+				}
+			}
+		}
 	}
 
 	/**

@@ -98,6 +98,8 @@ public final class JsonSchemaKeywords {
 	/** Keywords preserved as annotations but without full EMF semantics */
 	public static final Set<String> PARTIALLY_SUPPORTED = Set.of(
 		"patternProperties",      // Members in the catch-all map, patterns not checked
+		"if", "then", "else",     // Branch properties as optional features, condition not checked
+		"prefixItems",            // Values kept as they are, positions not typed
 		"unevaluatedProperties"   // Preserved, used for discriminated unions
 	);
 
@@ -107,12 +109,8 @@ public final class JsonSchemaKeywords {
 
 	/** Keywords that cannot be mapped to EMF */
 	public static final Set<String> UNSUPPORTED = Set.of(
-		// Negation and conditionals
+		// Negation
 		"not",
-		"if", "then", "else",
-
-		// Tuple validation (Draft 2020-12)
-		"prefixItems",
 
 		// Array contains constraints
 		"contains", "minContains", "maxContains",
@@ -165,6 +163,16 @@ public final class JsonSchemaKeywords {
 		if (schemaNode.has("patternProperties")) {
 			diagnostics.add(JsonSchemaConversionDiagnostic.partialSupport(
 				"patternProperties", location, "matching members are kept in the catch-all map; the patterns are not checked"));
+		}
+		for (String keyword : new String[] { "if", "then", "else" }) {
+			if (schemaNode.has(keyword)) {
+				diagnostics.add(JsonSchemaConversionDiagnostic.partialSupport(keyword, location,
+						"the properties of then / else are optional features; the condition is not checked"));
+			}
+		}
+		if (schemaNode.has("prefixItems")) {
+			diagnostics.add(JsonSchemaConversionDiagnostic.partialSupport("prefixItems", location,
+					"the values are kept as they are; the positions are not typed"));
 		}
 
 		return diagnostics;
