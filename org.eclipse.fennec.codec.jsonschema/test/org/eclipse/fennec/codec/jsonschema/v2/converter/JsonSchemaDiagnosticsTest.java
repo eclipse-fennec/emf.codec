@@ -90,14 +90,6 @@ class JsonSchemaDiagnosticsTest {
 			assertEquals(JsonSchemaKeywords.SupportLevel.NONE,
 				JsonSchemaKeywords.getSupportLevel("not"));
 			assertEquals(JsonSchemaKeywords.SupportLevel.NONE,
-				JsonSchemaKeywords.getSupportLevel("if"));
-			assertEquals(JsonSchemaKeywords.SupportLevel.NONE,
-				JsonSchemaKeywords.getSupportLevel("then"));
-			assertEquals(JsonSchemaKeywords.SupportLevel.NONE,
-				JsonSchemaKeywords.getSupportLevel("else"));
-			assertEquals(JsonSchemaKeywords.SupportLevel.NONE,
-				JsonSchemaKeywords.getSupportLevel("prefixItems"));
-			assertEquals(JsonSchemaKeywords.SupportLevel.NONE,
 				JsonSchemaKeywords.getSupportLevel("contains"));
 			assertEquals(JsonSchemaKeywords.SupportLevel.NONE,
 				JsonSchemaKeywords.getSupportLevel("$dynamicRef"));
@@ -108,6 +100,10 @@ class JsonSchemaDiagnosticsTest {
 		void classifiesPartiallySupportedKeywords() {
 			assertEquals(JsonSchemaKeywords.SupportLevel.PARTIAL,
 				JsonSchemaKeywords.getSupportLevel("patternProperties"));
+			// spec 22 §3.1, §4 (#318)
+			for (String keyword : new String[] { "if", "then", "else", "prefixItems" }) {
+				assertEquals(JsonSchemaKeywords.SupportLevel.PARTIAL, JsonSchemaKeywords.getSupportLevel(keyword), keyword);
+			}
 			assertEquals(JsonSchemaKeywords.SupportLevel.PARTIAL,
 				JsonSchemaKeywords.getSupportLevel("unevaluatedProperties"));
 		}
@@ -162,7 +158,7 @@ class JsonSchemaDiagnosticsTest {
 		}
 
 		@Test
-		@DisplayName("reports unsupported conditional keywords")
+		@DisplayName("reports partially supported conditional keywords")
 		void reportsUnsupportedConditionalKeywords() throws IOException {
 			String json = """
 				{
@@ -189,7 +185,7 @@ class JsonSchemaDiagnosticsTest {
 		}
 
 		@Test
-		@DisplayName("reports unsupported prefixItems (Draft 2020-12)")
+		@DisplayName("reports partially supported prefixItems (Draft 2020-12)")
 		void reportsUnsupportedPrefixItems() throws IOException {
 			String json = """
 				{

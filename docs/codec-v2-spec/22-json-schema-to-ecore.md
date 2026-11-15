@@ -52,10 +52,10 @@ as `originalName` and `ExtendedMetaData` `name` when it differs). The first matc
 | 8 | `type: object` | `EClass` (§3.1) |
 | 9 | `type: array` | array wrapper `EClass` with one multi-valued feature `items` (annotation `arrayWrapper`); an array of arrays nests a wrapper |
 | 10 | `type: <scalar>` or a list of types | `EDataType` (§5), facets as annotations |
-| 11 | no `type`, but `properties`, `additionalProperties`, `patternProperties` or `required` | `EClass` |
+| 11 | no `type`, but `properties`, `additionalProperties`, `patternProperties`, `required`, or `if` with `then`/`else` | `EClass` |
 | 12 | no constraint on the type at all (`{}`, only annotations) | `EDataType` of `java.lang.Object` |
 | 13 | only a `$ref`, annotations around it at most (an alias) | no classifier of its own: another name of the target's classifier, also through a chain of aliases. A `$ref` to the alias, `allOf` of it and its `Schema.classifier` are the target's. A cycle or a missing target stays unresolved |
-| 14 | `not`, `if` | no classifier (§9) |
+| 14 | `not`, an `if` without `then`/`else` | no classifier |
 
 Definitions with nothing but object members (`configs: {kafka: {...}}`) are namespaces: their
 children are definitions with the qualified name `configs/kafka`.
@@ -71,6 +71,11 @@ children are definitions with the qualified name `configs/kafka`.
   a class when all patterns (and `additionalProperties`) share one `$ref` schema, otherwise the raw
   JSON of each member. The patterns are annotated (`patternProperties`) and written back; they are
   not checked when reading.
+- `if` / `then` / `else` → the properties of `then` and `else` the class does not declare become
+  optional features of it (annotation `conditional=then|else`), so that their members are read
+  whichever branch applies. The condition is not checked; `required` of a branch is not applied.
+  The three keywords are annotated and written back as they were; the conditional features are not
+  written as properties.
 - `additionalProperties` without `properties` on a property → map feature (§4).
 - `discriminator` → codec aspects (spec 21 §3, spec 08).
 - `x-abstract`, `x-interface` → the flags (spec 21 §5).
@@ -89,6 +94,7 @@ title), annotation `rootClass=true`.
 | `type: string` with `enum` | `EAttribute` of an `EEnum` named `<Class><Property>`, annotation `inline` |
 | `type: <scalar>` | `EAttribute` (§5) |
 | `type: array` | the feature of `items`, `upperBound` from `maxItems` (`-1` without), `lowerBound` from `minItems` |
+| `type: array` with `prefixItems`, or `items` as a list (a tuple) | multi-valued, non-unique `EAttribute` `EJavaObject`: the values as they are (native). The property schema is annotated (`schema`) and written back as it was |
 | `type: object` with `additionalProperties` (a schema), no `properties` | multi-valued containment of a `<Property>MapEntry` class (`key: EString`, `value`: the `$ref` class or a value class) |
 | `type: object` otherwise | containment `EReference` to an artificial class |
 | `type: [x, "null"]` | the feature of `x`, nullable (§6) |
@@ -145,20 +151,20 @@ These keywords have no Ecore counterpart. They stay in the model; the converter 
 diagnostic (`JsonSchemaKeywords`):
 
 - partially: `patternProperties` (§3.1: members kept, patterns not checked), `unevaluatedProperties`;
-- not at all: `not`, `if`/`then`/`else`, `prefixItems`, `contains`/`minContains`/`maxContains`,
+- partially: `if`/`then`/`else` (§3.1: branch properties as optional features, condition not
+  checked), `prefixItems` (§4: values kept, positions not typed);
+- not at all: `not`, `contains`/`minContains`/`maxContains`,
   `propertyNames`, `dependentRequired`, `dependentSchemas`, `$dynamicRef`/`$dynamicAnchor`,
   `unevaluatedItems`, `contentSchema`, `$vocabulary`;
 - not mapped and not reported: `$recursiveRef`/`$recursiveAnchor`, `dependencies`,
-  `additionalItems`, the tuple form of `items`, `$ref`s into other documents.
+  `additionalItems`, `$ref`s into other documents.
 
 Validation keywords (`pattern`, `minimum`, ...) are annotations (§7); they are not constraints of
 the Ecore. Validating a payload against them is a matter of the schema, not of the mapping.
 
 ## 9. Open
 
-To be specified and implemented construct by construct (#302, #318):
-
-1. `if`/`then`/`else`: no classifier; candidate: the `then`/`else` branches as subclasses.
-2. `prefixItems` / tuple `items`: candidate: a class with one feature per position.
-3. Whether the mapping fits a model transformation (m2x/QVT) once it is complete - no m2x
-   dependency in the codec until then.
+1. A top-level tuple definition (`type: array` with `prefixItems`) is an array wrapper of its
+   `items`; the positions are not kept in the Ecore.
+2. Whether the mapping fits a model transformation (m2x/QVT) - no m2x dependency in the codec until
+   then.
