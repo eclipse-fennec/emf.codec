@@ -153,6 +153,15 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	protected Object example = EXAMPLE_EDEFAULT;
 
 	/**
+	 * This is true if the Example attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean exampleESet;
+
+	/**
 	 * The cached value of the '{@link #getExamples() <em>Examples</em>}' map.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -416,8 +425,35 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	public void setExample(Object newExample) {
 		Object oldExample = example;
 		example = newExample;
+		boolean oldExampleESet = exampleESet;
+		exampleESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.MEDIA_TYPE__EXAMPLE, oldExample, example));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.MEDIA_TYPE__EXAMPLE, oldExample, example, !oldExampleESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetExample() {
+		Object oldExample = example;
+		boolean oldExampleESet = exampleESet;
+		example = EXAMPLE_EDEFAULT;
+		exampleESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.MEDIA_TYPE__EXAMPLE, oldExample, EXAMPLE_EDEFAULT, oldExampleESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetExample() {
+		return exampleESet;
 	}
 
 	/**
@@ -428,7 +464,7 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	@Override
 	public EMap<String, Example> getExamples() {
 		if (examples == null) {
-			examples = new EcoreEMap<String,Example>(OasPackage.Literals.EXAMPLE_ENTRY, ExampleEntryImpl.class, this, OasPackage.MEDIA_TYPE__EXAMPLES);
+			examples = new EcoreEMap.Unsettable<String,Example>(OasPackage.Literals.EXAMPLE_ENTRY, ExampleEntryImpl.class, this, OasPackage.MEDIA_TYPE__EXAMPLES);
 		}
 		return examples;
 	}
@@ -439,9 +475,29 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * @generated
 	 */
 	@Override
+	public void unsetExamples() {
+		if (examples != null) ((InternalEList.Unsettable<?>)examples).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetExamples() {
+		return examples != null && ((InternalEList.Unsettable<?>)examples).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, Encoding> getEncoding() {
 		if (encoding == null) {
-			encoding = new EcoreEMap<String,Encoding>(OasPackage.Literals.ENCODING_ENTRY, EncodingEntryImpl.class, this, OasPackage.MEDIA_TYPE__ENCODING);
+			encoding = new EcoreEMap.Unsettable<String,Encoding>(OasPackage.Literals.ENCODING_ENTRY, EncodingEntryImpl.class, this, OasPackage.MEDIA_TYPE__ENCODING);
 		}
 		return encoding;
 	}
@@ -452,11 +508,51 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * @generated
 	 */
 	@Override
+	public void unsetEncoding() {
+		if (encoding != null) ((InternalEList.Unsettable<?>)encoding).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetEncoding() {
+		return encoding != null && ((InternalEList.Unsettable<?>)encoding).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EList<Encoding> getPrefixEncoding() {
 		if (prefixEncoding == null) {
-			prefixEncoding = new EObjectContainmentEList<Encoding>(Encoding.class, this, OasPackage.MEDIA_TYPE__PREFIX_ENCODING);
+			prefixEncoding = new EObjectContainmentEList.Unsettable<Encoding>(Encoding.class, this, OasPackage.MEDIA_TYPE__PREFIX_ENCODING);
 		}
 		return prefixEncoding;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetPrefixEncoding() {
+		if (prefixEncoding != null) ((InternalEList.Unsettable<?>)prefixEncoding).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetPrefixEncoding() {
+		return prefixEncoding != null && ((InternalEList.Unsettable<?>)prefixEncoding).isSet();
 	}
 
 	/**
@@ -652,16 +748,16 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 				setItemSchema((Schema)null);
 				return;
 			case OasPackage.MEDIA_TYPE__EXAMPLE:
-				setExample(EXAMPLE_EDEFAULT);
+				unsetExample();
 				return;
 			case OasPackage.MEDIA_TYPE__EXAMPLES:
-				getExamples().clear();
+				unsetExamples();
 				return;
 			case OasPackage.MEDIA_TYPE__ENCODING:
-				getEncoding().clear();
+				unsetEncoding();
 				return;
 			case OasPackage.MEDIA_TYPE__PREFIX_ENCODING:
-				getPrefixEncoding().clear();
+				unsetPrefixEncoding();
 				return;
 			case OasPackage.MEDIA_TYPE__ITEM_ENCODING:
 				setItemEncoding((Encoding)null);
@@ -692,13 +788,13 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 			case OasPackage.MEDIA_TYPE__ITEM_SCHEMA:
 				return itemSchema != null;
 			case OasPackage.MEDIA_TYPE__EXAMPLE:
-				return EXAMPLE_EDEFAULT == null ? example != null : !EXAMPLE_EDEFAULT.equals(example);
+				return isSetExample();
 			case OasPackage.MEDIA_TYPE__EXAMPLES:
-				return examples != null && !examples.isEmpty();
+				return isSetExamples();
 			case OasPackage.MEDIA_TYPE__ENCODING:
-				return encoding != null && !encoding.isEmpty();
+				return isSetEncoding();
 			case OasPackage.MEDIA_TYPE__PREFIX_ENCODING:
-				return prefixEncoding != null && !prefixEncoding.isEmpty();
+				return isSetPrefixEncoding();
 			case OasPackage.MEDIA_TYPE__ITEM_ENCODING:
 				return itemEncoding != null;
 			case OasPackage.MEDIA_TYPE__EXTENSIONS:
@@ -722,7 +818,7 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 		result.append(", description: ");
 		result.append(description);
 		result.append(", example: ");
-		result.append(example);
+		if (exampleESet) result.append(example); else result.append("<unset>");
 		result.append(')');
 		return result.toString();
 	}

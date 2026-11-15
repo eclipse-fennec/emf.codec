@@ -300,7 +300,7 @@ public class ResponseImpl extends MinimalEObjectImpl.Container implements Respon
 	@Override
 	public EMap<String, Header> getHeaders() {
 		if (headers == null) {
-			headers = new EcoreEMap<String,Header>(OasPackage.Literals.HEADER_ENTRY, HeaderEntryImpl.class, this, OasPackage.RESPONSE__HEADERS);
+			headers = new EcoreEMap.Unsettable<String,Header>(OasPackage.Literals.HEADER_ENTRY, HeaderEntryImpl.class, this, OasPackage.RESPONSE__HEADERS);
 		}
 		return headers;
 	}
@@ -311,9 +311,29 @@ public class ResponseImpl extends MinimalEObjectImpl.Container implements Respon
 	 * @generated
 	 */
 	@Override
+	public void unsetHeaders() {
+		if (headers != null) ((InternalEList.Unsettable<?>)headers).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetHeaders() {
+		return headers != null && ((InternalEList.Unsettable<?>)headers).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, MediaType> getContent() {
 		if (content == null) {
-			content = new EcoreEMap<String,MediaType>(OasPackage.Literals.MEDIA_TYPE_ENTRY, MediaTypeEntryImpl.class, this, OasPackage.RESPONSE__CONTENT);
+			content = new EcoreEMap.Unsettable<String,MediaType>(OasPackage.Literals.MEDIA_TYPE_ENTRY, MediaTypeEntryImpl.class, this, OasPackage.RESPONSE__CONTENT);
 		}
 		return content;
 	}
@@ -324,11 +344,51 @@ public class ResponseImpl extends MinimalEObjectImpl.Container implements Respon
 	 * @generated
 	 */
 	@Override
+	public void unsetContent() {
+		if (content != null) ((InternalEList.Unsettable<?>)content).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetContent() {
+		return content != null && ((InternalEList.Unsettable<?>)content).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, Link> getLinks() {
 		if (links == null) {
-			links = new EcoreEMap<String,Link>(OasPackage.Literals.LINK_ENTRY, LinkEntryImpl.class, this, OasPackage.RESPONSE__LINKS);
+			links = new EcoreEMap.Unsettable<String,Link>(OasPackage.Literals.LINK_ENTRY, LinkEntryImpl.class, this, OasPackage.RESPONSE__LINKS);
 		}
 		return links;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetLinks() {
+		if (links != null) ((InternalEList.Unsettable<?>)links).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetLinks() {
+		return links != null && ((InternalEList.Unsettable<?>)links).isSet();
 	}
 
 	/**
@@ -454,13 +514,13 @@ public class ResponseImpl extends MinimalEObjectImpl.Container implements Respon
 				setDescription(DESCRIPTION_EDEFAULT);
 				return;
 			case OasPackage.RESPONSE__HEADERS:
-				getHeaders().clear();
+				unsetHeaders();
 				return;
 			case OasPackage.RESPONSE__CONTENT:
-				getContent().clear();
+				unsetContent();
 				return;
 			case OasPackage.RESPONSE__LINKS:
-				getLinks().clear();
+				unsetLinks();
 				return;
 			case OasPackage.RESPONSE__EXTENSIONS:
 				getExtensions().clear();
@@ -486,11 +546,11 @@ public class ResponseImpl extends MinimalEObjectImpl.Container implements Respon
 			case OasPackage.RESPONSE__DESCRIPTION:
 				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
 			case OasPackage.RESPONSE__HEADERS:
-				return headers != null && !headers.isEmpty();
+				return isSetHeaders();
 			case OasPackage.RESPONSE__CONTENT:
-				return content != null && !content.isEmpty();
+				return isSetContent();
 			case OasPackage.RESPONSE__LINKS:
-				return links != null && !links.isEmpty();
+				return isSetLinks();
 			case OasPackage.RESPONSE__EXTENSIONS:
 				return extensions != null && !extensions.isEmpty();
 		}

@@ -177,9 +177,29 @@ public class CallbackImpl extends MinimalEObjectImpl.Container implements Callba
 	@Override
 	public EMap<String, PathItem> getExpressions() {
 		if (expressions == null) {
-			expressions = new EcoreEMap<String,PathItem>(OasPackage.Literals.PATH_ITEM_ENTRY, PathItemEntryImpl.class, this, OasPackage.CALLBACK__EXPRESSIONS);
+			expressions = new EcoreEMap.Unsettable<String,PathItem>(OasPackage.Literals.PATH_ITEM_ENTRY, PathItemEntryImpl.class, this, OasPackage.CALLBACK__EXPRESSIONS);
 		}
 		return expressions;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetExpressions() {
+		if (expressions != null) ((InternalEList.Unsettable<?>)expressions).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetExpressions() {
+		return expressions != null && ((InternalEList.Unsettable<?>)expressions).isSet();
 	}
 
 	/**
@@ -252,7 +272,7 @@ public class CallbackImpl extends MinimalEObjectImpl.Container implements Callba
 				setTarget((Callback)null);
 				return;
 			case OasPackage.CALLBACK__EXPRESSIONS:
-				getExpressions().clear();
+				unsetExpressions();
 				return;
 		}
 		super.eUnset(featureID);
@@ -271,7 +291,7 @@ public class CallbackImpl extends MinimalEObjectImpl.Container implements Callba
 			case OasPackage.CALLBACK__TARGET:
 				return target != null;
 			case OasPackage.CALLBACK__EXPRESSIONS:
-				return expressions != null && !expressions.isEmpty();
+				return isSetExpressions();
 		}
 		return super.eIsSet(featureID);
 	}

@@ -176,9 +176,12 @@ public interface MediaType extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Example</em>' attribute.
+	 * @see #isSetExample()
+	 * @see #unsetExample()
 	 * @see #setExample(Object)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getMediaType_Example()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeNull='true'"
 	 * @generated
 	 */
 	Object getExample();
@@ -188,10 +191,35 @@ public interface MediaType extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Example</em>' attribute.
+	 * @see #isSetExample()
+	 * @see #unsetExample()
 	 * @see #getExample()
 	 * @generated
 	 */
 	void setExample(Object value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getExample <em>Example</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetExample()
+	 * @see #getExample()
+	 * @see #setExample(Object)
+	 * @generated
+	 */
+	void unsetExample();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getExample <em>Example</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Example</em>' attribute is set.
+	 * @see #unsetExample()
+	 * @see #getExample()
+	 * @see #setExample(Object)
+	 * @generated
+	 */
+	boolean isSetExample();
 
 	/**
 	 * Returns the value of the '<em><b>Examples</b></em>' map.
@@ -200,11 +228,35 @@ public interface MediaType extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Examples</em>' map.
+	 * @see #isSetExamples()
+	 * @see #unsetExamples()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getMediaType_Examples()
 	 * @model mapType="org.eclipse.fennec.model.oas.ExampleEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.Example&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, Example> getExamples();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getExamples <em>Examples</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetExamples()
+	 * @see #getExamples()
+	 * @generated
+	 */
+	void unsetExamples();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getExamples <em>Examples</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Examples</em>' map is set.
+	 * @see #unsetExamples()
+	 * @see #getExamples()
+	 * @generated
+	 */
+	boolean isSetExamples();
 
 	/**
 	 * Returns the value of the '<em><b>Encoding</b></em>' map.
@@ -213,11 +265,35 @@ public interface MediaType extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Encoding</em>' map.
+	 * @see #isSetEncoding()
+	 * @see #unsetEncoding()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getMediaType_Encoding()
 	 * @model mapType="org.eclipse.fennec.model.oas.EncodingEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.Encoding&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, Encoding> getEncoding();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getEncoding <em>Encoding</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetEncoding()
+	 * @see #getEncoding()
+	 * @generated
+	 */
+	void unsetEncoding();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getEncoding <em>Encoding</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Encoding</em>' map is set.
+	 * @see #unsetEncoding()
+	 * @see #getEncoding()
+	 * @generated
+	 */
+	boolean isSetEncoding();
 
 	/**
 	 * Returns the value of the '<em><b>Prefix Encoding</b></em>' containment reference list.
@@ -225,12 +301,36 @@ public interface MediaType extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Prefix Encoding</em>' containment reference list.
+	 * @see #isSetPrefixEncoding()
+	 * @see #unsetPrefixEncoding()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getMediaType_PrefixEncoding()
-	 * @model containment="true"
+	 * @model containment="true" unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 *        annotation="http://eclipse.org/fennec/openapi since='3.2'"
 	 * @generated
 	 */
 	EList<Encoding> getPrefixEncoding();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getPrefixEncoding <em>Prefix Encoding</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetPrefixEncoding()
+	 * @see #getPrefixEncoding()
+	 * @generated
+	 */
+	void unsetPrefixEncoding();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getPrefixEncoding <em>Prefix Encoding</em>}' containment reference list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Prefix Encoding</em>' containment reference list is set.
+	 * @see #unsetPrefixEncoding()
+	 * @see #getPrefixEncoding()
+	 * @generated
+	 */
+	boolean isSetPrefixEncoding();
 
 	/**
 	 * Returns the value of the '<em><b>Item Encoding</b></em>' containment reference.

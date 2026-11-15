@@ -34,12 +34,12 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getName <em>Name</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getIn <em>In</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getDescription <em>Description</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.Parameter#isRequired <em>Required</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.Parameter#isDeprecated <em>Deprecated</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.Parameter#isAllowEmptyValue <em>Allow Empty Value</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getRequired <em>Required</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getDeprecated <em>Deprecated</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getAllowEmptyValue <em>Allow Empty Value</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getStyle <em>Style</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getExplode <em>Explode</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.Parameter#isAllowReserved <em>Allow Reserved</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getAllowReserved <em>Allow Reserved</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getExample <em>Example</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Parameter#getExamples <em>Examples</em>}</li>
@@ -177,66 +177,150 @@ public interface Parameter extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Required</em>' attribute.
-	 * @see #setRequired(boolean)
+	 * @see #isSetRequired()
+	 * @see #unsetRequired()
+	 * @see #setRequired(Boolean)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getParameter_Required()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeDefault='true'"
 	 * @generated
 	 */
-	boolean isRequired();
+	Boolean getRequired();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#isRequired <em>Required</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getRequired <em>Required</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Required</em>' attribute.
-	 * @see #isRequired()
+	 * @see #isSetRequired()
+	 * @see #unsetRequired()
+	 * @see #getRequired()
 	 * @generated
 	 */
-	void setRequired(boolean value);
+	void setRequired(Boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getRequired <em>Required</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetRequired()
+	 * @see #getRequired()
+	 * @see #setRequired(Boolean)
+	 * @generated
+	 */
+	void unsetRequired();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getRequired <em>Required</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Required</em>' attribute is set.
+	 * @see #unsetRequired()
+	 * @see #getRequired()
+	 * @see #setRequired(Boolean)
+	 * @generated
+	 */
+	boolean isSetRequired();
 
 	/**
 	 * Returns the value of the '<em><b>Deprecated</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Deprecated</em>' attribute.
-	 * @see #setDeprecated(boolean)
+	 * @see #isSetDeprecated()
+	 * @see #unsetDeprecated()
+	 * @see #setDeprecated(Boolean)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getParameter_Deprecated()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeDefault='true'"
 	 * @generated
 	 */
-	boolean isDeprecated();
+	Boolean getDeprecated();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#isDeprecated <em>Deprecated</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getDeprecated <em>Deprecated</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Deprecated</em>' attribute.
-	 * @see #isDeprecated()
+	 * @see #isSetDeprecated()
+	 * @see #unsetDeprecated()
+	 * @see #getDeprecated()
 	 * @generated
 	 */
-	void setDeprecated(boolean value);
+	void setDeprecated(Boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getDeprecated <em>Deprecated</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetDeprecated()
+	 * @see #getDeprecated()
+	 * @see #setDeprecated(Boolean)
+	 * @generated
+	 */
+	void unsetDeprecated();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getDeprecated <em>Deprecated</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Deprecated</em>' attribute is set.
+	 * @see #unsetDeprecated()
+	 * @see #getDeprecated()
+	 * @see #setDeprecated(Boolean)
+	 * @generated
+	 */
+	boolean isSetDeprecated();
 
 	/**
 	 * Returns the value of the '<em><b>Allow Empty Value</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Allow Empty Value</em>' attribute.
-	 * @see #setAllowEmptyValue(boolean)
+	 * @see #isSetAllowEmptyValue()
+	 * @see #unsetAllowEmptyValue()
+	 * @see #setAllowEmptyValue(Boolean)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getParameter_AllowEmptyValue()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeDefault='true'"
 	 * @generated
 	 */
-	boolean isAllowEmptyValue();
+	Boolean getAllowEmptyValue();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#isAllowEmptyValue <em>Allow Empty Value</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getAllowEmptyValue <em>Allow Empty Value</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Allow Empty Value</em>' attribute.
-	 * @see #isAllowEmptyValue()
+	 * @see #isSetAllowEmptyValue()
+	 * @see #unsetAllowEmptyValue()
+	 * @see #getAllowEmptyValue()
 	 * @generated
 	 */
-	void setAllowEmptyValue(boolean value);
+	void setAllowEmptyValue(Boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getAllowEmptyValue <em>Allow Empty Value</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetAllowEmptyValue()
+	 * @see #getAllowEmptyValue()
+	 * @see #setAllowEmptyValue(Boolean)
+	 * @generated
+	 */
+	void unsetAllowEmptyValue();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getAllowEmptyValue <em>Allow Empty Value</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Allow Empty Value</em>' attribute is set.
+	 * @see #unsetAllowEmptyValue()
+	 * @see #getAllowEmptyValue()
+	 * @see #setAllowEmptyValue(Boolean)
+	 * @generated
+	 */
+	boolean isSetAllowEmptyValue();
 
 	/**
 	 * Returns the value of the '<em><b>Style</b></em>' attribute.
@@ -268,9 +352,12 @@ public interface Parameter extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Explode</em>' attribute.
+	 * @see #isSetExplode()
+	 * @see #unsetExplode()
 	 * @see #setExplode(Boolean)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getParameter_Explode()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeDefault='true'"
 	 * @generated
 	 */
 	Boolean getExplode();
@@ -280,32 +367,85 @@ public interface Parameter extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Explode</em>' attribute.
+	 * @see #isSetExplode()
+	 * @see #unsetExplode()
 	 * @see #getExplode()
 	 * @generated
 	 */
 	void setExplode(Boolean value);
 
 	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getExplode <em>Explode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetExplode()
+	 * @see #getExplode()
+	 * @see #setExplode(Boolean)
+	 * @generated
+	 */
+	void unsetExplode();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getExplode <em>Explode</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Explode</em>' attribute is set.
+	 * @see #unsetExplode()
+	 * @see #getExplode()
+	 * @see #setExplode(Boolean)
+	 * @generated
+	 */
+	boolean isSetExplode();
+
+	/**
 	 * Returns the value of the '<em><b>Allow Reserved</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Allow Reserved</em>' attribute.
-	 * @see #setAllowReserved(boolean)
+	 * @see #isSetAllowReserved()
+	 * @see #unsetAllowReserved()
+	 * @see #setAllowReserved(Boolean)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getParameter_AllowReserved()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeDefault='true'"
 	 * @generated
 	 */
-	boolean isAllowReserved();
+	Boolean getAllowReserved();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#isAllowReserved <em>Allow Reserved</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getAllowReserved <em>Allow Reserved</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Allow Reserved</em>' attribute.
-	 * @see #isAllowReserved()
+	 * @see #isSetAllowReserved()
+	 * @see #unsetAllowReserved()
+	 * @see #getAllowReserved()
 	 * @generated
 	 */
-	void setAllowReserved(boolean value);
+	void setAllowReserved(Boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getAllowReserved <em>Allow Reserved</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetAllowReserved()
+	 * @see #getAllowReserved()
+	 * @see #setAllowReserved(Boolean)
+	 * @generated
+	 */
+	void unsetAllowReserved();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getAllowReserved <em>Allow Reserved</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Allow Reserved</em>' attribute is set.
+	 * @see #unsetAllowReserved()
+	 * @see #getAllowReserved()
+	 * @see #setAllowReserved(Boolean)
+	 * @generated
+	 */
+	boolean isSetAllowReserved();
 
 	/**
 	 * Returns the value of the '<em><b>Schema</b></em>' containment reference.
@@ -335,9 +475,12 @@ public interface Parameter extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Example</em>' attribute.
+	 * @see #isSetExample()
+	 * @see #unsetExample()
 	 * @see #setExample(Object)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getParameter_Example()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeNull='true'"
 	 * @generated
 	 */
 	Object getExample();
@@ -347,10 +490,35 @@ public interface Parameter extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Example</em>' attribute.
+	 * @see #isSetExample()
+	 * @see #unsetExample()
 	 * @see #getExample()
 	 * @generated
 	 */
 	void setExample(Object value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getExample <em>Example</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetExample()
+	 * @see #getExample()
+	 * @see #setExample(Object)
+	 * @generated
+	 */
+	void unsetExample();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getExample <em>Example</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Example</em>' attribute is set.
+	 * @see #unsetExample()
+	 * @see #getExample()
+	 * @see #setExample(Object)
+	 * @generated
+	 */
+	boolean isSetExample();
 
 	/**
 	 * Returns the value of the '<em><b>Examples</b></em>' map.
@@ -359,11 +527,35 @@ public interface Parameter extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Examples</em>' map.
+	 * @see #isSetExamples()
+	 * @see #unsetExamples()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getParameter_Examples()
 	 * @model mapType="org.eclipse.fennec.model.oas.ExampleEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.Example&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, Example> getExamples();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getExamples <em>Examples</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetExamples()
+	 * @see #getExamples()
+	 * @generated
+	 */
+	void unsetExamples();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getExamples <em>Examples</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Examples</em>' map is set.
+	 * @see #unsetExamples()
+	 * @see #getExamples()
+	 * @generated
+	 */
+	boolean isSetExamples();
 
 	/**
 	 * Returns the value of the '<em><b>Content</b></em>' map.
@@ -372,11 +564,35 @@ public interface Parameter extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Content</em>' map.
+	 * @see #isSetContent()
+	 * @see #unsetContent()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getParameter_Content()
 	 * @model mapType="org.eclipse.fennec.model.oas.MediaTypeEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.MediaType&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, MediaType> getContent();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getContent <em>Content</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetContent()
+	 * @see #getContent()
+	 * @generated
+	 */
+	void unsetContent();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Parameter#getContent <em>Content</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Content</em>' map is set.
+	 * @see #unsetContent()
+	 * @see #getContent()
+	 * @generated
+	 */
+	boolean isSetContent();
 
 	/**
 	 * Returns the value of the '<em><b>Extensions</b></em>' map.

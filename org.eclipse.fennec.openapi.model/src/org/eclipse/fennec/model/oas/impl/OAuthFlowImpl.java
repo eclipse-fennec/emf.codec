@@ -268,9 +268,29 @@ public class OAuthFlowImpl extends MinimalEObjectImpl.Container implements OAuth
 	@Override
 	public EMap<String, String> getScopes() {
 		if (scopes == null) {
-			scopes = new EcoreEMap<String,String>(OasPackage.Literals.STRING_ENTRY, StringEntryImpl.class, this, OasPackage.OAUTH_FLOW__SCOPES);
+			scopes = new EcoreEMap.Unsettable<String,String>(OasPackage.Literals.STRING_ENTRY, StringEntryImpl.class, this, OasPackage.OAUTH_FLOW__SCOPES);
 		}
 		return scopes;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetScopes() {
+		if (scopes != null) ((InternalEList.Unsettable<?>)scopes).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetScopes() {
+		return scopes != null && ((InternalEList.Unsettable<?>)scopes).isSet();
 	}
 
 	/**
@@ -379,7 +399,7 @@ public class OAuthFlowImpl extends MinimalEObjectImpl.Container implements OAuth
 				setRefreshUrl(REFRESH_URL_EDEFAULT);
 				return;
 			case OasPackage.OAUTH_FLOW__SCOPES:
-				getScopes().clear();
+				unsetScopes();
 				return;
 			case OasPackage.OAUTH_FLOW__EXTENSIONS:
 				getExtensions().clear();
@@ -405,7 +425,7 @@ public class OAuthFlowImpl extends MinimalEObjectImpl.Container implements OAuth
 			case OasPackage.OAUTH_FLOW__REFRESH_URL:
 				return REFRESH_URL_EDEFAULT == null ? refreshUrl != null : !REFRESH_URL_EDEFAULT.equals(refreshUrl);
 			case OasPackage.OAUTH_FLOW__SCOPES:
-				return scopes != null && !scopes.isEmpty();
+				return isSetScopes();
 			case OasPackage.OAUTH_FLOW__EXTENSIONS:
 				return extensions != null && !extensions.isEmpty();
 		}

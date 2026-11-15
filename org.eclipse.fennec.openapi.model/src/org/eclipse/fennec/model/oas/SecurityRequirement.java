@@ -44,10 +44,34 @@ public interface SecurityRequirement extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Schemes</em>' map.
+	 * @see #isSetSchemes()
+	 * @see #unsetSchemes()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getSecurityRequirement_Schemes()
 	 * @model mapType="org.eclipse.fennec.model.oas.SecurityRequirementEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.emf.ecore.EString&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, EList<String>> getSchemes();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.SecurityRequirement#getSchemes <em>Schemes</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetSchemes()
+	 * @see #getSchemes()
+	 * @generated
+	 */
+	void unsetSchemes();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.SecurityRequirement#getSchemes <em>Schemes</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Schemes</em>' map is set.
+	 * @see #unsetSchemes()
+	 * @see #getSchemes()
+	 * @generated
+	 */
+	boolean isSetSchemes();
 
 } // SecurityRequirement

@@ -42,7 +42,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = OasPackage.eNS_URI, fingerprint = "fp1:822e217229e6a634bdef17c6885dc6454d2c9794fd62ede8d11300acca8c17c0", genModel = "/model/oas.genmodel", genModelSourceLocations = {"model/oas.genmodel","org.eclipse.fennec.openapi.model/model/oas.genmodel"}, ecore = "/model/oas.ecore", ecoreSourceLocations = "/model/oas.ecore")
+@EPackage(uri = OasPackage.eNS_URI, fingerprint = "fp1:64a2fdf2701c38f632c56d2902de938cb0a5d33ddff81ec3be08cdebe332057a", genModel = "/model/oas.genmodel", genModelSourceLocations = {"model/oas.genmodel","org.eclipse.fennec.openapi.model/model/oas.genmodel"}, ecore = "/model/oas.ecore", ecoreSourceLocations = "/model/oas.ecore")
 public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.
@@ -4391,11 +4391,11 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EReference getOperation_Callbacks();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Operation#isDeprecated <em>Deprecated</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Operation#getDeprecated <em>Deprecated</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Deprecated</em>'.
-	 * @see org.eclipse.fennec.model.oas.Operation#isDeprecated()
+	 * @see org.eclipse.fennec.model.oas.Operation#getDeprecated()
 	 * @see #getOperation()
 	 * @generated
 	 */
@@ -4554,33 +4554,33 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getParameter_Description();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Parameter#isRequired <em>Required</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Parameter#getRequired <em>Required</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Required</em>'.
-	 * @see org.eclipse.fennec.model.oas.Parameter#isRequired()
+	 * @see org.eclipse.fennec.model.oas.Parameter#getRequired()
 	 * @see #getParameter()
 	 * @generated
 	 */
 	EAttribute getParameter_Required();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Parameter#isDeprecated <em>Deprecated</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Parameter#getDeprecated <em>Deprecated</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Deprecated</em>'.
-	 * @see org.eclipse.fennec.model.oas.Parameter#isDeprecated()
+	 * @see org.eclipse.fennec.model.oas.Parameter#getDeprecated()
 	 * @see #getParameter()
 	 * @generated
 	 */
 	EAttribute getParameter_Deprecated();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Parameter#isAllowEmptyValue <em>Allow Empty Value</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Parameter#getAllowEmptyValue <em>Allow Empty Value</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Allow Empty Value</em>'.
-	 * @see org.eclipse.fennec.model.oas.Parameter#isAllowEmptyValue()
+	 * @see org.eclipse.fennec.model.oas.Parameter#getAllowEmptyValue()
 	 * @see #getParameter()
 	 * @generated
 	 */
@@ -4609,11 +4609,11 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getParameter_Explode();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Parameter#isAllowReserved <em>Allow Reserved</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Parameter#getAllowReserved <em>Allow Reserved</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Allow Reserved</em>'.
-	 * @see org.eclipse.fennec.model.oas.Parameter#isAllowReserved()
+	 * @see org.eclipse.fennec.model.oas.Parameter#getAllowReserved()
 	 * @see #getParameter()
 	 * @generated
 	 */
@@ -4729,11 +4729,11 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EReference getRequestBody_Content();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.RequestBody#isRequired <em>Required</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.RequestBody#getRequired <em>Required</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Required</em>'.
-	 * @see org.eclipse.fennec.model.oas.RequestBody#isRequired()
+	 * @see org.eclipse.fennec.model.oas.RequestBody#getRequired()
 	 * @see #getRequestBody()
 	 * @generated
 	 */
@@ -4936,11 +4936,11 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getEncoding_Explode();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Encoding#isAllowReserved <em>Allow Reserved</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Encoding#getAllowReserved <em>Allow Reserved</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Allow Reserved</em>'.
-	 * @see org.eclipse.fennec.model.oas.Encoding#isAllowReserved()
+	 * @see org.eclipse.fennec.model.oas.Encoding#getAllowReserved()
 	 * @see #getEncoding()
 	 * @generated
 	 */
@@ -5393,33 +5393,33 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getHeader_Description();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#isRequired <em>Required</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#getRequired <em>Required</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Required</em>'.
-	 * @see org.eclipse.fennec.model.oas.Header#isRequired()
+	 * @see org.eclipse.fennec.model.oas.Header#getRequired()
 	 * @see #getHeader()
 	 * @generated
 	 */
 	EAttribute getHeader_Required();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#isDeprecated <em>Deprecated</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#getDeprecated <em>Deprecated</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Deprecated</em>'.
-	 * @see org.eclipse.fennec.model.oas.Header#isDeprecated()
+	 * @see org.eclipse.fennec.model.oas.Header#getDeprecated()
 	 * @see #getHeader()
 	 * @generated
 	 */
 	EAttribute getHeader_Deprecated();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#isAllowEmptyValue <em>Allow Empty Value</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#getAllowEmptyValue <em>Allow Empty Value</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Allow Empty Value</em>'.
-	 * @see org.eclipse.fennec.model.oas.Header#isAllowEmptyValue()
+	 * @see org.eclipse.fennec.model.oas.Header#getAllowEmptyValue()
 	 * @see #getHeader()
 	 * @generated
 	 */
@@ -5448,11 +5448,11 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getHeader_Explode();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#isAllowReserved <em>Allow Reserved</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.Header#getAllowReserved <em>Allow Reserved</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Allow Reserved</em>'.
-	 * @see org.eclipse.fennec.model.oas.Header#isAllowReserved()
+	 * @see org.eclipse.fennec.model.oas.Header#getAllowReserved()
 	 * @see #getHeader()
 	 * @generated
 	 */
@@ -5743,11 +5743,11 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getSecurityScheme_Oauth2MetadataUrl();
 
 	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SecurityScheme#isDeprecated <em>Deprecated</em>}'.
+	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SecurityScheme#getDeprecated <em>Deprecated</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the meta object for the attribute '<em>Deprecated</em>'.
-	 * @see org.eclipse.fennec.model.oas.SecurityScheme#isDeprecated()
+	 * @see org.eclipse.fennec.model.oas.SecurityScheme#getDeprecated()
 	 * @see #getSecurityScheme()
 	 * @generated
 	 */

@@ -37,7 +37,7 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.model.oas.Operation#getRequestBody <em>Request Body</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Operation#getResponses <em>Responses</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Operation#getCallbacks <em>Callbacks</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.Operation#isDeprecated <em>Deprecated</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.Operation#getDeprecated <em>Deprecated</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Operation#getSecurity <em>Security</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Operation#getServers <em>Servers</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Operation#getMethod <em>Method</em>}</li>
@@ -56,11 +56,35 @@ public interface Operation extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Tags</em>' attribute list.
+	 * @see #isSetTags()
+	 * @see #unsetTags()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOperation_Tags()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EList<String> getTags();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Operation#getTags <em>Tags</em>}' attribute list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetTags()
+	 * @see #getTags()
+	 * @generated
+	 */
+	void unsetTags();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Operation#getTags <em>Tags</em>}' attribute list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Tags</em>' attribute list is set.
+	 * @see #unsetTags()
+	 * @see #getTags()
+	 * @generated
+	 */
+	boolean isSetTags();
 
 	/**
 	 * Returns the value of the '<em><b>Summary</b></em>' attribute.
@@ -156,11 +180,35 @@ public interface Operation extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Parameters</em>' containment reference list.
+	 * @see #isSetParameters()
+	 * @see #unsetParameters()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOperation_Parameters()
-	 * @model containment="true"
+	 * @model containment="true" unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EList<Parameter> getParameters();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Operation#getParameters <em>Parameters</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetParameters()
+	 * @see #getParameters()
+	 * @generated
+	 */
+	void unsetParameters();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Operation#getParameters <em>Parameters</em>}' containment reference list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Parameters</em>' containment reference list is set.
+	 * @see #unsetParameters()
+	 * @see #getParameters()
+	 * @generated
+	 */
+	boolean isSetParameters();
 
 	/**
 	 * Returns the value of the '<em><b>Request Body</b></em>' containment reference.
@@ -191,11 +239,35 @@ public interface Operation extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Responses</em>' map.
+	 * @see #isSetResponses()
+	 * @see #unsetResponses()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOperation_Responses()
 	 * @model mapType="org.eclipse.fennec.model.oas.ResponseEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.Response&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, Response> getResponses();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Operation#getResponses <em>Responses</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetResponses()
+	 * @see #getResponses()
+	 * @generated
+	 */
+	void unsetResponses();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Operation#getResponses <em>Responses</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Responses</em>' map is set.
+	 * @see #unsetResponses()
+	 * @see #getResponses()
+	 * @generated
+	 */
+	boolean isSetResponses();
 
 	/**
 	 * Returns the value of the '<em><b>Callbacks</b></em>' map.
@@ -204,33 +276,85 @@ public interface Operation extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Callbacks</em>' map.
+	 * @see #isSetCallbacks()
+	 * @see #unsetCallbacks()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOperation_Callbacks()
 	 * @model mapType="org.eclipse.fennec.model.oas.CallbackEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.Callback&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, Callback> getCallbacks();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Operation#getCallbacks <em>Callbacks</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetCallbacks()
+	 * @see #getCallbacks()
+	 * @generated
+	 */
+	void unsetCallbacks();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Operation#getCallbacks <em>Callbacks</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Callbacks</em>' map is set.
+	 * @see #unsetCallbacks()
+	 * @see #getCallbacks()
+	 * @generated
+	 */
+	boolean isSetCallbacks();
 
 	/**
 	 * Returns the value of the '<em><b>Deprecated</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Deprecated</em>' attribute.
-	 * @see #setDeprecated(boolean)
+	 * @see #isSetDeprecated()
+	 * @see #unsetDeprecated()
+	 * @see #setDeprecated(Boolean)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOperation_Deprecated()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeDefault='true'"
 	 * @generated
 	 */
-	boolean isDeprecated();
+	Boolean getDeprecated();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Operation#isDeprecated <em>Deprecated</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Operation#getDeprecated <em>Deprecated</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Deprecated</em>' attribute.
-	 * @see #isDeprecated()
+	 * @see #isSetDeprecated()
+	 * @see #unsetDeprecated()
+	 * @see #getDeprecated()
 	 * @generated
 	 */
-	void setDeprecated(boolean value);
+	void setDeprecated(Boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Operation#getDeprecated <em>Deprecated</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetDeprecated()
+	 * @see #getDeprecated()
+	 * @see #setDeprecated(Boolean)
+	 * @generated
+	 */
+	void unsetDeprecated();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Operation#getDeprecated <em>Deprecated</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Deprecated</em>' attribute is set.
+	 * @see #unsetDeprecated()
+	 * @see #getDeprecated()
+	 * @see #setDeprecated(Boolean)
+	 * @generated
+	 */
+	boolean isSetDeprecated();
 
 	/**
 	 * Returns the value of the '<em><b>Security</b></em>' containment reference list.
@@ -238,12 +362,35 @@ public interface Operation extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Security</em>' containment reference list.
+	 * @see #isSetSecurity()
+	 * @see #unsetSecurity()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOperation_Security()
-	 * @model containment="true"
-	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='securityRequirement' valueWriterName='securityRequirement'"
+	 * @model containment="true" unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='securityRequirement' valueWriterName='securityRequirement' serializeEmpty='true'"
 	 * @generated
 	 */
 	EList<SecurityRequirement> getSecurity();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Operation#getSecurity <em>Security</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetSecurity()
+	 * @see #getSecurity()
+	 * @generated
+	 */
+	void unsetSecurity();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Operation#getSecurity <em>Security</em>}' containment reference list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Security</em>' containment reference list is set.
+	 * @see #unsetSecurity()
+	 * @see #getSecurity()
+	 * @generated
+	 */
+	boolean isSetSecurity();
 
 	/**
 	 * Returns the value of the '<em><b>Servers</b></em>' containment reference list.
@@ -251,11 +398,35 @@ public interface Operation extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Servers</em>' containment reference list.
+	 * @see #isSetServers()
+	 * @see #unsetServers()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOperation_Servers()
-	 * @model containment="true"
+	 * @model containment="true" unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EList<Server> getServers();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Operation#getServers <em>Servers</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetServers()
+	 * @see #getServers()
+	 * @generated
+	 */
+	void unsetServers();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Operation#getServers <em>Servers</em>}' containment reference list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Servers</em>' containment reference list is set.
+	 * @see #unsetServers()
+	 * @see #getServers()
+	 * @generated
+	 */
+	boolean isSetServers();
 
 	/**
 	 * Returns the value of the '<em><b>Method</b></em>' attribute.

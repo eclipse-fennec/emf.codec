@@ -3705,12 +3705,12 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getOpenAPI_Self(), ecorePackage.getEString(), "self", null, 0, 1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getOpenAPI_Info(), this.getInfo(), null, "info", null, 1, 1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getOpenAPI_JsonSchemaDialect(), ecorePackage.getEString(), "jsonSchemaDialect", null, 0, 1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOpenAPI_Servers(), this.getServer(), null, "servers", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOpenAPI_Paths(), this.getPathItemEntry(), null, "paths", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOpenAPI_Webhooks(), this.getPathItemEntry(), null, "webhooks", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOpenAPI_Servers(), this.getServer(), null, "servers", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOpenAPI_Paths(), this.getPathItemEntry(), null, "paths", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOpenAPI_Webhooks(), this.getPathItemEntry(), null, "webhooks", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getOpenAPI_Components(), this.getComponents(), null, "components", null, 0, 1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOpenAPI_Security(), this.getSecurityRequirement(), null, "security", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOpenAPI_Tags(), this.getTag(), null, "tags", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOpenAPI_Security(), this.getSecurityRequirement(), null, "security", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOpenAPI_Tags(), this.getTag(), null, "tags", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getOpenAPI_ExternalDocs(), this.getExternalDocumentation(), null, "externalDocs", null, 0, 1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getOpenAPI_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, OpenAPI.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
@@ -3740,28 +3740,28 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getServer_Url(), ecorePackage.getEString(), "url", null, 1, 1, Server.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getServer_Description(), ecorePackage.getEString(), "description", null, 0, 1, Server.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getServer_Name(), ecorePackage.getEString(), "name", null, 0, 1, Server.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getServer_Variables(), this.getServerVariableEntry(), null, "variables", null, 0, -1, Server.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getServer_Variables(), this.getServerVariableEntry(), null, "variables", null, 0, -1, Server.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getServer_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, Server.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(serverVariableEClass, ServerVariable.class, "ServerVariable", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getServerVariable_Enum(), ecorePackage.getEString(), "enum", null, 0, -1, ServerVariable.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getServerVariable_Enum(), ecorePackage.getEString(), "enum", null, 0, -1, ServerVariable.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getServerVariable_Default(), ecorePackage.getEString(), "default", null, 1, 1, ServerVariable.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getServerVariable_Description(), ecorePackage.getEString(), "description", null, 0, 1, ServerVariable.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getServerVariable_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, ServerVariable.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(componentsEClass, Components.class, "Components", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEReference(getComponents_Schemas(), this.getSchemaEntry(), null, "schemas", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_Schemas(), this.getSchemaEntry(), null, "schemas", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getComponents_SchemasPackage(), ecorePackage.getEPackage(), null, "schemasPackage", null, 0, 1, Components.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getComponents_Responses(), this.getResponseEntry(), null, "responses", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getComponents_Parameters(), this.getParameterEntry(), null, "parameters", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getComponents_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getComponents_RequestBodies(), this.getRequestBodyEntry(), null, "requestBodies", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getComponents_Headers(), this.getHeaderEntry(), null, "headers", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getComponents_SecuritySchemes(), this.getSecuritySchemeEntry(), null, "securitySchemes", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getComponents_Links(), this.getLinkEntry(), null, "links", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getComponents_Callbacks(), this.getCallbackEntry(), null, "callbacks", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getComponents_PathItems(), this.getPathItemEntry(), null, "pathItems", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getComponents_MediaTypes(), this.getMediaTypeEntry(), null, "mediaTypes", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_Responses(), this.getResponseEntry(), null, "responses", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_Parameters(), this.getParameterEntry(), null, "parameters", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_RequestBodies(), this.getRequestBodyEntry(), null, "requestBodies", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_Headers(), this.getHeaderEntry(), null, "headers", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_SecuritySchemes(), this.getSecuritySchemeEntry(), null, "securitySchemes", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_Links(), this.getLinkEntry(), null, "links", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_Callbacks(), this.getCallbackEntry(), null, "callbacks", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_PathItems(), this.getPathItemEntry(), null, "pathItems", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_MediaTypes(), this.getMediaTypeEntry(), null, "mediaTypes", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getComponents_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(pathItemEClass, PathItem.class, "PathItem", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
@@ -3778,25 +3778,25 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEReference(getPathItem_Patch(), this.getOperation(), null, "patch", null, 0, 1, PathItem.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getPathItem_Trace(), this.getOperation(), null, "trace", null, 0, 1, PathItem.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getPathItem_Query(), this.getOperation(), null, "query", null, 0, 1, PathItem.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getPathItem_AdditionalOperations(), this.getOperationEntry(), null, "additionalOperations", null, 0, -1, PathItem.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getPathItem_Servers(), this.getServer(), null, "servers", null, 0, -1, PathItem.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getPathItem_Parameters(), this.getParameter(), null, "parameters", null, 0, -1, PathItem.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getPathItem_AdditionalOperations(), this.getOperationEntry(), null, "additionalOperations", null, 0, -1, PathItem.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getPathItem_Servers(), this.getServer(), null, "servers", null, 0, -1, PathItem.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getPathItem_Parameters(), this.getParameter(), null, "parameters", null, 0, -1, PathItem.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getPathItem_AllOperations(), this.getOperation(), null, "allOperations", null, 0, -1, PathItem.class, IS_TRANSIENT, IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, IS_DERIVED, IS_ORDERED);
 		initEReference(getPathItem_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, PathItem.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(operationEClass, Operation.class, "Operation", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getOperation_Tags(), ecorePackage.getEString(), "tags", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getOperation_Tags(), ecorePackage.getEString(), "tags", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getOperation_Summary(), ecorePackage.getEString(), "summary", null, 0, 1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getOperation_Description(), ecorePackage.getEString(), "description", null, 0, 1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getOperation_ExternalDocs(), this.getExternalDocumentation(), null, "externalDocs", null, 0, 1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getOperation_OperationId(), ecorePackage.getEString(), "operationId", null, 0, 1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOperation_Parameters(), this.getParameter(), null, "parameters", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOperation_Parameters(), this.getParameter(), null, "parameters", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getOperation_RequestBody(), this.getRequestBody(), null, "requestBody", null, 0, 1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOperation_Responses(), this.getResponseEntry(), null, "responses", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOperation_Callbacks(), this.getCallbackEntry(), null, "callbacks", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getOperation_Deprecated(), ecorePackage.getEBoolean(), "deprecated", null, 0, 1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOperation_Security(), this.getSecurityRequirement(), null, "security", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOperation_Servers(), this.getServer(), null, "servers", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOperation_Responses(), this.getResponseEntry(), null, "responses", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOperation_Callbacks(), this.getCallbackEntry(), null, "callbacks", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getOperation_Deprecated(), ecorePackage.getEBooleanObject(), "deprecated", null, 0, 1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOperation_Security(), this.getSecurityRequirement(), null, "security", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOperation_Servers(), this.getServer(), null, "servers", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getOperation_Method(), ecorePackage.getEString(), "method", null, 0, 1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getOperation_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, Operation.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
@@ -3811,24 +3811,24 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getParameter_Name(), ecorePackage.getEString(), "name", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_In(), this.getParameterLocation(), "in", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_Description(), ecorePackage.getEString(), "description", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getParameter_Required(), ecorePackage.getEBoolean(), "required", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getParameter_Deprecated(), ecorePackage.getEBoolean(), "deprecated", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getParameter_AllowEmptyValue(), ecorePackage.getEBoolean(), "allowEmptyValue", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getParameter_Required(), ecorePackage.getEBooleanObject(), "required", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getParameter_Deprecated(), ecorePackage.getEBooleanObject(), "deprecated", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getParameter_AllowEmptyValue(), ecorePackage.getEBooleanObject(), "allowEmptyValue", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_Style(), this.getParameterStyle(), "style", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getParameter_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getParameter_AllowReserved(), ecorePackage.getEBoolean(), "allowReserved", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getParameter_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getParameter_AllowReserved(), ecorePackage.getEBooleanObject(), "allowReserved", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getParameter_Schema(), theJsonSchemaPackage.getSchema(), null, "schema", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getParameter_Example(), ecorePackage.getEJavaObject(), "example", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getParameter_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getParameter_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getParameter_Example(), ecorePackage.getEJavaObject(), "example", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getParameter_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getParameter_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getParameter_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(requestBodyEClass, RequestBody.class, "RequestBody", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getRequestBody_Ref(), ecorePackage.getEString(), "ref", null, 0, 1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getRequestBody_Target(), this.getRequestBody(), null, "target", null, 0, 1, RequestBody.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getRequestBody_Description(), ecorePackage.getEString(), "description", null, 0, 1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getRequestBody_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getRequestBody_Required(), ecorePackage.getEBoolean(), "required", null, 0, 1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getRequestBody_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getRequestBody_Required(), ecorePackage.getEBooleanObject(), "required", null, 0, 1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getRequestBody_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, RequestBody.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(mediaTypeEClass, MediaType.class, "MediaType", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
@@ -3837,21 +3837,21 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getMediaType_Description(), ecorePackage.getEString(), "description", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getMediaType_Schema(), theJsonSchemaPackage.getSchema(), null, "schema", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getMediaType_ItemSchema(), theJsonSchemaPackage.getSchema(), null, "itemSchema", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getMediaType_Example(), ecorePackage.getEJavaObject(), "example", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getMediaType_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getMediaType_Encoding(), this.getEncodingEntry(), null, "encoding", null, 0, -1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getMediaType_PrefixEncoding(), this.getEncoding(), null, "prefixEncoding", null, 0, -1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getMediaType_Example(), ecorePackage.getEJavaObject(), "example", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getMediaType_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getMediaType_Encoding(), this.getEncodingEntry(), null, "encoding", null, 0, -1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getMediaType_PrefixEncoding(), this.getEncoding(), null, "prefixEncoding", null, 0, -1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getMediaType_ItemEncoding(), this.getEncoding(), null, "itemEncoding", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getMediaType_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(encodingEClass, Encoding.class, "Encoding", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getEncoding_ContentType(), ecorePackage.getEString(), "contentType", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getEncoding_Headers(), this.getHeaderEntry(), null, "headers", null, 0, -1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getEncoding_Headers(), this.getHeaderEntry(), null, "headers", null, 0, -1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getEncoding_Style(), this.getParameterStyle(), "style", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getEncoding_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getEncoding_AllowReserved(), ecorePackage.getEBoolean(), "allowReserved", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getEncoding_Encoding(), this.getEncodingEntry(), null, "encoding", null, 0, -1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getEncoding_PrefixEncoding(), this.getEncoding(), null, "prefixEncoding", null, 0, -1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getEncoding_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getEncoding_AllowReserved(), ecorePackage.getEBooleanObject(), "allowReserved", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getEncoding_Encoding(), this.getEncodingEntry(), null, "encoding", null, 0, -1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getEncoding_PrefixEncoding(), this.getEncoding(), null, "prefixEncoding", null, 0, -1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getEncoding_ItemEncoding(), this.getEncoding(), null, "itemEncoding", null, 0, 1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getEncoding_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, Encoding.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
@@ -3860,23 +3860,23 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEReference(getResponse_Target(), this.getResponse(), null, "target", null, 0, 1, Response.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getResponse_Summary(), ecorePackage.getEString(), "summary", null, 0, 1, Response.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getResponse_Description(), ecorePackage.getEString(), "description", null, 0, 1, Response.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getResponse_Headers(), this.getHeaderEntry(), null, "headers", null, 0, -1, Response.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getResponse_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, Response.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getResponse_Links(), this.getLinkEntry(), null, "links", null, 0, -1, Response.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getResponse_Headers(), this.getHeaderEntry(), null, "headers", null, 0, -1, Response.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getResponse_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, Response.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getResponse_Links(), this.getLinkEntry(), null, "links", null, 0, -1, Response.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getResponse_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, Response.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(callbackEClass, Callback.class, "Callback", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getCallback_Ref(), ecorePackage.getEString(), "ref", null, 0, 1, Callback.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getCallback_Target(), this.getCallback(), null, "target", null, 0, 1, Callback.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getCallback_Expressions(), this.getPathItemEntry(), null, "expressions", null, 0, -1, Callback.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getCallback_Expressions(), this.getPathItemEntry(), null, "expressions", null, 0, -1, Callback.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(exampleEClass, Example.class, "Example", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getExample_Ref(), ecorePackage.getEString(), "ref", null, 0, 1, Example.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getExample_Target(), this.getExample(), null, "target", null, 0, 1, Example.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getExample_Summary(), ecorePackage.getEString(), "summary", null, 0, 1, Example.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getExample_Description(), ecorePackage.getEString(), "description", null, 0, 1, Example.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getExample_Value(), ecorePackage.getEJavaObject(), "value", null, 0, 1, Example.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getExample_DataValue(), ecorePackage.getEJavaObject(), "dataValue", null, 0, 1, Example.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getExample_Value(), ecorePackage.getEJavaObject(), "value", null, 0, 1, Example.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getExample_DataValue(), ecorePackage.getEJavaObject(), "dataValue", null, 0, 1, Example.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getExample_SerializedValue(), ecorePackage.getEString(), "serializedValue", null, 0, 1, Example.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getExample_ExternalValue(), ecorePackage.getEString(), "externalValue", null, 0, 1, Example.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getExample_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, Example.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -3886,8 +3886,8 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEReference(getLink_Target(), this.getLink(), null, "target", null, 0, 1, Link.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getLink_OperationRef(), ecorePackage.getEString(), "operationRef", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getLink_OperationId(), ecorePackage.getEString(), "operationId", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getLink_Parameters(), this.getAnyEntry(), null, "parameters", null, 0, -1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getLink_RequestBody(), ecorePackage.getEJavaObject(), "requestBody", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getLink_Parameters(), this.getAnyEntry(), null, "parameters", null, 0, -1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getLink_RequestBody(), ecorePackage.getEJavaObject(), "requestBody", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getLink_Description(), ecorePackage.getEString(), "description", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getLink_Server(), this.getServer(), null, "server", null, 0, 1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getLink_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, Link.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -3896,16 +3896,16 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getHeader_Ref(), ecorePackage.getEString(), "ref", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getHeader_Target(), this.getHeader(), null, "target", null, 0, 1, Header.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_Description(), ecorePackage.getEString(), "description", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getHeader_Required(), ecorePackage.getEBoolean(), "required", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getHeader_Deprecated(), ecorePackage.getEBoolean(), "deprecated", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getHeader_AllowEmptyValue(), ecorePackage.getEBoolean(), "allowEmptyValue", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getHeader_Required(), ecorePackage.getEBooleanObject(), "required", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getHeader_Deprecated(), ecorePackage.getEBooleanObject(), "deprecated", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getHeader_AllowEmptyValue(), ecorePackage.getEBooleanObject(), "allowEmptyValue", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_Style(), this.getParameterStyle(), "style", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getHeader_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getHeader_AllowReserved(), ecorePackage.getEBoolean(), "allowReserved", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getHeader_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getHeader_AllowReserved(), ecorePackage.getEBooleanObject(), "allowReserved", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getHeader_Schema(), theJsonSchemaPackage.getSchema(), null, "schema", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getHeader_Example(), ecorePackage.getEJavaObject(), "example", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getHeader_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getHeader_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getHeader_Example(), ecorePackage.getEJavaObject(), "example", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getHeader_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getHeader_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getHeader_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(tagEClass, Tag.class, "Tag", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
@@ -3930,7 +3930,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEReference(getSecurityScheme_Flows(), this.getOAuthFlows(), null, "flows", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getSecurityScheme_OpenIdConnectUrl(), ecorePackage.getEString(), "openIdConnectUrl", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getSecurityScheme_Oauth2MetadataUrl(), ecorePackage.getEString(), "oauth2MetadataUrl", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSecurityScheme_Deprecated(), ecorePackage.getEBoolean(), "deprecated", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEAttribute(getSecurityScheme_Deprecated(), ecorePackage.getEBooleanObject(), "deprecated", null, 0, 1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getSecurityScheme_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, SecurityScheme.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(oAuthFlowsEClass, OAuthFlows.class, "OAuthFlows", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
@@ -3946,11 +3946,11 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getOAuthFlow_DeviceAuthorizationUrl(), ecorePackage.getEString(), "deviceAuthorizationUrl", null, 0, 1, OAuthFlow.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getOAuthFlow_TokenUrl(), ecorePackage.getEString(), "tokenUrl", null, 0, 1, OAuthFlow.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getOAuthFlow_RefreshUrl(), ecorePackage.getEString(), "refreshUrl", null, 0, 1, OAuthFlow.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getOAuthFlow_Scopes(), this.getStringEntry(), null, "scopes", null, 0, -1, OAuthFlow.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getOAuthFlow_Scopes(), this.getStringEntry(), null, "scopes", null, 0, -1, OAuthFlow.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getOAuthFlow_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, OAuthFlow.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(securityRequirementEClass, SecurityRequirement.class, "SecurityRequirement", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEReference(getSecurityRequirement_Schemes(), this.getSecurityRequirementEntry(), null, "schemes", null, 0, -1, SecurityRequirement.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getSecurityRequirement_Schemes(), this.getSecurityRequirementEntry(), null, "schemes", null, 0, -1, SecurityRequirement.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(pathItemEntryEClass, Map.Entry.class, "PathItemEntry", !IS_ABSTRACT, !IS_INTERFACE, !IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getPathItemEntry_Key(), ecorePackage.getEString(), "key", null, 0, 1, Map.Entry.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -4089,11 +4089,36 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "key", "$self"
 		   });
 		addAnnotation
+		  (getOpenAPI_Servers(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getOpenAPI_Paths(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getOpenAPI_Webhooks(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
 		  (getOpenAPI_Security(),
 		   source,
 		   new String[] {
 			   "valueReaderName", "securityRequirement",
-			   "valueWriterName", "securityRequirement"
+			   "valueWriterName", "securityRequirement",
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getOpenAPI_Tags(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
 		   });
 		addAnnotation
 		  (infoEClass,
@@ -4120,16 +4145,94 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "additionalPropertiesFeature", "extensions"
 		   });
 		addAnnotation
+		  (getServer_Variables(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
 		  (serverVariableEClass,
 		   source,
 		   new String[] {
 			   "additionalPropertiesFeature", "extensions"
 		   });
 		addAnnotation
+		  (getServerVariable_Enum(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
 		  (componentsEClass,
 		   source,
 		   new String[] {
 			   "additionalPropertiesFeature", "extensions"
+		   });
+		addAnnotation
+		  (getComponents_Schemas(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getComponents_Responses(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getComponents_Parameters(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getComponents_Examples(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getComponents_RequestBodies(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getComponents_Headers(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getComponents_SecuritySchemes(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getComponents_Links(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getComponents_Callbacks(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getComponents_PathItems(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getComponents_MediaTypes(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
 		   });
 		addAnnotation
 		  (pathItemEClass,
@@ -4198,17 +4301,72 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "valueReaderName", "operation"
 		   });
 		addAnnotation
+		  (getPathItem_AdditionalOperations(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getPathItem_Servers(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getPathItem_Parameters(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
 		  (operationEClass,
 		   source,
 		   new String[] {
 			   "additionalPropertiesFeature", "extensions"
 		   });
 		addAnnotation
+		  (getOperation_Tags(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getOperation_Parameters(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getOperation_Responses(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getOperation_Callbacks(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getOperation_Deprecated(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
 		  (getOperation_Security(),
 		   source,
 		   new String[] {
 			   "valueReaderName", "securityRequirement",
-			   "valueWriterName", "securityRequirement"
+			   "valueWriterName", "securityRequirement",
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getOperation_Servers(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
 		   });
 		addAnnotation
 		  (getOperation_Method(),
@@ -4235,11 +4393,59 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "key", "$ref"
 		   });
 		addAnnotation
+		  (getParameter_Required(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
+		  (getParameter_Deprecated(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
+		  (getParameter_AllowEmptyValue(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
+		  (getParameter_Explode(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
+		  (getParameter_AllowReserved(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
 		  (getParameter_Schema(),
 		   source,
 		   new String[] {
 			   "valueReaderName", "jsonSchema",
 			   "valueWriterName", "jsonSchema"
+		   });
+		addAnnotation
+		  (getParameter_Example(),
+		   source,
+		   new String[] {
+			   "serializeNull", "true"
+		   });
+		addAnnotation
+		  (getParameter_Examples(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getParameter_Content(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
 		   });
 		addAnnotation
 		  (requestBodyEClass,
@@ -4252,6 +4458,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		   source,
 		   new String[] {
 			   "key", "$ref"
+		   });
+		addAnnotation
+		  (getRequestBody_Content(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getRequestBody_Required(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
 		   });
 		addAnnotation
 		  (mediaTypeEClass,
@@ -4280,10 +4498,64 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "valueWriterName", "jsonSchema"
 		   });
 		addAnnotation
+		  (getMediaType_Example(),
+		   source,
+		   new String[] {
+			   "serializeNull", "true"
+		   });
+		addAnnotation
+		  (getMediaType_Examples(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getMediaType_Encoding(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getMediaType_PrefixEncoding(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
 		  (encodingEClass,
 		   source,
 		   new String[] {
 			   "additionalPropertiesFeature", "extensions"
+		   });
+		addAnnotation
+		  (getEncoding_Headers(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getEncoding_Explode(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
+		  (getEncoding_AllowReserved(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
+		  (getEncoding_Encoding(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getEncoding_PrefixEncoding(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
 		   });
 		addAnnotation
 		  (responseEClass,
@@ -4298,6 +4570,24 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "key", "$ref"
 		   });
 		addAnnotation
+		  (getResponse_Headers(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getResponse_Content(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getResponse_Links(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
 		  (callbackEClass,
 		   source,
 		   new String[] {
@@ -4308,6 +4598,12 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		   source,
 		   new String[] {
 			   "key", "$ref"
+		   });
+		addAnnotation
+		  (getCallback_Expressions(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
 		   });
 		addAnnotation
 		  (exampleEClass,
@@ -4322,6 +4618,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "key", "$ref"
 		   });
 		addAnnotation
+		  (getExample_Value(),
+		   source,
+		   new String[] {
+			   "serializeNull", "true"
+		   });
+		addAnnotation
+		  (getExample_DataValue(),
+		   source,
+		   new String[] {
+			   "serializeNull", "true"
+		   });
+		addAnnotation
 		  (linkEClass,
 		   source,
 		   new String[] {
@@ -4332,6 +4640,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		   source,
 		   new String[] {
 			   "key", "$ref"
+		   });
+		addAnnotation
+		  (getLink_Parameters(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getLink_RequestBody(),
+		   source,
+		   new String[] {
+			   "serializeNull", "true"
 		   });
 		addAnnotation
 		  (headerEClass,
@@ -4346,11 +4666,59 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "key", "$ref"
 		   });
 		addAnnotation
+		  (getHeader_Required(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
+		  (getHeader_Deprecated(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
+		  (getHeader_AllowEmptyValue(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
+		  (getHeader_Explode(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
+		  (getHeader_AllowReserved(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
 		  (getHeader_Schema(),
 		   source,
 		   new String[] {
 			   "valueReaderName", "jsonSchema",
 			   "valueWriterName", "jsonSchema"
+		   });
+		addAnnotation
+		  (getHeader_Example(),
+		   source,
+		   new String[] {
+			   "serializeNull", "true"
+		   });
+		addAnnotation
+		  (getHeader_Examples(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getHeader_Content(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
 		   });
 		addAnnotation
 		  (tagEClass,
@@ -4371,6 +4739,12 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "key", "$ref"
 		   });
 		addAnnotation
+		  (getSecurityScheme_Deprecated(),
+		   source,
+		   new String[] {
+			   "serializeDefault", "true"
+		   });
+		addAnnotation
 		  (oAuthFlowsEClass,
 		   source,
 		   new String[] {
@@ -4381,6 +4755,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		   source,
 		   new String[] {
 			   "additionalPropertiesFeature", "extensions"
+		   });
+		addAnnotation
+		  (getOAuthFlow_Scopes(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
+		   });
+		addAnnotation
+		  (getSecurityRequirement_Schemes(),
+		   source,
+		   new String[] {
+			   "serializeEmpty", "true"
 		   });
 		addAnnotation
 		  (getSchemaEntry_Value(),

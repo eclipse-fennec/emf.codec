@@ -32,7 +32,7 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.model.oas.Encoding#getHeaders <em>Headers</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Encoding#getStyle <em>Style</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Encoding#getExplode <em>Explode</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.Encoding#isAllowReserved <em>Allow Reserved</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.Encoding#getAllowReserved <em>Allow Reserved</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Encoding#getEncoding <em>Encoding</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Encoding#getPrefixEncoding <em>Prefix Encoding</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Encoding#getItemEncoding <em>Item Encoding</em>}</li>
@@ -74,11 +74,35 @@ public interface Encoding extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Headers</em>' map.
+	 * @see #isSetHeaders()
+	 * @see #unsetHeaders()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getEncoding_Headers()
 	 * @model mapType="org.eclipse.fennec.model.oas.HeaderEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.Header&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, Header> getHeaders();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getHeaders <em>Headers</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetHeaders()
+	 * @see #getHeaders()
+	 * @generated
+	 */
+	void unsetHeaders();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getHeaders <em>Headers</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Headers</em>' map is set.
+	 * @see #unsetHeaders()
+	 * @see #getHeaders()
+	 * @generated
+	 */
+	boolean isSetHeaders();
 
 	/**
 	 * Returns the value of the '<em><b>Style</b></em>' attribute.
@@ -110,9 +134,12 @@ public interface Encoding extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Explode</em>' attribute.
+	 * @see #isSetExplode()
+	 * @see #unsetExplode()
 	 * @see #setExplode(Boolean)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getEncoding_Explode()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeDefault='true'"
 	 * @generated
 	 */
 	Boolean getExplode();
@@ -122,32 +149,85 @@ public interface Encoding extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Explode</em>' attribute.
+	 * @see #isSetExplode()
+	 * @see #unsetExplode()
 	 * @see #getExplode()
 	 * @generated
 	 */
 	void setExplode(Boolean value);
 
 	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getExplode <em>Explode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetExplode()
+	 * @see #getExplode()
+	 * @see #setExplode(Boolean)
+	 * @generated
+	 */
+	void unsetExplode();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getExplode <em>Explode</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Explode</em>' attribute is set.
+	 * @see #unsetExplode()
+	 * @see #getExplode()
+	 * @see #setExplode(Boolean)
+	 * @generated
+	 */
+	boolean isSetExplode();
+
+	/**
 	 * Returns the value of the '<em><b>Allow Reserved</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Allow Reserved</em>' attribute.
-	 * @see #setAllowReserved(boolean)
+	 * @see #isSetAllowReserved()
+	 * @see #unsetAllowReserved()
+	 * @see #setAllowReserved(Boolean)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getEncoding_AllowReserved()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeDefault='true'"
 	 * @generated
 	 */
-	boolean isAllowReserved();
+	Boolean getAllowReserved();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Encoding#isAllowReserved <em>Allow Reserved</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getAllowReserved <em>Allow Reserved</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Allow Reserved</em>' attribute.
-	 * @see #isAllowReserved()
+	 * @see #isSetAllowReserved()
+	 * @see #unsetAllowReserved()
+	 * @see #getAllowReserved()
 	 * @generated
 	 */
-	void setAllowReserved(boolean value);
+	void setAllowReserved(Boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getAllowReserved <em>Allow Reserved</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetAllowReserved()
+	 * @see #getAllowReserved()
+	 * @see #setAllowReserved(Boolean)
+	 * @generated
+	 */
+	void unsetAllowReserved();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getAllowReserved <em>Allow Reserved</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Allow Reserved</em>' attribute is set.
+	 * @see #unsetAllowReserved()
+	 * @see #getAllowReserved()
+	 * @see #setAllowReserved(Boolean)
+	 * @generated
+	 */
+	boolean isSetAllowReserved();
 
 	/**
 	 * Returns the value of the '<em><b>Encoding</b></em>' map.
@@ -156,12 +236,36 @@ public interface Encoding extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Encoding</em>' map.
+	 * @see #isSetEncoding()
+	 * @see #unsetEncoding()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getEncoding_Encoding()
 	 * @model mapType="org.eclipse.fennec.model.oas.EncodingEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.Encoding&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 *        annotation="http://eclipse.org/fennec/openapi since='3.2'"
 	 * @generated
 	 */
 	EMap<String, Encoding> getEncoding();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getEncoding <em>Encoding</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetEncoding()
+	 * @see #getEncoding()
+	 * @generated
+	 */
+	void unsetEncoding();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getEncoding <em>Encoding</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Encoding</em>' map is set.
+	 * @see #unsetEncoding()
+	 * @see #getEncoding()
+	 * @generated
+	 */
+	boolean isSetEncoding();
 
 	/**
 	 * Returns the value of the '<em><b>Prefix Encoding</b></em>' containment reference list.
@@ -169,12 +273,36 @@ public interface Encoding extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Prefix Encoding</em>' containment reference list.
+	 * @see #isSetPrefixEncoding()
+	 * @see #unsetPrefixEncoding()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getEncoding_PrefixEncoding()
-	 * @model containment="true"
+	 * @model containment="true" unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 *        annotation="http://eclipse.org/fennec/openapi since='3.2'"
 	 * @generated
 	 */
 	EList<Encoding> getPrefixEncoding();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getPrefixEncoding <em>Prefix Encoding</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetPrefixEncoding()
+	 * @see #getPrefixEncoding()
+	 * @generated
+	 */
+	void unsetPrefixEncoding();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Encoding#getPrefixEncoding <em>Prefix Encoding</em>}' containment reference list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Prefix Encoding</em>' containment reference list is set.
+	 * @see #unsetPrefixEncoding()
+	 * @see #getPrefixEncoding()
+	 * @generated
+	 */
+	boolean isSetPrefixEncoding();
 
 	/**
 	 * Returns the value of the '<em><b>Item Encoding</b></em>' containment reference.

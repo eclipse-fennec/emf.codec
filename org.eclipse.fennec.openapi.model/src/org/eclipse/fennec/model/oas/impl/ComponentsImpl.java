@@ -226,9 +226,29 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	@Override
 	public EMap<String, Schema> getSchemas() {
 		if (schemas == null) {
-			schemas = new EcoreEMap<String,Schema>(OasPackage.Literals.SCHEMA_ENTRY, SchemaEntryImpl.class, this, OasPackage.COMPONENTS__SCHEMAS);
+			schemas = new EcoreEMap.Unsettable<String,Schema>(OasPackage.Literals.SCHEMA_ENTRY, SchemaEntryImpl.class, this, OasPackage.COMPONENTS__SCHEMAS);
 		}
 		return schemas;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetSchemas() {
+		if (schemas != null) ((InternalEList.Unsettable<?>)schemas).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetSchemas() {
+		return schemas != null && ((InternalEList.Unsettable<?>)schemas).isSet();
 	}
 
 	/**
@@ -284,7 +304,7 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	@Override
 	public EMap<String, Response> getResponses() {
 		if (responses == null) {
-			responses = new EcoreEMap<String,Response>(OasPackage.Literals.RESPONSE_ENTRY, ResponseEntryImpl.class, this, OasPackage.COMPONENTS__RESPONSES);
+			responses = new EcoreEMap.Unsettable<String,Response>(OasPackage.Literals.RESPONSE_ENTRY, ResponseEntryImpl.class, this, OasPackage.COMPONENTS__RESPONSES);
 		}
 		return responses;
 	}
@@ -295,9 +315,29 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
+	public void unsetResponses() {
+		if (responses != null) ((InternalEList.Unsettable<?>)responses).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetResponses() {
+		return responses != null && ((InternalEList.Unsettable<?>)responses).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, Parameter> getParameters() {
 		if (parameters == null) {
-			parameters = new EcoreEMap<String,Parameter>(OasPackage.Literals.PARAMETER_ENTRY, ParameterEntryImpl.class, this, OasPackage.COMPONENTS__PARAMETERS);
+			parameters = new EcoreEMap.Unsettable<String,Parameter>(OasPackage.Literals.PARAMETER_ENTRY, ParameterEntryImpl.class, this, OasPackage.COMPONENTS__PARAMETERS);
 		}
 		return parameters;
 	}
@@ -308,9 +348,29 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
+	public void unsetParameters() {
+		if (parameters != null) ((InternalEList.Unsettable<?>)parameters).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetParameters() {
+		return parameters != null && ((InternalEList.Unsettable<?>)parameters).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, Example> getExamples() {
 		if (examples == null) {
-			examples = new EcoreEMap<String,Example>(OasPackage.Literals.EXAMPLE_ENTRY, ExampleEntryImpl.class, this, OasPackage.COMPONENTS__EXAMPLES);
+			examples = new EcoreEMap.Unsettable<String,Example>(OasPackage.Literals.EXAMPLE_ENTRY, ExampleEntryImpl.class, this, OasPackage.COMPONENTS__EXAMPLES);
 		}
 		return examples;
 	}
@@ -321,9 +381,29 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
+	public void unsetExamples() {
+		if (examples != null) ((InternalEList.Unsettable<?>)examples).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetExamples() {
+		return examples != null && ((InternalEList.Unsettable<?>)examples).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, RequestBody> getRequestBodies() {
 		if (requestBodies == null) {
-			requestBodies = new EcoreEMap<String,RequestBody>(OasPackage.Literals.REQUEST_BODY_ENTRY, RequestBodyEntryImpl.class, this, OasPackage.COMPONENTS__REQUEST_BODIES);
+			requestBodies = new EcoreEMap.Unsettable<String,RequestBody>(OasPackage.Literals.REQUEST_BODY_ENTRY, RequestBodyEntryImpl.class, this, OasPackage.COMPONENTS__REQUEST_BODIES);
 		}
 		return requestBodies;
 	}
@@ -334,9 +414,29 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
+	public void unsetRequestBodies() {
+		if (requestBodies != null) ((InternalEList.Unsettable<?>)requestBodies).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetRequestBodies() {
+		return requestBodies != null && ((InternalEList.Unsettable<?>)requestBodies).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, Header> getHeaders() {
 		if (headers == null) {
-			headers = new EcoreEMap<String,Header>(OasPackage.Literals.HEADER_ENTRY, HeaderEntryImpl.class, this, OasPackage.COMPONENTS__HEADERS);
+			headers = new EcoreEMap.Unsettable<String,Header>(OasPackage.Literals.HEADER_ENTRY, HeaderEntryImpl.class, this, OasPackage.COMPONENTS__HEADERS);
 		}
 		return headers;
 	}
@@ -347,9 +447,29 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
+	public void unsetHeaders() {
+		if (headers != null) ((InternalEList.Unsettable<?>)headers).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetHeaders() {
+		return headers != null && ((InternalEList.Unsettable<?>)headers).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, SecurityScheme> getSecuritySchemes() {
 		if (securitySchemes == null) {
-			securitySchemes = new EcoreEMap<String,SecurityScheme>(OasPackage.Literals.SECURITY_SCHEME_ENTRY, SecuritySchemeEntryImpl.class, this, OasPackage.COMPONENTS__SECURITY_SCHEMES);
+			securitySchemes = new EcoreEMap.Unsettable<String,SecurityScheme>(OasPackage.Literals.SECURITY_SCHEME_ENTRY, SecuritySchemeEntryImpl.class, this, OasPackage.COMPONENTS__SECURITY_SCHEMES);
 		}
 		return securitySchemes;
 	}
@@ -360,9 +480,29 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
+	public void unsetSecuritySchemes() {
+		if (securitySchemes != null) ((InternalEList.Unsettable<?>)securitySchemes).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetSecuritySchemes() {
+		return securitySchemes != null && ((InternalEList.Unsettable<?>)securitySchemes).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, Link> getLinks() {
 		if (links == null) {
-			links = new EcoreEMap<String,Link>(OasPackage.Literals.LINK_ENTRY, LinkEntryImpl.class, this, OasPackage.COMPONENTS__LINKS);
+			links = new EcoreEMap.Unsettable<String,Link>(OasPackage.Literals.LINK_ENTRY, LinkEntryImpl.class, this, OasPackage.COMPONENTS__LINKS);
 		}
 		return links;
 	}
@@ -373,9 +513,29 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
+	public void unsetLinks() {
+		if (links != null) ((InternalEList.Unsettable<?>)links).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetLinks() {
+		return links != null && ((InternalEList.Unsettable<?>)links).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, Callback> getCallbacks() {
 		if (callbacks == null) {
-			callbacks = new EcoreEMap<String,Callback>(OasPackage.Literals.CALLBACK_ENTRY, CallbackEntryImpl.class, this, OasPackage.COMPONENTS__CALLBACKS);
+			callbacks = new EcoreEMap.Unsettable<String,Callback>(OasPackage.Literals.CALLBACK_ENTRY, CallbackEntryImpl.class, this, OasPackage.COMPONENTS__CALLBACKS);
 		}
 		return callbacks;
 	}
@@ -386,9 +546,29 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
+	public void unsetCallbacks() {
+		if (callbacks != null) ((InternalEList.Unsettable<?>)callbacks).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetCallbacks() {
+		return callbacks != null && ((InternalEList.Unsettable<?>)callbacks).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, PathItem> getPathItems() {
 		if (pathItems == null) {
-			pathItems = new EcoreEMap<String,PathItem>(OasPackage.Literals.PATH_ITEM_ENTRY, PathItemEntryImpl.class, this, OasPackage.COMPONENTS__PATH_ITEMS);
+			pathItems = new EcoreEMap.Unsettable<String,PathItem>(OasPackage.Literals.PATH_ITEM_ENTRY, PathItemEntryImpl.class, this, OasPackage.COMPONENTS__PATH_ITEMS);
 		}
 		return pathItems;
 	}
@@ -399,11 +579,51 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
+	public void unsetPathItems() {
+		if (pathItems != null) ((InternalEList.Unsettable<?>)pathItems).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetPathItems() {
+		return pathItems != null && ((InternalEList.Unsettable<?>)pathItems).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, MediaType> getMediaTypes() {
 		if (mediaTypes == null) {
-			mediaTypes = new EcoreEMap<String,MediaType>(OasPackage.Literals.MEDIA_TYPE_ENTRY, MediaTypeEntryImpl.class, this, OasPackage.COMPONENTS__MEDIA_TYPES);
+			mediaTypes = new EcoreEMap.Unsettable<String,MediaType>(OasPackage.Literals.MEDIA_TYPE_ENTRY, MediaTypeEntryImpl.class, this, OasPackage.COMPONENTS__MEDIA_TYPES);
 		}
 		return mediaTypes;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetMediaTypes() {
+		if (mediaTypes != null) ((InternalEList.Unsettable<?>)mediaTypes).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetMediaTypes() {
+		return mediaTypes != null && ((InternalEList.Unsettable<?>)mediaTypes).isSet();
 	}
 
 	/**
@@ -567,40 +787,40 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	public void eUnset(int featureID) {
 		switch (featureID) {
 			case OasPackage.COMPONENTS__SCHEMAS:
-				getSchemas().clear();
+				unsetSchemas();
 				return;
 			case OasPackage.COMPONENTS__SCHEMAS_PACKAGE:
 				setSchemasPackage((EPackage)null);
 				return;
 			case OasPackage.COMPONENTS__RESPONSES:
-				getResponses().clear();
+				unsetResponses();
 				return;
 			case OasPackage.COMPONENTS__PARAMETERS:
-				getParameters().clear();
+				unsetParameters();
 				return;
 			case OasPackage.COMPONENTS__EXAMPLES:
-				getExamples().clear();
+				unsetExamples();
 				return;
 			case OasPackage.COMPONENTS__REQUEST_BODIES:
-				getRequestBodies().clear();
+				unsetRequestBodies();
 				return;
 			case OasPackage.COMPONENTS__HEADERS:
-				getHeaders().clear();
+				unsetHeaders();
 				return;
 			case OasPackage.COMPONENTS__SECURITY_SCHEMES:
-				getSecuritySchemes().clear();
+				unsetSecuritySchemes();
 				return;
 			case OasPackage.COMPONENTS__LINKS:
-				getLinks().clear();
+				unsetLinks();
 				return;
 			case OasPackage.COMPONENTS__CALLBACKS:
-				getCallbacks().clear();
+				unsetCallbacks();
 				return;
 			case OasPackage.COMPONENTS__PATH_ITEMS:
-				getPathItems().clear();
+				unsetPathItems();
 				return;
 			case OasPackage.COMPONENTS__MEDIA_TYPES:
-				getMediaTypes().clear();
+				unsetMediaTypes();
 				return;
 			case OasPackage.COMPONENTS__EXTENSIONS:
 				getExtensions().clear();
@@ -618,29 +838,29 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
 			case OasPackage.COMPONENTS__SCHEMAS:
-				return schemas != null && !schemas.isEmpty();
+				return isSetSchemas();
 			case OasPackage.COMPONENTS__SCHEMAS_PACKAGE:
 				return schemasPackage != null;
 			case OasPackage.COMPONENTS__RESPONSES:
-				return responses != null && !responses.isEmpty();
+				return isSetResponses();
 			case OasPackage.COMPONENTS__PARAMETERS:
-				return parameters != null && !parameters.isEmpty();
+				return isSetParameters();
 			case OasPackage.COMPONENTS__EXAMPLES:
-				return examples != null && !examples.isEmpty();
+				return isSetExamples();
 			case OasPackage.COMPONENTS__REQUEST_BODIES:
-				return requestBodies != null && !requestBodies.isEmpty();
+				return isSetRequestBodies();
 			case OasPackage.COMPONENTS__HEADERS:
-				return headers != null && !headers.isEmpty();
+				return isSetHeaders();
 			case OasPackage.COMPONENTS__SECURITY_SCHEMES:
-				return securitySchemes != null && !securitySchemes.isEmpty();
+				return isSetSecuritySchemes();
 			case OasPackage.COMPONENTS__LINKS:
-				return links != null && !links.isEmpty();
+				return isSetLinks();
 			case OasPackage.COMPONENTS__CALLBACKS:
-				return callbacks != null && !callbacks.isEmpty();
+				return isSetCallbacks();
 			case OasPackage.COMPONENTS__PATH_ITEMS:
-				return pathItems != null && !pathItems.isEmpty();
+				return isSetPathItems();
 			case OasPackage.COMPONENTS__MEDIA_TYPES:
-				return mediaTypes != null && !mediaTypes.isEmpty();
+				return isSetMediaTypes();
 			case OasPackage.COMPONENTS__EXTENSIONS:
 				return extensions != null && !extensions.isEmpty();
 		}

@@ -46,11 +46,35 @@ public interface ServerVariable extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Enum</em>' attribute list.
+	 * @see #isSetEnum()
+	 * @see #unsetEnum()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getServerVariable_Enum()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EList<String> getEnum();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.ServerVariable#getEnum <em>Enum</em>}' attribute list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetEnum()
+	 * @see #getEnum()
+	 * @generated
+	 */
+	void unsetEnum();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.ServerVariable#getEnum <em>Enum</em>}' attribute list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Enum</em>' attribute list is set.
+	 * @see #unsetEnum()
+	 * @see #getEnum()
+	 * @generated
+	 */
+	boolean isSetEnum();
 
 	/**
 	 * Returns the value of the '<em><b>Default</b></em>' attribute.

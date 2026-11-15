@@ -48,7 +48,7 @@ import org.eclipse.fennec.model.oas.ParameterStyle;
  *   <li>{@link org.eclipse.fennec.model.oas.impl.EncodingImpl#getHeaders <em>Headers</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.EncodingImpl#getStyle <em>Style</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.EncodingImpl#getExplode <em>Explode</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.impl.EncodingImpl#isAllowReserved <em>Allow Reserved</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.EncodingImpl#getAllowReserved <em>Allow Reserved</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.EncodingImpl#getEncoding <em>Encoding</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.EncodingImpl#getPrefixEncoding <em>Prefix Encoding</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.EncodingImpl#getItemEncoding <em>Item Encoding</em>}</li>
@@ -129,24 +129,42 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	protected Boolean explode = EXPLODE_EDEFAULT;
 
 	/**
-	 * The default value of the '{@link #isAllowReserved() <em>Allow Reserved</em>}' attribute.
+	 * This is true if the Explode attribute has been set.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isAllowReserved()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean ALLOW_RESERVED_EDEFAULT = false;
+	protected boolean explodeESet;
 
 	/**
-	 * The cached value of the '{@link #isAllowReserved() <em>Allow Reserved</em>}' attribute.
+	 * The default value of the '{@link #getAllowReserved() <em>Allow Reserved</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isAllowReserved()
+	 * @see #getAllowReserved()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean allowReserved = ALLOW_RESERVED_EDEFAULT;
+	protected static final Boolean ALLOW_RESERVED_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getAllowReserved() <em>Allow Reserved</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getAllowReserved()
+	 * @generated
+	 * @ordered
+	 */
+	protected Boolean allowReserved = ALLOW_RESERVED_EDEFAULT;
+
+	/**
+	 * This is true if the Allow Reserved attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean allowReservedESet;
 
 	/**
 	 * The cached value of the '{@link #getEncoding() <em>Encoding</em>}' map.
@@ -238,9 +256,29 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	@Override
 	public EMap<String, Header> getHeaders() {
 		if (headers == null) {
-			headers = new EcoreEMap<String,Header>(OasPackage.Literals.HEADER_ENTRY, HeaderEntryImpl.class, this, OasPackage.ENCODING__HEADERS);
+			headers = new EcoreEMap.Unsettable<String,Header>(OasPackage.Literals.HEADER_ENTRY, HeaderEntryImpl.class, this, OasPackage.ENCODING__HEADERS);
 		}
 		return headers;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetHeaders() {
+		if (headers != null) ((InternalEList.Unsettable<?>)headers).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetHeaders() {
+		return headers != null && ((InternalEList.Unsettable<?>)headers).isSet();
 	}
 
 	/**
@@ -285,8 +323,10 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	public void setExplode(Boolean newExplode) {
 		Boolean oldExplode = explode;
 		explode = newExplode;
+		boolean oldExplodeESet = explodeESet;
+		explodeESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.ENCODING__EXPLODE, oldExplode, explode));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.ENCODING__EXPLODE, oldExplode, explode, !oldExplodeESet));
 	}
 
 	/**
@@ -295,7 +335,32 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	 * @generated
 	 */
 	@Override
-	public boolean isAllowReserved() {
+	public void unsetExplode() {
+		Boolean oldExplode = explode;
+		boolean oldExplodeESet = explodeESet;
+		explode = EXPLODE_EDEFAULT;
+		explodeESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.ENCODING__EXPLODE, oldExplode, EXPLODE_EDEFAULT, oldExplodeESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetExplode() {
+		return explodeESet;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Boolean getAllowReserved() {
 		return allowReserved;
 	}
 
@@ -305,11 +370,38 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	 * @generated
 	 */
 	@Override
-	public void setAllowReserved(boolean newAllowReserved) {
-		boolean oldAllowReserved = allowReserved;
+	public void setAllowReserved(Boolean newAllowReserved) {
+		Boolean oldAllowReserved = allowReserved;
 		allowReserved = newAllowReserved;
+		boolean oldAllowReservedESet = allowReservedESet;
+		allowReservedESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.ENCODING__ALLOW_RESERVED, oldAllowReserved, allowReserved));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.ENCODING__ALLOW_RESERVED, oldAllowReserved, allowReserved, !oldAllowReservedESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetAllowReserved() {
+		Boolean oldAllowReserved = allowReserved;
+		boolean oldAllowReservedESet = allowReservedESet;
+		allowReserved = ALLOW_RESERVED_EDEFAULT;
+		allowReservedESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.ENCODING__ALLOW_RESERVED, oldAllowReserved, ALLOW_RESERVED_EDEFAULT, oldAllowReservedESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetAllowReserved() {
+		return allowReservedESet;
 	}
 
 	/**
@@ -320,7 +412,7 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	@Override
 	public EMap<String, Encoding> getEncoding() {
 		if (encoding == null) {
-			encoding = new EcoreEMap<String,Encoding>(OasPackage.Literals.ENCODING_ENTRY, EncodingEntryImpl.class, this, OasPackage.ENCODING__ENCODING);
+			encoding = new EcoreEMap.Unsettable<String,Encoding>(OasPackage.Literals.ENCODING_ENTRY, EncodingEntryImpl.class, this, OasPackage.ENCODING__ENCODING);
 		}
 		return encoding;
 	}
@@ -331,11 +423,51 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 	 * @generated
 	 */
 	@Override
+	public void unsetEncoding() {
+		if (encoding != null) ((InternalEList.Unsettable<?>)encoding).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetEncoding() {
+		return encoding != null && ((InternalEList.Unsettable<?>)encoding).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EList<Encoding> getPrefixEncoding() {
 		if (prefixEncoding == null) {
-			prefixEncoding = new EObjectContainmentEList<Encoding>(Encoding.class, this, OasPackage.ENCODING__PREFIX_ENCODING);
+			prefixEncoding = new EObjectContainmentEList.Unsettable<Encoding>(Encoding.class, this, OasPackage.ENCODING__PREFIX_ENCODING);
 		}
 		return prefixEncoding;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetPrefixEncoding() {
+		if (prefixEncoding != null) ((InternalEList.Unsettable<?>)prefixEncoding).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetPrefixEncoding() {
+		return prefixEncoding != null && ((InternalEList.Unsettable<?>)prefixEncoding).isSet();
 	}
 
 	/**
@@ -436,7 +568,7 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 			case OasPackage.ENCODING__EXPLODE:
 				return getExplode();
 			case OasPackage.ENCODING__ALLOW_RESERVED:
-				return isAllowReserved();
+				return getAllowReserved();
 			case OasPackage.ENCODING__ENCODING:
 				if (coreType) return getEncoding();
 				else return getEncoding().map();
@@ -504,22 +636,22 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 				setContentType(CONTENT_TYPE_EDEFAULT);
 				return;
 			case OasPackage.ENCODING__HEADERS:
-				getHeaders().clear();
+				unsetHeaders();
 				return;
 			case OasPackage.ENCODING__STYLE:
 				setStyle(STYLE_EDEFAULT);
 				return;
 			case OasPackage.ENCODING__EXPLODE:
-				setExplode(EXPLODE_EDEFAULT);
+				unsetExplode();
 				return;
 			case OasPackage.ENCODING__ALLOW_RESERVED:
-				setAllowReserved(ALLOW_RESERVED_EDEFAULT);
+				unsetAllowReserved();
 				return;
 			case OasPackage.ENCODING__ENCODING:
-				getEncoding().clear();
+				unsetEncoding();
 				return;
 			case OasPackage.ENCODING__PREFIX_ENCODING:
-				getPrefixEncoding().clear();
+				unsetPrefixEncoding();
 				return;
 			case OasPackage.ENCODING__ITEM_ENCODING:
 				setItemEncoding((Encoding)null);
@@ -542,17 +674,17 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 			case OasPackage.ENCODING__CONTENT_TYPE:
 				return CONTENT_TYPE_EDEFAULT == null ? contentType != null : !CONTENT_TYPE_EDEFAULT.equals(contentType);
 			case OasPackage.ENCODING__HEADERS:
-				return headers != null && !headers.isEmpty();
+				return isSetHeaders();
 			case OasPackage.ENCODING__STYLE:
 				return style != STYLE_EDEFAULT;
 			case OasPackage.ENCODING__EXPLODE:
-				return EXPLODE_EDEFAULT == null ? explode != null : !EXPLODE_EDEFAULT.equals(explode);
+				return isSetExplode();
 			case OasPackage.ENCODING__ALLOW_RESERVED:
-				return allowReserved != ALLOW_RESERVED_EDEFAULT;
+				return isSetAllowReserved();
 			case OasPackage.ENCODING__ENCODING:
-				return encoding != null && !encoding.isEmpty();
+				return isSetEncoding();
 			case OasPackage.ENCODING__PREFIX_ENCODING:
-				return prefixEncoding != null && !prefixEncoding.isEmpty();
+				return isSetPrefixEncoding();
 			case OasPackage.ENCODING__ITEM_ENCODING:
 				return itemEncoding != null;
 			case OasPackage.ENCODING__EXTENSIONS:
@@ -576,9 +708,9 @@ public class EncodingImpl extends MinimalEObjectImpl.Container implements Encodi
 		result.append(", style: ");
 		result.append(style);
 		result.append(", explode: ");
-		result.append(explode);
+		if (explodeESet) result.append(explode); else result.append("<unset>");
 		result.append(", allowReserved: ");
-		result.append(allowReserved);
+		if (allowReservedESet) result.append(allowReserved); else result.append("<unset>");
 		result.append(')');
 		return result.toString();
 	}

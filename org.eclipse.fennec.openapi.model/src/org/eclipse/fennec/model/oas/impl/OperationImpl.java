@@ -59,7 +59,7 @@ import org.eclipse.fennec.model.oas.Server;
  *   <li>{@link org.eclipse.fennec.model.oas.impl.OperationImpl#getRequestBody <em>Request Body</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.OperationImpl#getResponses <em>Responses</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.OperationImpl#getCallbacks <em>Callbacks</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.impl.OperationImpl#isDeprecated <em>Deprecated</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.OperationImpl#getDeprecated <em>Deprecated</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.OperationImpl#getSecurity <em>Security</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.OperationImpl#getServers <em>Servers</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.OperationImpl#getMethod <em>Method</em>}</li>
@@ -190,24 +190,33 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	protected EMap<String, Callback> callbacks;
 
 	/**
-	 * The default value of the '{@link #isDeprecated() <em>Deprecated</em>}' attribute.
+	 * The default value of the '{@link #getDeprecated() <em>Deprecated</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isDeprecated()
+	 * @see #getDeprecated()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean DEPRECATED_EDEFAULT = false;
+	protected static final Boolean DEPRECATED_EDEFAULT = null;
 
 	/**
-	 * The cached value of the '{@link #isDeprecated() <em>Deprecated</em>}' attribute.
+	 * The cached value of the '{@link #getDeprecated() <em>Deprecated</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isDeprecated()
+	 * @see #getDeprecated()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean deprecated = DEPRECATED_EDEFAULT;
+	protected Boolean deprecated = DEPRECATED_EDEFAULT;
+
+	/**
+	 * This is true if the Deprecated attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean deprecatedESet;
 
 	/**
 	 * The cached value of the '{@link #getSecurity() <em>Security</em>}' containment reference list.
@@ -286,9 +295,29 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	@Override
 	public EList<String> getTags() {
 		if (tags == null) {
-			tags = new EDataTypeUniqueEList<String>(String.class, this, OasPackage.OPERATION__TAGS);
+			tags = new EDataTypeUniqueEList.Unsettable<String>(String.class, this, OasPackage.OPERATION__TAGS);
 		}
 		return tags;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetTags() {
+		if (tags != null) ((InternalEList.Unsettable<?>)tags).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetTags() {
+		return tags != null && ((InternalEList.Unsettable<?>)tags).isSet();
 	}
 
 	/**
@@ -413,9 +442,29 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	@Override
 	public EList<Parameter> getParameters() {
 		if (parameters == null) {
-			parameters = new EObjectContainmentEList<Parameter>(Parameter.class, this, OasPackage.OPERATION__PARAMETERS);
+			parameters = new EObjectContainmentEList.Unsettable<Parameter>(Parameter.class, this, OasPackage.OPERATION__PARAMETERS);
 		}
 		return parameters;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetParameters() {
+		if (parameters != null) ((InternalEList.Unsettable<?>)parameters).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetParameters() {
+		return parameters != null && ((InternalEList.Unsettable<?>)parameters).isSet();
 	}
 
 	/**
@@ -471,7 +520,7 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	@Override
 	public EMap<String, Response> getResponses() {
 		if (responses == null) {
-			responses = new EcoreEMap<String,Response>(OasPackage.Literals.RESPONSE_ENTRY, ResponseEntryImpl.class, this, OasPackage.OPERATION__RESPONSES);
+			responses = new EcoreEMap.Unsettable<String,Response>(OasPackage.Literals.RESPONSE_ENTRY, ResponseEntryImpl.class, this, OasPackage.OPERATION__RESPONSES);
 		}
 		return responses;
 	}
@@ -482,9 +531,29 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	 * @generated
 	 */
 	@Override
+	public void unsetResponses() {
+		if (responses != null) ((InternalEList.Unsettable<?>)responses).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetResponses() {
+		return responses != null && ((InternalEList.Unsettable<?>)responses).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, Callback> getCallbacks() {
 		if (callbacks == null) {
-			callbacks = new EcoreEMap<String,Callback>(OasPackage.Literals.CALLBACK_ENTRY, CallbackEntryImpl.class, this, OasPackage.OPERATION__CALLBACKS);
+			callbacks = new EcoreEMap.Unsettable<String,Callback>(OasPackage.Literals.CALLBACK_ENTRY, CallbackEntryImpl.class, this, OasPackage.OPERATION__CALLBACKS);
 		}
 		return callbacks;
 	}
@@ -495,7 +564,27 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	 * @generated
 	 */
 	@Override
-	public boolean isDeprecated() {
+	public void unsetCallbacks() {
+		if (callbacks != null) ((InternalEList.Unsettable<?>)callbacks).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetCallbacks() {
+		return callbacks != null && ((InternalEList.Unsettable<?>)callbacks).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Boolean getDeprecated() {
 		return deprecated;
 	}
 
@@ -505,11 +594,38 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	 * @generated
 	 */
 	@Override
-	public void setDeprecated(boolean newDeprecated) {
-		boolean oldDeprecated = deprecated;
+	public void setDeprecated(Boolean newDeprecated) {
+		Boolean oldDeprecated = deprecated;
 		deprecated = newDeprecated;
+		boolean oldDeprecatedESet = deprecatedESet;
+		deprecatedESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.OPERATION__DEPRECATED, oldDeprecated, deprecated));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.OPERATION__DEPRECATED, oldDeprecated, deprecated, !oldDeprecatedESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetDeprecated() {
+		Boolean oldDeprecated = deprecated;
+		boolean oldDeprecatedESet = deprecatedESet;
+		deprecated = DEPRECATED_EDEFAULT;
+		deprecatedESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.OPERATION__DEPRECATED, oldDeprecated, DEPRECATED_EDEFAULT, oldDeprecatedESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetDeprecated() {
+		return deprecatedESet;
 	}
 
 	/**
@@ -520,7 +636,7 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	@Override
 	public EList<SecurityRequirement> getSecurity() {
 		if (security == null) {
-			security = new EObjectContainmentEList<SecurityRequirement>(SecurityRequirement.class, this, OasPackage.OPERATION__SECURITY);
+			security = new EObjectContainmentEList.Unsettable<SecurityRequirement>(SecurityRequirement.class, this, OasPackage.OPERATION__SECURITY);
 		}
 		return security;
 	}
@@ -531,11 +647,51 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	 * @generated
 	 */
 	@Override
+	public void unsetSecurity() {
+		if (security != null) ((InternalEList.Unsettable<?>)security).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetSecurity() {
+		return security != null && ((InternalEList.Unsettable<?>)security).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EList<Server> getServers() {
 		if (servers == null) {
-			servers = new EObjectContainmentEList<Server>(Server.class, this, OasPackage.OPERATION__SERVERS);
+			servers = new EObjectContainmentEList.Unsettable<Server>(Server.class, this, OasPackage.OPERATION__SERVERS);
 		}
 		return servers;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetServers() {
+		if (servers != null) ((InternalEList.Unsettable<?>)servers).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetServers() {
+		return servers != null && ((InternalEList.Unsettable<?>)servers).isSet();
 	}
 
 	/**
@@ -631,7 +787,7 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 				if (coreType) return getCallbacks();
 				else return getCallbacks().map();
 			case OasPackage.OPERATION__DEPRECATED:
-				return isDeprecated();
+				return getDeprecated();
 			case OasPackage.OPERATION__SECURITY:
 				return getSecurity();
 			case OasPackage.OPERATION__SERVERS:
@@ -713,7 +869,7 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	public void eUnset(int featureID) {
 		switch (featureID) {
 			case OasPackage.OPERATION__TAGS:
-				getTags().clear();
+				unsetTags();
 				return;
 			case OasPackage.OPERATION__SUMMARY:
 				setSummary(SUMMARY_EDEFAULT);
@@ -728,25 +884,25 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 				setOperationId(OPERATION_ID_EDEFAULT);
 				return;
 			case OasPackage.OPERATION__PARAMETERS:
-				getParameters().clear();
+				unsetParameters();
 				return;
 			case OasPackage.OPERATION__REQUEST_BODY:
 				setRequestBody((RequestBody)null);
 				return;
 			case OasPackage.OPERATION__RESPONSES:
-				getResponses().clear();
+				unsetResponses();
 				return;
 			case OasPackage.OPERATION__CALLBACKS:
-				getCallbacks().clear();
+				unsetCallbacks();
 				return;
 			case OasPackage.OPERATION__DEPRECATED:
-				setDeprecated(DEPRECATED_EDEFAULT);
+				unsetDeprecated();
 				return;
 			case OasPackage.OPERATION__SECURITY:
-				getSecurity().clear();
+				unsetSecurity();
 				return;
 			case OasPackage.OPERATION__SERVERS:
-				getServers().clear();
+				unsetServers();
 				return;
 			case OasPackage.OPERATION__METHOD:
 				setMethod(METHOD_EDEFAULT);
@@ -767,7 +923,7 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
 			case OasPackage.OPERATION__TAGS:
-				return tags != null && !tags.isEmpty();
+				return isSetTags();
 			case OasPackage.OPERATION__SUMMARY:
 				return SUMMARY_EDEFAULT == null ? summary != null : !SUMMARY_EDEFAULT.equals(summary);
 			case OasPackage.OPERATION__DESCRIPTION:
@@ -777,19 +933,19 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 			case OasPackage.OPERATION__OPERATION_ID:
 				return OPERATION_ID_EDEFAULT == null ? operationId != null : !OPERATION_ID_EDEFAULT.equals(operationId);
 			case OasPackage.OPERATION__PARAMETERS:
-				return parameters != null && !parameters.isEmpty();
+				return isSetParameters();
 			case OasPackage.OPERATION__REQUEST_BODY:
 				return requestBody != null;
 			case OasPackage.OPERATION__RESPONSES:
-				return responses != null && !responses.isEmpty();
+				return isSetResponses();
 			case OasPackage.OPERATION__CALLBACKS:
-				return callbacks != null && !callbacks.isEmpty();
+				return isSetCallbacks();
 			case OasPackage.OPERATION__DEPRECATED:
-				return deprecated != DEPRECATED_EDEFAULT;
+				return isSetDeprecated();
 			case OasPackage.OPERATION__SECURITY:
-				return security != null && !security.isEmpty();
+				return isSetSecurity();
 			case OasPackage.OPERATION__SERVERS:
-				return servers != null && !servers.isEmpty();
+				return isSetServers();
 			case OasPackage.OPERATION__METHOD:
 				return METHOD_EDEFAULT == null ? method != null : !METHOD_EDEFAULT.equals(method);
 			case OasPackage.OPERATION__EXTENSIONS:
@@ -817,7 +973,7 @@ public class OperationImpl extends MinimalEObjectImpl.Container implements Opera
 		result.append(", operationId: ");
 		result.append(operationId);
 		result.append(", deprecated: ");
-		result.append(deprecated);
+		if (deprecatedESet) result.append(deprecated); else result.append("<unset>");
 		result.append(", method: ");
 		result.append(method);
 		result.append(')');

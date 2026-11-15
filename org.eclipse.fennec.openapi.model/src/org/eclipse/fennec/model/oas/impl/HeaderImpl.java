@@ -46,12 +46,12 @@ import org.eclipse.fennec.model.oas.ParameterStyle;
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getRef <em>Ref</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getTarget <em>Target</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getDescription <em>Description</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#isRequired <em>Required</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#isDeprecated <em>Deprecated</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#isAllowEmptyValue <em>Allow Empty Value</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getRequired <em>Required</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getDeprecated <em>Deprecated</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getAllowEmptyValue <em>Allow Empty Value</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getStyle <em>Style</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getExplode <em>Explode</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#isAllowReserved <em>Allow Reserved</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getAllowReserved <em>Allow Reserved</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getExample <em>Example</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getExamples <em>Examples</em>}</li>
@@ -113,64 +113,91 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	protected String description = DESCRIPTION_EDEFAULT;
 
 	/**
-	 * The default value of the '{@link #isRequired() <em>Required</em>}' attribute.
+	 * The default value of the '{@link #getRequired() <em>Required</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isRequired()
+	 * @see #getRequired()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean REQUIRED_EDEFAULT = false;
+	protected static final Boolean REQUIRED_EDEFAULT = null;
 
 	/**
-	 * The cached value of the '{@link #isRequired() <em>Required</em>}' attribute.
+	 * The cached value of the '{@link #getRequired() <em>Required</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isRequired()
+	 * @see #getRequired()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean required = REQUIRED_EDEFAULT;
+	protected Boolean required = REQUIRED_EDEFAULT;
 
 	/**
-	 * The default value of the '{@link #isDeprecated() <em>Deprecated</em>}' attribute.
+	 * This is true if the Required attribute has been set.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isDeprecated()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean DEPRECATED_EDEFAULT = false;
+	protected boolean requiredESet;
 
 	/**
-	 * The cached value of the '{@link #isDeprecated() <em>Deprecated</em>}' attribute.
+	 * The default value of the '{@link #getDeprecated() <em>Deprecated</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isDeprecated()
+	 * @see #getDeprecated()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean deprecated = DEPRECATED_EDEFAULT;
+	protected static final Boolean DEPRECATED_EDEFAULT = null;
 
 	/**
-	 * The default value of the '{@link #isAllowEmptyValue() <em>Allow Empty Value</em>}' attribute.
+	 * The cached value of the '{@link #getDeprecated() <em>Deprecated</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isAllowEmptyValue()
+	 * @see #getDeprecated()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean ALLOW_EMPTY_VALUE_EDEFAULT = false;
+	protected Boolean deprecated = DEPRECATED_EDEFAULT;
 
 	/**
-	 * The cached value of the '{@link #isAllowEmptyValue() <em>Allow Empty Value</em>}' attribute.
+	 * This is true if the Deprecated attribute has been set.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isAllowEmptyValue()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean allowEmptyValue = ALLOW_EMPTY_VALUE_EDEFAULT;
+	protected boolean deprecatedESet;
+
+	/**
+	 * The default value of the '{@link #getAllowEmptyValue() <em>Allow Empty Value</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getAllowEmptyValue()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final Boolean ALLOW_EMPTY_VALUE_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getAllowEmptyValue() <em>Allow Empty Value</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getAllowEmptyValue()
+	 * @generated
+	 * @ordered
+	 */
+	protected Boolean allowEmptyValue = ALLOW_EMPTY_VALUE_EDEFAULT;
+
+	/**
+	 * This is true if the Allow Empty Value attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean allowEmptyValueESet;
 
 	/**
 	 * The default value of the '{@link #getStyle() <em>Style</em>}' attribute.
@@ -213,24 +240,42 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	protected Boolean explode = EXPLODE_EDEFAULT;
 
 	/**
-	 * The default value of the '{@link #isAllowReserved() <em>Allow Reserved</em>}' attribute.
+	 * This is true if the Explode attribute has been set.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isAllowReserved()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean ALLOW_RESERVED_EDEFAULT = false;
+	protected boolean explodeESet;
 
 	/**
-	 * The cached value of the '{@link #isAllowReserved() <em>Allow Reserved</em>}' attribute.
+	 * The default value of the '{@link #getAllowReserved() <em>Allow Reserved</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isAllowReserved()
+	 * @see #getAllowReserved()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean allowReserved = ALLOW_RESERVED_EDEFAULT;
+	protected static final Boolean ALLOW_RESERVED_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getAllowReserved() <em>Allow Reserved</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getAllowReserved()
+	 * @generated
+	 * @ordered
+	 */
+	protected Boolean allowReserved = ALLOW_RESERVED_EDEFAULT;
+
+	/**
+	 * This is true if the Allow Reserved attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean allowReservedESet;
 
 	/**
 	 * The cached value of the '{@link #getSchema() <em>Schema</em>}' containment reference.
@@ -261,6 +306,15 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @ordered
 	 */
 	protected Object example = EXAMPLE_EDEFAULT;
+
+	/**
+	 * This is true if the Example attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean exampleESet;
 
 	/**
 	 * The cached value of the '{@link #getExamples() <em>Examples</em>}' map.
@@ -403,7 +457,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public boolean isRequired() {
+	public Boolean getRequired() {
 		return required;
 	}
 
@@ -413,11 +467,13 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public void setRequired(boolean newRequired) {
-		boolean oldRequired = required;
+	public void setRequired(Boolean newRequired) {
+		Boolean oldRequired = required;
 		required = newRequired;
+		boolean oldRequiredESet = requiredESet;
+		requiredESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__REQUIRED, oldRequired, required));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__REQUIRED, oldRequired, required, !oldRequiredESet));
 	}
 
 	/**
@@ -426,7 +482,32 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public boolean isDeprecated() {
+	public void unsetRequired() {
+		Boolean oldRequired = required;
+		boolean oldRequiredESet = requiredESet;
+		required = REQUIRED_EDEFAULT;
+		requiredESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.HEADER__REQUIRED, oldRequired, REQUIRED_EDEFAULT, oldRequiredESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetRequired() {
+		return requiredESet;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Boolean getDeprecated() {
 		return deprecated;
 	}
 
@@ -436,11 +517,13 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public void setDeprecated(boolean newDeprecated) {
-		boolean oldDeprecated = deprecated;
+	public void setDeprecated(Boolean newDeprecated) {
+		Boolean oldDeprecated = deprecated;
 		deprecated = newDeprecated;
+		boolean oldDeprecatedESet = deprecatedESet;
+		deprecatedESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__DEPRECATED, oldDeprecated, deprecated));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__DEPRECATED, oldDeprecated, deprecated, !oldDeprecatedESet));
 	}
 
 	/**
@@ -449,7 +532,32 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public boolean isAllowEmptyValue() {
+	public void unsetDeprecated() {
+		Boolean oldDeprecated = deprecated;
+		boolean oldDeprecatedESet = deprecatedESet;
+		deprecated = DEPRECATED_EDEFAULT;
+		deprecatedESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.HEADER__DEPRECATED, oldDeprecated, DEPRECATED_EDEFAULT, oldDeprecatedESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetDeprecated() {
+		return deprecatedESet;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Boolean getAllowEmptyValue() {
 		return allowEmptyValue;
 	}
 
@@ -459,11 +567,38 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public void setAllowEmptyValue(boolean newAllowEmptyValue) {
-		boolean oldAllowEmptyValue = allowEmptyValue;
+	public void setAllowEmptyValue(Boolean newAllowEmptyValue) {
+		Boolean oldAllowEmptyValue = allowEmptyValue;
 		allowEmptyValue = newAllowEmptyValue;
+		boolean oldAllowEmptyValueESet = allowEmptyValueESet;
+		allowEmptyValueESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__ALLOW_EMPTY_VALUE, oldAllowEmptyValue, allowEmptyValue));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__ALLOW_EMPTY_VALUE, oldAllowEmptyValue, allowEmptyValue, !oldAllowEmptyValueESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetAllowEmptyValue() {
+		Boolean oldAllowEmptyValue = allowEmptyValue;
+		boolean oldAllowEmptyValueESet = allowEmptyValueESet;
+		allowEmptyValue = ALLOW_EMPTY_VALUE_EDEFAULT;
+		allowEmptyValueESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.HEADER__ALLOW_EMPTY_VALUE, oldAllowEmptyValue, ALLOW_EMPTY_VALUE_EDEFAULT, oldAllowEmptyValueESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetAllowEmptyValue() {
+		return allowEmptyValueESet;
 	}
 
 	/**
@@ -508,8 +643,10 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	public void setExplode(Boolean newExplode) {
 		Boolean oldExplode = explode;
 		explode = newExplode;
+		boolean oldExplodeESet = explodeESet;
+		explodeESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__EXPLODE, oldExplode, explode));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__EXPLODE, oldExplode, explode, !oldExplodeESet));
 	}
 
 	/**
@@ -518,7 +655,32 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public boolean isAllowReserved() {
+	public void unsetExplode() {
+		Boolean oldExplode = explode;
+		boolean oldExplodeESet = explodeESet;
+		explode = EXPLODE_EDEFAULT;
+		explodeESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.HEADER__EXPLODE, oldExplode, EXPLODE_EDEFAULT, oldExplodeESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetExplode() {
+		return explodeESet;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Boolean getAllowReserved() {
 		return allowReserved;
 	}
 
@@ -528,11 +690,38 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public void setAllowReserved(boolean newAllowReserved) {
-		boolean oldAllowReserved = allowReserved;
+	public void setAllowReserved(Boolean newAllowReserved) {
+		Boolean oldAllowReserved = allowReserved;
 		allowReserved = newAllowReserved;
+		boolean oldAllowReservedESet = allowReservedESet;
+		allowReservedESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__ALLOW_RESERVED, oldAllowReserved, allowReserved));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__ALLOW_RESERVED, oldAllowReserved, allowReserved, !oldAllowReservedESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetAllowReserved() {
+		Boolean oldAllowReserved = allowReserved;
+		boolean oldAllowReservedESet = allowReservedESet;
+		allowReserved = ALLOW_RESERVED_EDEFAULT;
+		allowReservedESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.HEADER__ALLOW_RESERVED, oldAllowReserved, ALLOW_RESERVED_EDEFAULT, oldAllowReservedESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetAllowReserved() {
+		return allowReservedESet;
 	}
 
 	/**
@@ -599,8 +788,35 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	public void setExample(Object newExample) {
 		Object oldExample = example;
 		example = newExample;
+		boolean oldExampleESet = exampleESet;
+		exampleESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__EXAMPLE, oldExample, example));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__EXAMPLE, oldExample, example, !oldExampleESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetExample() {
+		Object oldExample = example;
+		boolean oldExampleESet = exampleESet;
+		example = EXAMPLE_EDEFAULT;
+		exampleESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.HEADER__EXAMPLE, oldExample, EXAMPLE_EDEFAULT, oldExampleESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetExample() {
+		return exampleESet;
 	}
 
 	/**
@@ -611,7 +827,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	@Override
 	public EMap<String, Example> getExamples() {
 		if (examples == null) {
-			examples = new EcoreEMap<String,Example>(OasPackage.Literals.EXAMPLE_ENTRY, ExampleEntryImpl.class, this, OasPackage.HEADER__EXAMPLES);
+			examples = new EcoreEMap.Unsettable<String,Example>(OasPackage.Literals.EXAMPLE_ENTRY, ExampleEntryImpl.class, this, OasPackage.HEADER__EXAMPLES);
 		}
 		return examples;
 	}
@@ -622,11 +838,51 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
+	public void unsetExamples() {
+		if (examples != null) ((InternalEList.Unsettable<?>)examples).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetExamples() {
+		return examples != null && ((InternalEList.Unsettable<?>)examples).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, MediaType> getContent() {
 		if (content == null) {
-			content = new EcoreEMap<String,MediaType>(OasPackage.Literals.MEDIA_TYPE_ENTRY, MediaTypeEntryImpl.class, this, OasPackage.HEADER__CONTENT);
+			content = new EcoreEMap.Unsettable<String,MediaType>(OasPackage.Literals.MEDIA_TYPE_ENTRY, MediaTypeEntryImpl.class, this, OasPackage.HEADER__CONTENT);
 		}
 		return content;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetContent() {
+		if (content != null) ((InternalEList.Unsettable<?>)content).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetContent() {
+		return content != null && ((InternalEList.Unsettable<?>)content).isSet();
 	}
 
 	/**
@@ -678,17 +934,17 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 			case OasPackage.HEADER__DESCRIPTION:
 				return getDescription();
 			case OasPackage.HEADER__REQUIRED:
-				return isRequired();
+				return getRequired();
 			case OasPackage.HEADER__DEPRECATED:
-				return isDeprecated();
+				return getDeprecated();
 			case OasPackage.HEADER__ALLOW_EMPTY_VALUE:
-				return isAllowEmptyValue();
+				return getAllowEmptyValue();
 			case OasPackage.HEADER__STYLE:
 				return getStyle();
 			case OasPackage.HEADER__EXPLODE:
 				return getExplode();
 			case OasPackage.HEADER__ALLOW_RESERVED:
-				return isAllowReserved();
+				return getAllowReserved();
 			case OasPackage.HEADER__SCHEMA:
 				return getSchema();
 			case OasPackage.HEADER__EXAMPLE:
@@ -778,34 +1034,34 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 				setDescription(DESCRIPTION_EDEFAULT);
 				return;
 			case OasPackage.HEADER__REQUIRED:
-				setRequired(REQUIRED_EDEFAULT);
+				unsetRequired();
 				return;
 			case OasPackage.HEADER__DEPRECATED:
-				setDeprecated(DEPRECATED_EDEFAULT);
+				unsetDeprecated();
 				return;
 			case OasPackage.HEADER__ALLOW_EMPTY_VALUE:
-				setAllowEmptyValue(ALLOW_EMPTY_VALUE_EDEFAULT);
+				unsetAllowEmptyValue();
 				return;
 			case OasPackage.HEADER__STYLE:
 				setStyle(STYLE_EDEFAULT);
 				return;
 			case OasPackage.HEADER__EXPLODE:
-				setExplode(EXPLODE_EDEFAULT);
+				unsetExplode();
 				return;
 			case OasPackage.HEADER__ALLOW_RESERVED:
-				setAllowReserved(ALLOW_RESERVED_EDEFAULT);
+				unsetAllowReserved();
 				return;
 			case OasPackage.HEADER__SCHEMA:
 				setSchema((Schema)null);
 				return;
 			case OasPackage.HEADER__EXAMPLE:
-				setExample(EXAMPLE_EDEFAULT);
+				unsetExample();
 				return;
 			case OasPackage.HEADER__EXAMPLES:
-				getExamples().clear();
+				unsetExamples();
 				return;
 			case OasPackage.HEADER__CONTENT:
-				getContent().clear();
+				unsetContent();
 				return;
 			case OasPackage.HEADER__EXTENSIONS:
 				getExtensions().clear();
@@ -829,25 +1085,25 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 			case OasPackage.HEADER__DESCRIPTION:
 				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
 			case OasPackage.HEADER__REQUIRED:
-				return required != REQUIRED_EDEFAULT;
+				return isSetRequired();
 			case OasPackage.HEADER__DEPRECATED:
-				return deprecated != DEPRECATED_EDEFAULT;
+				return isSetDeprecated();
 			case OasPackage.HEADER__ALLOW_EMPTY_VALUE:
-				return allowEmptyValue != ALLOW_EMPTY_VALUE_EDEFAULT;
+				return isSetAllowEmptyValue();
 			case OasPackage.HEADER__STYLE:
 				return style != STYLE_EDEFAULT;
 			case OasPackage.HEADER__EXPLODE:
-				return EXPLODE_EDEFAULT == null ? explode != null : !EXPLODE_EDEFAULT.equals(explode);
+				return isSetExplode();
 			case OasPackage.HEADER__ALLOW_RESERVED:
-				return allowReserved != ALLOW_RESERVED_EDEFAULT;
+				return isSetAllowReserved();
 			case OasPackage.HEADER__SCHEMA:
 				return schema != null;
 			case OasPackage.HEADER__EXAMPLE:
-				return EXAMPLE_EDEFAULT == null ? example != null : !EXAMPLE_EDEFAULT.equals(example);
+				return isSetExample();
 			case OasPackage.HEADER__EXAMPLES:
-				return examples != null && !examples.isEmpty();
+				return isSetExamples();
 			case OasPackage.HEADER__CONTENT:
-				return content != null && !content.isEmpty();
+				return isSetContent();
 			case OasPackage.HEADER__EXTENSIONS:
 				return extensions != null && !extensions.isEmpty();
 		}
@@ -869,19 +1125,19 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 		result.append(", description: ");
 		result.append(description);
 		result.append(", required: ");
-		result.append(required);
+		if (requiredESet) result.append(required); else result.append("<unset>");
 		result.append(", deprecated: ");
-		result.append(deprecated);
+		if (deprecatedESet) result.append(deprecated); else result.append("<unset>");
 		result.append(", allowEmptyValue: ");
-		result.append(allowEmptyValue);
+		if (allowEmptyValueESet) result.append(allowEmptyValue); else result.append("<unset>");
 		result.append(", style: ");
 		result.append(style);
 		result.append(", explode: ");
-		result.append(explode);
+		if (explodeESet) result.append(explode); else result.append("<unset>");
 		result.append(", allowReserved: ");
-		result.append(allowReserved);
+		if (allowReservedESet) result.append(allowReserved); else result.append("<unset>");
 		result.append(", example: ");
-		result.append(example);
+		if (exampleESet) result.append(example); else result.append("<unset>");
 		result.append(')');
 		return result.toString();
 	}

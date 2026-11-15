@@ -144,11 +144,35 @@ public interface Response extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Headers</em>' map.
+	 * @see #isSetHeaders()
+	 * @see #unsetHeaders()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getResponse_Headers()
 	 * @model mapType="org.eclipse.fennec.model.oas.HeaderEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.Header&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, Header> getHeaders();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Response#getHeaders <em>Headers</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetHeaders()
+	 * @see #getHeaders()
+	 * @generated
+	 */
+	void unsetHeaders();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Response#getHeaders <em>Headers</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Headers</em>' map is set.
+	 * @see #unsetHeaders()
+	 * @see #getHeaders()
+	 * @generated
+	 */
+	boolean isSetHeaders();
 
 	/**
 	 * Returns the value of the '<em><b>Content</b></em>' map.
@@ -157,11 +181,35 @@ public interface Response extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Content</em>' map.
+	 * @see #isSetContent()
+	 * @see #unsetContent()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getResponse_Content()
 	 * @model mapType="org.eclipse.fennec.model.oas.MediaTypeEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.MediaType&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, MediaType> getContent();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Response#getContent <em>Content</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetContent()
+	 * @see #getContent()
+	 * @generated
+	 */
+	void unsetContent();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Response#getContent <em>Content</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Content</em>' map is set.
+	 * @see #unsetContent()
+	 * @see #getContent()
+	 * @generated
+	 */
+	boolean isSetContent();
 
 	/**
 	 * Returns the value of the '<em><b>Links</b></em>' map.
@@ -170,11 +218,35 @@ public interface Response extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Links</em>' map.
+	 * @see #isSetLinks()
+	 * @see #unsetLinks()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getResponse_Links()
 	 * @model mapType="org.eclipse.fennec.model.oas.LinkEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.Link&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, Link> getLinks();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Response#getLinks <em>Links</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetLinks()
+	 * @see #getLinks()
+	 * @generated
+	 */
+	void unsetLinks();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Response#getLinks <em>Links</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Links</em>' map is set.
+	 * @see #unsetLinks()
+	 * @see #getLinks()
+	 * @generated
+	 */
+	boolean isSetLinks();
 
 	/**
 	 * Returns the value of the '<em><b>Extensions</b></em>' map.
