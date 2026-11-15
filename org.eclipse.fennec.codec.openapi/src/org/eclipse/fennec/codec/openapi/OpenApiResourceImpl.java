@@ -12,6 +12,11 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.openapi;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
@@ -47,6 +52,16 @@ import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 public class OpenApiResourceImpl extends CodecResource {
 
 	/**
+	 * Save options of {@code org.eclipse.fennec.codec.yaml.YamlFormatProvider}, named here to keep
+	 * the YAML packages off this bundle's imports: quote only where needed, literal blocks for
+	 * multi-line strings (issue #297).
+	 */
+	static final String YAML_MINIMIZE_QUOTES = "codec.yaml.minimizeQuotes";
+	static final String YAML_LITERAL_BLOCK_STYLE = "codec.yaml.literalBlockStyle";
+
+	private final boolean yaml;
+
+	/**
 	 * Creates an OpenAPI resource.
 	 *
 	 * @param uri the resource URI
@@ -71,6 +86,24 @@ public class OpenApiResourceImpl extends CodecResource {
 	public OpenApiResourceImpl(URI uri, MetadataService metadataService, CodecValueRegistry valueRegistry,
 			CodecFormatProvider<?, ?> formatProvider) {
 		super(uri, metadataService, createResolver(), valueRegistry, null, formatProvider);
+		this.yaml = formatProvider != null && "yaml".equals(formatProvider.getFormatId());
+	}
+
+	/**
+	 * Writes YAML the way OpenAPI descriptions are written by hand (issue #297): strings unquoted
+	 * unless YAML would read them as something else, multi-line descriptions as literal blocks. A
+	 * caller's own value for either option wins.
+	 */
+	@Override
+	protected void doSave(OutputStream outputStream, Map<?, ?> options) throws IOException {
+		if (!yaml) {
+			super.doSave(outputStream, options);
+			return;
+		}
+		Map<Object, Object> effective = options == null ? new HashMap<>() : new HashMap<>(options);
+		effective.putIfAbsent(YAML_MINIMIZE_QUOTES, Boolean.TRUE);
+		effective.putIfAbsent(YAML_LITERAL_BLOCK_STYLE, Boolean.TRUE);
+		super.doSave(outputStream, effective);
 	}
 
 	private static ConfigurationResolver createResolver() {

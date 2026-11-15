@@ -21,6 +21,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
+import org.eclipse.emf.ecore.EObject;
+
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.format.FormatDelegate;
@@ -111,7 +113,37 @@ public class JacksonFormatProvider implements CodecFormatProvider<InputStream, O
 
     @Override
     public FormatDelegate<OutputStream> createWriter(OutputStream target) throws IOException {
-        JsonGenerator gen = factory.createGenerator(
+        return createWriter(factory, target);
+    }
+
+    /**
+     * Creates a writer on the factory {@link #writeFactory(Map)} returns for these save options. When
+     * that is this provider's own factory, the writer comes from {@link #createWriter(OutputStream)},
+     * so a subclass that overrides it (e.g. BSON) keeps its writer.
+     *
+     * @since 1.1
+     */
+    @Override
+    public FormatDelegate<OutputStream> createWriter(OutputStream target, EObject rootObject,
+            Map<String, Object> saveOptions) throws IOException {
+        TokenStreamFactory writeFactory = writeFactory(saveOptions == null ? Map.of() : saveOptions);
+        return writeFactory == factory ? createWriter(target) : createWriter(writeFactory, target);
+    }
+
+    /**
+     * Returns the factory to write one save with. A format overrides this to map save options onto
+     * writer features, e.g. YAML quoting (issue #297). The default is this provider's factory.
+     *
+     * @param saveOptions the save options, never {@code null}
+     * @return the factory to write with
+     * @since 1.1
+     */
+    protected TokenStreamFactory writeFactory(Map<String, Object> saveOptions) {
+        return factory;
+    }
+
+    private static FormatDelegate<OutputStream> createWriter(TokenStreamFactory writeFactory, OutputStream target) {
+        JsonGenerator gen = writeFactory.createGenerator(
                 ObjectWriteContext.empty(), target, JsonEncoding.UTF8);
         JacksonStreamFormatDelegate delegate = new JacksonStreamFormatDelegate(gen);
         delegate.setTarget(target);
@@ -120,7 +152,7 @@ public class JacksonFormatProvider implements CodecFormatProvider<InputStream, O
 
     @Override
     public FormatReaderDelegate<InputStream> createReader(InputStream source) throws IOException {
-        return createReader(factory, source);
+        return createReader(factory, source, Map.of());
     }
 
     /**
@@ -137,7 +169,7 @@ public class JacksonFormatProvider implements CodecFormatProvider<InputStream, O
         Object limits = loadOptions == null ? null : loadOptions.get(CodecOptions.INTERNAL_STREAM_READ_CONSTRAINTS);
         TokenStreamFactory readFactory = limits instanceof StreamReadConstraints constraints
                 ? limitedFactory(constraints) : factory;
-        return createReader(readFactory, source);
+        return createReader(readFactory, source, loadOptions == null ? Map.of() : loadOptions);
     }
 
     /**
@@ -152,8 +184,23 @@ public class JacksonFormatProvider implements CodecFormatProvider<InputStream, O
         return factory.rebuild().streamReadConstraints(constraints).build();
     }
 
-    private static FormatReaderDelegate<InputStream> createReader(TokenStreamFactory readFactory, InputStream source) {
-        JsonParser parser = readFactory.createParser(ObjectReadContext.empty(), source);
+    /**
+     * Lets a format wrap the parser of one load, e.g. YAML to resolve anchors and aliases, which
+     * Jackson's YAML parser hands over as plain strings (issue #297). The default returns the
+     * parser unchanged.
+     *
+     * @param parser the parser of this load
+     * @param loadOptions the load options, never {@code null}
+     * @return the parser to read from
+     * @since 1.1
+     */
+    protected JsonParser decorateParser(JsonParser parser, Map<String, Object> loadOptions) {
+        return parser;
+    }
+
+    private FormatReaderDelegate<InputStream> createReader(TokenStreamFactory readFactory, InputStream source,
+            Map<String, Object> loadOptions) {
+        JsonParser parser = decorateParser(readFactory.createParser(ObjectReadContext.empty(), source), loadOptions);
         JacksonStreamFormatReaderDelegate delegate = new JacksonStreamFormatReaderDelegate(parser);
         delegate.setSource(source);
         return delegate;
