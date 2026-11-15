@@ -8,6 +8,11 @@
 		generate=fennecEMF;\
 		lineEndings=lf;\
 		genmodel=model/openapi_v3.genmodel;\
+		output=src,\
+	model/oas.genmodel;\
+		generate=fennecEMF;\
+		lineEndings=lf;\
+		genmodel=model/oas.genmodel;\
 		output=src
 # Add this attribute to find some logging information
 #		logfile=test.log;\
