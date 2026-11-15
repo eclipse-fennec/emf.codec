@@ -285,25 +285,26 @@ A document of another covered version is read with a warning; a version the mode
   `PathItem.getAllOperations()` lists all operations of a path.
 - Reference Objects keep `ref` and get `target` (the object in `components`); their own
   `summary` / `description` are the 3.1+ overrides. `Tag.getParentTag()` follows `parent`.
-- **Schemas.** `components/schemas` is `Components.getSchemas()`, an `EPackage` as for 3.0. At a
-  use site (`Parameter`, `Header`, `MediaType.schema` / `itemSchema`) a `SchemaReference` names the
-  type in `classifier`:
-  - a `$ref` → the classifier of `components/schemas`;
-  - a simple type → an Ecore data type (`EString`, `EIntegerObject`, `ELongObject` for `int64`, …)
-    with the facets (`format`, `minLength`, `pattern`, `minimum`, `enum`, …) on the reference;
-    `nullable` for 3.0 `nullable: true`, a 3.1 `"null"` type or `anyOf: [{type: x}, {type: null}]`;
-  - an array → `many`, the classifier is the item type;
-  - any other inline schema (object, string enum, composition) → a classifier in the sub-package
-    `inline` of the schemas package, named after its place (`ListPets200ApplicationJson`).
-  - Keywords without a feature stay in `keywords`.
+- **Schemas** are kept as written, in the JSON Schema model (`org.eclipse.fennec.codec.jsonschema.model`,
+  draft-04 to 2020-12 plus the OpenAPI vocabulary): `Components.getSchemas()` maps the names to
+  `Schema`s, a use site (`Parameter`, `Header`, `MediaType.schema` / `itemSchema`) holds a `Schema`.
+  The Ecore is derived from them when loading - never written:
+  - `Components.getSchemasPackage()`: a classifier per named schema; its sub-package `inline` holds
+    the classifiers of inline schemas, named after their place (`ListPets200ApplicationJson`);
+  - `Schema.getClassifier()` at a use site: the classifier of a `$ref`, of an inline schema, or an
+    Ecore data type for a simple type (`EString`, `EIntegerObject`, `ELongObject` for `int64`, …);
+    for an array the item type.
 - Specification Extensions (`x-…`) are kept in `extensions`, as native JSON values.
 
-**Writing** follows the resource's version: `nullable: true` and a boolean `exclusiveMinimum` for
-3.0, a type array with `"null"` and a numeric bound for 3.1 and later. Inline classifiers are
-written inline again, their references to `components/schemas` as `$ref`.
+**Writing** writes the description as it was read: the schemas from the JSON Schema model, the
+rest from the model objects - explicit defaults (`required: false`), explicit `null`s and empty
+lists (`parameters: []`) included. A description read and written back gives the same JSON tree;
+`OasLosslessTest` checks this for all examples and the large descriptions. Booleans of the model
+are `Boolean` objects, unset when the document does not name them.
 
 The OpenAI (3.1) and GitHub (3.1 and 3.0.3) descriptions load into the oas model without errors or
-warnings, every response schema typed (`OasLargeDescriptionsTest`).
+warnings, every response schema typed (`OasLargeDescriptionsTest`), and are written back unchanged
+(`OasLosslessTest`).
 
 ## Tests with large descriptions
 
