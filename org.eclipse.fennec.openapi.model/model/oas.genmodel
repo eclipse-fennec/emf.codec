@@ -4,7 +4,8 @@
     modelDirectory="/org.eclipse.fennec.openapi.model/src"
     modelPluginID="org.eclipse.fennec.openapi.model" modelName="Oas" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
     importerID="org.eclipse.emf.importer.ecore" complianceLevel="17.0" copyrightFields="false"
-    operationReflection="true" importOrganizing="true" oSGiCompatible="true">
+    operationReflection="true" importOrganizing="true" oSGiCompatible="true"
+    usedGenPackages="../../org.eclipse.fennec.codec.jsonschema.model/model/jsonschema.genmodel#//model">
   <foreignModel>oas.ecore</foreignModel>
   <genPackages prefix="Oas" basePackage="org.eclipse.fennec.model" resource="XMI" disposableProviderFactory="true"
       ecorePackage="oas.ecore#/">
@@ -92,6 +93,7 @@
     </genClasses>
     <genClasses ecoreClass="oas.ecore#//Components">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/schemas"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/schemasPackage"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/responses"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/parameters"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/examples"/>
@@ -292,37 +294,6 @@
     <genClasses ecoreClass="oas.ecore#//SecurityRequirement">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//SecurityRequirement/schemes"/>
     </genClasses>
-    <genClasses ecoreClass="oas.ecore#//SchemaReference">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/ref"/>
-      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//SchemaReference/classifier"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/many"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/minItems"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/maxItems"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/uniqueItems"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/nullable"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/format"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/title"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/description"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/default"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/enum"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/const"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/minLength"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/maxLength"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/pattern"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/minimum"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/maximum"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/exclusiveMinimum"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/exclusiveMaximum"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/multipleOf"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/readOnly"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/writeOnly"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/deprecated"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/example"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/examples"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/contentMediaType"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/contentEncoding"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//SchemaReference/keywords"/>
-    </genClasses>
     <genClasses ecoreClass="oas.ecore#//PathItemEntry">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//PathItemEntry/key"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItemEntry/value"/>
@@ -390,6 +361,10 @@
     <genClasses ecoreClass="oas.ecore#//SecurityRequirementEntry">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityRequirementEntry/key"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityRequirementEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//SchemaEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//SchemaEntry/value"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

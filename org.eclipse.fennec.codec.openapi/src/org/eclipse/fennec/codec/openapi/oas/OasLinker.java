@@ -31,7 +31,8 @@ import org.eclipse.fennec.model.oas.OasPackage;
 import org.eclipse.fennec.model.oas.OpenAPI;
 import org.eclipse.fennec.model.oas.Operation;
 import org.eclipse.fennec.model.oas.PathItem;
-import org.eclipse.fennec.model.oas.SchemaReference;
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+import org.eclipse.fennec.codec.jsonschema.model.SimpleType;
 import org.eclipse.fennec.model.oas.Tag;
 
 /**
@@ -40,7 +41,7 @@ import org.eclipse.fennec.model.oas.Tag;
  *   <li>{@link Operation#getMethod()} from the member the operation was read from, or the key in
  *       {@code additionalOperations};</li>
  *   <li>the {@code target} of every Reference Object pointing into {@code components};</li>
- *   <li>the {@code classifier} of every {@link SchemaReference} with a {@code $ref} into
+ *   <li>the {@code classifier} of every {@link Schema} with a {@code $ref} (or array items with one) into
  *       {@code components/schemas};</li>
  *   <li>{@link Tag#getParentTag()} from {@code parent}.</li>
  * </ul>
@@ -70,7 +71,7 @@ final class OasLinker {
 			} else if (object instanceof PathItem pathItem) {
 				setMethods(pathItem);
 				linkReference(api, object, problems);
-			} else if (object instanceof SchemaReference schema) {
+			} else if (object instanceof Schema schema) {
 				linkSchema(api, schema, problems);
 			} else if (object instanceof Tag tag && tag.getParent() != null) {
 				Tag parent = tags.get(tag.getParent());
@@ -117,18 +118,26 @@ final class OasLinker {
 		}
 	}
 
-	private static void linkSchema(OpenAPI api, SchemaReference schema, List<String> problems) {
-		List<String> pointer = OpenApiReferences.pointer(schema.getRef());
-		if (pointer == null) {
+	private static void linkSchema(OpenAPI api, Schema schema, List<String> problems) {
+		if (schema.getClassifier() != null) {
 			return;
+		}
+		String ref = schema.getRef();
+		if (ref == null && schema.getItems() != null
+				&& (schema.getType().contains(SimpleType.ARRAY) || schema.getType().isEmpty())) {
+			ref = schema.getItems().getRef(); // an array: its classifier is the item type
+		}
+		List<String> pointer = OpenApiReferences.pointer(ref);
+		if (pointer == null || pointer.isEmpty() || !"components".equals(pointer.get(0))) {
+			return; // another document, or a pointer into the schema itself (#/$defs/...)
 		}
 		Components components = api.getComponents();
 		EClassifier classifier = pointer.size() == 3 && "components".equals(pointer.get(0))
 				&& "schemas".equals(pointer.get(1)) && components != null
-						? OpenApiReferences.classifier(components.getSchemas(), pointer.get(2))
+						? OpenApiReferences.classifier(components.getSchemasPackage(), pointer.get(2))
 						: null;
 		if (classifier == null) {
-			problems.add("$ref '" + schema.getRef() + "' has no target in this document");
+			problems.add("$ref '" + ref + "' has no target in this document");
 		} else {
 			schema.setClassifier(classifier);
 		}

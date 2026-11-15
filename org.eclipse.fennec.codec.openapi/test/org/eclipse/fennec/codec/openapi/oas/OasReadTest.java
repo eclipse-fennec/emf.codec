@@ -39,6 +39,8 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+import org.eclipse.fennec.codec.jsonschema.model.SimpleType;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.yaml.YamlFormatProvider;
 import org.eclipse.fennec.model.oas.OasPackage;
@@ -47,7 +49,6 @@ import org.eclipse.fennec.model.oas.Operation;
 import org.eclipse.fennec.model.oas.Parameter;
 import org.eclipse.fennec.model.oas.ParameterLocation;
 import org.eclipse.fennec.model.oas.PathItem;
-import org.eclipse.fennec.model.oas.SchemaReference;
 import org.eclipse.fennec.model.oas.SecuritySchemeType;
 import org.eclipse.fennec.model.oas.Tag;
 import org.junit.jupiter.api.BeforeEach;
@@ -127,23 +128,23 @@ class OasReadTest {
 			Parameter limit = load("v3.0/petstore.json").getPaths().get("/pets").getGet().getParameters().get(0);
 
 			assertEquals(ParameterLocation.QUERY, limit.getIn());
-			SchemaReference schema = limit.getSchema();
+			Schema schema = limit.getSchema();
 			assertSame(EcorePackage.Literals.EINTEGER_OBJECT, schema.getClassifier());
 			assertEquals("int32", schema.getFormat());
 			assertEquals(new BigDecimal(100), schema.getMaximum());
-			assertFalse(schema.isMany());
+			assertEquals(List.of(SimpleType.INTEGER), schema.getType());
 		}
 
 		@Test
 		@DisplayName("a $ref leads to the components classifier")
 		void reference() throws IOException {
 			OpenAPI api = load("v3.0/petstore.yaml");
-			SchemaReference schema = api.getPaths().get("/pets").getGet().getResponses().get("200").getContent()
+			Schema schema = api.getPaths().get("/pets").getGet().getResponses().get("200").getContent()
 					.get("application/json").getSchema();
 
 			assertEquals("#/components/schemas/Pets", schema.getRef());
-			assertSame(api.getComponents().getSchemas().getEClassifier("Pets"), schema.getClassifier());
-			assertEquals("urn:openapi:swagger-petstore:1.0.0", api.getComponents().getSchemas().getNsURI());
+			assertSame(api.getComponents().getSchemasPackage().getEClassifier("Pets"), schema.getClassifier());
+			assertEquals("urn:openapi:swagger-petstore:1.0.0", api.getComponents().getSchemasPackage().getNsURI());
 		}
 	}
 
@@ -156,13 +157,13 @@ class OasReadTest {
 		void inlineObject() throws IOException {
 			OpenAPI api = load("v3.2/3.2-query-example.yaml");
 			Operation search = api.getPaths().get("/flights/search").getQuery();
-			SchemaReference schema = search.getRequestBody().getContent().get("application/json").getSchema();
+			Schema schema = search.getRequestBody().getContent().get("application/json").getSchema();
 
 			EClass request = assertInstanceOf(EClass.class, schema.getClassifier());
 			assertEquals("SearchFlightsRequestApplicationJson", request.getName());
 			EPackage inline = request.getEPackage();
 			assertEquals(OasSchemas.INLINE, inline.getName());
-			assertSame(api.getComponents().getSchemas(), inline.getESuperPackage());
+			assertSame(api.getComponents().getSchemasPackage(), inline.getESuperPackage());
 			assertNotNull(request.getEStructuralFeature("origin"));
 			assertInstanceOf(EEnum.class, request.getEStructuralFeature("cabinClass").getEType());
 			assertEquals(1, request.getEStructuralFeature("origin").getLowerBound());
@@ -191,10 +192,10 @@ class OasReadTest {
 					                  properties:
 					                    id: { type: string }
 					""";
-			SchemaReference schema = parse(yaml, OasVersion.V3_1).getPaths().get("/a").getGet().getResponses()
+			Schema schema = parse(yaml, OasVersion.V3_1).getPaths().get("/a").getGet().getResponses()
 					.get("200").getContent().get("application/json").getSchema();
 
-			assertTrue(schema.isMany());
+			assertEquals(List.of(SimpleType.ARRAY), schema.getType());
 			assertEquals(10, schema.getMaxItems());
 			EClass item = assertInstanceOf(EClass.class, schema.getClassifier());
 			assertEquals("ListA200ApplicationJson", item.getName());
@@ -230,15 +231,15 @@ class OasReadTest {
 			EClass request = (EClass) api.getPaths().get("/a").getPost().getRequestBody().getContent()
 					.get("application/json").getSchema().getClassifier();
 
-			assertSame(api.getComponents().getSchemas().getEClassifier("Pet"),
+			assertSame(api.getComponents().getSchemasPackage().getEClassifier("Pet"),
 					request.getEStructuralFeature("pet").getEType());
-			assertNull(OasSchemas.INLINE.equals(api.getComponents().getSchemas().getEClassifier("Pet").getEPackage().getName())
+			assertNull(OasSchemas.INLINE.equals(api.getComponents().getSchemasPackage().getEClassifier("Pet").getEPackage().getName())
 					? "Pet must not be copied into inline" : null);
-			assertEquals(1, api.getComponents().getSchemas().getESubpackages().get(0).getEClassifiers().size());
+			assertEquals(1, api.getComponents().getSchemasPackage().getESubpackages().get(0).getEClassifiers().size());
 		}
 
 		@Test
-		@DisplayName("3.1 type arrays and 3.0 nullable both set nullable")
+		@DisplayName("3.1 type arrays and 3.0 nullable are kept as written, the classifier is the type")
 		void nullable() throws IOException {
 			String doc = """
 					openapi: %s
@@ -252,19 +253,19 @@ class OasReadTest {
 					          schema: %s
 					      responses: {}
 					""";
-			SchemaReference v31 = parse(doc.formatted("3.1.0", "{ type: [string, 'null'] }"), OasVersion.V3_1)
+			Schema v31 = parse(doc.formatted("3.1.0", "{ type: [string, 'null'] }"), OasVersion.V3_1)
 					.getPaths().get("/a").getGet().getParameters().get(0).getSchema();
-			SchemaReference v30 = parse(doc.formatted("3.0.3", "{ type: string, nullable: true }"), OasVersion.V3_0)
+			Schema v30 = parse(doc.formatted("3.0.3", "{ type: string, nullable: true }"), OasVersion.V3_0)
 					.getPaths().get("/a").getGet().getParameters().get(0).getSchema();
 
-			assertTrue(v31.isNullable());
-			assertTrue(v30.isNullable());
+			assertEquals(List.of(SimpleType.STRING, SimpleType.NULL), v31.getType());
+			assertEquals(Boolean.TRUE, v30.getNullable());
 			assertSame(EcorePackage.Literals.ESTRING, v31.getClassifier());
 			assertSame(EcorePackage.Literals.ESTRING, v30.getClassifier());
 		}
 
 		@Test
-		@DisplayName("a 3.0 boolean exclusiveMinimum becomes the 3.1 bound")
+		@DisplayName("a 3.0 boolean exclusiveMinimum is kept as written")
 		void exclusiveMinimum() throws IOException {
 			String yaml = """
 					openapi: 3.0.3
@@ -278,11 +279,12 @@ class OasReadTest {
 					          schema: { type: number, minimum: 0, exclusiveMinimum: true }
 					      responses: {}
 					""";
-			SchemaReference schema = parse(yaml, OasVersion.V3_0).getPaths().get("/a").getGet().getParameters().get(0)
+			Schema schema = parse(yaml, OasVersion.V3_0).getPaths().get("/a").getGet().getParameters().get(0)
 					.getSchema();
 
-			assertEquals(BigDecimal.ZERO, schema.getExclusiveMinimum());
-			assertNull(schema.getMinimum());
+			assertEquals(Boolean.TRUE, schema.getExclusiveMinimumFlag());
+			assertEquals(BigDecimal.ZERO, schema.getMinimum());
+			assertNull(schema.getExclusiveMinimum());
 		}
 	}
 

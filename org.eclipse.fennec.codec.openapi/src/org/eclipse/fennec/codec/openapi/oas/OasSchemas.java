@@ -39,20 +39,21 @@ import org.eclipse.fennec.model.oas.OpenAPI;
 import org.eclipse.fennec.model.oas.Operation;
 import org.eclipse.fennec.model.oas.Parameter;
 import org.eclipse.fennec.model.oas.RequestBody;
-import org.eclipse.fennec.model.oas.SchemaReference;
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+import org.eclipse.fennec.codec.jsonschema.v2.model.SchemaJson;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
- * Turns the Schema Objects of a loaded description into classifiers (issue #301).
+ * Derives the Ecore of a loaded description from its schemas (issues #301, #319). The schemas
+ * themselves stay as read, in the JSON Schema model; this adds the classifiers.
  * <ul>
- *   <li>{@code components/schemas} becomes the schemas package, as for the 3.0 model.</li>
- *   <li>A use site ({@link SchemaReference}) with {@code $ref} keeps it; the classifier is linked by
- *       {@link OasLinker}. A simple type (string, integer, number, boolean, also as array items) maps to an
- *       Ecore data type, its facets stay on the {@link SchemaReference}. An array sets {@code many}; its
- *       {@code $ref} or type is the one of its items.</li>
+ *   <li>{@code components/schemas} becomes the schemas package ({@code Components.schemasPackage}).</li>
+ *   <li>At a use site, a simple type (string, integer, number, boolean, also as array items) gets an
+ *       Ecore data type as {@link Schema#getClassifier() classifier}; an array's classifier is its item
+ *       type. A {@code $ref} is linked by {@link OasLinker}.</li>
  *   <li>Any other inline schema - object, string enum, composition, nested array - becomes a classifier
  *       in the sub-package {@code inline} of the schemas package, named after its place
  *       ({@code ListPets200ApplicationJson}). Inline schemas are converted together with
@@ -68,23 +69,25 @@ final class OasSchemas {
 	private static final Set<String> COMPLEX = Set.of("properties", "additionalProperties", "patternProperties",
 			"allOf", "oneOf", "anyOf", "not", "if", "then", "else", "prefixItems", "dependentSchemas",
 			"unevaluatedProperties", "discriminator", "required");
-	private static final Set<String> FACETS = Set.of("$ref", "type", "items", "nullable", "format", "title",
-			"description", "default", "enum", "const", "minLength", "maxLength", "pattern", "minimum", "maximum",
-			"exclusiveMinimum", "exclusiveMaximum", "multipleOf", "readOnly", "writeOnly", "deprecated", "example",
-			"examples", "contentMediaType", "contentEncoding", "minItems", "maxItems", "uniqueItems");
 
 	private OasSchemas() {
 	}
 
 	/**
-	 * @param api a loaded description whose readers kept the Schema Object JSON
+	 * Derives the Ecore of a loaded description: the schemas package from {@code components/schemas},
+	 * and a classifier for every Schema Object at a use site.
+	 *
+	 * @param api a loaded description
 	 * @param problems collects what could not be mapped
 	 */
 	static void convert(OpenAPI api, List<String> problems) {
 		Components components = api.getComponents();
-		JsonNode componentsJson = components == null || components.getSchemas() == null ? null
-				: OasSchemaSource.take(components.getSchemas());
-		ObjectNode componentDefs = componentsJson instanceof ObjectNode object ? object : MAPPER.createObjectNode();
+		ObjectNode componentDefs = MAPPER.createObjectNode();
+		if (components != null) {
+			for (Map.Entry<String, Schema> entry : components.getSchemas()) {
+				componentDefs.set(entry.getKey(), SchemaJson.write(entry.getValue()));
+			}
+		}
 
 		Set<String> used = new HashSet<>();
 		componentDefs.propertyNames().forEach(used::add);
@@ -95,12 +98,11 @@ final class OasSchemas {
 			componentByText.putIfAbsent(entry.getValue().toString(), entry.getKey());
 		}
 		Map<String, String> inlineByText = new HashMap<>();
-		Map<SchemaReference, String> inline = new LinkedHashMap<>();
-		Map<SchemaReference, String> sameAsComponent = new LinkedHashMap<>();
+		Map<Schema, String> inline = new LinkedHashMap<>();
+		Map<Schema, String> sameAsComponent = new LinkedHashMap<>();
 		ObjectNode inlineDefs = MAPPER.createObjectNode();
-		for (SchemaReference schema : pendingSchemas(api)) {
-			JsonNode json = OasSchemaSource.take(schema);
-			JsonNode complex = map(schema, json);
+		for (Schema schema : useSites(api)) {
+			JsonNode complex = map(schema, SchemaJson.write(schema));
 			if (complex == null) {
 				continue;
 			}
@@ -120,13 +122,13 @@ final class OasSchemas {
 
 		EPackage schemas = componentDefs.isEmpty() ? EcoreFactory.eINSTANCE.createEPackage()
 				: new JsonSchemaToEPackageConverter().convert(componentDefs, null);
-		for (Map.Entry<SchemaReference, String> entry : sameAsComponent.entrySet()) {
+		for (Map.Entry<Schema, String> entry : sameAsComponent.entrySet()) {
 			entry.getKey().setClassifier(OpenApiReferences.classifier(schemas, entry.getValue()));
 		}
 		if (!inline.isEmpty()) {
 			EPackage inlinePackage = convertInline(componentDefs, inlineDefs, schemas, problems);
 			schemas.getESubpackages().add(inlinePackage);
-			for (Map.Entry<SchemaReference, String> entry : inline.entrySet()) {
+			for (Map.Entry<Schema, String> entry : inline.entrySet()) {
 				EClassifier classifier = OpenApiReferences.classifier(inlinePackage, entry.getValue());
 				if (classifier == null) {
 					problems.add("inline schema '" + entry.getValue() + "' could not be converted");
@@ -134,48 +136,43 @@ final class OasSchemas {
 				entry.getKey().setClassifier(classifier);
 			}
 		}
-		if (!componentDefs.isEmpty() || !inline.isEmpty()) {
+		if (!componentDefs.isEmpty() || !inline.isEmpty() || components != null) {
 			if (components == null) {
 				components = OasFactory.eINSTANCE.createComponents();
 				api.setComponents(components);
 			}
-			components.setSchemas(schemas);
-		} else if (components != null && components.getSchemas() != null && componentsJson != null) {
-			components.setSchemas(schemas); // an empty components/schemas
+			components.setSchemasPackage(schemas);
 		}
 	}
 
-	private static List<SchemaReference> pendingSchemas(OpenAPI api) {
-		List<SchemaReference> pending = new ArrayList<>();
+	/** The schemas of parameters, headers and media types - not the ones nested in other schemas. */
+	private static List<Schema> useSites(OpenAPI api) {
+		List<Schema> sites = new ArrayList<>();
 		for (TreeIterator<EObject> it = api.eAllContents(); it.hasNext();) {
 			EObject object = it.next();
 			if (object instanceof EPackage) {
 				it.prune();
-			} else if (object instanceof SchemaReference schema && hasSource(schema)) {
-				pending.add(schema);
+			} else if (object instanceof Schema schema) {
+				it.prune();
+				EObject owner = schema.eContainer();
+				if (!(owner instanceof Schema) && !(owner instanceof Map.Entry<?, ?>)) {
+					sites.add(schema);
+				}
 			}
 		}
-		return pending;
-	}
-
-	private static boolean hasSource(SchemaReference schema) {
-		return schema.eAdapters().stream().anyMatch(a -> a instanceof OasSchemaSource);
+		return sites;
 	}
 
 	/**
-	 * Maps what a {@link SchemaReference} holds itself.
+	 * Sets the classifier of a use site where it is a simple type; a {@code $ref} is linked by
+	 * {@link OasLinker}.
 	 *
 	 * @return the JSON to convert into an inline classifier, {@code null} if there is none
 	 */
-	static JsonNode map(SchemaReference schema, JsonNode json) {
-		if (json == null) {
-			return null;
-		}
-		if (json.isBoolean()) {
-			if (json.asBoolean()) {
+	static JsonNode map(Schema schema, JsonNode json) {
+		if (json == null || json.isBoolean()) {
+			if (json != null && json.asBoolean()) {
 				schema.setClassifier(EcorePackage.Literals.EJAVA_OBJECT); // true: any value
-			} else {
-				schema.getKeywords().put("not", Map.of()); // false: no value
 			}
 			return null;
 		}
@@ -185,65 +182,37 @@ final class OasSchemas {
 		// anyOf: [{type: integer}, {type: null}] is a nullable integer
 		JsonNode unwrapped = JsonSchemaToEPackageConverter.unwrapNullableUnion(json);
 		if (unwrapped != json) {
-			schema.setNullable(isNullableUnion(json));
 			return map(schema, unwrapped);
 		}
 		if (isComplex(json)) {
 			return json;
 		}
-		facets(schema, json);
-		List<String> types = types(json);
-		if (types.remove("null")) {
-			schema.setNullable(true);
-		}
 		if (json.has("$ref")) {
-			schema.setRef(json.get("$ref").asString());
 			return null;
 		}
+		List<String> types = types(json);
+		types.remove("null");
 		String type = types.size() == 1 ? types.get(0) : null;
 		if ("array".equals(type) || (type == null && json.has("items"))) {
-			schema.setMany(true);
 			JsonNode items = json.get("items");
 			if (items == null || !items.isObject()) {
 				schema.setClassifier(EcorePackage.Literals.EJAVA_OBJECT);
 				return null;
 			}
-			if (isComplex(items) || types(items).contains("array") || items.has("items")) {
-				return items;
+			JsonNode unwrappedItems = JsonSchemaToEPackageConverter.unwrapNullableUnion(items);
+			if (isComplex(unwrappedItems) || types(unwrappedItems).contains("array") || unwrappedItems.has("items")) {
+				return unwrappedItems;
 			}
-			if (items.has("$ref")) {
-				schema.setRef(items.get("$ref").asString());
-				return null;
+			if (unwrappedItems.has("$ref")) {
+				return null; // linked by OasLinker
 			}
-			facets(schema, items);
-			List<String> itemTypes = types(items);
-			if (itemTypes.remove("null")) {
-				schema.setNullable(true);
-			}
-			schema.setClassifier(dataType(itemTypes.size() == 1 ? itemTypes.get(0) : null, text(items, "format")));
+			List<String> itemTypes = types(unwrappedItems);
+			itemTypes.remove("null");
+			schema.setClassifier(dataType(itemTypes.size() == 1 ? itemTypes.get(0) : null, text(unwrappedItems, "format")));
 			return null;
 		}
-		if (types.size() > 1) {
-			schema.setClassifier(EcorePackage.Literals.EJAVA_OBJECT);
-			schema.getKeywords().put("type", types);
-			return null;
-		}
-		schema.setClassifier(dataType(type, schema.getFormat()));
+		schema.setClassifier(types.size() > 1 ? EcorePackage.Literals.EJAVA_OBJECT : dataType(type, text(json, "format")));
 		return null;
-	}
-
-	private static boolean isNullableUnion(JsonNode json) {
-		for (String keyword : new String[] { "anyOf", "oneOf" }) {
-			JsonNode union = json.get(keyword);
-			if (union != null) {
-				for (JsonNode branch : union) {
-					if (branch.has("type") && "null".equals(branch.get("type").asString())) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
 	}
 
 	private static boolean isComplex(JsonNode json) {
@@ -267,67 +236,6 @@ final class OasSchemas {
 		return types;
 	}
 
-	/** The facets of a simple schema; keywords without a feature go to {@code keywords}. */
-	private static void facets(SchemaReference schema, JsonNode json) {
-		for (Map.Entry<String, JsonNode> entry : json.properties()) {
-			String key = entry.getKey();
-			JsonNode value = entry.getValue();
-			switch (key) {
-				case "format" -> schema.setFormat(value.asString());
-				case "title" -> schema.setTitle(value.asString());
-				case "description" -> schema.setDescription(value.asString());
-				case "default" -> schema.setDefault(java(value));
-				case "enum" -> value.forEach(v -> schema.getEnum().add(java(v)));
-				case "const" -> schema.setConst(java(value));
-				case "minLength" -> schema.setMinLength(value.asInt());
-				case "maxLength" -> schema.setMaxLength(value.asInt());
-				case "pattern" -> schema.setPattern(value.asString());
-				case "minimum" -> schema.setMinimum(value.decimalValue());
-				case "maximum" -> schema.setMaximum(value.decimalValue());
-				case "exclusiveMinimum" -> {
-					if (value.isNumber()) {
-						schema.setExclusiveMinimum(value.decimalValue());
-					} else if (value.asBoolean() && json.has("minimum")) {
-						schema.setExclusiveMinimum(json.get("minimum").decimalValue()); // 3.0 form
-					}
-				}
-				case "exclusiveMaximum" -> {
-					if (value.isNumber()) {
-						schema.setExclusiveMaximum(value.decimalValue());
-					} else if (value.asBoolean() && json.has("maximum")) {
-						schema.setExclusiveMaximum(json.get("maximum").decimalValue()); // 3.0 form
-					}
-				}
-				case "multipleOf" -> schema.setMultipleOf(value.decimalValue());
-				case "readOnly" -> schema.setReadOnly(value.asBoolean());
-				case "writeOnly" -> schema.setWriteOnly(value.asBoolean());
-				case "deprecated" -> schema.setDeprecated(value.asBoolean());
-				case "example" -> schema.setExample(java(value));
-				case "examples" -> value.forEach(v -> schema.getExamples().add(java(v)));
-				case "contentMediaType" -> schema.setContentMediaType(value.asString());
-				case "contentEncoding" -> schema.setContentEncoding(value.asString());
-				case "minItems" -> schema.setMinItems(value.asInt());
-				case "maxItems" -> schema.setMaxItems(value.asInt());
-				case "uniqueItems" -> schema.setUniqueItems(value.asBoolean());
-				case "nullable" -> schema.setNullable(schema.isNullable() || value.asBoolean());
-				default -> {
-					if (!FACETS.contains(key)) {
-						schema.getKeywords().put(key, java(value));
-					}
-				}
-			}
-		}
-		// the 3.0 form names the bound twice: minimum and exclusiveMinimum: true
-		if (schema.getExclusiveMinimum() != null && schema.getExclusiveMinimum().equals(schema.getMinimum())
-				&& json.has("exclusiveMinimum") && json.get("exclusiveMinimum").isBoolean()) {
-			schema.setMinimum(null);
-		}
-		if (schema.getExclusiveMaximum() != null && schema.getExclusiveMaximum().equals(schema.getMaximum())
-				&& json.has("exclusiveMaximum") && json.get("exclusiveMaximum").isBoolean()) {
-			schema.setMaximum(null);
-		}
-	}
-
 	/** The Ecore data type of a simple JSON Schema type, refined by format. */
 	static EDataType dataType(String type, String format) {
 		if (type == null) {
@@ -342,9 +250,6 @@ final class OasSchemas {
 		};
 	}
 
-	private static Object java(JsonNode value) {
-		return MAPPER.treeToValue(value, Object.class);
-	}
 
 	private static String text(JsonNode json, String key) {
 		return json.has(key) ? json.get(key).asString() : null;
@@ -472,7 +377,7 @@ final class OasSchemas {
 	}
 
 	/** A name from the place of the schema: operation, status code, media type, parameter, ... */
-	static String nameFor(SchemaReference schema) {
+	static String nameFor(Schema schema) {
 		List<String> segments = new ArrayList<>();
 		if ("itemSchema".equals(schema.eContainingFeature() == null ? null : schema.eContainingFeature().getName())) {
 			segments.add("Item");

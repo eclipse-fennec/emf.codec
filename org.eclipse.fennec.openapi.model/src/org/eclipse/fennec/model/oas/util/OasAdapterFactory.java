@@ -23,6 +23,8 @@ import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EObject;
 
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+
 import org.eclipse.fennec.model.oas.*;
 
 /**
@@ -178,10 +180,6 @@ public class OasAdapterFactory extends AdapterFactoryImpl {
 				return createSecurityRequirementAdapter();
 			}
 			@Override
-			public Adapter caseSchemaReference(SchemaReference object) {
-				return createSchemaReferenceAdapter();
-			}
-			@Override
 			public Adapter casePathItemEntry(Map.Entry<String, PathItem> object) {
 				return createPathItemEntryAdapter();
 			}
@@ -248,6 +246,10 @@ public class OasAdapterFactory extends AdapterFactoryImpl {
 			@Override
 			public Adapter caseSecurityRequirementEntry(Map.Entry<String, EList<String>> object) {
 				return createSecurityRequirementEntryAdapter();
+			}
+			@Override
+			public Adapter caseSchemaEntry(Map.Entry<String, Schema> object) {
+				return createSchemaEntryAdapter();
 			}
 			@Override
 			public Adapter defaultCase(EObject object) {
@@ -606,20 +608,6 @@ public class OasAdapterFactory extends AdapterFactoryImpl {
 	}
 
 	/**
-	 * Creates a new adapter for an object of class '{@link org.eclipse.fennec.model.oas.SchemaReference <em>Schema Reference</em>}'.
-	 * <!-- begin-user-doc -->
-	 * This default implementation returns null so that we can easily ignore cases;
-	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
-	 * <!-- end-user-doc -->
-	 * @return the new adapter.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference
-	 * @generated
-	 */
-	public Adapter createSchemaReferenceAdapter() {
-		return null;
-	}
-
-	/**
 	 * Creates a new adapter for an object of class '{@link java.util.Map.Entry <em>Path Item Entry</em>}'.
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
@@ -854,6 +842,20 @@ public class OasAdapterFactory extends AdapterFactoryImpl {
 	 * @generated
 	 */
 	public Adapter createSecurityRequirementEntryAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link java.util.Map.Entry <em>Schema Entry</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see java.util.Map.Entry
+	 * @generated
+	 */
+	public Adapter createSchemaEntryAdapter() {
 		return null;
 	}
 

@@ -17,6 +17,8 @@ import org.eclipse.emf.common.util.EMap;
 
 import org.eclipse.emf.ecore.EObject;
 
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+
 import org.osgi.annotation.versioning.ProviderType;
 
 /**
@@ -124,13 +126,13 @@ public interface MediaType extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Schema</em>' containment reference.
-	 * @see #setSchema(SchemaReference)
+	 * @see #setSchema(Schema)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getMediaType_Schema()
 	 * @model containment="true"
-	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='oasSchema' valueWriterName='oasSchema'"
+	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='jsonSchema' valueWriterName='jsonSchema'"
 	 * @generated
 	 */
-	SchemaReference getSchema();
+	Schema getSchema();
 
 	/**
 	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getSchema <em>Schema</em>}' containment reference.
@@ -140,7 +142,7 @@ public interface MediaType extends EObject {
 	 * @see #getSchema()
 	 * @generated
 	 */
-	void setSchema(SchemaReference value);
+	void setSchema(Schema value);
 
 	/**
 	 * Returns the value of the '<em><b>Item Schema</b></em>' containment reference.
@@ -150,14 +152,14 @@ public interface MediaType extends EObject {
 	 * Schema of each item of a sequential media type.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Item Schema</em>' containment reference.
-	 * @see #setItemSchema(SchemaReference)
+	 * @see #setItemSchema(Schema)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getMediaType_ItemSchema()
 	 * @model containment="true"
-	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='oasSchema' valueWriterName='oasSchema'"
+	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='jsonSchema' valueWriterName='jsonSchema'"
 	 *        annotation="http://eclipse.org/fennec/openapi since='3.2'"
 	 * @generated
 	 */
-	SchemaReference getItemSchema();
+	Schema getItemSchema();
 
 	/**
 	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.MediaType#getItemSchema <em>Item Schema</em>}' containment reference.
@@ -167,7 +169,7 @@ public interface MediaType extends EObject {
 	 * @see #getItemSchema()
 	 * @generated
 	 */
-	void setItemSchema(SchemaReference value);
+	void setItemSchema(Schema value);
 
 	/**
 	 * Returns the value of the '<em><b>Example</b></em>' attribute.

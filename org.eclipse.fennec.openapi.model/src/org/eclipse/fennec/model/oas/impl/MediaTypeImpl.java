@@ -31,11 +31,12 @@ import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.ecore.util.EcoreEMap;
 import org.eclipse.emf.ecore.util.InternalEList;
 
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+
 import org.eclipse.fennec.model.oas.Encoding;
 import org.eclipse.fennec.model.oas.Example;
 import org.eclipse.fennec.model.oas.MediaType;
 import org.eclipse.fennec.model.oas.OasPackage;
-import org.eclipse.fennec.model.oas.SchemaReference;
 
 /**
  * <!-- begin-user-doc -->
@@ -119,7 +120,7 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * @generated
 	 * @ordered
 	 */
-	protected SchemaReference schema;
+	protected Schema schema;
 
 	/**
 	 * The cached value of the '{@link #getItemSchema() <em>Item Schema</em>}' containment reference.
@@ -129,7 +130,7 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * @generated
 	 * @ordered
 	 */
-	protected SchemaReference itemSchema;
+	protected Schema itemSchema;
 
 	/**
 	 * The default value of the '{@link #getExample() <em>Example</em>}' attribute.
@@ -312,7 +313,7 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * @generated
 	 */
 	@Override
-	public SchemaReference getSchema() {
+	public Schema getSchema() {
 		return schema;
 	}
 
@@ -321,8 +322,8 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public NotificationChain basicSetSchema(SchemaReference newSchema, NotificationChain msgs) {
-		SchemaReference oldSchema = schema;
+	public NotificationChain basicSetSchema(Schema newSchema, NotificationChain msgs) {
+		Schema oldSchema = schema;
 		schema = newSchema;
 		if (eNotificationRequired()) {
 			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OasPackage.MEDIA_TYPE__SCHEMA, oldSchema, newSchema);
@@ -337,7 +338,7 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * @generated
 	 */
 	@Override
-	public void setSchema(SchemaReference newSchema) {
+	public void setSchema(Schema newSchema) {
 		if (newSchema != schema) {
 			NotificationChain msgs = null;
 			if (schema != null)
@@ -357,7 +358,7 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * @generated
 	 */
 	@Override
-	public SchemaReference getItemSchema() {
+	public Schema getItemSchema() {
 		return itemSchema;
 	}
 
@@ -366,8 +367,8 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public NotificationChain basicSetItemSchema(SchemaReference newItemSchema, NotificationChain msgs) {
-		SchemaReference oldItemSchema = itemSchema;
+	public NotificationChain basicSetItemSchema(Schema newItemSchema, NotificationChain msgs) {
+		Schema oldItemSchema = itemSchema;
 		itemSchema = newItemSchema;
 		if (eNotificationRequired()) {
 			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OasPackage.MEDIA_TYPE__ITEM_SCHEMA, oldItemSchema, newItemSchema);
@@ -382,7 +383,7 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * @generated
 	 */
 	@Override
-	public void setItemSchema(SchemaReference newItemSchema) {
+	public void setItemSchema(Schema newItemSchema) {
 		if (newItemSchema != itemSchema) {
 			NotificationChain msgs = null;
 			if (itemSchema != null)
@@ -599,10 +600,10 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 				setDescription((String)newValue);
 				return;
 			case OasPackage.MEDIA_TYPE__SCHEMA:
-				setSchema((SchemaReference)newValue);
+				setSchema((Schema)newValue);
 				return;
 			case OasPackage.MEDIA_TYPE__ITEM_SCHEMA:
-				setItemSchema((SchemaReference)newValue);
+				setItemSchema((Schema)newValue);
 				return;
 			case OasPackage.MEDIA_TYPE__EXAMPLE:
 				setExample(newValue);
@@ -645,10 +646,10 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 				setDescription(DESCRIPTION_EDEFAULT);
 				return;
 			case OasPackage.MEDIA_TYPE__SCHEMA:
-				setSchema((SchemaReference)null);
+				setSchema((Schema)null);
 				return;
 			case OasPackage.MEDIA_TYPE__ITEM_SCHEMA:
-				setItemSchema((SchemaReference)null);
+				setItemSchema((Schema)null);
 				return;
 			case OasPackage.MEDIA_TYPE__EXAMPLE:
 				setExample(EXAMPLE_EDEFAULT);

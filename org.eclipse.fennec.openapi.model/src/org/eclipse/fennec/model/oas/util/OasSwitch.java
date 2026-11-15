@@ -21,6 +21,8 @@ import org.eclipse.emf.ecore.EPackage;
 
 import org.eclipse.emf.ecore.util.Switch;
 
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+
 import org.eclipse.fennec.model.oas.*;
 
 /**
@@ -224,12 +226,6 @@ public class OasSwitch<T> extends Switch<T> {
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
-			case OasPackage.SCHEMA_REFERENCE: {
-				SchemaReference schemaReference = (SchemaReference)theEObject;
-				T result = caseSchemaReference(schemaReference);
-				if (result == null) result = defaultCase(theEObject);
-				return result;
-			}
 			case OasPackage.PATH_ITEM_ENTRY: {
 				@SuppressWarnings("unchecked") Map.Entry<String, PathItem> pathItemEntry = (Map.Entry<String, PathItem>)theEObject;
 				T result = casePathItemEntry(pathItemEntry);
@@ -329,6 +325,12 @@ public class OasSwitch<T> extends Switch<T> {
 			case OasPackage.SECURITY_REQUIREMENT_ENTRY: {
 				@SuppressWarnings("unchecked") Map.Entry<String, EList<String>> securityRequirementEntry = (Map.Entry<String, EList<String>>)theEObject;
 				T result = caseSecurityRequirementEntry(securityRequirementEntry);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case OasPackage.SCHEMA_ENTRY: {
+				@SuppressWarnings("unchecked") Map.Entry<String, Schema> schemaEntry = (Map.Entry<String, Schema>)theEObject;
+				T result = caseSchemaEntry(schemaEntry);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
@@ -697,21 +699,6 @@ public class OasSwitch<T> extends Switch<T> {
 	}
 
 	/**
-	 * Returns the result of interpreting the object as an instance of '<em>Schema Reference</em>'.
-	 * <!-- begin-user-doc -->
-	 * This implementation returns null;
-	 * returning a non-null result will terminate the switch.
-	 * <!-- end-user-doc -->
-	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>Schema Reference</em>'.
-	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-	 * @generated
-	 */
-	public T caseSchemaReference(SchemaReference object) {
-		return null;
-	}
-
-	/**
 	 * Returns the result of interpreting the object as an instance of '<em>Path Item Entry</em>'.
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
@@ -963,6 +950,21 @@ public class OasSwitch<T> extends Switch<T> {
 	 * @generated
 	 */
 	public T caseSecurityRequirementEntry(Map.Entry<String, EList<String>> object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Schema Entry</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Schema Entry</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseSchemaEntry(Map.Entry<String, Schema> object) {
 		return null;
 	}
 

@@ -42,7 +42,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = OasPackage.eNS_URI, fingerprint = "fp1:9a6cd6e486f78769b168c65d2754a2a38262b08e0e5d285f0d1c3e6c4308dddc", genModel = "/model/oas.genmodel", genModelSourceLocations = {"model/oas.genmodel","org.eclipse.fennec.openapi.model/model/oas.genmodel"}, ecore = "/model/oas.ecore", ecoreSourceLocations = "/model/oas.ecore")
+@EPackage(uri = OasPackage.eNS_URI, fingerprint = "fp1:822e217229e6a634bdef17c6885dc6454d2c9794fd62ede8d11300acca8c17c0", genModel = "/model/oas.genmodel", genModelSourceLocations = {"model/oas.genmodel","org.eclipse.fennec.openapi.model/model/oas.genmodel"}, ecore = "/model/oas.ecore", ecoreSourceLocations = "/model/oas.ecore")
 public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.
@@ -588,7 +588,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int COMPONENTS = 6;
 
 	/**
-	 * The feature id for the '<em><b>Schemas</b></em>' containment reference.
+	 * The feature id for the '<em><b>Schemas</b></em>' map.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -597,13 +597,22 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int COMPONENTS__SCHEMAS = 0;
 
 	/**
+	 * The feature id for the '<em><b>Schemas Package</b></em>' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int COMPONENTS__SCHEMAS_PACKAGE = 1;
+
+	/**
 	 * The feature id for the '<em><b>Responses</b></em>' map.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__RESPONSES = 1;
+	int COMPONENTS__RESPONSES = 2;
 
 	/**
 	 * The feature id for the '<em><b>Parameters</b></em>' map.
@@ -612,7 +621,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__PARAMETERS = 2;
+	int COMPONENTS__PARAMETERS = 3;
 
 	/**
 	 * The feature id for the '<em><b>Examples</b></em>' map.
@@ -621,7 +630,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__EXAMPLES = 3;
+	int COMPONENTS__EXAMPLES = 4;
 
 	/**
 	 * The feature id for the '<em><b>Request Bodies</b></em>' map.
@@ -630,7 +639,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__REQUEST_BODIES = 4;
+	int COMPONENTS__REQUEST_BODIES = 5;
 
 	/**
 	 * The feature id for the '<em><b>Headers</b></em>' map.
@@ -639,7 +648,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__HEADERS = 5;
+	int COMPONENTS__HEADERS = 6;
 
 	/**
 	 * The feature id for the '<em><b>Security Schemes</b></em>' map.
@@ -648,7 +657,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__SECURITY_SCHEMES = 6;
+	int COMPONENTS__SECURITY_SCHEMES = 7;
 
 	/**
 	 * The feature id for the '<em><b>Links</b></em>' map.
@@ -657,7 +666,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__LINKS = 7;
+	int COMPONENTS__LINKS = 8;
 
 	/**
 	 * The feature id for the '<em><b>Callbacks</b></em>' map.
@@ -666,7 +675,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__CALLBACKS = 8;
+	int COMPONENTS__CALLBACKS = 9;
 
 	/**
 	 * The feature id for the '<em><b>Path Items</b></em>' map.
@@ -675,7 +684,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__PATH_ITEMS = 9;
+	int COMPONENTS__PATH_ITEMS = 10;
 
 	/**
 	 * The feature id for the '<em><b>Media Types</b></em>' map.
@@ -684,7 +693,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__MEDIA_TYPES = 10;
+	int COMPONENTS__MEDIA_TYPES = 11;
 
 	/**
 	 * The feature id for the '<em><b>Extensions</b></em>' map.
@@ -693,7 +702,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS__EXTENSIONS = 11;
+	int COMPONENTS__EXTENSIONS = 12;
 
 	/**
 	 * The number of structural features of the '<em>Components</em>' class.
@@ -702,7 +711,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @generated
 	 * @ordered
 	 */
-	int COMPONENTS_FEATURE_COUNT = 12;
+	int COMPONENTS_FEATURE_COUNT = 13;
 
 	/**
 	 * The number of operations of the '<em>Components</em>' class.
@@ -2576,295 +2585,6 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	int SECURITY_REQUIREMENT_OPERATION_COUNT = 0;
 
 	/**
-	 * The meta object id for the '{@link org.eclipse.fennec.model.oas.impl.SchemaReferenceImpl <em>Schema Reference</em>}' class.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @see org.eclipse.fennec.model.oas.impl.SchemaReferenceImpl
-	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getSchemaReference()
-	 * @generated
-	 */
-	int SCHEMA_REFERENCE = 24;
-
-	/**
-	 * The feature id for the '<em><b>Ref</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__REF = 0;
-
-	/**
-	 * The feature id for the '<em><b>Classifier</b></em>' reference.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__CLASSIFIER = 1;
-
-	/**
-	 * The feature id for the '<em><b>Many</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__MANY = 2;
-
-	/**
-	 * The feature id for the '<em><b>Min Items</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__MIN_ITEMS = 3;
-
-	/**
-	 * The feature id for the '<em><b>Max Items</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__MAX_ITEMS = 4;
-
-	/**
-	 * The feature id for the '<em><b>Unique Items</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__UNIQUE_ITEMS = 5;
-
-	/**
-	 * The feature id for the '<em><b>Nullable</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__NULLABLE = 6;
-
-	/**
-	 * The feature id for the '<em><b>Format</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__FORMAT = 7;
-
-	/**
-	 * The feature id for the '<em><b>Title</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__TITLE = 8;
-
-	/**
-	 * The feature id for the '<em><b>Description</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__DESCRIPTION = 9;
-
-	/**
-	 * The feature id for the '<em><b>Default</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__DEFAULT = 10;
-
-	/**
-	 * The feature id for the '<em><b>Enum</b></em>' attribute list.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__ENUM = 11;
-
-	/**
-	 * The feature id for the '<em><b>Const</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__CONST = 12;
-
-	/**
-	 * The feature id for the '<em><b>Min Length</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__MIN_LENGTH = 13;
-
-	/**
-	 * The feature id for the '<em><b>Max Length</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__MAX_LENGTH = 14;
-
-	/**
-	 * The feature id for the '<em><b>Pattern</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__PATTERN = 15;
-
-	/**
-	 * The feature id for the '<em><b>Minimum</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__MINIMUM = 16;
-
-	/**
-	 * The feature id for the '<em><b>Maximum</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__MAXIMUM = 17;
-
-	/**
-	 * The feature id for the '<em><b>Exclusive Minimum</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__EXCLUSIVE_MINIMUM = 18;
-
-	/**
-	 * The feature id for the '<em><b>Exclusive Maximum</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__EXCLUSIVE_MAXIMUM = 19;
-
-	/**
-	 * The feature id for the '<em><b>Multiple Of</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__MULTIPLE_OF = 20;
-
-	/**
-	 * The feature id for the '<em><b>Read Only</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__READ_ONLY = 21;
-
-	/**
-	 * The feature id for the '<em><b>Write Only</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__WRITE_ONLY = 22;
-
-	/**
-	 * The feature id for the '<em><b>Deprecated</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__DEPRECATED = 23;
-
-	/**
-	 * The feature id for the '<em><b>Example</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__EXAMPLE = 24;
-
-	/**
-	 * The feature id for the '<em><b>Examples</b></em>' attribute list.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__EXAMPLES = 25;
-
-	/**
-	 * The feature id for the '<em><b>Content Media Type</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__CONTENT_MEDIA_TYPE = 26;
-
-	/**
-	 * The feature id for the '<em><b>Content Encoding</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__CONTENT_ENCODING = 27;
-
-	/**
-	 * The feature id for the '<em><b>Keywords</b></em>' map.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE__KEYWORDS = 28;
-
-	/**
-	 * The number of structural features of the '<em>Schema Reference</em>' class.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE_FEATURE_COUNT = 29;
-
-	/**
-	 * The number of operations of the '<em>Schema Reference</em>' class.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int SCHEMA_REFERENCE_OPERATION_COUNT = 0;
-
-	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.model.oas.impl.PathItemEntryImpl <em>Path Item Entry</em>}' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -2872,7 +2592,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getPathItemEntry()
 	 * @generated
 	 */
-	int PATH_ITEM_ENTRY = 25;
+	int PATH_ITEM_ENTRY = 24;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -2918,7 +2638,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getOperationEntry()
 	 * @generated
 	 */
-	int OPERATION_ENTRY = 26;
+	int OPERATION_ENTRY = 25;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -2964,7 +2684,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getResponseEntry()
 	 * @generated
 	 */
-	int RESPONSE_ENTRY = 27;
+	int RESPONSE_ENTRY = 26;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3010,7 +2730,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getParameterEntry()
 	 * @generated
 	 */
-	int PARAMETER_ENTRY = 28;
+	int PARAMETER_ENTRY = 27;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3056,7 +2776,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getExampleEntry()
 	 * @generated
 	 */
-	int EXAMPLE_ENTRY = 29;
+	int EXAMPLE_ENTRY = 28;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3102,7 +2822,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getRequestBodyEntry()
 	 * @generated
 	 */
-	int REQUEST_BODY_ENTRY = 30;
+	int REQUEST_BODY_ENTRY = 29;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3148,7 +2868,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getHeaderEntry()
 	 * @generated
 	 */
-	int HEADER_ENTRY = 31;
+	int HEADER_ENTRY = 30;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3194,7 +2914,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getSecuritySchemeEntry()
 	 * @generated
 	 */
-	int SECURITY_SCHEME_ENTRY = 32;
+	int SECURITY_SCHEME_ENTRY = 31;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3240,7 +2960,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getLinkEntry()
 	 * @generated
 	 */
-	int LINK_ENTRY = 33;
+	int LINK_ENTRY = 32;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3286,7 +3006,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getCallbackEntry()
 	 * @generated
 	 */
-	int CALLBACK_ENTRY = 34;
+	int CALLBACK_ENTRY = 33;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3332,7 +3052,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getMediaTypeEntry()
 	 * @generated
 	 */
-	int MEDIA_TYPE_ENTRY = 35;
+	int MEDIA_TYPE_ENTRY = 34;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3378,7 +3098,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getEncodingEntry()
 	 * @generated
 	 */
-	int ENCODING_ENTRY = 36;
+	int ENCODING_ENTRY = 35;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3424,7 +3144,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getServerVariableEntry()
 	 * @generated
 	 */
-	int SERVER_VARIABLE_ENTRY = 37;
+	int SERVER_VARIABLE_ENTRY = 36;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3470,7 +3190,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getStringEntry()
 	 * @generated
 	 */
-	int STRING_ENTRY = 38;
+	int STRING_ENTRY = 37;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3516,7 +3236,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getAnyEntry()
 	 * @generated
 	 */
-	int ANY_ENTRY = 39;
+	int ANY_ENTRY = 38;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3562,7 +3282,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getExtensionEntry()
 	 * @generated
 	 */
-	int EXTENSION_ENTRY = 40;
+	int EXTENSION_ENTRY = 39;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3608,7 +3328,7 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getSecurityRequirementEntry()
 	 * @generated
 	 */
-	int SECURITY_REQUIREMENT_ENTRY = 41;
+	int SECURITY_REQUIREMENT_ENTRY = 40;
 
 	/**
 	 * The feature id for the '<em><b>Key</b></em>' attribute.
@@ -3645,6 +3365,52 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	 * @ordered
 	 */
 	int SECURITY_REQUIREMENT_ENTRY_OPERATION_COUNT = 0;
+
+	/**
+	 * The meta object id for the '{@link org.eclipse.fennec.model.oas.impl.SchemaEntryImpl <em>Schema Entry</em>}' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see org.eclipse.fennec.model.oas.impl.SchemaEntryImpl
+	 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getSchemaEntry()
+	 * @generated
+	 */
+	int SCHEMA_ENTRY = 41;
+
+	/**
+	 * The feature id for the '<em><b>Key</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SCHEMA_ENTRY__KEY = 0;
+
+	/**
+	 * The feature id for the '<em><b>Value</b></em>' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SCHEMA_ENTRY__VALUE = 1;
+
+	/**
+	 * The number of structural features of the '<em>Schema Entry</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SCHEMA_ENTRY_FEATURE_COUNT = 2;
+
+	/**
+	 * The number of operations of the '<em>Schema Entry</em>' class.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SCHEMA_ENTRY_OPERATION_COUNT = 0;
 
 	/**
 	 * The meta object id for the '{@link org.eclipse.fennec.model.oas.ParameterLocation <em>Parameter Location</em>}' enum.
@@ -4165,15 +3931,26 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EClass getComponents();
 
 	/**
-	 * Returns the meta object for the containment reference '{@link org.eclipse.fennec.model.oas.Components#getSchemas <em>Schemas</em>}'.
+	 * Returns the meta object for the map '{@link org.eclipse.fennec.model.oas.Components#getSchemas <em>Schemas</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @return the meta object for the containment reference '<em>Schemas</em>'.
+	 * @return the meta object for the map '<em>Schemas</em>'.
 	 * @see org.eclipse.fennec.model.oas.Components#getSchemas()
 	 * @see #getComponents()
 	 * @generated
 	 */
 	EReference getComponents_Schemas();
+
+	/**
+	 * Returns the meta object for the containment reference '{@link org.eclipse.fennec.model.oas.Components#getSchemasPackage <em>Schemas Package</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the containment reference '<em>Schemas Package</em>'.
+	 * @see org.eclipse.fennec.model.oas.Components#getSchemasPackage()
+	 * @see #getComponents()
+	 * @generated
+	 */
+	EReference getComponents_SchemasPackage();
 
 	/**
 	 * Returns the meta object for the map '{@link org.eclipse.fennec.model.oas.Components#getResponses <em>Responses</em>}'.
@@ -6161,335 +5938,6 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EReference getSecurityRequirement_Schemes();
 
 	/**
-	 * Returns the meta object for class '{@link org.eclipse.fennec.model.oas.SchemaReference <em>Schema Reference</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for class '<em>Schema Reference</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference
-	 * @generated
-	 */
-	EClass getSchemaReference();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getRef <em>Ref</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Ref</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getRef()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Ref();
-
-	/**
-	 * Returns the meta object for the reference '{@link org.eclipse.fennec.model.oas.SchemaReference#getClassifier <em>Classifier</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the reference '<em>Classifier</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getClassifier()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EReference getSchemaReference_Classifier();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#isMany <em>Many</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Many</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#isMany()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Many();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getMinItems <em>Min Items</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Min Items</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getMinItems()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_MinItems();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getMaxItems <em>Max Items</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Max Items</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getMaxItems()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_MaxItems();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#isUniqueItems <em>Unique Items</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Unique Items</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#isUniqueItems()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_UniqueItems();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#isNullable <em>Nullable</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Nullable</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#isNullable()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Nullable();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getFormat <em>Format</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Format</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getFormat()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Format();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getTitle <em>Title</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Title</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getTitle()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Title();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getDescription <em>Description</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Description</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getDescription()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Description();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getDefault <em>Default</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Default</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getDefault()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Default();
-
-	/**
-	 * Returns the meta object for the attribute list '{@link org.eclipse.fennec.model.oas.SchemaReference#getEnum <em>Enum</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute list '<em>Enum</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getEnum()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Enum();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getConst <em>Const</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Const</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getConst()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Const();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getMinLength <em>Min Length</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Min Length</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getMinLength()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_MinLength();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getMaxLength <em>Max Length</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Max Length</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getMaxLength()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_MaxLength();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getPattern <em>Pattern</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Pattern</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getPattern()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Pattern();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getMinimum <em>Minimum</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Minimum</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getMinimum()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Minimum();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getMaximum <em>Maximum</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Maximum</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getMaximum()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Maximum();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getExclusiveMinimum <em>Exclusive Minimum</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Exclusive Minimum</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getExclusiveMinimum()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_ExclusiveMinimum();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getExclusiveMaximum <em>Exclusive Maximum</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Exclusive Maximum</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getExclusiveMaximum()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_ExclusiveMaximum();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getMultipleOf <em>Multiple Of</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Multiple Of</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getMultipleOf()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_MultipleOf();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#isReadOnly <em>Read Only</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Read Only</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#isReadOnly()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_ReadOnly();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#isWriteOnly <em>Write Only</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Write Only</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#isWriteOnly()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_WriteOnly();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#isDeprecated <em>Deprecated</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Deprecated</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#isDeprecated()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Deprecated();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getExample <em>Example</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Example</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getExample()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Example();
-
-	/**
-	 * Returns the meta object for the attribute list '{@link org.eclipse.fennec.model.oas.SchemaReference#getExamples <em>Examples</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute list '<em>Examples</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getExamples()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_Examples();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getContentMediaType <em>Content Media Type</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Content Media Type</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getContentMediaType()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_ContentMediaType();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.eclipse.fennec.model.oas.SchemaReference#getContentEncoding <em>Content Encoding</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Content Encoding</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getContentEncoding()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EAttribute getSchemaReference_ContentEncoding();
-
-	/**
-	 * Returns the meta object for the map '{@link org.eclipse.fennec.model.oas.SchemaReference#getKeywords <em>Keywords</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the map '<em>Keywords</em>'.
-	 * @see org.eclipse.fennec.model.oas.SchemaReference#getKeywords()
-	 * @see #getSchemaReference()
-	 * @generated
-	 */
-	EReference getSchemaReference_Keywords();
-
-	/**
 	 * Returns the meta object for class '{@link java.util.Map.Entry <em>Path Item Entry</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -7068,6 +6516,41 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	EAttribute getSecurityRequirementEntry_Value();
 
 	/**
+	 * Returns the meta object for class '{@link java.util.Map.Entry <em>Schema Entry</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for class '<em>Schema Entry</em>'.
+	 * @see java.util.Map.Entry
+	 * @model keyDataType="org.eclipse.emf.ecore.EString"
+	 *        valueType="org.eclipse.fennec.codec.jsonschema.model.Schema" valueContainment="true"
+	 *        valueAnnotation="http://eclipse.org/fennec/codec valueReaderName='jsonSchema' valueWriterName='jsonSchema'"
+	 * @generated
+	 */
+	EClass getSchemaEntry();
+
+	/**
+	 * Returns the meta object for the attribute '{@link java.util.Map.Entry <em>Key</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the attribute '<em>Key</em>'.
+	 * @see java.util.Map.Entry
+	 * @see #getSchemaEntry()
+	 * @generated
+	 */
+	EAttribute getSchemaEntry_Key();
+
+	/**
+	 * Returns the meta object for the containment reference '{@link java.util.Map.Entry <em>Value</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the containment reference '<em>Value</em>'.
+	 * @see java.util.Map.Entry
+	 * @see #getSchemaEntry()
+	 * @generated
+	 */
+	EReference getSchemaEntry_Value();
+
+	/**
 	 * Returns the meta object for enum '{@link org.eclipse.fennec.model.oas.ParameterLocation <em>Parameter Location</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -7497,12 +6980,20 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		EClass COMPONENTS = eINSTANCE.getComponents();
 
 		/**
-		 * The meta object literal for the '<em><b>Schemas</b></em>' containment reference feature.
+		 * The meta object literal for the '<em><b>Schemas</b></em>' map feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
 		 * @generated
 		 */
 		EReference COMPONENTS__SCHEMAS = eINSTANCE.getComponents_Schemas();
+
+		/**
+		 * The meta object literal for the '<em><b>Schemas Package</b></em>' containment reference feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference COMPONENTS__SCHEMAS_PACKAGE = eINSTANCE.getComponents_SchemasPackage();
 
 		/**
 		 * The meta object literal for the '<em><b>Responses</b></em>' map feature.
@@ -8995,248 +8486,6 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		EReference SECURITY_REQUIREMENT__SCHEMES = eINSTANCE.getSecurityRequirement_Schemes();
 
 		/**
-		 * The meta object literal for the '{@link org.eclipse.fennec.model.oas.impl.SchemaReferenceImpl <em>Schema Reference</em>}' class.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @see org.eclipse.fennec.model.oas.impl.SchemaReferenceImpl
-		 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getSchemaReference()
-		 * @generated
-		 */
-		EClass SCHEMA_REFERENCE = eINSTANCE.getSchemaReference();
-
-		/**
-		 * The meta object literal for the '<em><b>Ref</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__REF = eINSTANCE.getSchemaReference_Ref();
-
-		/**
-		 * The meta object literal for the '<em><b>Classifier</b></em>' reference feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EReference SCHEMA_REFERENCE__CLASSIFIER = eINSTANCE.getSchemaReference_Classifier();
-
-		/**
-		 * The meta object literal for the '<em><b>Many</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__MANY = eINSTANCE.getSchemaReference_Many();
-
-		/**
-		 * The meta object literal for the '<em><b>Min Items</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__MIN_ITEMS = eINSTANCE.getSchemaReference_MinItems();
-
-		/**
-		 * The meta object literal for the '<em><b>Max Items</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__MAX_ITEMS = eINSTANCE.getSchemaReference_MaxItems();
-
-		/**
-		 * The meta object literal for the '<em><b>Unique Items</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__UNIQUE_ITEMS = eINSTANCE.getSchemaReference_UniqueItems();
-
-		/**
-		 * The meta object literal for the '<em><b>Nullable</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__NULLABLE = eINSTANCE.getSchemaReference_Nullable();
-
-		/**
-		 * The meta object literal for the '<em><b>Format</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__FORMAT = eINSTANCE.getSchemaReference_Format();
-
-		/**
-		 * The meta object literal for the '<em><b>Title</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__TITLE = eINSTANCE.getSchemaReference_Title();
-
-		/**
-		 * The meta object literal for the '<em><b>Description</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__DESCRIPTION = eINSTANCE.getSchemaReference_Description();
-
-		/**
-		 * The meta object literal for the '<em><b>Default</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__DEFAULT = eINSTANCE.getSchemaReference_Default();
-
-		/**
-		 * The meta object literal for the '<em><b>Enum</b></em>' attribute list feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__ENUM = eINSTANCE.getSchemaReference_Enum();
-
-		/**
-		 * The meta object literal for the '<em><b>Const</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__CONST = eINSTANCE.getSchemaReference_Const();
-
-		/**
-		 * The meta object literal for the '<em><b>Min Length</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__MIN_LENGTH = eINSTANCE.getSchemaReference_MinLength();
-
-		/**
-		 * The meta object literal for the '<em><b>Max Length</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__MAX_LENGTH = eINSTANCE.getSchemaReference_MaxLength();
-
-		/**
-		 * The meta object literal for the '<em><b>Pattern</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__PATTERN = eINSTANCE.getSchemaReference_Pattern();
-
-		/**
-		 * The meta object literal for the '<em><b>Minimum</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__MINIMUM = eINSTANCE.getSchemaReference_Minimum();
-
-		/**
-		 * The meta object literal for the '<em><b>Maximum</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__MAXIMUM = eINSTANCE.getSchemaReference_Maximum();
-
-		/**
-		 * The meta object literal for the '<em><b>Exclusive Minimum</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__EXCLUSIVE_MINIMUM = eINSTANCE.getSchemaReference_ExclusiveMinimum();
-
-		/**
-		 * The meta object literal for the '<em><b>Exclusive Maximum</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__EXCLUSIVE_MAXIMUM = eINSTANCE.getSchemaReference_ExclusiveMaximum();
-
-		/**
-		 * The meta object literal for the '<em><b>Multiple Of</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__MULTIPLE_OF = eINSTANCE.getSchemaReference_MultipleOf();
-
-		/**
-		 * The meta object literal for the '<em><b>Read Only</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__READ_ONLY = eINSTANCE.getSchemaReference_ReadOnly();
-
-		/**
-		 * The meta object literal for the '<em><b>Write Only</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__WRITE_ONLY = eINSTANCE.getSchemaReference_WriteOnly();
-
-		/**
-		 * The meta object literal for the '<em><b>Deprecated</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__DEPRECATED = eINSTANCE.getSchemaReference_Deprecated();
-
-		/**
-		 * The meta object literal for the '<em><b>Example</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__EXAMPLE = eINSTANCE.getSchemaReference_Example();
-
-		/**
-		 * The meta object literal for the '<em><b>Examples</b></em>' attribute list feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__EXAMPLES = eINSTANCE.getSchemaReference_Examples();
-
-		/**
-		 * The meta object literal for the '<em><b>Content Media Type</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__CONTENT_MEDIA_TYPE = eINSTANCE.getSchemaReference_ContentMediaType();
-
-		/**
-		 * The meta object literal for the '<em><b>Content Encoding</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute SCHEMA_REFERENCE__CONTENT_ENCODING = eINSTANCE.getSchemaReference_ContentEncoding();
-
-		/**
-		 * The meta object literal for the '<em><b>Keywords</b></em>' map feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EReference SCHEMA_REFERENCE__KEYWORDS = eINSTANCE.getSchemaReference_Keywords();
-
-		/**
 		 * The meta object literal for the '{@link org.eclipse.fennec.model.oas.impl.PathItemEntryImpl <em>Path Item Entry</em>}' class.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
@@ -9677,6 +8926,32 @@ public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 		 * @generated
 		 */
 		EAttribute SECURITY_REQUIREMENT_ENTRY__VALUE = eINSTANCE.getSecurityRequirementEntry_Value();
+
+		/**
+		 * The meta object literal for the '{@link org.eclipse.fennec.model.oas.impl.SchemaEntryImpl <em>Schema Entry</em>}' class.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @see org.eclipse.fennec.model.oas.impl.SchemaEntryImpl
+		 * @see org.eclipse.fennec.model.oas.impl.OasPackageImpl#getSchemaEntry()
+		 * @generated
+		 */
+		EClass SCHEMA_ENTRY = eINSTANCE.getSchemaEntry();
+
+		/**
+		 * The meta object literal for the '<em><b>Key</b></em>' attribute feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EAttribute SCHEMA_ENTRY__KEY = eINSTANCE.getSchemaEntry_Key();
+
+		/**
+		 * The meta object literal for the '<em><b>Value</b></em>' containment reference feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference SCHEMA_ENTRY__VALUE = eINSTANCE.getSchemaEntry_Value();
 
 		/**
 		 * The meta object literal for the '{@link org.eclipse.fennec.model.oas.ParameterLocation <em>Parameter Location</em>}' enum.

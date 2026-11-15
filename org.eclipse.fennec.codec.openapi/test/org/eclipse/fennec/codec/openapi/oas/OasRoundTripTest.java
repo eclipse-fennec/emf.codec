@@ -68,8 +68,8 @@ class OasRoundTripTest {
 	}
 
 	@Test
-	@DisplayName("3.0 writes nullable and a boolean exclusiveMinimum, 3.1 a type array and a number")
-	void versionForms() throws IOException {
+	@DisplayName("schemas are written as read: the 3.0 and 3.1 forms stay what they are")
+	void writtenAsRead() throws IOException {
 		String doc = """
 				openapi: %s
 				info: { title: T, version: '1' }
@@ -91,7 +91,6 @@ class OasRoundTripTest {
 		assertTrue(v30.contains("\"exclusiveMinimum\":true"), v30);
 		assertTrue(v31.contains("\"type\":[\"number\",\"null\"]"), v31);
 		assertTrue(v31.contains("\"exclusiveMinimum\":0"), v31);
-		assertFalse(v31.contains("nullable"), v31);
 	}
 
 	@Test
