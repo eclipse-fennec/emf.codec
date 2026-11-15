@@ -117,6 +117,9 @@ attributes and a non-containment reference an object of its own.
      `<Class>AdditionalPropertiesEntry` with a containment `value` of that class; any other schema
      (`true`, `{}`, a scalar schema) gives an `EStringToStringMapEntry` map that keeps the raw JSON
      text of each member (`"red"` with its quotes, `{"max":3}`, `null`).
+   - A hand-made map whose entry `value` is an `EJavaObject` attribute holds the **native** JSON
+     value instead: `String`, `Number`, `Boolean`, `List`, `Map`, `null` - read and written as such
+     (the OpenAPI model keeps Specification Extensions `x-…` this way, issue #299).
    - The feature name is `additionalProperties`, numbered when the class declares a property of
      that name.
    - `additionalProperties: false` or absent: no map; an undeclared member is dropped with a

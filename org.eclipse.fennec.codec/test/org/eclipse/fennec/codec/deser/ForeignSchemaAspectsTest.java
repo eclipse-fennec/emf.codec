@@ -13,6 +13,7 @@
 package org.eclipse.fennec.codec.deser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -83,6 +84,15 @@ class ForeignSchemaAspectsTest {
 		mapFeature(bag, "items", itemEntry);
 		codec(bag, "additionalPropertiesFeature", "items");
 
+		EClass anyEntry = eClass("AnyEntry");
+		anyEntry.setInstanceClassName("java.util.Map$Entry");
+		attribute(anyEntry, "key", EcorePackage.Literals.ESTRING, 0);
+		attribute(anyEntry, "value", EcorePackage.Literals.EJAVA_OBJECT, 0);
+		EClass tagged = eClass("Tagged");
+		attribute(tagged, "name", EcorePackage.Literals.ESTRING, 0);
+		mapFeature(tagged, "extensions", anyEntry);
+		codec(tagged, "additionalPropertiesFeature", "extensions");
+
 		EClass shape = eClass("Shape");
 		shape.setAbstract(true);
 		codec(shape, "typeInference", "STRUCTURAL");
@@ -151,6 +161,39 @@ class ForeignSchemaAspectsTest {
 			assertEquals("i1", x.eGet(x.eClass().getEStructuralFeature("name")));
 			assertEquals("\"v\"", map(x, "extra").get("k"));
 			assertEquals(mapper.readTree(payload), mapper.readTree(save(resource)));
+		}
+	}
+
+	@Nested
+	@DisplayName("catch-all map of EJavaObject values (#299)")
+	class NativeValues {
+
+		@Test
+		@DisplayName("undeclared members are read as native JSON values and written again")
+		void nativeValues() throws IOException {
+			String payload = """
+					{ "name": "a", "x-color": "red", "x-size": { "w": 1, "h": [2, 3] }, "x-n": 12.5, "x-on": true, "x-null": null }
+					""";
+			CodecResource resource = load("Tagged", payload);
+			EObject tagged = resource.getContents().get(0);
+
+			EMap<String, Object> extensions = map(tagged, "extensions");
+			assertEquals("red", extensions.get("x-color"));
+			assertEquals("{\"w\":1,\"h\":[2,3]}", mapper.writeValueAsString(extensions.get("x-size")));
+			assertInstanceOf(Map.class, extensions.get("x-size"));
+			assertEquals(12.5, extensions.get("x-n"));
+			assertEquals(Boolean.TRUE, extensions.get("x-on"));
+			assertTrue(extensions.containsKey("x-null"));
+			assertEquals(mapper.readTree(payload), mapper.readTree(save(resource)));
+		}
+
+		@Test
+		@DisplayName("a string value set in the model is written as a string, not parsed as JSON")
+		void stringValue() throws IOException {
+			CodecResource resource = load("Tagged", "{ \"name\": \"a\" }");
+			map(resource.getContents().get(0), "extensions").put("x-text", "{not json");
+
+			assertEquals("{not json", mapper.readTree(save(resource)).get("x-text").asString());
 		}
 	}
 

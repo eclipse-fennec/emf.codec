@@ -77,6 +77,9 @@ public class AdditionalPropertiesSerializationEntry implements SerializationEntr
 				} finally {
 					ContextHelper.clearCurrentSerializationReference(ctxt);
 				}
+			} else if (valueFeature.getEType().getInstanceClass() == Object.class) {
+				// a map of EJavaObject values holds native JSON values
+				ctxt.writeValue(gen, value);
 			} else {
 				// Parsed again so every format writes the value, not only a JSON generator
 				JsonNode node = RAW_JSON.readTree(value.toString());
