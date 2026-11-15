@@ -431,6 +431,12 @@
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="externalDocs" eType="#//ExternalDocumentation"
         containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="classifier" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EClassifier"
+        transient="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The classifier a reference into components/schemas ($ref: #/components/schemas/X) points at: the EClassifier built for X in Components.schemasPackage. Set when a description is loaded; not written - the ref stays the source of the written $ref."/>
+      </eAnnotations>
+    </eStructuralFeatures>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Discriminator">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="propertyName" lowerBound="1"
