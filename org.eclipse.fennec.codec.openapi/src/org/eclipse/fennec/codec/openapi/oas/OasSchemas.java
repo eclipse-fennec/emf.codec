@@ -383,12 +383,14 @@ final class OasSchemas {
 		inline.setNsPrefix(INLINE);
 		List<EClassifier> keep = new ArrayList<>(converted.getEClassifiers());
 		keep.removeAll(duplicates.keySet());
-		for (EClassifier classifier : keep) {
-			if (classifier instanceof EClass eClass) {
-				repoint(eClass, duplicates);
+		inline.getEClassifiers().addAll(keep);
+		// every reference into the dropped duplicates points to the components package now; a
+		// classifier only an inline schema needs moves along
+		for (int i = 0; i < inline.getEClassifiers().size(); i++) {
+			if (inline.getEClassifiers().get(i) instanceof EClass eClass) {
+				repoint(eClass, duplicates, converted, inline);
 			}
 		}
-		inline.getEClassifiers().addAll(keep);
 		return inline;
 	}
 
@@ -431,19 +433,34 @@ final class OasSchemas {
 		return original != null ? original : classifier.getName();
 	}
 
-	private static void repoint(EClass eClass, Map<EClassifier, EClassifier> duplicates) {
+	private static void repoint(EClass eClass, Map<EClassifier, EClassifier> duplicates, EPackage converted,
+			EPackage inline) {
 		for (int i = 0; i < eClass.getESuperTypes().size(); i++) {
-			EClassifier target = duplicates.get(eClass.getESuperTypes().get(i));
-			if (target instanceof EClass superType) {
+			EClassifier target = target(eClass.getESuperTypes().get(i), duplicates, converted, inline);
+			if (target instanceof EClass superType && superType != eClass.getESuperTypes().get(i)) {
 				eClass.getESuperTypes().set(i, superType);
 			}
 		}
 		for (EStructuralFeature feature : eClass.getEStructuralFeatures()) {
-			EClassifier target = duplicates.get(feature.getEType());
-			if (target != null) {
+			EClassifier target = target(feature.getEType(), duplicates, converted, inline);
+			if (target != feature.getEType()) {
 				feature.setEType(target);
 			}
 		}
+	}
+
+	/** Where a reference to a classifier of the helper conversion must point. */
+	private static EClassifier target(EClassifier classifier, Map<EClassifier, EClassifier> duplicates,
+			EPackage converted, EPackage inline) {
+		if (classifier == null || classifier.getEPackage() != converted) {
+			return classifier;
+		}
+		EClassifier duplicate = duplicates.get(classifier);
+		if (duplicate != null) {
+			return duplicate;
+		}
+		inline.getEClassifiers().add(classifier); // needed by an inline schema only
+		return classifier;
 	}
 
 	private static String unique(String name, Set<String> used) {

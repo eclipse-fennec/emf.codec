@@ -22,6 +22,8 @@ import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.diagnostic.CodecDiagnostic;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
@@ -29,7 +31,9 @@ import org.eclipse.fennec.codec.openapi.SchemasPackageIdentity;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
+import org.eclipse.fennec.model.oas.Components;
 import org.eclipse.fennec.model.oas.Info;
+import org.eclipse.fennec.model.oas.OasPackage;
 import org.eclipse.fennec.model.oas.OpenAPI;
 
 /**
@@ -79,9 +83,15 @@ public class OasResourceImpl extends CodecResource {
 				List<String> problems = new ArrayList<>();
 				OasSchemas.convert(api, problems);
 				Info info = api.getInfo();
-				if (api.getComponents() != null) {
-					SchemasPackageIdentity.apply(api.getComponents().getSchemas(), info == null ? null : info.getTitle(),
+				if (api.getComponents() != null && api.getComponents().getSchemas() != null) {
+					EPackage schemas = api.getComponents().getSchemas();
+					SchemasPackageIdentity.apply(schemas, info == null ? null : info.getTitle(),
 							info == null ? null : info.getVersion(), options);
+					for (EPackage sub : schemas.getESubpackages()) {
+						if (sub.getNsURI() == null) {
+							sub.setNsURI(schemas.getNsURI() + "/" + sub.getName());
+						}
+					}
 				}
 				problems.addAll(OasLinker.link(api));
 				for (String problem : problems) {
@@ -114,10 +124,35 @@ public class OasResourceImpl extends CodecResource {
 		}
 		// inline schemas are converted once per save, from the model as it is now
 		SchemaReferenceValueWriter.InlineCache.reset();
+		// components that only hold the inline schemas of a document without components is not written
+		Map<OpenAPI, Components> hidden = new HashMap<>();
+		for (EObject content : getContents()) {
+			if (content instanceof OpenAPI api && onlyInlineSchemas(api.getComponents())) {
+				hidden.put(api, api.getComponents());
+				api.eSetDeliver(false);
+				api.setComponents(null);
+			}
+		}
 		try {
 			super.doSave(outputStream, effective);
 		} finally {
+			hidden.forEach((api, components) -> {
+				api.setComponents(components);
+				api.eSetDeliver(true);
+			});
 			SchemaReferenceValueWriter.InlineCache.reset();
 		}
+	}
+
+	private static boolean onlyInlineSchemas(Components components) {
+		if (components == null || components.getSchemas() == null || !components.getSchemas().getEClassifiers().isEmpty()) {
+			return false;
+		}
+		for (EStructuralFeature feature : components.eClass().getEAllStructuralFeatures()) {
+			if (feature != OasPackage.Literals.COMPONENTS__SCHEMAS && components.eIsSet(feature)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }
