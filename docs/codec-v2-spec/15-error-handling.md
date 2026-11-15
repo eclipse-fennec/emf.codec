@@ -370,7 +370,7 @@ for (Diagnostic error : resource.getErrors()) {
 | Invalid reference format | WARNING | `Expected {expected} reference format but found {actual}` | Best-effort parse |
 | Missing ref key | WARNING | `Reference object missing '_ref' key` | Reference skipped |
 | EMap entry class without key or value feature | ERROR | `EMap entry class '{class}' missing key or value feature` | Map skipped |
-| Single object (or value) for a multi-valued reference | WARNING | `Expected START_ARRAY for multi-valued reference '{reference}', got: {token} - read as its only element` | Read as a list of one element; written back as an array (#305) |
+| Single object (or value) for a multi-valued reference, with `codec.reportSingleValueAsList` (off by default: OSCAL allows it) | WARNING | `Expected START_ARRAY for multi-valued reference '{reference}', got: {token} - read as its only element` | Read as a list of one element; written back as an array (#305) |
 | EMap key not parseable by its data type | ERROR under `strictOnConversion`, else WARNING | `EMap key '{key}' of '{reference}' is no valid {type}, the entry is dropped: {cause}` | **That entry** dropped, the rest of the map is read |
 
 The last row is the one to read carefully: a field name that the key data type cannot parse costs

@@ -80,6 +80,12 @@ public class OasResourceImpl extends CodecResource {
 
 	@Override
 	protected void doLoad(InputStream inputStream, Map<?, ?> options) throws IOException {
+		if (options != null && Boolean.parseBoolean(String.valueOf(options.get(CodecOpenApiOptions.OPTION_VALIDATE)))) {
+			// a single object where the description has an array is invalid OpenAPI (#305)
+			Map<Object, Object> validating = new HashMap<>(options);
+			validating.putIfAbsent(CodecOptions.CODEC_REPORT_SINGLE_VALUE_AS_LIST, Boolean.TRUE);
+			options = validating;
+		}
 		super.doLoad(inputStream, options);
 		for (EObject content : getContents()) {
 			if (content instanceof OpenAPI api) {
