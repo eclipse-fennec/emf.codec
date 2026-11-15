@@ -468,6 +468,8 @@ public class CodecResource extends ResourceImpl {
                 .withAttribute(ContextHelper.UNRESOLVED_REFERENCES, unresolvedReferences)
                 .withAttribute(ContextHelper.DIAGNOSTIC_COLLECTOR, diagnosticCollector)
                 .withAttribute(ContextHelper.MAX_COLLECTION_SIZE, limits.maxCollectionSize())
+                .withAttribute(ContextHelper.REPORT_SINGLE_VALUE_AS_LIST,
+                        Boolean.parseBoolean(String.valueOf(mergedOptions.get(CodecOptions.CODEC_REPORT_SINGLE_VALUE_AS_LIST))))
                 .withAttribute(ContextHelper.PACKAGE_RESOLVER, packageResolver)
                 // B.1/K7: the read-side fingerprint key comes from caller-side options only.
                 // Seeding it here, instead of letting the deserializer resolve it from the
@@ -721,6 +723,8 @@ public class CodecResource extends ResourceImpl {
                 .withAttribute(ContextHelper.UNRESOLVED_REFERENCES, unresolvedReferences)
                 .withAttribute(ContextHelper.DIAGNOSTIC_COLLECTOR, diagnosticCollector)
                 .withAttribute(ContextHelper.MAX_COLLECTION_SIZE, limits.maxCollectionSize())
+                .withAttribute(ContextHelper.REPORT_SINGLE_VALUE_AS_LIST,
+                        Boolean.parseBoolean(String.valueOf(mergedOptions.get(CodecOptions.CODEC_REPORT_SINGLE_VALUE_AS_LIST))))
                 .withAttribute(ContextHelper.RESOURCE, this)
                 .withAttribute(ContextHelper.PACKAGE_RESOLVER, packageResolver)
                 // B.1/K7: the read-side fingerprint key comes from caller-side options only.

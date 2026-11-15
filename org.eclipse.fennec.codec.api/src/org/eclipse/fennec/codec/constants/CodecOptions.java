@@ -753,6 +753,15 @@ public final class CodecOptions {
     public static final String CODEC_STRICT_ON_CONVERSION = "codec.strictOnConversion";
 
     /**
+     * Report a single object or value read into a multi-valued reference as a WARNING. It is read as
+     * the list's only element either way, and written back as an array. Off by default: formats such
+     * as OSCAL allow a single object for an array; a validating reader (OpenAPI, issue #305) turns it
+     * on. Load option (spec 15 §6.3).
+     * <p>Value: {@code Boolean}, default: false</p>
+     */
+    public static final String CODEC_REPORT_SINGLE_VALUE_AS_LIST = "codec.reportSingleValueAsList";
+
+    /**
      * Whether a class inherits codec configuration from its parent EClass. The option pair of the
      * {@code inherit} annotation. Boolean, default {@code true}.
      * <p>

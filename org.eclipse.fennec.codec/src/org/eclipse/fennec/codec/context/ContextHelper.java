@@ -59,6 +59,12 @@ public final class ContextHelper {
     public static final String MAX_COLLECTION_SIZE = "CODEC_MAX_COLLECTION_SIZE";
 
     /**
+     * Context attribute key: report a single value read into a list ({@code codec.reportSingleValueAsList},
+     * issue #305). Absent means off.
+     */
+    public static final String REPORT_SINGLE_VALUE_AS_LIST = "CODEC_REPORT_SINGLE_VALUE_AS_LIST";
+
+    /**
      * Context attribute key for suppressing type serialization.
      * <p>
      * When set to true, the next EObject serialization should skip writing the _type field.
@@ -836,6 +842,16 @@ public final class ContextHelper {
      * @param ctxt the deserialization context, may be null where no context is in play
      * @return the diagnostic collector, or null if not set
      */
+    /**
+     * Gets the maximum size of an untyped collection for this load.
+     *
+     * @param ctxt the deserialization context (may be {@code null})
+     * @return the configured limit, or {@code CodecOptions.DEFAULT_MAX_COLLECTION_SIZE}
+     */
+    public static boolean isReportSingleValueAsList(DeserializationContext ctxt) {
+        return ctxt != null && Boolean.TRUE.equals(ctxt.getAttribute(REPORT_SINGLE_VALUE_AS_LIST));
+    }
+
     /**
      * Gets the maximum size of an untyped collection for this load.
      *
