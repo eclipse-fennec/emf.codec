@@ -25,6 +25,9 @@ import java.util.List;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.ETypedElement;
+import org.eclipse.emf.ecore.ENamedElement;
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.constants.AnnotationSources;
@@ -152,12 +155,113 @@ class SchemaRoundTripTest {
 		}
 	}
 
+	@Nested
+	@DisplayName("named simple schemas")
+	class NamedSimple {
+
+		private static final String SCHEMA = """
+				{
+				  "$defs": {
+				    "coordinate": { "type": "integer", "minimum": 1, "maximum": 3, "example": 1 },
+				    "errorMessage": { "type": "string", "maxLength": 256, "description": "An error" },
+				    "code": { "type": "string", "format": "uuid", "pattern": "^[a-f0-9-]+$", "minLength": 36 },
+				    "limit": { "type": "number", "exclusiveMinimum": 0, "multipleOf": 0.5 },
+				    "Cell": {
+				      "type": "object",
+				      "properties": { "row": { "$ref": "#/$defs/coordinate" } }
+				    }
+				  }
+				}
+				""";
+
+		@Test
+		@DisplayName("keep their key as original name")
+		void originalName() throws IOException {
+			EPackage pkg = read(SCHEMA);
+
+			assertEquals("coordinate", EcoreUtil.getAnnotation(pkg.getEClassifier("Coordinate"),
+					AnnotationSources.JSONSCHEMA, "originalName"));
+			assertNotNull(write(pkg).get("$defs").get("coordinate"), "written under its key");
+		}
+
+		@Test
+		@DisplayName("keep their facets")
+		void facets() throws IOException {
+			JsonNode defs = write(read(SCHEMA)).get("$defs");
+
+			assertEquals(1, defs.get("coordinate").get("minimum").asInt());
+			assertEquals(3, defs.get("coordinate").get("maximum").asInt());
+			assertEquals(256, defs.get("errorMessage").get("maxLength").asInt());
+			assertEquals("uuid", defs.get("code").get("format").asString());
+			assertEquals("^[a-f0-9-]+$", defs.get("code").get("pattern").asString());
+			assertEquals(36, defs.get("code").get("minLength").asInt());
+		}
+
+		@Test
+		@DisplayName("a numeric exclusiveMinimum (2020-12) stays a number")
+		void numericExclusiveMinimum() throws IOException {
+			JsonNode limit = write(read(SCHEMA)).get("$defs").get("limit");
+
+			assertTrue(limit.get("exclusiveMinimum").isNumber(), limit.toString());
+			assertEquals(0, limit.get("exclusiveMinimum").asInt());
+		}
+
+		@Test
+		@DisplayName("reads back equal")
+		void roundTrip() throws IOException {
+			assertRoundTrip(SCHEMA);
+		}
+	}
+
 	private static void assertRoundTrip(String schema) throws IOException {
 		EPackage first = read(schema);
 		EPackage second = read(MAPPER.writeValueAsString(write(first)));
 
 		assertTrue(EcoreUtil.equals(first, second),
-				"round trip differs:\n" + MAPPER.writeValueAsString(write(first)));
+				"round trip differs at " + firstDifference(first, second) + ":\n" + MAPPER.writeValueAsString(write(first)));
+	}
+
+	/** Names the first classifier or feature whose name, type, bounds or annotations differ. */
+	private static String firstDifference(EPackage first, EPackage second) {
+		if (first.getEClassifiers().size() != second.getEClassifiers().size()) {
+			return "classifier count " + first.getEClassifiers().size() + " <> " + second.getEClassifiers().size();
+		}
+		for (int i = 0; i < first.getEClassifiers().size(); i++) {
+			EClassifier a = first.getEClassifiers().get(i);
+			EClassifier b = second.getEClassifiers().get(i);
+			String d = describe(a).equals(describe(b)) ? null : describe(a) + " <> " + describe(b);
+			if (d != null) {
+				return d;
+			}
+			if (a instanceof EClass ca && b instanceof EClass cb) {
+				for (int j = 0; j < Math.min(ca.getEStructuralFeatures().size(), cb.getEStructuralFeatures().size()); j++) {
+					EStructuralFeature fa = ca.getEStructuralFeatures().get(j);
+					EStructuralFeature fb = cb.getEStructuralFeatures().get(j);
+					if (!describe(fa).equals(describe(fb))) {
+						return a.getName() + ": " + describe(fa) + " <> " + describe(fb);
+					}
+				}
+			}
+		}
+		return "package " + describe(first) + " <> " + describe(second);
+	}
+
+	private static String describe(ENamedElement e) {
+		StringBuilder sb = new StringBuilder(e.eClass().getName()).append(' ').append(e.getName());
+		if (e instanceof ETypedElement t) {
+			sb.append(':').append(t.getEType() == null ? null : t.getEType().getName())
+					.append('[').append(t.getLowerBound()).append("..").append(t.getUpperBound()).append(']');
+		}
+		if (e instanceof EClassifier c) {
+			sb.append(" ic=").append(c.getInstanceClassName());
+		}
+		if (e instanceof EClass c) {
+			sb.append(" super=").append(c.getESuperTypes().stream().map(EClass::getName).toList())
+					.append(" features=").append(c.getEStructuralFeatures().size());
+		}
+		e.getEAnnotations().forEach(x -> sb.append(' ').append(x.getSource())
+				.append(x.getDetails().stream().map(d -> d.getKey() + "=" + d.getValue()).toList()));
+		return sb.toString();
 	}
 
 	private static EPackage read(String schema) throws IOException {

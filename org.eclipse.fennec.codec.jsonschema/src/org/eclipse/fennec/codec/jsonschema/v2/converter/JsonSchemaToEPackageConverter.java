@@ -1638,11 +1638,19 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		EDataType dt = ecoreFactory.createEDataType();
-		dt.setName(capitalizeFirst(name));
+		String capitalizedName = capitalizeFirst(name);
+		dt.setName(capitalizedName);
+		// The key under which it is written back and found by (as for classes and enums)
+		if (!name.equals(capitalizedName)) {
+			addEAnnotation(dt, AnnotationSources.JSONSCHEMA, "originalName", name);
+			addEAnnotation(dt, AnnotationSources.EXTENDED_METADATA, "name", name);
+		}
 
 		if (dtNode.has("description")) {
 			addEAnnotation(dt, AnnotationSources.GEN_MODEL, "documentation", dtNode.get("description").asString());
 		}
+		// Facets of a named simple type (minimum, maxLength, format, pattern, ...)
+		preserveAdditionalSchemaProperties(dtNode, dt);
 
 		JsonNode typeNode = dtNode.get("type");
 		if (typeNode != null && typeNode.isArray()) {
