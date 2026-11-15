@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.fennec.codec.jsonschema.v2.constants.CodecJsonSchemaOptions;
@@ -24,7 +25,6 @@ import org.eclipse.fennec.codec.jsonschema.v2.value.EPackageValueWriter;
 import org.eclipse.fennec.codec.value.CodecValueWriter;
 import org.eclipse.fennec.codec.value.CodecWriterContext;
 import org.eclipse.fennec.codec.value.ReferenceValueWriter;
-import org.eclipse.fennec.model.openapi.OpenAPI;
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -75,20 +75,23 @@ public class OpenApiSchemasValueWriter implements ReferenceValueWriter<EPackage>
 		delegate.write(value, ctx, options);
 	}
 
-	private static OpenAPI findDocument(EObject object) {
+	/** The {@code openapi} member of the document the schemas belong to, in either OpenAPI model. */
+	private static String findDocument(EObject object) {
 		for (EObject current = object; current != null; current = current.eContainer()) {
-			if (current instanceof OpenAPI openApi) {
-				return openApi;
+			EStructuralFeature version = current.eClass().getEStructuralFeature("openapi");
+			if (version != null && current.eContainer() == null) {
+				Object value = current.eGet(version);
+				return value instanceof String s ? s : null;
 			}
 		}
 		return null;
 	}
 
-	private static boolean isOpenApi31OrLater(OpenAPI document) {
-		if (document == null || document.getOpenapi() == null) {
+	private static boolean isOpenApi31OrLater(String openapi) {
+		if (openapi == null) {
 			return false;
 		}
-		String[] parts = document.getOpenapi().trim().split("\\.");
+		String[] parts = openapi.trim().split("\\.");
 		try {
 			int major = Integer.parseInt(parts[0]);
 			int minor = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;

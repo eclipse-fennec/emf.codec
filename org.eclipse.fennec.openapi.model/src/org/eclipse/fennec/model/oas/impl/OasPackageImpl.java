@@ -4405,7 +4405,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		   source,
 		   new String[] {
 			   "key", "schemas",
-			   "valueReaderName", "jsonSchemaToEPackage",
+			   "valueReaderName", "oasSchemas",
 			   "valueWriterName", "ePackageToOpenApiSchemas"
 		   });
 		addAnnotation
@@ -4512,6 +4512,13 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "key", "$ref"
 		   });
 		addAnnotation
+		  (getParameter_Schema(),
+		   source,
+		   new String[] {
+			   "valueReaderName", "oasSchema",
+			   "valueWriterName", "oasSchema"
+		   });
+		addAnnotation
 		  (requestBodyEClass,
 		   source,
 		   new String[] {
@@ -4534,6 +4541,20 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		   source,
 		   new String[] {
 			   "key", "$ref"
+		   });
+		addAnnotation
+		  (getMediaType_Schema(),
+		   source,
+		   new String[] {
+			   "valueReaderName", "oasSchema",
+			   "valueWriterName", "oasSchema"
+		   });
+		addAnnotation
+		  (getMediaType_ItemSchema(),
+		   source,
+		   new String[] {
+			   "valueReaderName", "oasSchema",
+			   "valueWriterName", "oasSchema"
 		   });
 		addAnnotation
 		  (encodingEClass,
@@ -4600,6 +4621,13 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		   source,
 		   new String[] {
 			   "key", "$ref"
+		   });
+		addAnnotation
+		  (getHeader_Schema(),
+		   source,
+		   new String[] {
+			   "valueReaderName", "oasSchema",
+			   "valueWriterName", "oasSchema"
 		   });
 		addAnnotation
 		  (tagEClass,

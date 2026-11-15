@@ -218,6 +218,7 @@ public interface Header extends EObject {
 	 * @see #setSchema(SchemaReference)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getHeader_Schema()
 	 * @model containment="true"
+	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='oasSchema' valueWriterName='oasSchema'"
 	 * @generated
 	 */
 	SchemaReference getSchema();

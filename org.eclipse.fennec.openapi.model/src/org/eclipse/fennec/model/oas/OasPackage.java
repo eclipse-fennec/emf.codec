@@ -42,7 +42,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-@EPackage(uri = OasPackage.eNS_URI, fingerprint = "fp1:23915ededd3abe2f9342e58dee5ad9b12bc066ffcbae844daf9dd64af1fddf36", genModel = "/model/oas.genmodel", genModelSourceLocations = {"model/oas.genmodel","org.eclipse.fennec.openapi.model/model/oas.genmodel"}, ecore = "/model/oas.ecore", ecoreSourceLocations = "/model/oas.ecore")
+@EPackage(uri = OasPackage.eNS_URI, fingerprint = "fp1:48a0a5f33f1a9302a446ccea4102351e09223f38d3dbc0a726df660e0d36d21a", genModel = "/model/oas.genmodel", genModelSourceLocations = {"model/oas.genmodel","org.eclipse.fennec.openapi.model/model/oas.genmodel"}, ecore = "/model/oas.ecore", ecoreSourceLocations = "/model/oas.ecore")
 public interface OasPackage extends org.eclipse.emf.ecore.EPackage {
 	/**
 	 * The package name.

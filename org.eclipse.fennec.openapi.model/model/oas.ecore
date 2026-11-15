@@ -139,11 +139,11 @@
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EReference" name="schemas" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EPackage" containment="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="components/schemas as EPackage; its classifiers are the named schemas."/>
+        <details key="documentation" value="components/schemas as EPackage; its classifiers are the named schemas, its sub-package inline holds the classifiers of inline schemas."/>
       </eAnnotations>
       <eAnnotations source="http://eclipse.org/fennec/codec">
         <details key="key" value="schemas"/>
-        <details key="valueReaderName" value="jsonSchemaToEPackage"/>
+        <details key="valueReaderName" value="oasSchemas"/>
         <details key="valueWriterName" value="ePackageToOpenApiSchemas"/>
       </eAnnotations>
     </eStructuralFeatures>
@@ -330,7 +330,12 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="style" eType="#//ParameterStyle"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="explode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="allowReserved" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="#//SchemaReference" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="#//SchemaReference" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="oasSchema"/>
+        <details key="valueWriterName" value="oasSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="example" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="examples" upperBound="-1" eType="#//ExampleEntry" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="content" upperBound="-1" eType="#//MediaTypeEntry" containment="true"/>
@@ -383,10 +388,19 @@
         <details key="documentation" value="The object an internal $ref points at in components; set when a description is loaded, never written."/>
       </eAnnotations>
     </eStructuralFeatures>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="#//SchemaReference" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="#//SchemaReference" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="oasSchema"/>
+        <details key="valueWriterName" value="oasSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="itemSchema" eType="#//SchemaReference" containment="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
         <details key="documentation" value="Schema of each item of a sequential media type."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="oasSchema"/>
+        <details key="valueWriterName" value="oasSchema"/>
       </eAnnotations>
       <eAnnotations source="http://eclipse.org/fennec/openapi">
         <details key="since" value="3.2"/>
@@ -584,7 +598,12 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="deprecated" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="style" eType="#//ParameterStyle"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="explode" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="#//SchemaReference" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="#//SchemaReference" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="oasSchema"/>
+        <details key="valueWriterName" value="oasSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="example" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="examples" upperBound="-1" eType="#//ExampleEntry" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="content" upperBound="-1" eType="#//MediaTypeEntry" containment="true"/>

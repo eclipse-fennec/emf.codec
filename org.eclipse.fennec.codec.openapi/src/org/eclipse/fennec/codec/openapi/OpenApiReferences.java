@@ -154,8 +154,14 @@ public final class OpenApiReferences {
 		return unresolved;
 	}
 
-	/** The classifier built for the schema {@code key}: by original name, then by name. */
-	static EClassifier classifier(EPackage pkg, String key) {
+	/**
+	 * The classifier built for the schema {@code key}: by original name, then by name.
+	 *
+	 * @param pkg the package built from {@code components/schemas}
+	 * @param key the schema's key in {@code components/schemas}
+	 * @return the classifier, {@code null} if there is none
+	 */
+	public static EClassifier classifier(EPackage pkg, String key) {
 		if (pkg == null || key == null) {
 			return null;
 		}

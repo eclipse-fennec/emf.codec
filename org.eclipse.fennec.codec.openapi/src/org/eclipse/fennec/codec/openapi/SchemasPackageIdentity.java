@@ -34,7 +34,7 @@ import org.eclipse.fennec.model.openapi.OpenAPI;
  * mirror or a local copy, as JSON or YAML, gets the same nsURI. Values already set are kept.
  * </p>
  */
-final class SchemasPackageIdentity {
+public final class SchemasPackageIdentity {
 
 	private static final String DEFAULT_NAME = "openapi";
 	private static final Pattern WORD = Pattern.compile("[A-Za-z0-9]+");
@@ -43,13 +43,26 @@ final class SchemasPackageIdentity {
 	}
 
 	static void apply(OpenAPI api, Map<?, ?> options) {
-		if (api.getComponents() == null || api.getComponents().getSchemasPackage() == null) {
+		if (api.getComponents() == null) {
 			return;
 		}
-		EPackage pkg = api.getComponents().getSchemasPackage();
 		Info info = api.getInfo();
-		String title = info == null ? null : info.getTitle();
-		String version = info == null ? null : info.getVersion();
+		apply(api.getComponents().getSchemasPackage(), info == null ? null : info.getTitle(),
+				info == null ? null : info.getVersion(), options);
+	}
+
+	/**
+	 * Gives a schemas package its nsURI, name and prefix; for either OpenAPI model.
+	 *
+	 * @param pkg the package built from {@code components/schemas}, may be {@code null}
+	 * @param title {@code info.title}
+	 * @param version {@code info.version}
+	 * @param options the load options, for {@link CodecOpenApiOptions#OPTION_SCHEMAS_NS_URI}
+	 */
+	public static void apply(EPackage pkg, String title, String version, Map<?, ?> options) {
+		if (pkg == null) {
+			return;
+		}
 		Object option = options == null ? null : options.get(CodecOpenApiOptions.OPTION_SCHEMAS_NS_URI);
 		if (option != null && !option.toString().isBlank()) {
 			pkg.setNsURI(option.toString().trim());
