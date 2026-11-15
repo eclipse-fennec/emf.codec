@@ -2,7 +2,37 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-11-06
+**Last Updated:** 2026-11-15
+
+**Session Summary (2026-11-15, fix/openapi-311-312) — OpenAPI 3.0 YAML, #309-#312:**
+
+- Plan for OpenAPI 3.1/3.2 (#293/#294/#295, sub-issues #296-#308, #313): one superset model for
+  3.1+ next to the untouched 3.0 model, resource/factory per version and syntax, optional
+  validation via `EValidator` (no JSON Schema validator library). Long-running branch
+  `feature/openapi-3.1-3.2`; everything that also serves 3.0 went first via this branch.
+- #296: OpenAPI YAML factory under `application/vnd.oai.openapi` (content type only). `codec.yaml`
+  registers its `YamlFormatProvider` as `CodecFormatProvider` service (`codec.format.id=yaml`,
+  new `CodecFormatProvider.PROPERTY_FORMAT_ID`, format API 1.1.0); the OpenAPI component
+  references it, so no YAML import in `codec.openapi`. Test data: learn.openapis.org examples
+  (CC-BY-4.0, NOTICE.md, excluded from the header check).
+- #297: Jackson's YAML parser does not resolve aliases (`*a` arrives as `"a"`) and drops scalar
+  anchors. `YamlAliasResolvingParser` (+ `AnchorAwareYamlParser/Factory`) records anchored nodes
+  and replays them; budget `codec.yaml.maxAliasTokens`. YAML 1.1 boolean words read into a
+  boolean feature in the core (`AttributeDeserializationEntry.booleanWord`, spec 15 §6.4). Save
+  options `codec.yaml.minimizeQuotes` / `literalBlockStyle`, on by default for OpenAPI YAML.
+  Hooks `decorateParser` / `writeFactory` on `JacksonFormatProvider` (spec 17 §5.1). Gotchas:
+  read a `VALUE_STRING` only once (BSON hands it out once); `EMap.keySet()` iterates in hash
+  order, the entry list keeps document order.
+- #310: `FormatDelegateGenerator` had `ObjectWriteContext.empty()`, so `writePOJO`/`writeTree`
+  failed in every non-JSON format; `MapperWriteContext` delegates to the codec mapper (TCK tests).
+- #309: JSON Schema converter dropped top-level array schemas on write and lost `minItems` /
+  `maxItems`; the stale `allOf` source annotation is gone (`SchemaRoundTripTest`).
+- #311: schemas package nsURI `urn:openapi:<title>:<version>`, name/prefix from the title,
+  option `codec.openapi.schemasNsURI` (`CodecOpenApiOptions`). #312: `Schema.classifier`
+  (transient, 3.0 model, new fingerprint) + helper `OpenApiReferences` for the other sections;
+  for 3.1+ everything in the model (#313). Guide: `docs/codec-openapi-guide.md`.
+- Open on the feature branch: #298 large real-world descriptions (Gradle task / tag), docs for
+  #296 done here; then #299 onwards.
 
 **Session Summary (2026-11-06, fix/issue-290-detached-reference-warning) — #290 warning, #291 map entries:**
 

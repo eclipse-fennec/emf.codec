@@ -118,6 +118,12 @@ The richer `createWriter` / `createReader` overloads default to the plain ones, 
 overrides what it needs: the tabular providers use the resolver overload to walk the model
 themselves, and the read-limit mapping (§7.3) uses `createReader(source, loadOptions)`.
 
+**As a service.** A provider can be registered as an OSGi service of type `CodecFormatProvider`
+with the service property `codec.format.id` (`CodecFormatProvider.PROPERTY_FORMAT_ID`) set to its
+format id. Another codec then offers that syntax without importing the format's packages, by
+referencing the service with a target filter, e.g. `(codec.format.id=yaml)`: the OpenAPI codec's
+YAML factory does so with the provider `codec.yaml` registers (issue #296).
+
 ### 3.2 FormatReaderDelegate
 
 ```java
@@ -240,6 +246,18 @@ new YamlFormatProvider();
 ```
 
 JSON can also be read and written without a provider, on the default path (`CodecJsonFactory`).
+
+Two hooks let a subclass adapt one load or save (`org.eclipse.fennec.codec.format.jackson` 1.1):
+
+- `decorateParser(parser, loadOptions)` wraps the parser of a load. YAML uses it to resolve anchors
+  and aliases, which Jackson's YAML parser hands over as plain strings (issue #297).
+- `writeFactory(saveOptions)` returns the factory to write a save with. YAML uses it to map
+  `codec.yaml.minimizeQuotes` / `codec.yaml.literalBlockStyle` onto its writer features. When it
+  returns the provider's own factory, the writer comes from `createWriter(target)`.
+
+The generator that bridges to a format (`FormatDelegateGenerator`) carries an object write context
+that delegates `writePOJO` / `writeTree` to the codec mapper, so a value writer may use them with
+every format, not only JSON (issue #310).
 
 ### 5.2 BsonFormatProvider
 

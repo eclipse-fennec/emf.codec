@@ -28,6 +28,7 @@ see `docs/tabular-exporter-examples.md`.
   - [XLSX](#xlsx)
   - [R Language](#r-language-rdata)
   - [Tabular shared](#tabular-shared)
+  - [OpenAPI](#openapi)
   - [JSON Schema](#json-schema)
 - [REST client-overridable options](#rest-client-overridable-options)
 
@@ -259,8 +260,20 @@ No format-specific option keys are defined — all core options apply unchanged.
 
 **Bundle:** `org.eclipse.fennec.codec.yaml` · **Extensions:** `.yaml`, `.yml` · **Content-Types:** `application/yaml`, `text/yaml`
 
-YAML output is produced via Jackson's YAML data format. No format-specific option keys
-are defined — all core options apply unchanged.
+YAML is read and written via Jackson's YAML data format (YAML 1.2 core schema); all core options
+apply unchanged. Anchors and aliases are resolved while reading (#297). The provider is also
+registered as a `CodecFormatProvider` service with `codec.format.id=yaml`, so other codecs (OpenAPI)
+can offer YAML. **Constants:** `YamlFormatProvider`
+
+| Option key | Constant | Type | Default | Description |
+|---|---|---|---|---|
+| `codec.yaml.maxAliasTokens` | `OPTION_MAX_ALIAS_TOKENS` | Long | 1,000,000 | Load option. The most tokens aliases may expand to in one document - the guard against "billion laughs", which multiplies through nested aliases, not through input size. |
+| `codec.yaml.minimizeQuotes` | `OPTION_MINIMIZE_QUOTES` | Boolean | `false` | Save option. Quote a string only where YAML would read it as something else: numbers (`"1.0"`, `"200"`), booleans and null, including the YAML 1.1 words (`"on"`, `"yes"`). Off: every string is quoted. |
+| `codec.yaml.literalBlockStyle` | `OPTION_LITERAL_BLOCK_STYLE` | Boolean | `false` | Save option. Multi-line strings as literal blocks (`\|`) instead of quoted strings with `\n` escapes. |
+
+A YAML 1.1 boolean word (`y|Y|yes|Yes|YES|n|N|no|No|NO|on|On|ON|off|Off|OFF`) read into a
+boolean feature is `true` / `false` with a warning, in every format; `codec.strictOnConversion`
+refuses it (#297).
 
 ---
 
@@ -347,6 +360,17 @@ See also [Tabular shared](#tabular-shared) below.
 ¹ Default reference mode: `IGNORE` for `.csv`, `.ods`, `.xlsx`, `.RData`; `SQL_TABLES` for `.csvz`, `.rdataz`.
 
 ---
+
+### OpenAPI
+
+**Bundle:** `org.eclipse.fennec.codec.openapi` · **Content-Types:** `application/vnd.oai.openapi+json`, `application/vnd.oai.openapi` (YAML) · **Constants:** `CodecOpenApiOptions`
+
+| Option key | Constant | Type | Default | Description |
+|---|---|---|---|---|
+| `codec.openapi.schemasNsURI` | `OPTION_SCHEMAS_NS_URI` | String | derived | Load option. nsURI of the `EPackage` built from `components/schemas`; without it `urn:openapi:<title>:<version>` from `info` (#311). |
+
+The OpenAPI YAML resource sets `codec.yaml.minimizeQuotes` and `codec.yaml.literalBlockStyle` to
+`true` unless the caller sets them. See the [OpenAPI guide](codec-openapi-guide.md).
 
 ### JSON Schema
 

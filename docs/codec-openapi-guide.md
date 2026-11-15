@@ -1,7 +1,7 @@
 # OpenAPI Codec
 
 `org.eclipse.fennec.codec.openapi` reads and writes [OpenAPI 3](https://spec.openapis.org/oas/v3.0.3)
-documents in JSON as EMF models of `org.eclipse.fennec.openapi.model` (nsURI
+documents in JSON and YAML as EMF models of `org.eclipse.fennec.openapi.model` (nsURI
 `https://spec.openapis.org/oas/3.0.3/schema`). The data types of an API, `components/schemas`, are
 not mapped to the model's `Schema` class but to a plain `EPackage`: an OpenAPI document can be
 generated from the EPackages a service already has, and a loaded document hands its schemas back
@@ -29,8 +29,18 @@ Resource resource = resourceSet.createResource(uri, "application/vnd.oai.openapi
 
 The content type is what the REST message body writer selects a factory by: a JAX-RS resource that
 returns an `OpenAPI` object with `@Produces("application/vnd.oai.openapi+json")` is written by this
-codec. The YAML media type `application/vnd.oai.openapi` is not registered; the codec is neither
-built nor tested for YAML.
+codec.
+
+**YAML.** A second component registers the factory for the YAML media type
+`application/vnd.oai.openapi` (`emf.resource.name=openapi-yaml`), **by content type only**: the file
+extensions `yaml` / `yml` belong to the generic YAML factory. It needs the YAML syntax from
+`org.eclipse.fennec.codec.yaml`, which registers its `YamlFormatProvider` as a `CodecFormatProvider`
+service with `codec.format.id=yaml`; without that bundle the component stays unsatisfied and the
+codec offers JSON only. The model and the mapping are the same as for JSON.
+
+```java
+Resource resource = resourceSet.createResource(uri, "application/vnd.oai.openapi");
+```
 
 **Plain Java.** The no-arg factory brings its own metadata service and the value handlers it needs:
 
@@ -38,6 +48,12 @@ built nor tested for YAML.
 Resource resource = new OpenApiResourceFactoryImpl().createResource(URI.createFileURI(path));
 resource.load(in, Map.of(CodecResource.CODEC_ROOT_TYPE, OpenApiPackage.Literals.OPEN_API));
 OpenAPI openApi = (OpenAPI) resource.getContents().get(0);
+```
+
+For YAML outside OSGi, hand the format provider and the media type to the factory:
+
+```java
+new OpenApiResourceFactoryImpl(new YamlFormatProvider(), OpenApiResourceFactoryImpl.CONTENT_TYPE_OPENAPI_YAML);
 ```
 
 Pass the root type when loading: the document carries no type information. To wire an
@@ -161,6 +177,61 @@ API's payloads as the schemas describe them ([spec 21](/guides/21-schema-codec-a
 Register the package with the metadata service and load a payload with the root type option.
 Saving the document again writes the refs as they were read.
 
+## YAML
+
+YAML is read with the YAML 1.2 core schema, as the OpenAPI specification recommends:
+
+- **Keys are strings**: `200:` is the response code `"200"`, like `2XX` and `default`.
+- **`on`, `off`, `yes`, `no`, `y`, `n` stay strings** - also as enum values and keys. Only where
+  the model expects a boolean (`required: yes`, `deprecated: off`) they read as `true` / `false`,
+  with a warning; `codec.strictOnConversion` refuses them (issue #297).
+- **Anchors and aliases** (`&a` / `*a`) are resolved, for objects, sequences and scalars. The
+  expansion is bounded by `codec.yaml.maxAliasTokens` (default 1,000,000 tokens) against
+  "billion laughs". Merge keys (`<<: *a`) are not resolved.
+- Block scalars (`|`, `>`) are read as text; comments are dropped.
+- **Size**: `codec.maxPayloadSize` (default 16 MiB) bounds a YAML document as well, so the large
+  published descriptions (GitHub ~11 MB) load with the defaults.
+
+Writing YAML quotes a string only where YAML would read it as something else (`"200"`, `"on"`,
+`"1.0"`) and writes multi-line descriptions as literal blocks. These are the save options
+`codec.yaml.minimizeQuotes` and `codec.yaml.literalBlockStyle`, which the OpenAPI resource turns
+on unless the caller sets them.
+
+## Schema package identity
+
+The `EPackage` built from `components/schemas` gets an nsURI, a name and a prefix (issue #311), so
+that its classes can be referred to from outside the description (e.g. a service contract saved as
+XMI):
+
+| | Value | Example (`Swagger Petstore`, `1.0.0`) |
+|---|---|---|
+| nsURI | `urn:openapi:<title>:<version>`, both reduced to `[a-z0-9.-]` | `urn:openapi:swagger-petstore:1.0.0` |
+| name, nsPrefix | lower camel case of the title words | `swaggerPetstore` |
+
+The nsURI does not depend on where the document was loaded from: the same API read from its URL,
+a mirror or a local copy, as JSON or YAML, gets the same nsURI. The load option
+`codec.openapi.schemasNsURI` (`CodecOpenApiOptions.OPTION_SCHEMAS_NS_URI`) sets it instead.
+
+## References
+
+A `$ref` stays a string in the model; it is what is written back. A reference into the same
+document leads to its target (issue #312):
+
+- **Schemas**: loading links every `Schema` with `$ref: #/components/schemas/X` - nested ones such
+  as `items` included - to the classifier built for `X`: `Schema.getClassifier()`. The link is
+  transient, never written. A schema named `pet` gives the class `Pet`; the link finds it.
+- **Other sections** (`parameters`, `responses`, `requestBodies`, `headers`, `examples`, `links`,
+  `callbacks`, `securitySchemes`): `OpenApiReferences.resolve(openApi, ref)` returns the object in
+  that map of `Components`.
+
+```java
+EClassifier type = response.getContent().get("application/json").getSchema().getClassifier();
+Parameter limit = (Parameter) OpenApiReferences.resolve(openApi, parameter.getRef());
+```
+
+JSON pointers are unescaped (`~1`, `~0`, percent-encoding). An internal reference without target
+is a warning on the resource; references into other documents are neither loaded nor reported.
+
 ## The rest of the document
 
 Everything outside `components/schemas` maps to the model classes one to one: `Info`, `Server`,
@@ -172,12 +243,12 @@ EClass; it refers to the generated types with `ref` (`"$ref": "#/components/sche
 |---|---|---|
 | `paths./pets.get`, `.post`, … (all eight methods) | `PathItem.getGet()`, … | `Operation.getMethod()` is set from the member name on reading, never written |
 | `security`, a requirement object `{ "oauth2": ["read"] }` | `SecurityRequirement.getSchemes()` | scheme name → scopes |
-| `$ref` of a parameter, response, request body, header, path item, schema | `getRef()` | kept as a string, not resolved |
+| `$ref` of a parameter, response, request body, header, path item, schema | `getRef()` | kept as a string; internal ones lead to their target, see [References](#references) |
 | `in`, `style`, `type` of a security scheme | enums with a `NULL` literal 0 | an absent value stays unset; an explicit value is always written |
 | `explode` | `Boolean` | only written when set |
 | `x-*` extensions | - | dropped when reading |
 
 ## Known gaps
 
-- YAML documents are not supported.
+- YAML merge keys (`<<: *a`) are not resolved.
 - `$ref`s to other documents are kept as strings; the codec does not load them.
