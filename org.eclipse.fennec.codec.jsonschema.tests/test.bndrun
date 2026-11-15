@@ -22,6 +22,7 @@
 	org.eclipse.fennec.codec;version=snapshot,\
 	org.eclipse.fennec.codec.api;version=snapshot,\
 	org.eclipse.fennec.codec.jsonschema;version=snapshot,\
+	org.eclipse.fennec.codec.jsonschema.model;version=snapshot,\
 	org.eclipse.fennec.codec.jsonschema.tests;version=snapshot,\
 	org.eclipse.fennec.codec.metadata;version=snapshot,\
 	org.opentest4j;version='[1.3.0,1.3.1)',\

@@ -37,6 +37,7 @@
 	org.eclipse.fennec.codec.oscal;version=snapshot,\
 	gov.nist.oscal.model;version='[1.2.3,1.2.4)',\
 	org.eclipse.fennec.codec.jsonschema;version=snapshot,\
+	org.eclipse.fennec.codec.jsonschema.model;version=snapshot,\
 	org.eclipse.fennec.codec.metadata;version=snapshot,\
 	org.eclipse.fennec.codec.openapi;version=snapshot,\
 	org.eclipse.fennec.codec.tests;version=snapshot,\
