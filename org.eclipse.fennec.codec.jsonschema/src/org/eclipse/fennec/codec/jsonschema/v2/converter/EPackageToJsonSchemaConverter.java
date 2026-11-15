@@ -1284,6 +1284,10 @@ public class EPackageToJsonSchemaConverter {
 
 	private void writeSingleValuedAttribute(EAttribute eAttribute, EDataType type, String documentation,
 			String noTypeInfo, String format, String writeOnly, String uniqueItems, JsonGenerator gen) throws IOException {
+		if (isNamedDataType(type)) {
+			writeDataTypeRef(eAttribute, type, documentation, gen);
+			return;
+		}
 		gen.writeStartObject();
 
 		if (documentation != null && !isSuppressed("description")) {
@@ -1830,6 +1834,13 @@ public class EPackageToJsonSchemaConverter {
 	}
 
 	private void writeArrayItems(EStructuralFeature feature, EDataType type, JsonGenerator gen) throws IOException {
+		if (isNamedDataType(type)) {
+			gen.writeObjectPropertyStart("items");
+			gen.writeStringProperty("$ref", buildRef(getOriginalName(type),
+					extractAnnotationDetail(type, AnnotationSources.JSONSCHEMA, "namespacePath"), type));
+			gen.writeEndObject();
+			return;
+		}
 		String noArrayItemsTypeInfo = extractAnnotationDetail(feature, AnnotationSources.JSONSCHEMA, "noArrayItemsTypeInfo");
 		String format = extractAnnotationDetail(feature, AnnotationSources.JSONSCHEMA, "format");
 
@@ -1980,6 +1991,37 @@ public class EPackageToJsonSchemaConverter {
 			gen.writeStringProperty("type", getJsonTypeFromInstanceClassName(eDataType.getInstanceClassName()));
 		}
 
+		// Facets of a named simple type, as read
+		for (String keyword : new String[] { "format", "title" }) {
+			String value = extractAnnotationDetail(eDataType, AnnotationSources.JSONSCHEMA, keyword);
+			if (value != null && !isSuppressed(keyword)) {
+				gen.writeStringProperty(keyword, value.startsWith("\"") && value.endsWith("\"")
+						? value.substring(1, value.length() - 1) : value);
+			}
+		}
+		writeAdditionalSchemaProperties(eDataType, gen);
+
+		gen.writeEndObject();
+	}
+
+	/**
+	 * A named simple schema of this package (an EDataType the reader built from a definition such as
+	 * {@code "coordinate": {"type": "integer"}}): features of that type refer to it with {@code $ref}
+	 * instead of inlining its type (issue #302).
+	 */
+	private boolean isNamedDataType(EDataType type) {
+		return type != null && !(type instanceof EEnum) && currentPackage != null
+				&& type.getEPackage() == currentPackage;
+	}
+
+	private void writeDataTypeRef(EAttribute eAttribute, EDataType type, String documentation, JsonGenerator gen)
+			throws IOException {
+		gen.writeStartObject();
+		if (documentation != null && !isSuppressed("description")) {
+			gen.writeStringProperty("description", documentation);
+		}
+		gen.writeStringProperty("$ref", buildRef(getOriginalName(type),
+				extractAnnotationDetail(type, AnnotationSources.JSONSCHEMA, "namespacePath"), type));
 		gen.writeEndObject();
 	}
 
@@ -1996,7 +2038,7 @@ public class EPackageToJsonSchemaConverter {
 	/**
 	 * Writes additional JSON Schema properties from annotations
 	 */
-	private void writeAdditionalSchemaProperties(EStructuralFeature feature, JsonGenerator gen) throws IOException {
+	private void writeAdditionalSchemaProperties(EModelElement feature, JsonGenerator gen) throws IOException {
 		String[] schemaProperties = {
 			"default", "minItems", "maxItems", "minLength", "maxLength",
 			"pattern", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
@@ -2018,9 +2060,11 @@ public class EPackageToJsonSchemaConverter {
 						JsonNode node = mapper.readTree(value);
 						gen.writeName(propertyName);
 						gen.writeTree(node);
-					} else if (contains(booleanProperties, propertyName)) {
+					} else if (contains(booleanProperties, propertyName)
+							&& ("true".equals(value) || "false".equals(value))) {
+						// draft-04 / OpenAPI 3.0 form; 2020-12 has a number, written below
 						gen.writeBooleanProperty(propertyName, Boolean.parseBoolean(value));
-					} else if (contains(numberProperties, propertyName)) {
+					} else if (contains(numberProperties, propertyName) || contains(booleanProperties, propertyName)) {
 						if (value.contains(".")) {
 							gen.writeNumberProperty(propertyName, Double.parseDouble(value));
 						} else {
