@@ -236,20 +236,10 @@ final class OasSchemas {
 		return types;
 	}
 
-	/** The Ecore data type of a simple JSON Schema type, refined by format. */
+	/** The Ecore data type of a simple JSON Schema type, refined by format - as the converter maps it. */
 	static EDataType dataType(String type, String format) {
-		if (type == null) {
-			return EcorePackage.Literals.EJAVA_OBJECT;
-		}
-		return switch (type) {
-			case "string" -> EcorePackage.Literals.ESTRING;
-			case "integer" -> "int64".equals(format) ? EcorePackage.Literals.ELONG_OBJECT : EcorePackage.Literals.EINTEGER_OBJECT;
-			case "number" -> "float".equals(format) ? EcorePackage.Literals.EFLOAT_OBJECT : EcorePackage.Literals.EDOUBLE_OBJECT;
-			case "boolean" -> EcorePackage.Literals.EBOOLEAN_OBJECT;
-			default -> EcorePackage.Literals.EJAVA_OBJECT;
-		};
+		return JsonSchemaToEPackageConverter.dataType(type, format);
 	}
-
 
 	private static String text(JsonNode json, String key) {
 		return json.has(key) ? json.get(key).asString() : null;

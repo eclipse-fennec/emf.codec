@@ -292,8 +292,10 @@ A document of another covered version is read with a warning; a version the mode
   - `Components.getSchemasPackage()`: a classifier per named schema; its sub-package `inline` holds
     the classifiers of inline schemas, named after their place (`ListPets200ApplicationJson`);
   - `Schema.getClassifier()` at a use site: the classifier of a `$ref`, of an inline schema, or an
-    Ecore data type for a simple type (`EString`, `EIntegerObject`, `ELongObject` for `int64`, …);
-    for an array the item type.
+    Ecore data type for a simple type (`EString`, `ELongObject`, `EIntegerObject` for `int32`, …,
+    as in spec 22 §5); for an array the item type;
+  - `Schema.getClassifier()` in `components/schemas`: the classifier of the named schema, and for
+    each of its property schemas the type of the feature it became (spec 22).
 - Specification Extensions (`x-…`) are kept in `extensions`, as native JSON values.
 
 **Writing** writes the description as it was read: the schemas from the JSON Schema model, the
