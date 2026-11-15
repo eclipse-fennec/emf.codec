@@ -42,6 +42,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.config.FeatureConfig;
+import org.eclipse.fennec.codec.diagnostic.CodecDocumentException;
 import org.eclipse.fennec.codec.context.CodecEntryContext;
 import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.util.ConversionFailures;
@@ -288,7 +289,18 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
             }
 
             if (token == JsonToken.VALUE_STRING) {
+                // Read once: a format parser may hand the value out only once (BSON)
                 String stringValue = parser.getString();
+                // A YAML 1.1 boolean word where the model expects a boolean (issue #297): YAML 1.2
+                // reads `required: yes` as the string "yes", EMF only knows true / false. The target
+                // type makes the meaning unambiguous; it is reported like a conversion, and
+                // strictOnConversion refuses it.
+                Boolean booleanWord = booleanWord(stringValue, instanceClass);
+                if (booleanWord != null) {
+                    reportConversionFailure(parser, ctxt, "Attribute '" + attribute.getName() + "': '"
+                            + stringValue + "' read as " + booleanWord + " (YAML 1.1 boolean)");
+                    return booleanWord;
+                }
                 return convertFromString(stringValue, dataType, instanceClass);
             }
 
@@ -339,12 +351,31 @@ public class AttributeDeserializationEntry implements DeserializationEntry {
             ContextHelper.addWarning(ctxt, msg, parser, "AttributeDeserializationEntry");
             return null;
 
+        } catch (CodecDocumentException e) {
+            // already reported, the load fails (strictOnConversion)
+            throw e;
         } catch (Exception e) {
             reportConversionFailure(parser, ctxt,
                     "Error converting value for attribute '" + attribute.getName() + "': "
                             + e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * The value of a YAML 1.1 boolean word ({@code y|Y|yes|Yes|YES|n|N|no|No|NO|on|On|ON|off|Off|OFF})
+     * for a boolean target, {@code null} for anything else - {@code true} / {@code false} included,
+     * which the regular conversion reads.
+     */
+    static Boolean booleanWord(String value, Class<?> target) {
+        if (value == null || (target != Boolean.class && target != boolean.class)) {
+            return null;
+        }
+        return switch (value) {
+            case "y", "Y", "yes", "Yes", "YES", "on", "On", "ON" -> Boolean.TRUE;
+            case "n", "N", "no", "No", "NO", "off", "Off", "OFF" -> Boolean.FALSE;
+            default -> null;
+        };
     }
 
     /**

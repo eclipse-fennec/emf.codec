@@ -12,12 +12,17 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.yaml;
 
+import java.util.Map;
+
 import org.eclipse.fennec.codec.format.jackson.JacksonFormatProvider;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 
+import tools.jackson.core.JsonParser;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.TokenStreamFactory;
 import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLFactoryBuilder;
+import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
 /**
  * {@link org.eclipse.fennec.codec.format.CodecFormatProvider CodecFormatProvider}
@@ -39,14 +44,38 @@ import tools.jackson.dataformat.yaml.YAMLFactory;
  */
 public class YamlFormatProvider extends JacksonFormatProvider {
 
-    /**
-     * Creates a new YAML format provider.
-     */
     /** The {@link #getFormatId() format id}, also the value of the service property {@code codec.format.id}. */
     public static final String FORMAT_ID = "yaml";
 
+    /**
+     * Load option: the most tokens YAML aliases may expand to in one document (issue #297), the
+     * guard against "billion laughs". Value: a positive number; default
+     * {@link #DEFAULT_MAX_ALIAS_TOKENS}.
+     */
+    public static final String OPTION_MAX_ALIAS_TOKENS = "codec.yaml.maxAliasTokens";
+
+    /** Default of {@link #OPTION_MAX_ALIAS_TOKENS}: one million tokens. */
+    public static final long DEFAULT_MAX_ALIAS_TOKENS = 1_000_000L;
+
+    /**
+     * Save option: quote strings only where YAML would read them as something else (issue #297) -
+     * numbers ({@code "1.0"}, {@code "200"}), booleans and null, including the YAML 1.1 words
+     * ({@code "on"}, {@code "yes"}). Value: {@code Boolean}, default {@code false} (every string is
+     * quoted).
+     */
+    public static final String OPTION_MINIMIZE_QUOTES = "codec.yaml.minimizeQuotes";
+
+    /**
+     * Save option: write multi-line strings as literal blocks ({@code |}) instead of quoted strings
+     * with {@code \n} escapes (issue #297). Value: {@code Boolean}, default {@code false}.
+     */
+    public static final String OPTION_LITERAL_BLOCK_STYLE = "codec.yaml.literalBlockStyle";
+
+    /**
+     * Creates a new YAML format provider.
+     */
     public YamlFormatProvider() {
-        super(FORMAT_ID, new YAMLFactory(),
+        super(FORMAT_ID, new AnchorAwareYamlFactory(),
                 new String[] { "yaml", "yml" },
                 new String[] { "application/yaml", "text/yaml" });
     }
@@ -64,9 +93,54 @@ public class YamlFormatProvider extends JacksonFormatProvider {
         LoadSettings settings = LoadSettings.builder()
                 .setCodePointLimit((int) Math.min(constraints.getMaxDocumentLength(), Integer.MAX_VALUE))
                 .build();
-        return ((YAMLFactory) getFactory()).rebuild()
+        return new AnchorAwareYamlFactory(((YAMLFactory) getFactory()).rebuild()
                 .streamReadConstraints(constraints)
-                .loadSettings(settings)
-                .build();
+                .loadSettings(settings));
+    }
+
+    /** Maps {@link #OPTION_MINIMIZE_QUOTES} and {@link #OPTION_LITERAL_BLOCK_STYLE} onto the writer. */
+    @Override
+    protected TokenStreamFactory writeFactory(Map<String, Object> saveOptions) {
+        boolean minimizeQuotes = isTrue(saveOptions.get(OPTION_MINIMIZE_QUOTES));
+        boolean literalBlocks = isTrue(saveOptions.get(OPTION_LITERAL_BLOCK_STYLE));
+        if (!minimizeQuotes && !literalBlocks) {
+            return getFactory();
+        }
+        YAMLFactoryBuilder builder = ((YAMLFactory) getFactory()).rebuild();
+        if (minimizeQuotes) {
+            builder.enable(YAMLWriteFeature.MINIMIZE_QUOTES)
+                    .enable(YAMLWriteFeature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS);
+        }
+        if (literalBlocks) {
+            builder.enable(YAMLWriteFeature.LITERAL_BLOCK_STYLE);
+        }
+        return new AnchorAwareYamlFactory(builder);
+    }
+
+    private static boolean isTrue(Object value) {
+        return value instanceof Boolean b ? b : value != null && Boolean.parseBoolean(value.toString().trim());
+    }
+
+    /** Resolves anchors and aliases, which Jackson's YAML parser hands over as strings (issue #297). */
+    @Override
+    protected JsonParser decorateParser(JsonParser parser, Map<String, Object> loadOptions) {
+        if (parser instanceof AnchorAwareYamlParser yaml) {
+            return new YamlAliasResolvingParser(yaml, maxAliasTokens(loadOptions));
+        }
+        return parser;
+    }
+
+    private static long maxAliasTokens(Map<String, Object> loadOptions) {
+        Object value = loadOptions.get(OPTION_MAX_ALIAS_TOKENS);
+        long max = DEFAULT_MAX_ALIAS_TOKENS;
+        if (value instanceof Number number) {
+            max = number.longValue();
+        } else if (value != null) {
+            max = Long.parseLong(value.toString().trim());
+        }
+        if (max <= 0) {
+            throw new IllegalArgumentException(OPTION_MAX_ALIAS_TOKENS + " must be positive: " + value);
+        }
+        return max;
     }
 }
