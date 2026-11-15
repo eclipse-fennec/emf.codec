@@ -461,7 +461,7 @@ public class JsonSchemaToEPackageConverter {
 		if (defsNode != null) {
 			for (String defName : defsNode.propertyNames()) {
 				JsonNode defNode = defsNode.get(defName);
-				EClassifier defClassifier = processSchemaDefinition(defNode, defName, defName);
+				EClassifier defClassifier = ownClassifier(processSchemaDefinition(defNode, defName, defName), defName);
 				if (defClassifier != null) {
 					markDefinitionEnum(defClassifier);
 					classifierMap.put(defName, defClassifier);
@@ -679,7 +679,7 @@ public class JsonSchemaToEPackageConverter {
 			} else {
 				// This is an actual schema definition
 				schemaDefinitions.put(qualifiedName, defNode);
-				EClassifier classifier = processSchemaDefinition(defNode, defName, qualifiedName);
+				EClassifier classifier = ownClassifier(processSchemaDefinition(defNode, defName, qualifiedName), defName);
 				if (classifier != null) {
 					markDefinitionEnum(classifier);
 					classifierMap.put(qualifiedName, classifier);
@@ -793,6 +793,23 @@ public class JsonSchemaToEPackageConverter {
 	 * Process a single schema definition and create appropriate EClassifier
 	 */
 	private EClassifier processSchemaDefinition(JsonNode schemaNode, String name, String qualifiedName) {
+		// A union of one type and null (anyOf: [{type: integer}, {type: null}]) is that type (issue #302)
+		JsonNode unwrapped = unwrapNullableUnion(schemaNode);
+		if (unwrapped != schemaNode) {
+			return processSchemaDefinition(unwrapped, name, qualifiedName);
+		}
+		// A pure anyOf models a union like oneOf; the keyword is kept for writing (issue #302)
+		if (schemaNode.has("anyOf") && !schemaNode.has("oneOf") && !schemaNode.has("type")
+				&& !schemaNode.has("properties") && schemaNode instanceof ObjectNode objectNode) {
+			ObjectNode asOneOf = objectNode.deepCopy();
+			asOneOf.set("oneOf", asOneOf.remove("anyOf"));
+			EClassifier union = processSchemaDefinition(asOneOf, name, qualifiedName);
+			if (union != null) {
+				addEAnnotation(union, AnnotationSources.JSONSCHEMA, "unionKeyword", "anyOf");
+			}
+			return union;
+		}
+
 		// Check for unsupported keywords and emit diagnostics
 		diagnostics.addAll(JsonSchemaKeywords.checkForUnsupportedKeywords(schemaNode, qualifiedName));
 
@@ -836,7 +853,58 @@ public class JsonSchemaToEPackageConverter {
 			}
 		}
 
+		// An object schema without "type" (issue #302)
+		if (schemaNode.has("properties") || schemaNode.has("additionalProperties") || schemaNode.has("required")) {
+			return createEClass(schemaNode, name, qualifiedName);
+		}
+		// No constraint on the type: any value (issue #302); a bare $ref alias is not modelled
+		if (!schemaNode.has("$ref") && !schemaNode.has("not") && !schemaNode.has("if")) {
+			return createEDataType(schemaNode, name);
+		}
 		return null;
+	}
+
+	private static final Set<String> UNION_ANNOTATIONS = Set.of("description", "title", "default", "example",
+			"examples", "deprecated", "readOnly", "writeOnly", "nullable", "$comment");
+
+	/**
+	 * {@code anyOf} / {@code oneOf} of a single non-null branch, optionally with {@code {type: null}},
+	 * and only annotations around it: the branch with those annotations. Anything else is returned as is.
+	 */
+	public static JsonNode unwrapNullableUnion(JsonNode schemaNode) {
+		for (String keyword : new String[] { "anyOf", "oneOf" }) {
+			JsonNode union = schemaNode.get(keyword);
+			if (union == null || !union.isArray()) {
+				continue;
+			}
+			for (String key : schemaNode.propertyNames()) {
+				if (!key.equals(keyword) && !UNION_ANNOTATIONS.contains(key)) {
+					return schemaNode;
+				}
+			}
+			JsonNode single = null;
+			for (JsonNode branch : union) {
+				boolean isNull = branch.has("type") && "null".equals(branch.get("type").asString()) && branch.size() == 1;
+				if (isNull) {
+					continue;
+				}
+				if (single != null) {
+					return schemaNode;
+				}
+				single = branch;
+			}
+			if (single == null || !(single instanceof ObjectNode branch) || branch.has("$ref")) {
+				return schemaNode;
+			}
+			ObjectNode merged = branch.deepCopy();
+			for (String key : schemaNode.propertyNames()) {
+				if (!key.equals(keyword) && !merged.has(key)) {
+					merged.set(key, schemaNode.get(key));
+				}
+			}
+			return unwrapNullableUnion(merged);
+		}
+		return schemaNode;
 	}
 
 	/**
@@ -1316,8 +1384,9 @@ public class JsonSchemaToEPackageConverter {
 	}
 
 	private EClass createEClass(JsonNode classNode, String name, String qualifiedName) {
-		if (cachedClassifiers.containsKey(classNode.toString()) && name.startsWith(ARTIFICIAL_CLASSIFIER_PREFIX)) {
-			return (EClass) cachedClassifiers.get(classNode.toString());
+		// the cache is keyed by the schema text, which an enum or a data type may share (issue #302)
+		if (cachedClassifiers.get(classNode.toString()) instanceof EClass cached && name.startsWith(ARTIFICIAL_CLASSIFIER_PREFIX)) {
+			return cached;
 		}
 
 		EClass eClass = ecoreFactory.createEClass();
@@ -1593,6 +1662,40 @@ public class JsonSchemaToEPackageConverter {
 	}
 
 	/**
+	 * Makes the classifier of a definition its own (issue #302): the classifier cache, keyed by the
+	 * schema text, hands an equal definition the classifier of an earlier one, which then lacked a
+	 * classifier of its own - a copy is made. And every definition can be found by its key: a
+	 * classifier whose name differs from the key carries it as original name.
+	 */
+	private EClassifier ownClassifier(EClassifier classifier, String defName) {
+		if (classifier == null) {
+			return null;
+		}
+		String original = EcoreUtil.getAnnotation(classifier, AnnotationSources.JSONSCHEMA, "originalName");
+		boolean claimed = original != null ? !original.equals(defName)
+				: !classifier.getName().equals(defName) && !classifier.getName().equals(capitalizeFirst(defName))
+						&& classifierMap.containsValue(classifier);
+		if (claimed && classifierMap.containsValue(classifier)) {
+			classifier = EcoreUtil.copy(classifier);
+			classifier.setName(capitalizeFirst(defName));
+			EAnnotation annotation = classifier.getEAnnotation(AnnotationSources.JSONSCHEMA);
+			if (annotation != null) {
+				annotation.getDetails().removeKey("originalName");
+			}
+			EAnnotation extendedMetaData = classifier.getEAnnotation(AnnotationSources.EXTENDED_METADATA);
+			if (extendedMetaData != null) {
+				classifier.getEAnnotations().remove(extendedMetaData);
+			}
+		}
+		if (!classifier.getName().equals(defName)
+				&& EcoreUtil.getAnnotation(classifier, AnnotationSources.JSONSCHEMA, "originalName") == null) {
+			addEAnnotation(classifier, AnnotationSources.JSONSCHEMA, "originalName", defName);
+			addEAnnotation(classifier, AnnotationSources.EXTENDED_METADATA, "name", defName);
+		}
+		return classifier;
+	}
+
+	/**
 	 * An enum that is a definition of its own: features of its type are written back as {@code $ref}
 	 * to it, not with the literals inline (issue #302).
 	 */
@@ -1609,8 +1712,8 @@ public class JsonSchemaToEPackageConverter {
 	}
 
 	private EEnum createEEnum(JsonNode enumNode, String name, String qualifiedName) {
-		if (cachedClassifiers.containsKey(enumNode.toString())) {
-			return (EEnum) cachedClassifiers.get(enumNode.toString());
+		if (cachedClassifiers.get(enumNode.toString()) instanceof EEnum cached) {
+			return cached;
 		}
 
 		EEnum eEnum = ecoreFactory.createEEnum();
@@ -1674,8 +1777,9 @@ public class JsonSchemaToEPackageConverter {
 	}
 
 	private EDataType createEDataType(JsonNode dtNode, String name) {
-		if (cachedClassifiers.containsKey(dtNode.toString())) {
-			return (EDataType) cachedClassifiers.get(dtNode.toString());
+		// the cache is keyed by the schema text, which a class may share (issue #302)
+		if (cachedClassifiers.get(dtNode.toString()) instanceof EDataType cached && !(cached instanceof EEnum)) {
+			return cached;
 		}
 
 		EDataType dt = ecoreFactory.createEDataType();
@@ -1694,7 +1798,11 @@ public class JsonSchemaToEPackageConverter {
 		preserveAdditionalSchemaProperties(dtNode, dt);
 
 		JsonNode typeNode = dtNode.get("type");
-		if (typeNode != null && typeNode.isArray()) {
+		if (typeNode == null) {
+			// no type: any value
+			dt.setInstanceClass(Object.class);
+			dt.setInstanceClassName("java.lang.Object");
+		} else if (typeNode.isArray()) {
 			StringBuilder sb = new StringBuilder();
 			for (int t = 0; t < typeNode.size(); t++) {
 				if (t > 0) sb.append(",");

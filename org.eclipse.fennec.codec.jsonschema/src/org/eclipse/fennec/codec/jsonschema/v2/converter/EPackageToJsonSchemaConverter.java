@@ -523,7 +523,7 @@ public class EPackageToJsonSchemaConverter {
 		if (description != null && !isSuppressed("description")) {
 			gen.writeStringProperty("description", description);
 		}
-		gen.writeArrayPropertyStart("oneOf");
+		gen.writeArrayPropertyStart(unionKeyword(union));
 		String refs = extractAnnotationDetail(union, AnnotationSources.JSONSCHEMA, "oneOfRefs");
 		if (refs != null) {
 			for (String name : refs.split(",")) {
@@ -588,7 +588,7 @@ public class EPackageToJsonSchemaConverter {
 		// Find all variant subclasses
 		List<EClass> variants = findVariantSubclasses(baseClass);
 
-		gen.writeArrayPropertyStart("oneOf");
+		gen.writeArrayPropertyStart(unionKeyword(baseClass));
 		for (EClass variant : variants) {
 			writeVariantAsFullSchema(variant, baseClass, gen);
 		}
@@ -2037,6 +2037,11 @@ public class EPackageToJsonSchemaConverter {
 		}
 		// an enum read from a definition of its own is a $ref; any other enum is written inline
 		return !(type instanceof EEnum) || "true".equals(extractAnnotationDetail(type, AnnotationSources.JSONSCHEMA, "definition"));
+	}
+
+	/** The keyword a union was read from: {@code anyOf} or {@code oneOf} (issue #302). */
+	private String unionKeyword(EClass union) {
+		return "anyOf".equals(extractAnnotationDetail(union, AnnotationSources.JSONSCHEMA, "unionKeyword")) ? "anyOf" : "oneOf";
 	}
 
 	private boolean isNestedArray(EClassifier classifier) {
