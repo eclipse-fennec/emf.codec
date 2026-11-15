@@ -17,6 +17,8 @@ import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+
 import org.osgi.annotation.versioning.ProviderType;
 
 /**
@@ -29,6 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * </p>
  * <ul>
  *   <li>{@link org.eclipse.fennec.model.oas.Components#getSchemas <em>Schemas</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.Components#getSchemasPackage <em>Schemas Package</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Components#getResponses <em>Responses</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Components#getParameters <em>Parameters</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Components#getExamples <em>Examples</em>}</li>
@@ -49,30 +52,45 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface Components extends EObject {
 	/**
-	 * Returns the value of the '<em><b>Schemas</b></em>' containment reference.
+	 * Returns the value of the '<em><b>Schemas</b></em>' map.
+	 * The key is of type {@link java.lang.String},
+	 * and the value is of type {@link org.eclipse.fennec.codec.jsonschema.model.Schema},
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * components/schemas as EPackage; its classifiers are the named schemas, its sub-package inline holds the classifiers of inline schemas.
+	 * components/schemas, as written (JSON Schema model, #319).
 	 * <!-- end-model-doc -->
-	 * @return the value of the '<em>Schemas</em>' containment reference.
-	 * @see #setSchemas(EPackage)
+	 * @return the value of the '<em>Schemas</em>' map.
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getComponents_Schemas()
-	 * @model containment="true"
-	 *        annotation="http://eclipse.org/fennec/codec key='schemas' valueReaderName='oasSchemas' valueWriterName='ePackageToOpenApiSchemas'"
+	 * @model mapType="org.eclipse.fennec.model.oas.SchemaEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.codec.jsonschema.model.Schema&gt;"
 	 * @generated
 	 */
-	EPackage getSchemas();
+	EMap<String, Schema> getSchemas();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Components#getSchemas <em>Schemas</em>}' containment reference.
+	 * Returns the value of the '<em><b>Schemas Package</b></em>' containment reference.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @param value the new value of the '<em>Schemas</em>' containment reference.
-	 * @see #getSchemas()
+	 * <!-- begin-model-doc -->
+	 * The Ecore derived from the schemas: a classifier per named schema; its sub-package inline holds the classifiers of inline schemas. Set when a description is loaded, never written.
+	 * <!-- end-model-doc -->
+	 * @return the value of the '<em>Schemas Package</em>' containment reference.
+	 * @see #setSchemasPackage(EPackage)
+	 * @see org.eclipse.fennec.model.oas.OasPackage#getComponents_SchemasPackage()
+	 * @model containment="true" transient="true"
 	 * @generated
 	 */
-	void setSchemas(EPackage value);
+	EPackage getSchemasPackage();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Components#getSchemasPackage <em>Schemas Package</em>}' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Schemas Package</em>' containment reference.
+	 * @see #getSchemasPackage()
+	 * @generated
+	 */
+	void setSchemasPackage(EPackage value);
 
 	/**
 	 * Returns the value of the '<em><b>Responses</b></em>' map.

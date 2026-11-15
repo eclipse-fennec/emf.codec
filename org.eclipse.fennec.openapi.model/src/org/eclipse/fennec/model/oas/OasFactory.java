@@ -251,15 +251,6 @@ public interface OasFactory extends EFactory {
 	SecurityRequirement createSecurityRequirement();
 
 	/**
-	 * Returns a new object of class '<em>Schema Reference</em>'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return a new object of class '<em>Schema Reference</em>'.
-	 * @generated
-	 */
-	SchemaReference createSchemaReference();
-
-	/**
 	 * Returns the package supported by this factory.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->

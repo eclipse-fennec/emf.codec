@@ -22,6 +22,8 @@ import org.eclipse.emf.ecore.EReference;
 
 import org.eclipse.emf.ecore.impl.EPackageImpl;
 
+import org.eclipse.fennec.codec.jsonschema.model.JsonSchemaPackage;
+
 import org.eclipse.fennec.model.oas.ApiKeyLocation;
 import org.eclipse.fennec.model.oas.Callback;
 import org.eclipse.fennec.model.oas.Components;
@@ -46,7 +48,6 @@ import org.eclipse.fennec.model.oas.ParameterStyle;
 import org.eclipse.fennec.model.oas.PathItem;
 import org.eclipse.fennec.model.oas.RequestBody;
 import org.eclipse.fennec.model.oas.Response;
-import org.eclipse.fennec.model.oas.SchemaReference;
 import org.eclipse.fennec.model.oas.SecurityRequirement;
 import org.eclipse.fennec.model.oas.SecurityScheme;
 import org.eclipse.fennec.model.oas.SecuritySchemeType;
@@ -234,13 +235,6 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	private EClass schemaReferenceEClass = null;
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
 	private EClass pathItemEntryEClass = null;
 
 	/**
@@ -360,6 +354,13 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	private EClass schemaEntryEClass = null;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	private EEnum parameterLocationEEnum = null;
 
 	/**
@@ -428,6 +429,9 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		OasPackageImpl theOasPackage = registeredOasPackage instanceof OasPackageImpl ? (OasPackageImpl)registeredOasPackage : new OasPackageImpl();
 
 		isInited = true;
+
+		// Initialize simple dependencies
+		JsonSchemaPackage.eINSTANCE.eClass();
 
 		// Create package meta-data objects
 		theOasPackage.createPackageContents();
@@ -899,7 +903,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_Responses() {
+	public EReference getComponents_SchemasPackage() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(1);
 	}
 
@@ -909,7 +913,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_Parameters() {
+	public EReference getComponents_Responses() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(2);
 	}
 
@@ -919,7 +923,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_Examples() {
+	public EReference getComponents_Parameters() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(3);
 	}
 
@@ -929,7 +933,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_RequestBodies() {
+	public EReference getComponents_Examples() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(4);
 	}
 
@@ -939,7 +943,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_Headers() {
+	public EReference getComponents_RequestBodies() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(5);
 	}
 
@@ -949,7 +953,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_SecuritySchemes() {
+	public EReference getComponents_Headers() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(6);
 	}
 
@@ -959,7 +963,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_Links() {
+	public EReference getComponents_SecuritySchemes() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(7);
 	}
 
@@ -969,7 +973,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_Callbacks() {
+	public EReference getComponents_Links() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(8);
 	}
 
@@ -979,7 +983,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_PathItems() {
+	public EReference getComponents_Callbacks() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(9);
 	}
 
@@ -989,7 +993,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_MediaTypes() {
+	public EReference getComponents_PathItems() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(10);
 	}
 
@@ -999,8 +1003,18 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EReference getComponents_Extensions() {
+	public EReference getComponents_MediaTypes() {
 		return (EReference)componentsEClass.getEStructuralFeatures().get(11);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EReference getComponents_Extensions() {
+		return (EReference)componentsEClass.getEStructuralFeatures().get(12);
 	}
 
 	/**
@@ -2719,306 +2733,6 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
-	public EClass getSchemaReference() {
-		return schemaReferenceEClass;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Ref() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(0);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EReference getSchemaReference_Classifier() {
-		return (EReference)schemaReferenceEClass.getEStructuralFeatures().get(1);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Many() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(2);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_MinItems() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(3);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_MaxItems() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(4);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_UniqueItems() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(5);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Nullable() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(6);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Format() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(7);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Title() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(8);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Description() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(9);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Default() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(10);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Enum() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(11);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Const() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(12);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_MinLength() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(13);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_MaxLength() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(14);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Pattern() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(15);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Minimum() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(16);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Maximum() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(17);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_ExclusiveMinimum() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(18);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_ExclusiveMaximum() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(19);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_MultipleOf() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(20);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_ReadOnly() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(21);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_WriteOnly() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(22);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Deprecated() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(23);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Example() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(24);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_Examples() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(25);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_ContentMediaType() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(26);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getSchemaReference_ContentEncoding() {
-		return (EAttribute)schemaReferenceEClass.getEStructuralFeatures().get(27);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EReference getSchemaReference_Keywords() {
-		return (EReference)schemaReferenceEClass.getEStructuralFeatures().get(28);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
 	public EClass getPathItemEntry() {
 		return pathItemEntryEClass;
 	}
@@ -3529,6 +3243,36 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 	 * @generated
 	 */
 	@Override
+	public EClass getSchemaEntry() {
+		return schemaEntryEClass;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EAttribute getSchemaEntry_Key() {
+		return (EAttribute)schemaEntryEClass.getEStructuralFeatures().get(0);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EReference getSchemaEntry_Value() {
+		return (EReference)schemaEntryEClass.getEStructuralFeatures().get(1);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EEnum getParameterLocation() {
 		return parameterLocationEEnum;
 	}
@@ -3643,6 +3387,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 
 		componentsEClass = createEClass(COMPONENTS);
 		createEReference(componentsEClass, COMPONENTS__SCHEMAS);
+		createEReference(componentsEClass, COMPONENTS__SCHEMAS_PACKAGE);
 		createEReference(componentsEClass, COMPONENTS__RESPONSES);
 		createEReference(componentsEClass, COMPONENTS__PARAMETERS);
 		createEReference(componentsEClass, COMPONENTS__EXAMPLES);
@@ -3843,37 +3588,6 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		securityRequirementEClass = createEClass(SECURITY_REQUIREMENT);
 		createEReference(securityRequirementEClass, SECURITY_REQUIREMENT__SCHEMES);
 
-		schemaReferenceEClass = createEClass(SCHEMA_REFERENCE);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__REF);
-		createEReference(schemaReferenceEClass, SCHEMA_REFERENCE__CLASSIFIER);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__MANY);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__MIN_ITEMS);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__MAX_ITEMS);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__UNIQUE_ITEMS);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__NULLABLE);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__FORMAT);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__TITLE);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__DESCRIPTION);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__DEFAULT);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__ENUM);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__CONST);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__MIN_LENGTH);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__MAX_LENGTH);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__PATTERN);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__MINIMUM);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__MAXIMUM);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__EXCLUSIVE_MINIMUM);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__EXCLUSIVE_MAXIMUM);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__MULTIPLE_OF);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__READ_ONLY);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__WRITE_ONLY);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__DEPRECATED);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__EXAMPLE);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__EXAMPLES);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__CONTENT_MEDIA_TYPE);
-		createEAttribute(schemaReferenceEClass, SCHEMA_REFERENCE__CONTENT_ENCODING);
-		createEReference(schemaReferenceEClass, SCHEMA_REFERENCE__KEYWORDS);
-
 		pathItemEntryEClass = createEClass(PATH_ITEM_ENTRY);
 		createEAttribute(pathItemEntryEClass, PATH_ITEM_ENTRY__KEY);
 		createEReference(pathItemEntryEClass, PATH_ITEM_ENTRY__VALUE);
@@ -3942,6 +3656,10 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		createEAttribute(securityRequirementEntryEClass, SECURITY_REQUIREMENT_ENTRY__KEY);
 		createEAttribute(securityRequirementEntryEClass, SECURITY_REQUIREMENT_ENTRY__VALUE);
 
+		schemaEntryEClass = createEClass(SCHEMA_ENTRY);
+		createEAttribute(schemaEntryEClass, SCHEMA_ENTRY__KEY);
+		createEReference(schemaEntryEClass, SCHEMA_ENTRY__VALUE);
+
 		// Create enums
 		parameterLocationEEnum = createEEnum(PARAMETER_LOCATION);
 		parameterStyleEEnum = createEEnum(PARAMETER_STYLE);
@@ -3971,6 +3689,9 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		setName(eNAME);
 		setNsPrefix(eNS_PREFIX);
 		setNsURI(eNS_URI);
+
+		// Obtain other dependent packages
+		JsonSchemaPackage theJsonSchemaPackage = (JsonSchemaPackage)EPackage.Registry.INSTANCE.getEPackage(JsonSchemaPackage.eNS_URI);
 
 		// Create type parameters
 
@@ -4029,7 +3750,8 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEReference(getServerVariable_Extensions(), this.getExtensionEntry(), null, "extensions", null, 0, -1, ServerVariable.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(componentsEClass, Components.class, "Components", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEReference(getComponents_Schemas(), ecorePackage.getEPackage(), null, "schemas", null, 0, 1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_Schemas(), this.getSchemaEntry(), null, "schemas", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getComponents_SchemasPackage(), ecorePackage.getEPackage(), null, "schemasPackage", null, 0, 1, Components.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getComponents_Responses(), this.getResponseEntry(), null, "responses", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getComponents_Parameters(), this.getParameterEntry(), null, "parameters", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getComponents_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Components.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -4095,7 +3817,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getParameter_Style(), this.getParameterStyle(), "style", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_AllowReserved(), ecorePackage.getEBoolean(), "allowReserved", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getParameter_Schema(), this.getSchemaReference(), null, "schema", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getParameter_Schema(), theJsonSchemaPackage.getSchema(), null, "schema", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getParameter_Example(), ecorePackage.getEJavaObject(), "example", null, 0, 1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getParameter_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getParameter_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, Parameter.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -4113,8 +3835,8 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getMediaType_Ref(), ecorePackage.getEString(), "ref", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getMediaType_Target(), this.getMediaType(), null, "target", null, 0, 1, MediaType.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getMediaType_Description(), ecorePackage.getEString(), "description", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getMediaType_Schema(), this.getSchemaReference(), null, "schema", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getMediaType_ItemSchema(), this.getSchemaReference(), null, "itemSchema", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getMediaType_Schema(), theJsonSchemaPackage.getSchema(), null, "schema", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getMediaType_ItemSchema(), theJsonSchemaPackage.getSchema(), null, "itemSchema", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getMediaType_Example(), ecorePackage.getEJavaObject(), "example", null, 0, 1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getMediaType_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getMediaType_Encoding(), this.getEncodingEntry(), null, "encoding", null, 0, -1, MediaType.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -4180,7 +3902,7 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEAttribute(getHeader_Style(), this.getParameterStyle(), "style", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_Explode(), ecorePackage.getEBooleanObject(), "explode", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_AllowReserved(), ecorePackage.getEBoolean(), "allowReserved", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getHeader_Schema(), this.getSchemaReference(), null, "schema", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getHeader_Schema(), theJsonSchemaPackage.getSchema(), null, "schema", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getHeader_Example(), ecorePackage.getEJavaObject(), "example", null, 0, 1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getHeader_Examples(), this.getExampleEntry(), null, "examples", null, 0, -1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEReference(getHeader_Content(), this.getMediaTypeEntry(), null, "content", null, 0, -1, Header.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -4229,37 +3951,6 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 
 		initEClass(securityRequirementEClass, SecurityRequirement.class, "SecurityRequirement", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getSecurityRequirement_Schemes(), this.getSecurityRequirementEntry(), null, "schemes", null, 0, -1, SecurityRequirement.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-
-		initEClass(schemaReferenceEClass, SchemaReference.class, "SchemaReference", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getSchemaReference_Ref(), ecorePackage.getEString(), "ref", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getSchemaReference_Classifier(), ecorePackage.getEClassifier(), null, "classifier", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Many(), ecorePackage.getEBoolean(), "many", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_MinItems(), ecorePackage.getEIntegerObject(), "minItems", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_MaxItems(), ecorePackage.getEIntegerObject(), "maxItems", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_UniqueItems(), ecorePackage.getEBoolean(), "uniqueItems", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Nullable(), ecorePackage.getEBoolean(), "nullable", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Format(), ecorePackage.getEString(), "format", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Title(), ecorePackage.getEString(), "title", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Description(), ecorePackage.getEString(), "description", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Default(), ecorePackage.getEJavaObject(), "default", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Enum(), ecorePackage.getEJavaObject(), "enum", null, 0, -1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Const(), ecorePackage.getEJavaObject(), "const", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_MinLength(), ecorePackage.getEIntegerObject(), "minLength", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_MaxLength(), ecorePackage.getEIntegerObject(), "maxLength", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Pattern(), ecorePackage.getEString(), "pattern", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Minimum(), ecorePackage.getEBigDecimal(), "minimum", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Maximum(), ecorePackage.getEBigDecimal(), "maximum", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_ExclusiveMinimum(), ecorePackage.getEBigDecimal(), "exclusiveMinimum", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_ExclusiveMaximum(), ecorePackage.getEBigDecimal(), "exclusiveMaximum", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_MultipleOf(), ecorePackage.getEBigDecimal(), "multipleOf", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_ReadOnly(), ecorePackage.getEBoolean(), "readOnly", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_WriteOnly(), ecorePackage.getEBoolean(), "writeOnly", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Deprecated(), ecorePackage.getEBoolean(), "deprecated", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Example(), ecorePackage.getEJavaObject(), "example", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_Examples(), ecorePackage.getEJavaObject(), "examples", null, 0, -1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_ContentMediaType(), ecorePackage.getEString(), "contentMediaType", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEAttribute(getSchemaReference_ContentEncoding(), ecorePackage.getEString(), "contentEncoding", null, 0, 1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getSchemaReference_Keywords(), this.getAnyEntry(), null, "keywords", null, 0, -1, SchemaReference.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(pathItemEntryEClass, Map.Entry.class, "PathItemEntry", !IS_ABSTRACT, !IS_INTERFACE, !IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getPathItemEntry_Key(), ecorePackage.getEString(), "key", null, 0, 1, Map.Entry.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -4328,6 +4019,10 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		initEClass(securityRequirementEntryEClass, Map.Entry.class, "SecurityRequirementEntry", !IS_ABSTRACT, !IS_INTERFACE, !IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getSecurityRequirementEntry_Key(), ecorePackage.getEString(), "key", null, 0, 1, Map.Entry.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		initEAttribute(getSecurityRequirementEntry_Value(), ecorePackage.getEString(), "value", null, 0, -1, Map.Entry.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+		initEClass(schemaEntryEClass, Map.Entry.class, "SchemaEntry", !IS_ABSTRACT, !IS_INTERFACE, !IS_GENERATED_INSTANCE_CLASS);
+		initEAttribute(getSchemaEntry_Key(), ecorePackage.getEString(), "key", null, 0, 1, Map.Entry.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getSchemaEntry_Value(), theJsonSchemaPackage.getSchema(), null, "value", null, 0, 1, Map.Entry.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		// Initialize enums and add enum literals
 		initEEnum(parameterLocationEEnum, ParameterLocation.class, "ParameterLocation");
@@ -4437,14 +4132,6 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "additionalPropertiesFeature", "extensions"
 		   });
 		addAnnotation
-		  (getComponents_Schemas(),
-		   source,
-		   new String[] {
-			   "key", "schemas",
-			   "valueReaderName", "oasSchemas",
-			   "valueWriterName", "ePackageToOpenApiSchemas"
-		   });
-		addAnnotation
 		  (pathItemEClass,
 		   source,
 		   new String[] {
@@ -4551,8 +4238,8 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		  (getParameter_Schema(),
 		   source,
 		   new String[] {
-			   "valueReaderName", "oasSchema",
-			   "valueWriterName", "oasSchema"
+			   "valueReaderName", "jsonSchema",
+			   "valueWriterName", "jsonSchema"
 		   });
 		addAnnotation
 		  (requestBodyEClass,
@@ -4582,15 +4269,15 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		  (getMediaType_Schema(),
 		   source,
 		   new String[] {
-			   "valueReaderName", "oasSchema",
-			   "valueWriterName", "oasSchema"
+			   "valueReaderName", "jsonSchema",
+			   "valueWriterName", "jsonSchema"
 		   });
 		addAnnotation
 		  (getMediaType_ItemSchema(),
 		   source,
 		   new String[] {
-			   "valueReaderName", "oasSchema",
-			   "valueWriterName", "oasSchema"
+			   "valueReaderName", "jsonSchema",
+			   "valueWriterName", "jsonSchema"
 		   });
 		addAnnotation
 		  (encodingEClass,
@@ -4662,8 +4349,8 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		  (getHeader_Schema(),
 		   source,
 		   new String[] {
-			   "valueReaderName", "oasSchema",
-			   "valueWriterName", "oasSchema"
+			   "valueReaderName", "jsonSchema",
+			   "valueWriterName", "jsonSchema"
 		   });
 		addAnnotation
 		  (tagEClass,
@@ -4696,10 +4383,11 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 			   "additionalPropertiesFeature", "extensions"
 		   });
 		addAnnotation
-		  (getSchemaReference_Ref(),
+		  (getSchemaEntry_Value(),
 		   source,
 		   new String[] {
-			   "key", "$ref"
+			   "valueReaderName", "jsonSchema",
+			   "valueWriterName", "jsonSchema"
 		   });
 	}
 
@@ -4878,30 +4566,6 @@ public class OasPackageImpl extends EPackageImpl implements OasPackage {
 		   source,
 		   new String[] {
 			   "since", "3.2"
-		   });
-		addAnnotation
-		  (getSchemaReference_Const(),
-		   source,
-		   new String[] {
-			   "since", "3.1"
-		   });
-		addAnnotation
-		  (getSchemaReference_Examples(),
-		   source,
-		   new String[] {
-			   "since", "3.1"
-		   });
-		addAnnotation
-		  (getSchemaReference_ContentMediaType(),
-		   source,
-		   new String[] {
-			   "since", "3.1"
-		   });
-		addAnnotation
-		  (getSchemaReference_ContentEncoding(),
-		   source,
-		   new String[] {
-			   "since", "3.1"
 		   });
 		addAnnotation
 		  (parameterLocationEEnum.getELiterals().get(5),

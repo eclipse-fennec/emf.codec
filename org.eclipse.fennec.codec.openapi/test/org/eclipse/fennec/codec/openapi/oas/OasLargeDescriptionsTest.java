@@ -26,13 +26,14 @@ import java.util.Map;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+import org.eclipse.fennec.codec.jsonschema.model.SimpleType;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.yaml.YamlFormatProvider;
 import org.eclipse.fennec.model.oas.OasPackage;
 import org.eclipse.fennec.model.oas.OpenAPI;
 import org.eclipse.fennec.model.oas.Operation;
 import org.eclipse.fennec.model.oas.PathItem;
-import org.eclipse.fennec.model.oas.SchemaReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -77,7 +78,7 @@ class OasLargeDescriptionsTest {
 						continue;
 					}
 					for (var media : response.getValue().getContent()) {
-						SchemaReference schema = media.getValue().getSchema();
+						Schema schema = media.getValue().getSchema();
 						if (schema != null) {
 							assertNotNull(schema.getClassifier(), operation.getOperationId() + " " + response.getKey() + " "
 									+ media.getKey() + " has no type");

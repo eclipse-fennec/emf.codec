@@ -16,6 +16,8 @@ import org.eclipse.emf.common.util.EMap;
 
 import org.eclipse.emf.ecore.EObject;
 
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+
 import org.osgi.annotation.versioning.ProviderType;
 
 /**
@@ -261,13 +263,13 @@ public interface Header extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Schema</em>' containment reference.
-	 * @see #setSchema(SchemaReference)
+	 * @see #setSchema(Schema)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getHeader_Schema()
 	 * @model containment="true"
-	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='oasSchema' valueWriterName='oasSchema'"
+	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='jsonSchema' valueWriterName='jsonSchema'"
 	 * @generated
 	 */
-	SchemaReference getSchema();
+	Schema getSchema();
 
 	/**
 	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Header#getSchema <em>Schema</em>}' containment reference.
@@ -277,7 +279,7 @@ public interface Header extends EObject {
 	 * @see #getSchema()
 	 * @generated
 	 */
-	void setSchema(SchemaReference value);
+	void setSchema(Schema value);
 
 	/**
 	 * Returns the value of the '<em><b>Example</b></em>' attribute.

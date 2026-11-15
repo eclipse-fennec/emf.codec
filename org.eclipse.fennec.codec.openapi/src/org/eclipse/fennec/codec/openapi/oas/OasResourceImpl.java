@@ -33,7 +33,6 @@ import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.eclipse.fennec.model.oas.Components;
 import org.eclipse.fennec.model.oas.Info;
-import org.eclipse.fennec.model.oas.OasPackage;
 import org.eclipse.fennec.model.oas.OpenAPI;
 
 /**
@@ -83,8 +82,8 @@ public class OasResourceImpl extends CodecResource {
 				List<String> problems = new ArrayList<>();
 				OasSchemas.convert(api, problems);
 				Info info = api.getInfo();
-				if (api.getComponents() != null && api.getComponents().getSchemas() != null) {
-					EPackage schemas = api.getComponents().getSchemas();
+				if (api.getComponents() != null && api.getComponents().getSchemasPackage() != null) {
+					EPackage schemas = api.getComponents().getSchemasPackage();
 					SchemasPackageIdentity.apply(schemas, info == null ? null : info.getTitle(),
 							info == null ? null : info.getVersion(), options);
 					for (EPackage sub : schemas.getESubpackages()) {
@@ -122,9 +121,7 @@ public class OasResourceImpl extends CodecResource {
 			effective.putIfAbsent(YAML_MINIMIZE_QUOTES, Boolean.TRUE);
 			effective.putIfAbsent(YAML_LITERAL_BLOCK_STYLE, Boolean.TRUE);
 		}
-		// inline schemas are converted once per save, from the model as it is now
-		SchemaReferenceValueWriter.InlineCache.reset();
-		// components that only hold the inline schemas of a document without components is not written
+		// components that only hold the derived package of a document without components is not written
 		Map<OpenAPI, Components> hidden = new HashMap<>();
 		for (EObject content : getContents()) {
 			if (content instanceof OpenAPI api && onlyInlineSchemas(api.getComponents())) {
@@ -140,16 +137,15 @@ public class OasResourceImpl extends CodecResource {
 				api.setComponents(components);
 				api.eSetDeliver(true);
 			});
-			SchemaReferenceValueWriter.InlineCache.reset();
 		}
 	}
 
 	private static boolean onlyInlineSchemas(Components components) {
-		if (components == null || components.getSchemas() == null || !components.getSchemas().getEClassifiers().isEmpty()) {
+		if (components == null) {
 			return false;
 		}
 		for (EStructuralFeature feature : components.eClass().getEAllStructuralFeatures()) {
-			if (feature != OasPackage.Literals.COMPONENTS__SCHEMAS && components.eIsSet(feature)) {
+			if (!feature.isTransient() && components.eIsSet(feature)) {
 				return false;
 			}
 		}

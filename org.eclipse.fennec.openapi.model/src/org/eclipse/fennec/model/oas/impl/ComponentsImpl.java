@@ -28,6 +28,8 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 import org.eclipse.emf.ecore.util.EcoreEMap;
 import org.eclipse.emf.ecore.util.InternalEList;
 
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+
 import org.eclipse.fennec.model.oas.Callback;
 import org.eclipse.fennec.model.oas.Components;
 import org.eclipse.fennec.model.oas.Example;
@@ -50,6 +52,7 @@ import org.eclipse.fennec.model.oas.SecurityScheme;
  * </p>
  * <ul>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.ComponentsImpl#getSchemas <em>Schemas</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.ComponentsImpl#getSchemasPackage <em>Schemas Package</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.ComponentsImpl#getResponses <em>Responses</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.ComponentsImpl#getParameters <em>Parameters</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.ComponentsImpl#getExamples <em>Examples</em>}</li>
@@ -67,14 +70,24 @@ import org.eclipse.fennec.model.oas.SecurityScheme;
  */
 public class ComponentsImpl extends MinimalEObjectImpl.Container implements Components {
 	/**
-	 * The cached value of the '{@link #getSchemas() <em>Schemas</em>}' containment reference.
+	 * The cached value of the '{@link #getSchemas() <em>Schemas</em>}' map.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @see #getSchemas()
 	 * @generated
 	 * @ordered
 	 */
-	protected EPackage schemas;
+	protected EMap<String, Schema> schemas;
+
+	/**
+	 * The cached value of the '{@link #getSchemasPackage() <em>Schemas Package</em>}' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSchemasPackage()
+	 * @generated
+	 * @ordered
+	 */
+	protected EPackage schemasPackage;
 
 	/**
 	 * The cached value of the '{@link #getResponses() <em>Responses</em>}' map.
@@ -211,7 +224,10 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
-	public EPackage getSchemas() {
+	public EMap<String, Schema> getSchemas() {
+		if (schemas == null) {
+			schemas = new EcoreEMap<String,Schema>(OasPackage.Literals.SCHEMA_ENTRY, SchemaEntryImpl.class, this, OasPackage.COMPONENTS__SCHEMAS);
+		}
 		return schemas;
 	}
 
@@ -220,11 +236,21 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public NotificationChain basicSetSchemas(EPackage newSchemas, NotificationChain msgs) {
-		EPackage oldSchemas = schemas;
-		schemas = newSchemas;
+	@Override
+	public EPackage getSchemasPackage() {
+		return schemasPackage;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public NotificationChain basicSetSchemasPackage(EPackage newSchemasPackage, NotificationChain msgs) {
+		EPackage oldSchemasPackage = schemasPackage;
+		schemasPackage = newSchemasPackage;
 		if (eNotificationRequired()) {
-			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OasPackage.COMPONENTS__SCHEMAS, oldSchemas, newSchemas);
+			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OasPackage.COMPONENTS__SCHEMAS_PACKAGE, oldSchemasPackage, newSchemasPackage);
 			if (msgs == null) msgs = notification; else msgs.add(notification);
 		}
 		return msgs;
@@ -236,18 +262,18 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	 * @generated
 	 */
 	@Override
-	public void setSchemas(EPackage newSchemas) {
-		if (newSchemas != schemas) {
+	public void setSchemasPackage(EPackage newSchemasPackage) {
+		if (newSchemasPackage != schemasPackage) {
 			NotificationChain msgs = null;
-			if (schemas != null)
-				msgs = ((InternalEObject)schemas).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - OasPackage.COMPONENTS__SCHEMAS, null, msgs);
-			if (newSchemas != null)
-				msgs = ((InternalEObject)newSchemas).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - OasPackage.COMPONENTS__SCHEMAS, null, msgs);
-			msgs = basicSetSchemas(newSchemas, msgs);
+			if (schemasPackage != null)
+				msgs = ((InternalEObject)schemasPackage).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - OasPackage.COMPONENTS__SCHEMAS_PACKAGE, null, msgs);
+			if (newSchemasPackage != null)
+				msgs = ((InternalEObject)newSchemasPackage).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - OasPackage.COMPONENTS__SCHEMAS_PACKAGE, null, msgs);
+			msgs = basicSetSchemasPackage(newSchemasPackage, msgs);
 			if (msgs != null) msgs.dispatch();
 		}
 		else if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.COMPONENTS__SCHEMAS, newSchemas, newSchemas));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.COMPONENTS__SCHEMAS_PACKAGE, newSchemasPackage, newSchemasPackage));
 	}
 
 	/**
@@ -402,7 +428,9 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
 		switch (featureID) {
 			case OasPackage.COMPONENTS__SCHEMAS:
-				return basicSetSchemas(null, msgs);
+				return ((InternalEList<?>)getSchemas()).basicRemove(otherEnd, msgs);
+			case OasPackage.COMPONENTS__SCHEMAS_PACKAGE:
+				return basicSetSchemasPackage(null, msgs);
 			case OasPackage.COMPONENTS__RESPONSES:
 				return ((InternalEList<?>)getResponses()).basicRemove(otherEnd, msgs);
 			case OasPackage.COMPONENTS__PARAMETERS:
@@ -438,7 +466,10 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
 			case OasPackage.COMPONENTS__SCHEMAS:
-				return getSchemas();
+				if (coreType) return getSchemas();
+				else return getSchemas().map();
+			case OasPackage.COMPONENTS__SCHEMAS_PACKAGE:
+				return getSchemasPackage();
 			case OasPackage.COMPONENTS__RESPONSES:
 				if (coreType) return getResponses();
 				else return getResponses().map();
@@ -485,7 +516,10 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	public void eSet(int featureID, Object newValue) {
 		switch (featureID) {
 			case OasPackage.COMPONENTS__SCHEMAS:
-				setSchemas((EPackage)newValue);
+				((EStructuralFeature.Setting)getSchemas()).set(newValue);
+				return;
+			case OasPackage.COMPONENTS__SCHEMAS_PACKAGE:
+				setSchemasPackage((EPackage)newValue);
 				return;
 			case OasPackage.COMPONENTS__RESPONSES:
 				((EStructuralFeature.Setting)getResponses()).set(newValue);
@@ -533,7 +567,10 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	public void eUnset(int featureID) {
 		switch (featureID) {
 			case OasPackage.COMPONENTS__SCHEMAS:
-				setSchemas((EPackage)null);
+				getSchemas().clear();
+				return;
+			case OasPackage.COMPONENTS__SCHEMAS_PACKAGE:
+				setSchemasPackage((EPackage)null);
 				return;
 			case OasPackage.COMPONENTS__RESPONSES:
 				getResponses().clear();
@@ -581,7 +618,9 @@ public class ComponentsImpl extends MinimalEObjectImpl.Container implements Comp
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
 			case OasPackage.COMPONENTS__SCHEMAS:
-				return schemas != null;
+				return schemas != null && !schemas.isEmpty();
+			case OasPackage.COMPONENTS__SCHEMAS_PACKAGE:
+				return schemasPackage != null;
 			case OasPackage.COMPONENTS__RESPONSES:
 				return responses != null && !responses.isEmpty();
 			case OasPackage.COMPONENTS__PARAMETERS:

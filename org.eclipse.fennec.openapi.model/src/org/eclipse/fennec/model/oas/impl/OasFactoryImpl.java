@@ -25,6 +25,8 @@ import org.eclipse.emf.ecore.impl.EFactoryImpl;
 
 import org.eclipse.emf.ecore.plugin.EcorePlugin;
 
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+
 import org.eclipse.fennec.model.oas.*;
 
 /**
@@ -95,7 +97,6 @@ public class OasFactoryImpl extends EFactoryImpl implements OasFactory {
 			case OasPackage.OAUTH_FLOWS: return createOAuthFlows();
 			case OasPackage.OAUTH_FLOW: return createOAuthFlow();
 			case OasPackage.SECURITY_REQUIREMENT: return createSecurityRequirement();
-			case OasPackage.SCHEMA_REFERENCE: return createSchemaReference();
 			case OasPackage.PATH_ITEM_ENTRY: return (EObject)createPathItemEntry();
 			case OasPackage.OPERATION_ENTRY: return (EObject)createOperationEntry();
 			case OasPackage.RESPONSE_ENTRY: return (EObject)createResponseEntry();
@@ -113,6 +114,7 @@ public class OasFactoryImpl extends EFactoryImpl implements OasFactory {
 			case OasPackage.ANY_ENTRY: return (EObject)createAnyEntry();
 			case OasPackage.EXTENSION_ENTRY: return (EObject)createExtensionEntry();
 			case OasPackage.SECURITY_REQUIREMENT_ENTRY: return (EObject)createSecurityRequirementEntry();
+			case OasPackage.SCHEMA_ENTRY: return (EObject)createSchemaEntry();
 			default:
 				throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
 		}
@@ -429,17 +431,6 @@ public class OasFactoryImpl extends EFactoryImpl implements OasFactory {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	@Override
-	public SchemaReference createSchemaReference() {
-		SchemaReferenceImpl schemaReference = new SchemaReferenceImpl();
-		return schemaReference;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
 	public Map.Entry<String, PathItem> createPathItemEntry() {
 		PathItemEntryImpl pathItemEntry = new PathItemEntryImpl();
 		return pathItemEntry;
@@ -603,6 +594,16 @@ public class OasFactoryImpl extends EFactoryImpl implements OasFactory {
 	public Map.Entry<String, EList<String>> createSecurityRequirementEntry() {
 		SecurityRequirementEntryImpl securityRequirementEntry = new SecurityRequirementEntryImpl();
 		return securityRequirementEntry;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public Map.Entry<String, Schema> createSchemaEntry() {
+		SchemaEntryImpl schemaEntry = new SchemaEntryImpl();
+		return schemaEntry;
 	}
 
 	/**

@@ -27,12 +27,13 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 import org.eclipse.emf.ecore.util.EcoreEMap;
 import org.eclipse.emf.ecore.util.InternalEList;
 
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+
 import org.eclipse.fennec.model.oas.Example;
 import org.eclipse.fennec.model.oas.Header;
 import org.eclipse.fennec.model.oas.MediaType;
 import org.eclipse.fennec.model.oas.OasPackage;
 import org.eclipse.fennec.model.oas.ParameterStyle;
-import org.eclipse.fennec.model.oas.SchemaReference;
 
 /**
  * <!-- begin-user-doc -->
@@ -239,7 +240,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 * @ordered
 	 */
-	protected SchemaReference schema;
+	protected Schema schema;
 
 	/**
 	 * The default value of the '{@link #getExample() <em>Example</em>}' attribute.
@@ -540,7 +541,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public SchemaReference getSchema() {
+	public Schema getSchema() {
 		return schema;
 	}
 
@@ -549,8 +550,8 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public NotificationChain basicSetSchema(SchemaReference newSchema, NotificationChain msgs) {
-		SchemaReference oldSchema = schema;
+	public NotificationChain basicSetSchema(Schema newSchema, NotificationChain msgs) {
+		Schema oldSchema = schema;
 		schema = newSchema;
 		if (eNotificationRequired()) {
 			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__SCHEMA, oldSchema, newSchema);
@@ -565,7 +566,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
-	public void setSchema(SchemaReference newSchema) {
+	public void setSchema(Schema newSchema) {
 		if (newSchema != schema) {
 			NotificationChain msgs = null;
 			if (schema != null)
@@ -741,7 +742,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 				setAllowReserved((Boolean)newValue);
 				return;
 			case OasPackage.HEADER__SCHEMA:
-				setSchema((SchemaReference)newValue);
+				setSchema((Schema)newValue);
 				return;
 			case OasPackage.HEADER__EXAMPLE:
 				setExample(newValue);
@@ -795,7 +796,7 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 				setAllowReserved(ALLOW_RESERVED_EDEFAULT);
 				return;
 			case OasPackage.HEADER__SCHEMA:
-				setSchema((SchemaReference)null);
+				setSchema((Schema)null);
 				return;
 			case OasPackage.HEADER__EXAMPLE:
 				setExample(EXAMPLE_EDEFAULT);

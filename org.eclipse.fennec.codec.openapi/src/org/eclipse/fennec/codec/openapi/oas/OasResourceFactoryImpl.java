@@ -21,6 +21,8 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
+import org.eclipse.fennec.codec.jsonschema.v2.model.SchemaValueReader;
+import org.eclipse.fennec.codec.jsonschema.v2.model.SchemaValueWriter;
 import org.eclipse.fennec.codec.openapi.OpenApiResourceFactoryImpl;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
@@ -74,21 +76,17 @@ public class OasResourceFactoryImpl extends ResourceFactoryImpl {
 
 	/**
 	 * Registers the value handlers the oas model needs and the registry does not carry yet: those of
-	 * the 3.0 codec (security requirements, components/schemas writer) and the schema readers and
-	 * writer of the oas model.
+	 * the 3.0 codec (security requirements) and the reader and writer of JSON Schemas (#319).
 	 *
 	 * @param registry the registry to fill
 	 */
 	public static void registerDefaultValueHandlers(CodecValueRegistry registry) {
 		OpenApiResourceFactoryImpl.registerDefaultValueHandlers(registry);
-		if (!registry.hasReader(ComponentsSchemasValueReader.NAME)) {
-			registry.register(new ComponentsSchemasValueReader());
+		if (!registry.hasReader(SchemaValueReader.NAME)) {
+			registry.register(new SchemaValueReader());
 		}
-		if (!registry.hasReader(SchemaReferenceValueReader.NAME)) {
-			registry.register(new SchemaReferenceValueReader());
-		}
-		if (!registry.hasWriter(SchemaReferenceValueReader.NAME)) {
-			registry.register(new SchemaReferenceValueWriter());
+		if (!registry.hasWriter(SchemaValueReader.NAME)) {
+			registry.register(new SchemaValueWriter());
 		}
 	}
 

@@ -27,13 +27,14 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 import org.eclipse.emf.ecore.util.EcoreEMap;
 import org.eclipse.emf.ecore.util.InternalEList;
 
+import org.eclipse.fennec.codec.jsonschema.model.Schema;
+
 import org.eclipse.fennec.model.oas.Example;
 import org.eclipse.fennec.model.oas.MediaType;
 import org.eclipse.fennec.model.oas.OasPackage;
 import org.eclipse.fennec.model.oas.Parameter;
 import org.eclipse.fennec.model.oas.ParameterLocation;
 import org.eclipse.fennec.model.oas.ParameterStyle;
-import org.eclipse.fennec.model.oas.SchemaReference;
 
 /**
  * <!-- begin-user-doc -->
@@ -282,7 +283,7 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 	 * @generated
 	 * @ordered
 	 */
-	protected SchemaReference schema;
+	protected Schema schema;
 
 	/**
 	 * The default value of the '{@link #getExample() <em>Example</em>}' attribute.
@@ -629,7 +630,7 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 	 * @generated
 	 */
 	@Override
-	public SchemaReference getSchema() {
+	public Schema getSchema() {
 		return schema;
 	}
 
@@ -638,8 +639,8 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public NotificationChain basicSetSchema(SchemaReference newSchema, NotificationChain msgs) {
-		SchemaReference oldSchema = schema;
+	public NotificationChain basicSetSchema(Schema newSchema, NotificationChain msgs) {
+		Schema oldSchema = schema;
 		schema = newSchema;
 		if (eNotificationRequired()) {
 			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OasPackage.PARAMETER__SCHEMA, oldSchema, newSchema);
@@ -654,7 +655,7 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 	 * @generated
 	 */
 	@Override
-	public void setSchema(SchemaReference newSchema) {
+	public void setSchema(Schema newSchema) {
 		if (newSchema != schema) {
 			NotificationChain msgs = null;
 			if (schema != null)
@@ -840,7 +841,7 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 				setAllowReserved((Boolean)newValue);
 				return;
 			case OasPackage.PARAMETER__SCHEMA:
-				setSchema((SchemaReference)newValue);
+				setSchema((Schema)newValue);
 				return;
 			case OasPackage.PARAMETER__EXAMPLE:
 				setExample(newValue);
@@ -900,7 +901,7 @@ public class ParameterImpl extends MinimalEObjectImpl.Container implements Param
 				setAllowReserved(ALLOW_RESERVED_EDEFAULT);
 				return;
 			case OasPackage.PARAMETER__SCHEMA:
-				setSchema((SchemaReference)null);
+				setSchema((Schema)null);
 				return;
 			case OasPackage.PARAMETER__EXAMPLE:
 				setExample(EXAMPLE_EDEFAULT);
