@@ -363,12 +363,36 @@ public interface PathItem extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Additional Operations</em>' map.
+	 * @see #isSetAdditionalOperations()
+	 * @see #unsetAdditionalOperations()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getPathItem_AdditionalOperations()
 	 * @model mapType="org.eclipse.fennec.model.oas.OperationEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.Operation&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 *        annotation="http://eclipse.org/fennec/openapi since='3.2'"
 	 * @generated
 	 */
 	EMap<String, Operation> getAdditionalOperations();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.PathItem#getAdditionalOperations <em>Additional Operations</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetAdditionalOperations()
+	 * @see #getAdditionalOperations()
+	 * @generated
+	 */
+	void unsetAdditionalOperations();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.PathItem#getAdditionalOperations <em>Additional Operations</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Additional Operations</em>' map is set.
+	 * @see #unsetAdditionalOperations()
+	 * @see #getAdditionalOperations()
+	 * @generated
+	 */
+	boolean isSetAdditionalOperations();
 
 	/**
 	 * Returns the value of the '<em><b>Servers</b></em>' containment reference list.
@@ -376,11 +400,35 @@ public interface PathItem extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Servers</em>' containment reference list.
+	 * @see #isSetServers()
+	 * @see #unsetServers()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getPathItem_Servers()
-	 * @model containment="true"
+	 * @model containment="true" unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EList<Server> getServers();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.PathItem#getServers <em>Servers</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetServers()
+	 * @see #getServers()
+	 * @generated
+	 */
+	void unsetServers();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.PathItem#getServers <em>Servers</em>}' containment reference list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Servers</em>' containment reference list is set.
+	 * @see #unsetServers()
+	 * @see #getServers()
+	 * @generated
+	 */
+	boolean isSetServers();
 
 	/**
 	 * Returns the value of the '<em><b>Parameters</b></em>' containment reference list.
@@ -388,11 +436,35 @@ public interface PathItem extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Parameters</em>' containment reference list.
+	 * @see #isSetParameters()
+	 * @see #unsetParameters()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getPathItem_Parameters()
-	 * @model containment="true"
+	 * @model containment="true" unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EList<Parameter> getParameters();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.PathItem#getParameters <em>Parameters</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetParameters()
+	 * @see #getParameters()
+	 * @generated
+	 */
+	void unsetParameters();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.PathItem#getParameters <em>Parameters</em>}' containment reference list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Parameters</em>' containment reference list is set.
+	 * @see #unsetParameters()
+	 * @see #getParameters()
+	 * @generated
+	 */
+	boolean isSetParameters();
 
 	/**
 	 * Returns the value of the '<em><b>All Operations</b></em>' reference list.

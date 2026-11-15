@@ -154,6 +154,15 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 	protected Object requestBody = REQUEST_BODY_EDEFAULT;
 
 	/**
+	 * This is true if the Request Body attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean requestBodyESet;
+
+	/**
 	 * The default value of the '{@link #getDescription() <em>Description</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -329,9 +338,29 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 	@Override
 	public EMap<String, Object> getParameters() {
 		if (parameters == null) {
-			parameters = new EcoreEMap<String,Object>(OasPackage.Literals.ANY_ENTRY, AnyEntryImpl.class, this, OasPackage.LINK__PARAMETERS);
+			parameters = new EcoreEMap.Unsettable<String,Object>(OasPackage.Literals.ANY_ENTRY, AnyEntryImpl.class, this, OasPackage.LINK__PARAMETERS);
 		}
 		return parameters;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetParameters() {
+		if (parameters != null) ((InternalEList.Unsettable<?>)parameters).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetParameters() {
+		return parameters != null && ((InternalEList.Unsettable<?>)parameters).isSet();
 	}
 
 	/**
@@ -353,8 +382,35 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 	public void setRequestBody(Object newRequestBody) {
 		Object oldRequestBody = requestBody;
 		requestBody = newRequestBody;
+		boolean oldRequestBodyESet = requestBodyESet;
+		requestBodyESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.LINK__REQUEST_BODY, oldRequestBody, requestBody));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.LINK__REQUEST_BODY, oldRequestBody, requestBody, !oldRequestBodyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetRequestBody() {
+		Object oldRequestBody = requestBody;
+		boolean oldRequestBodyESet = requestBodyESet;
+		requestBody = REQUEST_BODY_EDEFAULT;
+		requestBodyESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.LINK__REQUEST_BODY, oldRequestBody, REQUEST_BODY_EDEFAULT, oldRequestBodyESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetRequestBody() {
+		return requestBodyESet;
 	}
 
 	/**
@@ -549,10 +605,10 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 				setOperationId(OPERATION_ID_EDEFAULT);
 				return;
 			case OasPackage.LINK__PARAMETERS:
-				getParameters().clear();
+				unsetParameters();
 				return;
 			case OasPackage.LINK__REQUEST_BODY:
-				setRequestBody(REQUEST_BODY_EDEFAULT);
+				unsetRequestBody();
 				return;
 			case OasPackage.LINK__DESCRIPTION:
 				setDescription(DESCRIPTION_EDEFAULT);
@@ -584,9 +640,9 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 			case OasPackage.LINK__OPERATION_ID:
 				return OPERATION_ID_EDEFAULT == null ? operationId != null : !OPERATION_ID_EDEFAULT.equals(operationId);
 			case OasPackage.LINK__PARAMETERS:
-				return parameters != null && !parameters.isEmpty();
+				return isSetParameters();
 			case OasPackage.LINK__REQUEST_BODY:
-				return REQUEST_BODY_EDEFAULT == null ? requestBody != null : !REQUEST_BODY_EDEFAULT.equals(requestBody);
+				return isSetRequestBody();
 			case OasPackage.LINK__DESCRIPTION:
 				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
 			case OasPackage.LINK__SERVER:
@@ -614,7 +670,7 @@ public class LinkImpl extends MinimalEObjectImpl.Container implements Link {
 		result.append(", operationId: ");
 		result.append(operationId);
 		result.append(", requestBody: ");
-		result.append(requestBody);
+		if (requestBodyESet) result.append(requestBody); else result.append("<unset>");
 		result.append(", description: ");
 		result.append(description);
 		result.append(')');

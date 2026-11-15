@@ -143,9 +143,12 @@ public interface Example extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Value</em>' attribute.
+	 * @see #isSetValue()
+	 * @see #unsetValue()
 	 * @see #setValue(Object)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getExample_Value()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeNull='true'"
 	 * @generated
 	 */
 	Object getValue();
@@ -155,19 +158,48 @@ public interface Example extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Value</em>' attribute.
+	 * @see #isSetValue()
+	 * @see #unsetValue()
 	 * @see #getValue()
 	 * @generated
 	 */
 	void setValue(Object value);
 
 	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Example#getValue <em>Value</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetValue()
+	 * @see #getValue()
+	 * @see #setValue(Object)
+	 * @generated
+	 */
+	void unsetValue();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Example#getValue <em>Value</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Value</em>' attribute is set.
+	 * @see #unsetValue()
+	 * @see #getValue()
+	 * @see #setValue(Object)
+	 * @generated
+	 */
+	boolean isSetValue();
+
+	/**
 	 * Returns the value of the '<em><b>Data Value</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Data Value</em>' attribute.
+	 * @see #isSetDataValue()
+	 * @see #unsetDataValue()
 	 * @see #setDataValue(Object)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getExample_DataValue()
-	 * @model annotation="http://eclipse.org/fennec/openapi since='3.2'"
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeNull='true'"
+	 *        annotation="http://eclipse.org/fennec/openapi since='3.2'"
 	 * @generated
 	 */
 	Object getDataValue();
@@ -177,10 +209,35 @@ public interface Example extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Data Value</em>' attribute.
+	 * @see #isSetDataValue()
+	 * @see #unsetDataValue()
 	 * @see #getDataValue()
 	 * @generated
 	 */
 	void setDataValue(Object value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Example#getDataValue <em>Data Value</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetDataValue()
+	 * @see #getDataValue()
+	 * @see #setDataValue(Object)
+	 * @generated
+	 */
+	void unsetDataValue();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Example#getDataValue <em>Data Value</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Data Value</em>' attribute is set.
+	 * @see #unsetDataValue()
+	 * @see #getDataValue()
+	 * @see #setDataValue(Object)
+	 * @generated
+	 */
+	boolean isSetDataValue();
 
 	/**
 	 * Returns the value of the '<em><b>Serialized Value</b></em>' attribute.

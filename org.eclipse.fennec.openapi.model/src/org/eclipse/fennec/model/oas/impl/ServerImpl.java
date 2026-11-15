@@ -225,9 +225,29 @@ public class ServerImpl extends MinimalEObjectImpl.Container implements Server {
 	@Override
 	public EMap<String, ServerVariable> getVariables() {
 		if (variables == null) {
-			variables = new EcoreEMap<String,ServerVariable>(OasPackage.Literals.SERVER_VARIABLE_ENTRY, ServerVariableEntryImpl.class, this, OasPackage.SERVER__VARIABLES);
+			variables = new EcoreEMap.Unsettable<String,ServerVariable>(OasPackage.Literals.SERVER_VARIABLE_ENTRY, ServerVariableEntryImpl.class, this, OasPackage.SERVER__VARIABLES);
 		}
 		return variables;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetVariables() {
+		if (variables != null) ((InternalEList.Unsettable<?>)variables).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetVariables() {
+		return variables != null && ((InternalEList.Unsettable<?>)variables).isSet();
 	}
 
 	/**
@@ -328,7 +348,7 @@ public class ServerImpl extends MinimalEObjectImpl.Container implements Server {
 				setName(NAME_EDEFAULT);
 				return;
 			case OasPackage.SERVER__VARIABLES:
-				getVariables().clear();
+				unsetVariables();
 				return;
 			case OasPackage.SERVER__EXTENSIONS:
 				getExtensions().clear();
@@ -352,7 +372,7 @@ public class ServerImpl extends MinimalEObjectImpl.Container implements Server {
 			case OasPackage.SERVER__NAME:
 				return NAME_EDEFAULT == null ? name != null : !NAME_EDEFAULT.equals(name);
 			case OasPackage.SERVER__VARIABLES:
-				return variables != null && !variables.isEmpty();
+				return isSetVariables();
 			case OasPackage.SERVER__EXTENSIONS:
 				return extensions != null && !extensions.isEmpty();
 		}

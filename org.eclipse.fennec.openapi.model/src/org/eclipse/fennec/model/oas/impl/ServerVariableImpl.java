@@ -138,9 +138,29 @@ public class ServerVariableImpl extends MinimalEObjectImpl.Container implements 
 	@Override
 	public EList<String> getEnum() {
 		if (enum_ == null) {
-			enum_ = new EDataTypeUniqueEList<String>(String.class, this, OasPackage.SERVER_VARIABLE__ENUM);
+			enum_ = new EDataTypeUniqueEList.Unsettable<String>(String.class, this, OasPackage.SERVER_VARIABLE__ENUM);
 		}
 		return enum_;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetEnum() {
+		if (enum_ != null) ((InternalEList.Unsettable<?>)enum_).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetEnum() {
+		return enum_ != null && ((InternalEList.Unsettable<?>)enum_).isSet();
 	}
 
 	/**
@@ -272,7 +292,7 @@ public class ServerVariableImpl extends MinimalEObjectImpl.Container implements 
 	public void eUnset(int featureID) {
 		switch (featureID) {
 			case OasPackage.SERVER_VARIABLE__ENUM:
-				getEnum().clear();
+				unsetEnum();
 				return;
 			case OasPackage.SERVER_VARIABLE__DEFAULT:
 				setDefault(DEFAULT_EDEFAULT);
@@ -296,7 +316,7 @@ public class ServerVariableImpl extends MinimalEObjectImpl.Container implements 
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
 			case OasPackage.SERVER_VARIABLE__ENUM:
-				return enum_ != null && !enum_.isEmpty();
+				return isSetEnum();
 			case OasPackage.SERVER_VARIABLE__DEFAULT:
 				return DEFAULT_EDEFAULT == null ? default_ != null : !DEFAULT_EDEFAULT.equals(default_);
 			case OasPackage.SERVER_VARIABLE__DESCRIPTION:

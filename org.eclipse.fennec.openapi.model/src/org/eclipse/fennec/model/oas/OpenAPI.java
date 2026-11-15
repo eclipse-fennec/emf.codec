@@ -150,11 +150,35 @@ public interface OpenAPI extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Servers</em>' containment reference list.
+	 * @see #isSetServers()
+	 * @see #unsetServers()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOpenAPI_Servers()
-	 * @model containment="true"
+	 * @model containment="true" unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EList<Server> getServers();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.OpenAPI#getServers <em>Servers</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetServers()
+	 * @see #getServers()
+	 * @generated
+	 */
+	void unsetServers();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.OpenAPI#getServers <em>Servers</em>}' containment reference list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Servers</em>' containment reference list is set.
+	 * @see #unsetServers()
+	 * @see #getServers()
+	 * @generated
+	 */
+	boolean isSetServers();
 
 	/**
 	 * Returns the value of the '<em><b>Paths</b></em>' map.
@@ -163,11 +187,35 @@ public interface OpenAPI extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Paths</em>' map.
+	 * @see #isSetPaths()
+	 * @see #unsetPaths()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOpenAPI_Paths()
 	 * @model mapType="org.eclipse.fennec.model.oas.PathItemEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.PathItem&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, PathItem> getPaths();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.OpenAPI#getPaths <em>Paths</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetPaths()
+	 * @see #getPaths()
+	 * @generated
+	 */
+	void unsetPaths();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.OpenAPI#getPaths <em>Paths</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Paths</em>' map is set.
+	 * @see #unsetPaths()
+	 * @see #getPaths()
+	 * @generated
+	 */
+	boolean isSetPaths();
 
 	/**
 	 * Returns the value of the '<em><b>Webhooks</b></em>' map.
@@ -176,12 +224,36 @@ public interface OpenAPI extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Webhooks</em>' map.
+	 * @see #isSetWebhooks()
+	 * @see #unsetWebhooks()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOpenAPI_Webhooks()
 	 * @model mapType="org.eclipse.fennec.model.oas.PathItemEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.PathItem&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 *        annotation="http://eclipse.org/fennec/openapi since='3.1'"
 	 * @generated
 	 */
 	EMap<String, PathItem> getWebhooks();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.OpenAPI#getWebhooks <em>Webhooks</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetWebhooks()
+	 * @see #getWebhooks()
+	 * @generated
+	 */
+	void unsetWebhooks();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.OpenAPI#getWebhooks <em>Webhooks</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Webhooks</em>' map is set.
+	 * @see #unsetWebhooks()
+	 * @see #getWebhooks()
+	 * @generated
+	 */
+	boolean isSetWebhooks();
 
 	/**
 	 * Returns the value of the '<em><b>Components</b></em>' containment reference.
@@ -211,12 +283,35 @@ public interface OpenAPI extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Security</em>' containment reference list.
+	 * @see #isSetSecurity()
+	 * @see #unsetSecurity()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOpenAPI_Security()
-	 * @model containment="true"
-	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='securityRequirement' valueWriterName='securityRequirement'"
+	 * @model containment="true" unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec valueReaderName='securityRequirement' valueWriterName='securityRequirement' serializeEmpty='true'"
 	 * @generated
 	 */
 	EList<SecurityRequirement> getSecurity();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.OpenAPI#getSecurity <em>Security</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetSecurity()
+	 * @see #getSecurity()
+	 * @generated
+	 */
+	void unsetSecurity();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.OpenAPI#getSecurity <em>Security</em>}' containment reference list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Security</em>' containment reference list is set.
+	 * @see #unsetSecurity()
+	 * @see #getSecurity()
+	 * @generated
+	 */
+	boolean isSetSecurity();
 
 	/**
 	 * Returns the value of the '<em><b>Tags</b></em>' containment reference list.
@@ -224,11 +319,35 @@ public interface OpenAPI extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Tags</em>' containment reference list.
+	 * @see #isSetTags()
+	 * @see #unsetTags()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOpenAPI_Tags()
-	 * @model containment="true"
+	 * @model containment="true" unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EList<Tag> getTags();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.OpenAPI#getTags <em>Tags</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetTags()
+	 * @see #getTags()
+	 * @generated
+	 */
+	void unsetTags();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.OpenAPI#getTags <em>Tags</em>}' containment reference list is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Tags</em>' containment reference list is set.
+	 * @see #unsetTags()
+	 * @see #getTags()
+	 * @generated
+	 */
+	boolean isSetTags();
 
 	/**
 	 * Returns the value of the '<em><b>External Docs</b></em>' containment reference.

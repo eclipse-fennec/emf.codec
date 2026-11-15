@@ -145,20 +145,47 @@ public interface Link extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Parameters</em>' map.
+	 * @see #isSetParameters()
+	 * @see #unsetParameters()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getLink_Parameters()
 	 * @model mapType="org.eclipse.fennec.model.oas.AnyEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.emf.ecore.EJavaObject&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, Object> getParameters();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Link#getParameters <em>Parameters</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetParameters()
+	 * @see #getParameters()
+	 * @generated
+	 */
+	void unsetParameters();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Link#getParameters <em>Parameters</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Parameters</em>' map is set.
+	 * @see #unsetParameters()
+	 * @see #getParameters()
+	 * @generated
+	 */
+	boolean isSetParameters();
 
 	/**
 	 * Returns the value of the '<em><b>Request Body</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Request Body</em>' attribute.
+	 * @see #isSetRequestBody()
+	 * @see #unsetRequestBody()
 	 * @see #setRequestBody(Object)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getLink_RequestBody()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeNull='true'"
 	 * @generated
 	 */
 	Object getRequestBody();
@@ -168,10 +195,35 @@ public interface Link extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Request Body</em>' attribute.
+	 * @see #isSetRequestBody()
+	 * @see #unsetRequestBody()
 	 * @see #getRequestBody()
 	 * @generated
 	 */
 	void setRequestBody(Object value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Link#getRequestBody <em>Request Body</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetRequestBody()
+	 * @see #getRequestBody()
+	 * @see #setRequestBody(Object)
+	 * @generated
+	 */
+	void unsetRequestBody();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Link#getRequestBody <em>Request Body</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Request Body</em>' attribute is set.
+	 * @see #unsetRequestBody()
+	 * @see #getRequestBody()
+	 * @see #setRequestBody(Object)
+	 * @generated
+	 */
+	boolean isSetRequestBody();
 
 	/**
 	 * Returns the value of the '<em><b>Description</b></em>' attribute.

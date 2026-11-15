@@ -113,11 +113,35 @@ public interface Server extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Variables</em>' map.
+	 * @see #isSetVariables()
+	 * @see #unsetVariables()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getServer_Variables()
 	 * @model mapType="org.eclipse.fennec.model.oas.ServerVariableEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.ServerVariable&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, ServerVariable> getVariables();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Server#getVariables <em>Variables</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetVariables()
+	 * @see #getVariables()
+	 * @generated
+	 */
+	void unsetVariables();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Server#getVariables <em>Variables</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Variables</em>' map is set.
+	 * @see #unsetVariables()
+	 * @see #getVariables()
+	 * @generated
+	 */
+	boolean isSetVariables();
 
 	/**
 	 * Returns the value of the '<em><b>Extensions</b></em>' map.

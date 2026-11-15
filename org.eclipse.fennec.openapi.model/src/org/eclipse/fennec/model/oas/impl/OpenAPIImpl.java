@@ -357,7 +357,7 @@ public class OpenAPIImpl extends MinimalEObjectImpl.Container implements OpenAPI
 	@Override
 	public EList<Server> getServers() {
 		if (servers == null) {
-			servers = new EObjectContainmentEList<Server>(Server.class, this, OasPackage.OPEN_API__SERVERS);
+			servers = new EObjectContainmentEList.Unsettable<Server>(Server.class, this, OasPackage.OPEN_API__SERVERS);
 		}
 		return servers;
 	}
@@ -368,9 +368,29 @@ public class OpenAPIImpl extends MinimalEObjectImpl.Container implements OpenAPI
 	 * @generated
 	 */
 	@Override
+	public void unsetServers() {
+		if (servers != null) ((InternalEList.Unsettable<?>)servers).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetServers() {
+		return servers != null && ((InternalEList.Unsettable<?>)servers).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, PathItem> getPaths() {
 		if (paths == null) {
-			paths = new EcoreEMap<String,PathItem>(OasPackage.Literals.PATH_ITEM_ENTRY, PathItemEntryImpl.class, this, OasPackage.OPEN_API__PATHS);
+			paths = new EcoreEMap.Unsettable<String,PathItem>(OasPackage.Literals.PATH_ITEM_ENTRY, PathItemEntryImpl.class, this, OasPackage.OPEN_API__PATHS);
 		}
 		return paths;
 	}
@@ -381,11 +401,51 @@ public class OpenAPIImpl extends MinimalEObjectImpl.Container implements OpenAPI
 	 * @generated
 	 */
 	@Override
+	public void unsetPaths() {
+		if (paths != null) ((InternalEList.Unsettable<?>)paths).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetPaths() {
+		return paths != null && ((InternalEList.Unsettable<?>)paths).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EMap<String, PathItem> getWebhooks() {
 		if (webhooks == null) {
-			webhooks = new EcoreEMap<String,PathItem>(OasPackage.Literals.PATH_ITEM_ENTRY, PathItemEntryImpl.class, this, OasPackage.OPEN_API__WEBHOOKS);
+			webhooks = new EcoreEMap.Unsettable<String,PathItem>(OasPackage.Literals.PATH_ITEM_ENTRY, PathItemEntryImpl.class, this, OasPackage.OPEN_API__WEBHOOKS);
 		}
 		return webhooks;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetWebhooks() {
+		if (webhooks != null) ((InternalEList.Unsettable<?>)webhooks).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetWebhooks() {
+		return webhooks != null && ((InternalEList.Unsettable<?>)webhooks).isSet();
 	}
 
 	/**
@@ -441,7 +501,7 @@ public class OpenAPIImpl extends MinimalEObjectImpl.Container implements OpenAPI
 	@Override
 	public EList<SecurityRequirement> getSecurity() {
 		if (security == null) {
-			security = new EObjectContainmentEList<SecurityRequirement>(SecurityRequirement.class, this, OasPackage.OPEN_API__SECURITY);
+			security = new EObjectContainmentEList.Unsettable<SecurityRequirement>(SecurityRequirement.class, this, OasPackage.OPEN_API__SECURITY);
 		}
 		return security;
 	}
@@ -452,11 +512,51 @@ public class OpenAPIImpl extends MinimalEObjectImpl.Container implements OpenAPI
 	 * @generated
 	 */
 	@Override
+	public void unsetSecurity() {
+		if (security != null) ((InternalEList.Unsettable<?>)security).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetSecurity() {
+		return security != null && ((InternalEList.Unsettable<?>)security).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EList<Tag> getTags() {
 		if (tags == null) {
-			tags = new EObjectContainmentEList<Tag>(Tag.class, this, OasPackage.OPEN_API__TAGS);
+			tags = new EObjectContainmentEList.Unsettable<Tag>(Tag.class, this, OasPackage.OPEN_API__TAGS);
 		}
 		return tags;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetTags() {
+		if (tags != null) ((InternalEList.Unsettable<?>)tags).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetTags() {
+		return tags != null && ((InternalEList.Unsettable<?>)tags).isSet();
 	}
 
 	/**
@@ -659,22 +759,22 @@ public class OpenAPIImpl extends MinimalEObjectImpl.Container implements OpenAPI
 				setJsonSchemaDialect(JSON_SCHEMA_DIALECT_EDEFAULT);
 				return;
 			case OasPackage.OPEN_API__SERVERS:
-				getServers().clear();
+				unsetServers();
 				return;
 			case OasPackage.OPEN_API__PATHS:
-				getPaths().clear();
+				unsetPaths();
 				return;
 			case OasPackage.OPEN_API__WEBHOOKS:
-				getWebhooks().clear();
+				unsetWebhooks();
 				return;
 			case OasPackage.OPEN_API__COMPONENTS:
 				setComponents((Components)null);
 				return;
 			case OasPackage.OPEN_API__SECURITY:
-				getSecurity().clear();
+				unsetSecurity();
 				return;
 			case OasPackage.OPEN_API__TAGS:
-				getTags().clear();
+				unsetTags();
 				return;
 			case OasPackage.OPEN_API__EXTERNAL_DOCS:
 				setExternalDocs((ExternalDocumentation)null);
@@ -703,17 +803,17 @@ public class OpenAPIImpl extends MinimalEObjectImpl.Container implements OpenAPI
 			case OasPackage.OPEN_API__JSON_SCHEMA_DIALECT:
 				return JSON_SCHEMA_DIALECT_EDEFAULT == null ? jsonSchemaDialect != null : !JSON_SCHEMA_DIALECT_EDEFAULT.equals(jsonSchemaDialect);
 			case OasPackage.OPEN_API__SERVERS:
-				return servers != null && !servers.isEmpty();
+				return isSetServers();
 			case OasPackage.OPEN_API__PATHS:
-				return paths != null && !paths.isEmpty();
+				return isSetPaths();
 			case OasPackage.OPEN_API__WEBHOOKS:
-				return webhooks != null && !webhooks.isEmpty();
+				return isSetWebhooks();
 			case OasPackage.OPEN_API__COMPONENTS:
 				return components != null;
 			case OasPackage.OPEN_API__SECURITY:
-				return security != null && !security.isEmpty();
+				return isSetSecurity();
 			case OasPackage.OPEN_API__TAGS:
-				return tags != null && !tags.isEmpty();
+				return isSetTags();
 			case OasPackage.OPEN_API__EXTERNAL_DOCS:
 				return externalDocs != null;
 			case OasPackage.OPEN_API__EXTENSIONS:

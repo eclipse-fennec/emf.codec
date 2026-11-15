@@ -143,6 +143,15 @@ public class ExampleImpl extends MinimalEObjectImpl.Container implements Example
 	protected Object value = VALUE_EDEFAULT;
 
 	/**
+	 * This is true if the Value attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean valueESet;
+
+	/**
 	 * The default value of the '{@link #getDataValue() <em>Data Value</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -161,6 +170,15 @@ public class ExampleImpl extends MinimalEObjectImpl.Container implements Example
 	 * @ordered
 	 */
 	protected Object dataValue = DATA_VALUE_EDEFAULT;
+
+	/**
+	 * This is true if the Data Value attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean dataValueESet;
 
 	/**
 	 * The default value of the '{@link #getSerializedValue() <em>Serialized Value</em>}' attribute.
@@ -359,8 +377,35 @@ public class ExampleImpl extends MinimalEObjectImpl.Container implements Example
 	public void setValue(Object newValue) {
 		Object oldValue = value;
 		value = newValue;
+		boolean oldValueESet = valueESet;
+		valueESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.EXAMPLE__VALUE, oldValue, value));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.EXAMPLE__VALUE, oldValue, value, !oldValueESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetValue() {
+		Object oldValue = value;
+		boolean oldValueESet = valueESet;
+		value = VALUE_EDEFAULT;
+		valueESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.EXAMPLE__VALUE, oldValue, VALUE_EDEFAULT, oldValueESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetValue() {
+		return valueESet;
 	}
 
 	/**
@@ -382,8 +427,35 @@ public class ExampleImpl extends MinimalEObjectImpl.Container implements Example
 	public void setDataValue(Object newDataValue) {
 		Object oldDataValue = dataValue;
 		dataValue = newDataValue;
+		boolean oldDataValueESet = dataValueESet;
+		dataValueESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.EXAMPLE__DATA_VALUE, oldDataValue, dataValue));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.EXAMPLE__DATA_VALUE, oldDataValue, dataValue, !oldDataValueESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetDataValue() {
+		Object oldDataValue = dataValue;
+		boolean oldDataValueESet = dataValueESet;
+		dataValue = DATA_VALUE_EDEFAULT;
+		dataValueESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.EXAMPLE__DATA_VALUE, oldDataValue, DATA_VALUE_EDEFAULT, oldDataValueESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetDataValue() {
+		return dataValueESet;
 	}
 
 	/**
@@ -551,10 +623,10 @@ public class ExampleImpl extends MinimalEObjectImpl.Container implements Example
 				setDescription(DESCRIPTION_EDEFAULT);
 				return;
 			case OasPackage.EXAMPLE__VALUE:
-				setValue(VALUE_EDEFAULT);
+				unsetValue();
 				return;
 			case OasPackage.EXAMPLE__DATA_VALUE:
-				setDataValue(DATA_VALUE_EDEFAULT);
+				unsetDataValue();
 				return;
 			case OasPackage.EXAMPLE__SERIALIZED_VALUE:
 				setSerializedValue(SERIALIZED_VALUE_EDEFAULT);
@@ -586,9 +658,9 @@ public class ExampleImpl extends MinimalEObjectImpl.Container implements Example
 			case OasPackage.EXAMPLE__DESCRIPTION:
 				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
 			case OasPackage.EXAMPLE__VALUE:
-				return VALUE_EDEFAULT == null ? value != null : !VALUE_EDEFAULT.equals(value);
+				return isSetValue();
 			case OasPackage.EXAMPLE__DATA_VALUE:
-				return DATA_VALUE_EDEFAULT == null ? dataValue != null : !DATA_VALUE_EDEFAULT.equals(dataValue);
+				return isSetDataValue();
 			case OasPackage.EXAMPLE__SERIALIZED_VALUE:
 				return SERIALIZED_VALUE_EDEFAULT == null ? serializedValue != null : !SERIALIZED_VALUE_EDEFAULT.equals(serializedValue);
 			case OasPackage.EXAMPLE__EXTERNAL_VALUE:
@@ -616,9 +688,9 @@ public class ExampleImpl extends MinimalEObjectImpl.Container implements Example
 		result.append(", description: ");
 		result.append(description);
 		result.append(", value: ");
-		result.append(value);
+		if (valueESet) result.append(value); else result.append("<unset>");
 		result.append(", dataValue: ");
-		result.append(dataValue);
+		if (dataValueESet) result.append(dataValue); else result.append("<unset>");
 		result.append(", serializedValue: ");
 		result.append(serializedValue);
 		result.append(", externalValue: ");

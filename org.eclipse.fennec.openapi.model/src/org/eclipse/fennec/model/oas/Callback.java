@@ -98,10 +98,34 @@ public interface Callback extends EObject {
 	 * Runtime expression to the path item it describes.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Expressions</em>' map.
+	 * @see #isSetExpressions()
+	 * @see #unsetExpressions()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getCallback_Expressions()
 	 * @model mapType="org.eclipse.fennec.model.oas.PathItemEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.PathItem&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, PathItem> getExpressions();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.Callback#getExpressions <em>Expressions</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetExpressions()
+	 * @see #getExpressions()
+	 * @generated
+	 */
+	void unsetExpressions();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.Callback#getExpressions <em>Expressions</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Expressions</em>' map is set.
+	 * @see #unsetExpressions()
+	 * @see #getExpressions()
+	 * @generated
+	 */
+	boolean isSetExpressions();
 
 } // Callback

@@ -136,11 +136,35 @@ public interface OAuthFlow extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Scopes</em>' map.
+	 * @see #isSetScopes()
+	 * @see #unsetScopes()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getOAuthFlow_Scopes()
 	 * @model mapType="org.eclipse.fennec.model.oas.StringEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.emf.ecore.EString&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, String> getScopes();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.OAuthFlow#getScopes <em>Scopes</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetScopes()
+	 * @see #getScopes()
+	 * @generated
+	 */
+	void unsetScopes();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.OAuthFlow#getScopes <em>Scopes</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Scopes</em>' map is set.
+	 * @see #unsetScopes()
+	 * @see #getScopes()
+	 * @generated
+	 */
+	boolean isSetScopes();
 
 	/**
 	 * Returns the value of the '<em><b>Extensions</b></em>' map.

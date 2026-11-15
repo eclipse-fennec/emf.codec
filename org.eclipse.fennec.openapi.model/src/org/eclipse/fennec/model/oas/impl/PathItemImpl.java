@@ -814,7 +814,7 @@ public class PathItemImpl extends MinimalEObjectImpl.Container implements PathIt
 	@Override
 	public EMap<String, Operation> getAdditionalOperations() {
 		if (additionalOperations == null) {
-			additionalOperations = new EcoreEMap<String,Operation>(OasPackage.Literals.OPERATION_ENTRY, OperationEntryImpl.class, this, OasPackage.PATH_ITEM__ADDITIONAL_OPERATIONS);
+			additionalOperations = new EcoreEMap.Unsettable<String,Operation>(OasPackage.Literals.OPERATION_ENTRY, OperationEntryImpl.class, this, OasPackage.PATH_ITEM__ADDITIONAL_OPERATIONS);
 		}
 		return additionalOperations;
 	}
@@ -825,9 +825,29 @@ public class PathItemImpl extends MinimalEObjectImpl.Container implements PathIt
 	 * @generated
 	 */
 	@Override
+	public void unsetAdditionalOperations() {
+		if (additionalOperations != null) ((InternalEList.Unsettable<?>)additionalOperations).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetAdditionalOperations() {
+		return additionalOperations != null && ((InternalEList.Unsettable<?>)additionalOperations).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EList<Server> getServers() {
 		if (servers == null) {
-			servers = new EObjectContainmentEList<Server>(Server.class, this, OasPackage.PATH_ITEM__SERVERS);
+			servers = new EObjectContainmentEList.Unsettable<Server>(Server.class, this, OasPackage.PATH_ITEM__SERVERS);
 		}
 		return servers;
 	}
@@ -838,11 +858,51 @@ public class PathItemImpl extends MinimalEObjectImpl.Container implements PathIt
 	 * @generated
 	 */
 	@Override
+	public void unsetServers() {
+		if (servers != null) ((InternalEList.Unsettable<?>)servers).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetServers() {
+		return servers != null && ((InternalEList.Unsettable<?>)servers).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public EList<Parameter> getParameters() {
 		if (parameters == null) {
-			parameters = new EObjectContainmentEList<Parameter>(Parameter.class, this, OasPackage.PATH_ITEM__PARAMETERS);
+			parameters = new EObjectContainmentEList.Unsettable<Parameter>(Parameter.class, this, OasPackage.PATH_ITEM__PARAMETERS);
 		}
 		return parameters;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetParameters() {
+		if (parameters != null) ((InternalEList.Unsettable<?>)parameters).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetParameters() {
+		return parameters != null && ((InternalEList.Unsettable<?>)parameters).isSet();
 	}
 
 	/**
@@ -1086,13 +1146,13 @@ public class PathItemImpl extends MinimalEObjectImpl.Container implements PathIt
 				setQuery((Operation)null);
 				return;
 			case OasPackage.PATH_ITEM__ADDITIONAL_OPERATIONS:
-				getAdditionalOperations().clear();
+				unsetAdditionalOperations();
 				return;
 			case OasPackage.PATH_ITEM__SERVERS:
-				getServers().clear();
+				unsetServers();
 				return;
 			case OasPackage.PATH_ITEM__PARAMETERS:
-				getParameters().clear();
+				unsetParameters();
 				return;
 			case OasPackage.PATH_ITEM__ALL_OPERATIONS:
 				getAllOperations().clear();
@@ -1139,11 +1199,11 @@ public class PathItemImpl extends MinimalEObjectImpl.Container implements PathIt
 			case OasPackage.PATH_ITEM__QUERY:
 				return query != null;
 			case OasPackage.PATH_ITEM__ADDITIONAL_OPERATIONS:
-				return additionalOperations != null && !additionalOperations.isEmpty();
+				return isSetAdditionalOperations();
 			case OasPackage.PATH_ITEM__SERVERS:
-				return servers != null && !servers.isEmpty();
+				return isSetServers();
 			case OasPackage.PATH_ITEM__PARAMETERS:
-				return parameters != null && !parameters.isEmpty();
+				return isSetParameters();
 			case OasPackage.PATH_ITEM__ALL_OPERATIONS:
 				return !getAllOperations().isEmpty();
 			case OasPackage.PATH_ITEM__EXTENSIONS:

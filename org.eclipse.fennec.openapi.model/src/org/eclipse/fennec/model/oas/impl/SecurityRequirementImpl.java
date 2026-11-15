@@ -80,9 +80,29 @@ public class SecurityRequirementImpl extends MinimalEObjectImpl.Container implem
 	@Override
 	public EMap<String, EList<String>> getSchemes() {
 		if (schemes == null) {
-			schemes = new EcoreEMap<String,EList<String>>(OasPackage.Literals.SECURITY_REQUIREMENT_ENTRY, SecurityRequirementEntryImpl.class, this, OasPackage.SECURITY_REQUIREMENT__SCHEMES);
+			schemes = new EcoreEMap.Unsettable<String,EList<String>>(OasPackage.Literals.SECURITY_REQUIREMENT_ENTRY, SecurityRequirementEntryImpl.class, this, OasPackage.SECURITY_REQUIREMENT__SCHEMES);
 		}
 		return schemes;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetSchemes() {
+		if (schemes != null) ((InternalEList.Unsettable<?>)schemes).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetSchemes() {
+		return schemes != null && ((InternalEList.Unsettable<?>)schemes).isSet();
 	}
 
 	/**
@@ -138,7 +158,7 @@ public class SecurityRequirementImpl extends MinimalEObjectImpl.Container implem
 	public void eUnset(int featureID) {
 		switch (featureID) {
 			case OasPackage.SECURITY_REQUIREMENT__SCHEMES:
-				getSchemes().clear();
+				unsetSchemes();
 				return;
 		}
 		super.eUnset(featureID);
@@ -153,7 +173,7 @@ public class SecurityRequirementImpl extends MinimalEObjectImpl.Container implem
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
 			case OasPackage.SECURITY_REQUIREMENT__SCHEMES:
-				return schemes != null && !schemes.isEmpty();
+				return isSetSchemes();
 		}
 		return super.eIsSet(featureID);
 	}

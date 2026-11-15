@@ -43,7 +43,7 @@ import org.eclipse.fennec.model.oas.RequestBody;
  *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getTarget <em>Target</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getContent <em>Content</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#isRequired <em>Required</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getRequired <em>Required</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.RequestBodyImpl#getExtensions <em>Extensions</em>}</li>
  * </ul>
  *
@@ -111,24 +111,33 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 	protected EMap<String, MediaType> content;
 
 	/**
-	 * The default value of the '{@link #isRequired() <em>Required</em>}' attribute.
+	 * The default value of the '{@link #getRequired() <em>Required</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isRequired()
+	 * @see #getRequired()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean REQUIRED_EDEFAULT = false;
+	protected static final Boolean REQUIRED_EDEFAULT = null;
 
 	/**
-	 * The cached value of the '{@link #isRequired() <em>Required</em>}' attribute.
+	 * The cached value of the '{@link #getRequired() <em>Required</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isRequired()
+	 * @see #getRequired()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean required = REQUIRED_EDEFAULT;
+	protected Boolean required = REQUIRED_EDEFAULT;
+
+	/**
+	 * This is true if the Required attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean requiredESet;
 
 	/**
 	 * The cached value of the '{@link #getExtensions() <em>Extensions</em>}' map.
@@ -253,7 +262,7 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 	@Override
 	public EMap<String, MediaType> getContent() {
 		if (content == null) {
-			content = new EcoreEMap<String,MediaType>(OasPackage.Literals.MEDIA_TYPE_ENTRY, MediaTypeEntryImpl.class, this, OasPackage.REQUEST_BODY__CONTENT);
+			content = new EcoreEMap.Unsettable<String,MediaType>(OasPackage.Literals.MEDIA_TYPE_ENTRY, MediaTypeEntryImpl.class, this, OasPackage.REQUEST_BODY__CONTENT);
 		}
 		return content;
 	}
@@ -264,7 +273,27 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 	 * @generated
 	 */
 	@Override
-	public boolean isRequired() {
+	public void unsetContent() {
+		if (content != null) ((InternalEList.Unsettable<?>)content).unset();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetContent() {
+		return content != null && ((InternalEList.Unsettable<?>)content).isSet();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Boolean getRequired() {
 		return required;
 	}
 
@@ -274,11 +303,38 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 	 * @generated
 	 */
 	@Override
-	public void setRequired(boolean newRequired) {
-		boolean oldRequired = required;
+	public void setRequired(Boolean newRequired) {
+		Boolean oldRequired = required;
 		required = newRequired;
+		boolean oldRequiredESet = requiredESet;
+		requiredESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.REQUEST_BODY__REQUIRED, oldRequired, required));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.REQUEST_BODY__REQUIRED, oldRequired, required, !oldRequiredESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetRequired() {
+		Boolean oldRequired = required;
+		boolean oldRequiredESet = requiredESet;
+		required = REQUIRED_EDEFAULT;
+		requiredESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.REQUEST_BODY__REQUIRED, oldRequired, REQUIRED_EDEFAULT, oldRequiredESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetRequired() {
+		return requiredESet;
 	}
 
 	/**
@@ -329,7 +385,7 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 				if (coreType) return getContent();
 				else return getContent().map();
 			case OasPackage.REQUEST_BODY__REQUIRED:
-				return isRequired();
+				return getRequired();
 			case OasPackage.REQUEST_BODY__EXTENSIONS:
 				if (coreType) return getExtensions();
 				else return getExtensions().map();
@@ -385,10 +441,10 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 				setDescription(DESCRIPTION_EDEFAULT);
 				return;
 			case OasPackage.REQUEST_BODY__CONTENT:
-				getContent().clear();
+				unsetContent();
 				return;
 			case OasPackage.REQUEST_BODY__REQUIRED:
-				setRequired(REQUIRED_EDEFAULT);
+				unsetRequired();
 				return;
 			case OasPackage.REQUEST_BODY__EXTENSIONS:
 				getExtensions().clear();
@@ -412,9 +468,9 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 			case OasPackage.REQUEST_BODY__DESCRIPTION:
 				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
 			case OasPackage.REQUEST_BODY__CONTENT:
-				return content != null && !content.isEmpty();
+				return isSetContent();
 			case OasPackage.REQUEST_BODY__REQUIRED:
-				return required != REQUIRED_EDEFAULT;
+				return isSetRequired();
 			case OasPackage.REQUEST_BODY__EXTENSIONS:
 				return extensions != null && !extensions.isEmpty();
 		}
@@ -436,7 +492,7 @@ public class RequestBodyImpl extends MinimalEObjectImpl.Container implements Req
 		result.append(", description: ");
 		result.append(description);
 		result.append(", required: ");
-		result.append(required);
+		if (requiredESet) result.append(required); else result.append("<unset>");
 		result.append(')');
 		return result.toString();
 	}

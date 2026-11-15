@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.model.oas.RequestBody#getTarget <em>Target</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.RequestBody#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.RequestBody#getContent <em>Content</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.RequestBody#isRequired <em>Required</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.RequestBody#getRequired <em>Required</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.RequestBody#getExtensions <em>Extensions</em>}</li>
  * </ul>
  *
@@ -120,33 +120,85 @@ public interface RequestBody extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Content</em>' map.
+	 * @see #isSetContent()
+	 * @see #unsetContent()
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getRequestBody_Content()
 	 * @model mapType="org.eclipse.fennec.model.oas.MediaTypeEntry&lt;org.eclipse.emf.ecore.EString, org.eclipse.fennec.model.oas.MediaType&gt;"
+	 *        annotation="http://eclipse.org/fennec/codec serializeEmpty='true'"
 	 * @generated
 	 */
 	EMap<String, MediaType> getContent();
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.RequestBody#getContent <em>Content</em>}' map.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetContent()
+	 * @see #getContent()
+	 * @generated
+	 */
+	void unsetContent();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.RequestBody#getContent <em>Content</em>}' map is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Content</em>' map is set.
+	 * @see #unsetContent()
+	 * @see #getContent()
+	 * @generated
+	 */
+	boolean isSetContent();
 
 	/**
 	 * Returns the value of the '<em><b>Required</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Required</em>' attribute.
-	 * @see #setRequired(boolean)
+	 * @see #isSetRequired()
+	 * @see #unsetRequired()
+	 * @see #setRequired(Boolean)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getRequestBody_Required()
-	 * @model
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeDefault='true'"
 	 * @generated
 	 */
-	boolean isRequired();
+	Boolean getRequired();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.RequestBody#isRequired <em>Required</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.RequestBody#getRequired <em>Required</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Required</em>' attribute.
-	 * @see #isRequired()
+	 * @see #isSetRequired()
+	 * @see #unsetRequired()
+	 * @see #getRequired()
 	 * @generated
 	 */
-	void setRequired(boolean value);
+	void setRequired(Boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.RequestBody#getRequired <em>Required</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetRequired()
+	 * @see #getRequired()
+	 * @see #setRequired(Boolean)
+	 * @generated
+	 */
+	void unsetRequired();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.RequestBody#getRequired <em>Required</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Required</em>' attribute is set.
+	 * @see #unsetRequired()
+	 * @see #getRequired()
+	 * @see #setRequired(Boolean)
+	 * @generated
+	 */
+	boolean isSetRequired();
 
 	/**
 	 * Returns the value of the '<em><b>Extensions</b></em>' map.

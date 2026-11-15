@@ -38,7 +38,7 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.model.oas.SecurityScheme#getFlows <em>Flows</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.SecurityScheme#getOpenIdConnectUrl <em>Open Id Connect Url</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.SecurityScheme#getOauth2MetadataUrl <em>Oauth2 Metadata Url</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.SecurityScheme#isDeprecated <em>Deprecated</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.SecurityScheme#getDeprecated <em>Deprecated</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.SecurityScheme#getExtensions <em>Extensions</em>}</li>
  * </ul>
  *
@@ -307,22 +307,51 @@ public interface SecurityScheme extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Deprecated</em>' attribute.
-	 * @see #setDeprecated(boolean)
+	 * @see #isSetDeprecated()
+	 * @see #unsetDeprecated()
+	 * @see #setDeprecated(Boolean)
 	 * @see org.eclipse.fennec.model.oas.OasPackage#getSecurityScheme_Deprecated()
-	 * @model annotation="http://eclipse.org/fennec/openapi since='3.2'"
+	 * @model unsettable="true"
+	 *        annotation="http://eclipse.org/fennec/codec serializeDefault='true'"
+	 *        annotation="http://eclipse.org/fennec/openapi since='3.2'"
 	 * @generated
 	 */
-	boolean isDeprecated();
+	Boolean getDeprecated();
 
 	/**
-	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.SecurityScheme#isDeprecated <em>Deprecated</em>}' attribute.
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.SecurityScheme#getDeprecated <em>Deprecated</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Deprecated</em>' attribute.
-	 * @see #isDeprecated()
+	 * @see #isSetDeprecated()
+	 * @see #unsetDeprecated()
+	 * @see #getDeprecated()
 	 * @generated
 	 */
-	void setDeprecated(boolean value);
+	void setDeprecated(Boolean value);
+
+	/**
+	 * Unsets the value of the '{@link org.eclipse.fennec.model.oas.SecurityScheme#getDeprecated <em>Deprecated</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSetDeprecated()
+	 * @see #getDeprecated()
+	 * @see #setDeprecated(Boolean)
+	 * @generated
+	 */
+	void unsetDeprecated();
+
+	/**
+	 * Returns whether the value of the '{@link org.eclipse.fennec.model.oas.SecurityScheme#getDeprecated <em>Deprecated</em>}' attribute is set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return whether the value of the '<em>Deprecated</em>' attribute is set.
+	 * @see #unsetDeprecated()
+	 * @see #getDeprecated()
+	 * @see #setDeprecated(Boolean)
+	 * @generated
+	 */
+	boolean isSetDeprecated();
 
 	/**
 	 * Returns the value of the '<em><b>Extensions</b></em>' map.

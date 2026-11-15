@@ -52,7 +52,7 @@ import org.eclipse.fennec.model.oas.SecuritySchemeType;
  *   <li>{@link org.eclipse.fennec.model.oas.impl.SecuritySchemeImpl#getFlows <em>Flows</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.SecuritySchemeImpl#getOpenIdConnectUrl <em>Open Id Connect Url</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.SecuritySchemeImpl#getOauth2MetadataUrl <em>Oauth2 Metadata Url</em>}</li>
- *   <li>{@link org.eclipse.fennec.model.oas.impl.SecuritySchemeImpl#isDeprecated <em>Deprecated</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.SecuritySchemeImpl#getDeprecated <em>Deprecated</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.SecuritySchemeImpl#getExtensions <em>Extensions</em>}</li>
  * </ul>
  *
@@ -260,24 +260,33 @@ public class SecuritySchemeImpl extends MinimalEObjectImpl.Container implements 
 	protected String oauth2MetadataUrl = OAUTH2_METADATA_URL_EDEFAULT;
 
 	/**
-	 * The default value of the '{@link #isDeprecated() <em>Deprecated</em>}' attribute.
+	 * The default value of the '{@link #getDeprecated() <em>Deprecated</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isDeprecated()
+	 * @see #getDeprecated()
 	 * @generated
 	 * @ordered
 	 */
-	protected static final boolean DEPRECATED_EDEFAULT = false;
+	protected static final Boolean DEPRECATED_EDEFAULT = null;
 
 	/**
-	 * The cached value of the '{@link #isDeprecated() <em>Deprecated</em>}' attribute.
+	 * The cached value of the '{@link #getDeprecated() <em>Deprecated</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #isDeprecated()
+	 * @see #getDeprecated()
 	 * @generated
 	 * @ordered
 	 */
-	protected boolean deprecated = DEPRECATED_EDEFAULT;
+	protected Boolean deprecated = DEPRECATED_EDEFAULT;
+
+	/**
+	 * This is true if the Deprecated attribute has been set.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean deprecatedESet;
 
 	/**
 	 * The cached value of the '{@link #getExtensions() <em>Extensions</em>}' map.
@@ -606,7 +615,7 @@ public class SecuritySchemeImpl extends MinimalEObjectImpl.Container implements 
 	 * @generated
 	 */
 	@Override
-	public boolean isDeprecated() {
+	public Boolean getDeprecated() {
 		return deprecated;
 	}
 
@@ -616,11 +625,38 @@ public class SecuritySchemeImpl extends MinimalEObjectImpl.Container implements 
 	 * @generated
 	 */
 	@Override
-	public void setDeprecated(boolean newDeprecated) {
-		boolean oldDeprecated = deprecated;
+	public void setDeprecated(Boolean newDeprecated) {
+		Boolean oldDeprecated = deprecated;
 		deprecated = newDeprecated;
+		boolean oldDeprecatedESet = deprecatedESet;
+		deprecatedESet = true;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.SECURITY_SCHEME__DEPRECATED, oldDeprecated, deprecated));
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.SECURITY_SCHEME__DEPRECATED, oldDeprecated, deprecated, !oldDeprecatedESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void unsetDeprecated() {
+		Boolean oldDeprecated = deprecated;
+		boolean oldDeprecatedESet = deprecatedESet;
+		deprecated = DEPRECATED_EDEFAULT;
+		deprecatedESet = false;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.UNSET, OasPackage.SECURITY_SCHEME__DEPRECATED, oldDeprecated, DEPRECATED_EDEFAULT, oldDeprecatedESet));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSetDeprecated() {
+		return deprecatedESet;
 	}
 
 	/**
@@ -684,7 +720,7 @@ public class SecuritySchemeImpl extends MinimalEObjectImpl.Container implements 
 			case OasPackage.SECURITY_SCHEME__OAUTH2_METADATA_URL:
 				return getOauth2MetadataUrl();
 			case OasPackage.SECURITY_SCHEME__DEPRECATED:
-				return isDeprecated();
+				return getDeprecated();
 			case OasPackage.SECURITY_SCHEME__EXTENSIONS:
 				if (coreType) return getExtensions();
 				else return getExtensions().map();
@@ -785,7 +821,7 @@ public class SecuritySchemeImpl extends MinimalEObjectImpl.Container implements 
 				setOauth2MetadataUrl(OAUTH2_METADATA_URL_EDEFAULT);
 				return;
 			case OasPackage.SECURITY_SCHEME__DEPRECATED:
-				setDeprecated(DEPRECATED_EDEFAULT);
+				unsetDeprecated();
 				return;
 			case OasPackage.SECURITY_SCHEME__EXTENSIONS:
 				getExtensions().clear();
@@ -825,7 +861,7 @@ public class SecuritySchemeImpl extends MinimalEObjectImpl.Container implements 
 			case OasPackage.SECURITY_SCHEME__OAUTH2_METADATA_URL:
 				return OAUTH2_METADATA_URL_EDEFAULT == null ? oauth2MetadataUrl != null : !OAUTH2_METADATA_URL_EDEFAULT.equals(oauth2MetadataUrl);
 			case OasPackage.SECURITY_SCHEME__DEPRECATED:
-				return deprecated != DEPRECATED_EDEFAULT;
+				return isSetDeprecated();
 			case OasPackage.SECURITY_SCHEME__EXTENSIONS:
 				return extensions != null && !extensions.isEmpty();
 		}
@@ -861,7 +897,7 @@ public class SecuritySchemeImpl extends MinimalEObjectImpl.Container implements 
 		result.append(", oauth2MetadataUrl: ");
 		result.append(oauth2MetadataUrl);
 		result.append(", deprecated: ");
-		result.append(deprecated);
+		if (deprecatedESet) result.append(deprecated); else result.append("<unset>");
 		result.append(')');
 		return result.toString();
 	}
