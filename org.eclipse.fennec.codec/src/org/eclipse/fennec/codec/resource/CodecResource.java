@@ -75,7 +75,6 @@ import tools.jackson.core.JsonEncoding;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
 import tools.jackson.core.ObjectReadContext;
-import tools.jackson.core.ObjectWriteContext;
 import tools.jackson.core.StreamReadConstraints;
 import tools.jackson.core.StreamWriteConstraints;
 import tools.jackson.core.TokenStreamLocation;
@@ -594,7 +593,7 @@ public class CodecResource extends ResourceImpl {
                 ContentReference.unknown(), false, JsonEncoding.UTF8);
 
         try (FormatDelegateGenerator<T> gen = FormatDelegateGenerator.create(
-                ObjectWriteContext.empty(), ioCtxt, delegate)) {
+                new MapperWriteContext(mapper), ioCtxt, delegate)) {
 
             var writer = mapper.writerFor(EObject.class);
 
