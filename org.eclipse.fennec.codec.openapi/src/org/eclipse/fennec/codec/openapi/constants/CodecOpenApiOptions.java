@@ -24,6 +24,14 @@ public final class CodecOpenApiOptions {
 	 */
 	public static final String OPTION_SCHEMAS_NS_URI = "codec.openapi.schemasNsURI";
 
+	/**
+	 * Load option of the oas model: validate the description after loading (issue #305) - what the
+	 * model's structure cannot express, such as key syntax and mutual exclusions. The findings are
+	 * errors on the resource; with {@code codec.deserializationMode=STRICT} they fail the load.
+	 * Value: {@code Boolean}, default {@code false}: the codec reads as much as it can.
+	 */
+	public static final String OPTION_VALIDATE = "codec.openapi.validate";
+
 	private CodecOpenApiOptions() {
 	}
 }

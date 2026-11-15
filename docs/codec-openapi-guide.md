@@ -341,6 +341,25 @@ A sequential media type (`text/event-stream`, `application/jsonl`, `application/
 type: the component class for a `$ref`, a class of the `inline` package for an inline schema.
 `prefixEncoding` and `itemEncoding` are kept on the Media Type.
 
+### Validation
+
+The codec reads as much as it can. With the load option `codec.openapi.validate=true` the
+description is validated after loading (#305); the findings are errors on the resource, each with
+its place (`/components/parameters/animal: 'example' and 'examples' exclude each other`), and fail
+the load under `codec.deserializationMode=STRICT`. The validator, `OasValidator` in the model bundle
+(`org.eclipse.fennec.openapi.model.validation`), can also be run on a model directly:
+`OasValidator.validate(api)` returns an EMF `Diagnostic`.
+
+It checks what the model's structure cannot express: the `openapi` version, `paths` / `components` /
+`webhooks` present, path keys, response codes, component keys, header names, path parameter names,
+`schema` xor `content`, mutual exclusions (`example`/`examples`, the values of an Example,
+`encoding`/`prefixEncoding`/`itemEncoding`, `xml.nodeType`), `querystring` rules, `allowReserved` per
+location and version, `additionalOperations` keys, an empty server variable `enum`, members the model
+does not know (outside `x-`), and values of the wrong JSON type the codec could not read. Required
+fields, enum values and types come from the model itself (`EObjectValidator`). Schema Objects are not
+meta-validated. Every official `fail` document is reported; no `pass` document, example or large
+description is (`OasValidationTest`).
+
 ### Conformance
 
 - The official `pass` documents of the specification (`tests/schema/pass` of

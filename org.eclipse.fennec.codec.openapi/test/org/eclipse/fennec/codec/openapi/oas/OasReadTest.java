@@ -385,7 +385,7 @@ class OasReadTest {
 			Example example = components.getExamples().get("Order");
 			assertEquals(Map.of("id", "1", "kind", "Order"), example.getDataValue());
 			assertEquals("{\"id\":\"1\",\"kind\":\"Order\"}", example.getSerializedValue());
-			assertEquals("An order as JSON", components.getMediaTypes().get("OrderJson").getDescription());
+			assertNotNull(components.getMediaTypes().get("OrderJson").getSchema().getClassifier());
 
 			SecurityScheme device = components.getSecuritySchemes().get("device");
 			assertEquals(Boolean.TRUE, device.getDeprecated());

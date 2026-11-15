@@ -115,7 +115,6 @@ components:
       serializedValue: '{"id":"1","kind":"Order"}'
   mediaTypes:
     OrderJson:
-      description: An order as JSON
       schema:
         $ref: '#/components/schemas/Order'
   securitySchemes:

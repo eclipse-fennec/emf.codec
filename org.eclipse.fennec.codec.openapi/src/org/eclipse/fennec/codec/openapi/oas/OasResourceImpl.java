@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.emf.common.util.BasicDiagnostic;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
@@ -29,12 +30,14 @@ import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.diagnostic.CodecDiagnostic;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.openapi.SchemasPackageIdentity;
+import org.eclipse.fennec.codec.openapi.constants.CodecOpenApiOptions;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.eclipse.fennec.model.oas.Components;
 import org.eclipse.fennec.model.oas.Info;
 import org.eclipse.fennec.model.oas.OpenAPI;
+import org.eclipse.fennec.openapi.model.validation.OasValidator;
 
 /**
  * Resource for one OpenAPI version of the {@code org.eclipse.fennec.model.oas} model, in JSON or
@@ -48,6 +51,7 @@ import org.eclipse.fennec.model.oas.OpenAPI;
 public class OasResourceImpl extends CodecResource {
 
 	private static final String SOURCE = "OasResource";
+	private static final String VALIDATION = "OasValidator";
 	private static final String YAML_MINIMIZE_QUOTES = "codec.yaml.minimizeQuotes";
 	private static final String YAML_LITERAL_BLOCK_STYLE = "codec.yaml.literalBlockStyle";
 
@@ -97,7 +101,35 @@ public class OasResourceImpl extends CodecResource {
 				for (String problem : problems) {
 					getWarnings().add(CodecDiagnostic.warning(problem, SOURCE));
 				}
+				if (options != null && Boolean.parseBoolean(String.valueOf(options.get(CodecOpenApiOptions.OPTION_VALIDATE)))) {
+					validate(api, options);
+				}
 			}
+		}
+	}
+
+	/** Validation on load (#305): the findings are errors; STRICT fails the load. */
+	private void validate(OpenAPI api, Map<?, ?> options) throws IOException {
+		List<String> findings = new ArrayList<>();
+		// what the codec could not read as the model says - a wrong JSON type - is invalid as well
+		for (var warning : new ArrayList<>(getWarnings())) {
+			if (warning instanceof CodecDiagnostic codec && !SOURCE.equals(codec.getSource())) {
+				findings.add(warning.getMessage());
+				getErrors().add(CodecDiagnostic.error(warning.getMessage(), VALIDATION));
+			}
+		}
+		// var: Resource.Diagnostic shadows EMF's Diagnostic in a resource
+		for (var diagnostic : OasValidator.validate(api).getChildren()) {
+			if (diagnostic.getSeverity() >= BasicDiagnostic.ERROR) {
+				findings.add(diagnostic.getMessage());
+				getErrors().add(CodecDiagnostic.error(diagnostic.getMessage(), VALIDATION));
+			} else if (diagnostic.getSeverity() == BasicDiagnostic.WARNING) {
+				getWarnings().add(CodecDiagnostic.warning(diagnostic.getMessage(), VALIDATION));
+			}
+		}
+		if (!findings.isEmpty() && "STRICT".equals(String.valueOf(options.get(CodecOptions.CODEC_DESERIALIZATION_MODE)))) {
+			throw new IOException("the description is not valid OpenAPI " + version.version() + ": "
+					+ String.join("; ", findings));
 		}
 	}
 
