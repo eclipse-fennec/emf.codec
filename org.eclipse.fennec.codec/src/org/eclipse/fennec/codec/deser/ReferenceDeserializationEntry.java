@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -1414,6 +1415,16 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      * @param valueFeature the value feature of the map entry class
      * @return the deserialized value
      */
+    /** The reader the value feature of a map entry class names with {@code valueReaderName}, if any. */
+    private ReferenceValueReader<?> mapValueReader(EReference valueFeature) {
+        String name = EcoreUtil.getAnnotation(valueFeature, AnnotationSources.CODEC, "valueReaderName");
+        if (name == null || entryContext == null || entryContext.getValueRegistry() == null) {
+            return null;
+        }
+        return entryContext.getValueRegistry().getReader(name).orElse(null) instanceof ReferenceValueReader<?> reader
+                && reader.canHandle(valueFeature) ? reader : null;
+    }
+
     private Object deserializeMapEntryValue(DeserializationState state, JsonParser parser,
             DeserializationContext ctxt, EStructuralFeature valueFeature) {
         try {
@@ -1421,6 +1432,12 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
                 // Simple value - let Jackson deserialize it
                 return deserializeAttributeValue(parser, (EAttribute) valueFeature);
             } else if (valueFeature instanceof EReference valueRef) {
+                // A reader named at the entry's value feature reads the value (e.g. a JSON Schema,
+                // which may also be a boolean)
+                ReferenceValueReader<?> valueReader = mapValueReader(valueRef);
+                if (valueReader != null) {
+                    return valueReader.read(entryContext.createReaderContext(parser, ctxt), valueRef);
+                }
                 // Reference value - deserialize as EObject
                 if (parser.currentToken() == JsonToken.START_OBJECT) {
                     // Set the reference type as hint for the nested deserialization

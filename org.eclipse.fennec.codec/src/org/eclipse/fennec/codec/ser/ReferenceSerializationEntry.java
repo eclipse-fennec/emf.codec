@@ -24,6 +24,8 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -658,10 +660,32 @@ public class ReferenceSerializationEntry implements SerializationEntry {
         }
     }
 
-    private void serializeMapEntryValue(Object value, org.eclipse.emf.ecore.EStructuralFeature valueFeature,
+    /** The writer the value feature of a map entry class names with {@code valueWriterName}, if any. */
+    @SuppressWarnings("unchecked")
+    private ReferenceValueWriter<EObject> mapValueWriter(EStructuralFeature valueFeature) {
+        if (!(valueFeature instanceof EReference valueReference) || entryContext == null
+                || entryContext.getValueRegistry() == null) {
+            return null;
+        }
+        String name = EcoreUtil.getAnnotation(valueReference, AnnotationSources.CODEC, "valueWriterName");
+        if (name == null) {
+            return null;
+        }
+        return entryContext.getValueRegistry().getWriter(name).orElse(null) instanceof ReferenceValueWriter<?> writer
+                && writer.canHandle(valueReference) ? (ReferenceValueWriter<EObject>) writer : null;
+    }
+
+    private void serializeMapEntryValue(Object value, EStructuralFeature valueFeature,
             JsonGenerator gen, SerializationContext ctxt) {
+        ReferenceValueWriter<EObject> valueWriter = mapValueWriter(valueFeature);
         if (value == null) {
             gen.writeNull();
+        } else if (valueWriter != null && value instanceof EObject eObject) {
+            try {
+                valueWriter.write(eObject, (EReference) valueFeature, entryContext.createWriterContext(gen, ctxt));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         } else if (value instanceof EObject eObject) {
             ctxt.writeValue(gen, eObject);
         } else if (valueFeature instanceof EAttribute) {
