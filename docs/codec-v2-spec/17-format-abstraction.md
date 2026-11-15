@@ -247,7 +247,7 @@ new YamlFormatProvider();
 
 JSON can also be read and written without a provider, on the default path (`CodecJsonFactory`).
 
-Two hooks let a subclass adapt one load or save (`org.eclipse.fennec.codec.format.jackson` 1.1):
+Two hooks let a subclass adapt one load or save:
 
 - `decorateParser(parser, loadOptions)` wraps the parser of a load. YAML uses it to resolve anchors
   and aliases, which Jackson's YAML parser hands over as plain strings (issue #297).

@@ -85,7 +85,6 @@ public class OpenApiResourceImpl extends CodecResource {
 	 * @param metadataService the metadata service for codec configuration
 	 * @param valueRegistry registry containing the OpenAPI-specific readers/writers
 	 * @param formatProvider the syntax, {@code null} for JSON
-	 * @since 1.1
 	 */
 	public OpenApiResourceImpl(URI uri, MetadataService metadataService, CodecValueRegistry valueRegistry,
 			CodecFormatProvider<?, ?> formatProvider) {

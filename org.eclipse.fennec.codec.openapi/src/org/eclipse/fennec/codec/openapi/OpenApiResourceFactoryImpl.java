@@ -96,7 +96,6 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 	 * @param valueRegistry the registry to use and to fill with the OpenAPI value handlers
 	 * @param formatProvider the syntax, {@code null} for JSON
 	 * @param contentType the media type the factory is registered for
-	 * @since 1.1
 	 */
 	public OpenApiResourceFactoryImpl(MetadataService metadataService, CodecValueRegistry valueRegistry,
 			CodecFormatProvider<?, ?> formatProvider, String contentType) {
@@ -126,7 +125,6 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 	 *
 	 * @param formatProvider the syntax, {@code null} for JSON
 	 * @param contentType the media type the factory is registered for
-	 * @since 1.1
 	 */
 	public OpenApiResourceFactoryImpl(CodecFormatProvider<?, ?> formatProvider, String contentType) {
 		this.formatProvider = formatProvider;
@@ -190,7 +188,6 @@ public class OpenApiResourceFactoryImpl extends ResourceFactoryImpl {
 	 * Returns the syntax of the resources this factory creates.
 	 *
 	 * @return the format provider, {@code null} for JSON
-	 * @since 1.1
 	 */
 	public CodecFormatProvider<?, ?> getFormatProvider() {
 		return formatProvider;
