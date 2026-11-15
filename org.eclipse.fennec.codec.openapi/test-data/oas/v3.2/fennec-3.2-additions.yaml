@@ -1,0 +1,131 @@
+openapi: 3.2.0
+$self: https://example.com/api/openapi.yaml
+info:
+  title: 3.2 additions
+  version: 1.0.0
+servers:
+  - url: https://example.com/api
+    name: production
+tags:
+  - name: store
+    summary: Store
+    kind: nav
+  - name: orders
+    summary: Orders
+    parent: store
+    kind: nav
+paths:
+  /orders:
+    query:
+      operationId: queryOrders
+      tags: [orders]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Filter'
+      responses:
+        '200':
+          summary: The matching orders
+          description: The orders that match the filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+    additionalOperations:
+      PURGE:
+        operationId: purgeOrders
+        responses:
+          '204':
+            description: Purged
+  /orders/search:
+    get:
+      operationId: searchOrders
+      parameters:
+        - name: filter
+          in: querystring
+          content:
+            application/x-www-form-urlencoded:
+              schema:
+                $ref: '#/components/schemas/Filter'
+      responses:
+        '200':
+          description: Found
+  /orders/events:
+    get:
+      operationId: orderEvents
+      responses:
+        '200':
+          description: A stream of order events
+          content:
+            text/event-stream:
+              itemSchema:
+                $ref: '#/components/schemas/OrderEvent'
+            application/jsonl:
+              itemSchema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+            multipart/mixed:
+              prefixEncoding:
+                - contentType: application/json
+              itemEncoding:
+                contentType: application/octet-stream
+components:
+  schemas:
+    Filter:
+      type: object
+      properties:
+        status:
+          type: string
+    Order:
+      type: object
+      discriminator:
+        propertyName: kind
+        defaultMapping: '#/components/schemas/Order'
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        note:
+          type: string
+          xml:
+            nodeType: cdata
+    OrderEvent:
+      type: object
+      properties:
+        event:
+          type: string
+        data:
+          type: string
+        id:
+          type: string
+  examples:
+    Order:
+      summary: An order
+      dataValue:
+        id: '1'
+        kind: Order
+      serializedValue: '{"id":"1","kind":"Order"}'
+  mediaTypes:
+    OrderJson:
+      description: An order as JSON
+      schema:
+        $ref: '#/components/schemas/Order'
+  securitySchemes:
+    device:
+      type: oauth2
+      deprecated: true
+      oauth2MetadataUrl: https://example.com/.well-known/oauth-authorization-server
+      flows:
+        deviceAuthorization:
+          deviceAuthorizationUrl: https://example.com/device
+          tokenUrl: https://example.com/token
+          scopes:
+            orders: read orders

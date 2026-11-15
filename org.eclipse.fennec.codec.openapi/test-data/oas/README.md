@@ -8,3 +8,6 @@ commit `5f26927b00d5d3d10c1a1a6bbe2d9b41b4a726e7`.
 They are licensed under the [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/)
 licence, © OpenAPI Initiative. Each `.json` file and the `.yaml` file of the same name describe the
 same API; the tests load both and compare the models.
+
+`v3.2/fennec-3.2-additions.yaml` is not one of them: it is written for these tests (EPL-2.0) and
+uses every addition of OpenAPI 3.2 (issues #306, #307).
