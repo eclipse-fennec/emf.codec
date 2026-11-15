@@ -463,6 +463,7 @@ public class JsonSchemaToEPackageConverter {
 				JsonNode defNode = defsNode.get(defName);
 				EClassifier defClassifier = processSchemaDefinition(defNode, defName, defName);
 				if (defClassifier != null) {
+					markDefinitionEnum(defClassifier);
 					classifierMap.put(defName, defClassifier);
 				}
 			}
@@ -680,6 +681,7 @@ public class JsonSchemaToEPackageConverter {
 				schemaDefinitions.put(qualifiedName, defNode);
 				EClassifier classifier = processSchemaDefinition(defNode, defName, qualifiedName);
 				if (classifier != null) {
+					markDefinitionEnum(classifier);
 					classifierMap.put(qualifiedName, classifier);
 					if (!parentPackage.getEClassifiers().contains(classifier)) {
 						parentPackage.getEClassifiers().add(classifier);
@@ -1543,7 +1545,13 @@ public class JsonSchemaToEPackageConverter {
 
 	private EClass createArrayWrapperClass(JsonNode schemaNode, String name, String qualifiedName) {
 		EClass eClass = ecoreFactory.createEClass();
-		eClass.setName(capitalizeFirst(name));
+		String capitalizedName = capitalizeFirst(name);
+		eClass.setName(capitalizedName);
+		// The key under which it is written back (issue #302)
+		if (!name.equals(capitalizedName)) {
+			addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "originalName", name);
+			addEAnnotation(eClass, AnnotationSources.EXTENDED_METADATA, "name", name);
+		}
 
 		addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "arrayWrapper", "true");
 		addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "source", "TopLevelArray");
@@ -1553,7 +1561,24 @@ public class JsonSchemaToEPackageConverter {
 			addEAnnotation(eClass, AnnotationSources.GEN_MODEL, "documentation", schemaNode.get("description").asString());
 		}
 
-		if (schemaNode.has("items")) {
+		JsonNode itemsNode = schemaNode.get("items");
+		if (itemsNode != null && isArraySchema(itemsNode)) {
+			// An array of arrays: the inner array is a wrapper of its own, written back inline
+			// (issue #302) - a single multi-valued feature would flatten the two levels
+			EClass inner = createArrayWrapperClass(itemsNode, name + "Item", qualifiedName + "Item");
+			EcoreUtil.remove(inner.getEAnnotation(AnnotationSources.EXTENDED_METADATA));
+			EAnnotation innerJsonSchema = inner.getEAnnotation(AnnotationSources.JSONSCHEMA);
+			innerJsonSchema.getDetails().removeKey("originalName");
+			addEAnnotation(inner, AnnotationSources.JSONSCHEMA, "nestedArray", "true");
+			classifierMap.put(qualifiedName + "Item", inner);
+			EReference itemsReference = ecoreFactory.createEReference();
+			itemsReference.setName("items");
+			itemsReference.setEType(inner);
+			itemsReference.setContainment(true);
+			itemsReference.setLowerBound(schemaNode.has("minItems") ? schemaNode.get("minItems").asInt() : 0);
+			itemsReference.setUpperBound(schemaNode.has("maxItems") ? schemaNode.get("maxItems").asInt() : -1);
+			eClass.getEStructuralFeatures().add(itemsReference);
+		} else if (itemsNode != null) {
 			EStructuralFeature itemsFeature = createStructuralFeature(
 				schemaNode.get("items"), "items", qualifiedName);
 			if (itemsFeature != null) {
@@ -1565,6 +1590,22 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		return eClass;
+	}
+
+	/**
+	 * An enum that is a definition of its own: features of its type are written back as {@code $ref}
+	 * to it, not with the literals inline (issue #302).
+	 */
+	private void markDefinitionEnum(EClassifier classifier) {
+		if (classifier instanceof EEnum) {
+			addEAnnotation(classifier, AnnotationSources.JSONSCHEMA, "definition", "true");
+		}
+	}
+
+	private static boolean isArraySchema(JsonNode node) {
+		JsonNode type = node.get("type");
+		return (type != null && type.isString() && "array".equals(type.asString()))
+				|| (type == null && node.has("items") && !node.has("$ref"));
 	}
 
 	private EEnum createEEnum(JsonNode enumNode, String name, String qualifiedName) {

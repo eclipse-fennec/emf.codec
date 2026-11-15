@@ -213,6 +213,49 @@ class SchemaRoundTripTest {
 		}
 	}
 
+	@Nested
+	@DisplayName("references to named enums and arrays (tictactoe)")
+	class NamedReferences {
+
+		private static final String SCHEMA = """
+				{
+				  "$defs": {
+				    "mark": { "type": "string", "enum": [".", "X", "O"], "description": "A square" },
+				    "winner": { "type": "string", "enum": [".", "X", "O"], "description": "The winner" },
+				    "board": {
+				      "type": "array", "minItems": 3, "maxItems": 3,
+				      "items": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "$ref": "#/$defs/mark" } }
+				    },
+				    "status": {
+				      "type": "object",
+				      "properties": {
+				        "winner": { "$ref": "#/$defs/winner" },
+				        "board": { "$ref": "#/$defs/board" }
+				      }
+				    }
+				  }
+				}
+				""";
+
+		@Test
+		@DisplayName("are written as $ref under their keys")
+		void writtenAsRef() throws IOException {
+			JsonNode defs = write(read(SCHEMA)).get("$defs");
+
+			assertNotNull(defs.get("board"), defs.toString());
+			assertNull(defs.get("Board"), defs.toString());
+			JsonNode status = defs.get("status").get("properties");
+			assertEquals("#/$defs/winner", String.valueOf(status.get("winner").get("$ref")).replace("\"", ""), defs.toString());
+			assertEquals("#/$defs/board", String.valueOf(status.get("board").get("$ref")).replace("\"", ""), defs.toString());
+		}
+
+		@Test
+		@DisplayName("read back equal")
+		void roundTrip() throws IOException {
+			assertRoundTrip(SCHEMA);
+		}
+	}
+
 	private static void assertRoundTrip(String schema) throws IOException {
 		EPackage first = read(schema);
 		EPackage second = read(MAPPER.writeValueAsString(write(first)));

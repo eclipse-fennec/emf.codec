@@ -176,6 +176,14 @@ public interface CodecJsonSchemaOptions {
 	public static final String OPTION_INLINE_REFS = "codec.jsonschema.inlineRefs";
 
 	/**
+	 * Option key: inline the references to classifiers of the package being written, keep
+	 * {@code $ref}s to classifiers of other packages. Used to write the inline schemas of an OpenAPI
+	 * description, which refer to each other and to {@code components/schemas} (issue #301).
+	 * <p>Value: {@code Boolean}, default {@code false}.</p>
+	 */
+	public static final String OPTION_INLINE_LOCAL_REFS = "codec.jsonschema.inlineLocalRefs";
+
+	/**
 	 * When set to {@code true}, JSON Schema validation keywords that restrict a
 	 * value (e.g. {@code minLength}, {@code pattern}, {@code minimum},
 	 * {@code multipleOf}, {@code uniqueItems}) and OpenAPI discriminator/format
