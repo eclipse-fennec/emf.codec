@@ -1641,7 +1641,8 @@ public class JsonSchemaToEPackageConverter {
 			boolean open = !(additionalProps.isBoolean() && !additionalProps.asBoolean());
 			if (patterns) {
 				addCatchAllMap(eClass, catchAllSchema(open ? additionalProps : null, patternProps), qualifiedName);
-			} else if (propertiesNode != null && open) {
+			} else if (open && (propertiesNode != null || eClass.getEStructuralFeatures().isEmpty())) {
+				// next to properties, and for a schema that is only a map (#322): its entries
 				addCatchAllMap(eClass, additionalProps, qualifiedName);
 			}
 		} else if (patterns) {
