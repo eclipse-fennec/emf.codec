@@ -88,20 +88,41 @@ final class OasSchemas {
 
 		Set<String> used = new HashSet<>();
 		componentDefs.propertyNames().forEach(used::add);
+		// The converter turns schemas of the same text into one classifier: an inline schema equal to
+		// a component is that component's classifier, equal inline schemas share one
+		Map<String, String> componentByText = new HashMap<>();
+		for (Map.Entry<String, JsonNode> entry : componentDefs.properties()) {
+			componentByText.putIfAbsent(entry.getValue().toString(), entry.getKey());
+		}
+		Map<String, String> inlineByText = new HashMap<>();
 		Map<SchemaReference, String> inline = new LinkedHashMap<>();
+		Map<SchemaReference, String> sameAsComponent = new LinkedHashMap<>();
 		ObjectNode inlineDefs = MAPPER.createObjectNode();
 		for (SchemaReference schema : pendingSchemas(api)) {
 			JsonNode json = OasSchemaSource.take(schema);
 			JsonNode complex = map(schema, json);
-			if (complex != null) {
-				String name = unique(nameFor(schema), used);
-				inlineDefs.set(name, complex);
-				inline.put(schema, name);
+			if (complex == null) {
+				continue;
 			}
+			String text = complex.toString();
+			if (componentByText.containsKey(text)) {
+				sameAsComponent.put(schema, componentByText.get(text));
+				continue;
+			}
+			String name = inlineByText.get(text);
+			if (name == null) {
+				name = unique(nameFor(schema), used);
+				inlineDefs.set(name, marked(complex, name));
+				inlineByText.put(text, name);
+			}
+			inline.put(schema, name);
 		}
 
 		EPackage schemas = componentDefs.isEmpty() ? EcoreFactory.eINSTANCE.createEPackage()
 				: new JsonSchemaToEPackageConverter().convert(componentDefs, null);
+		for (Map.Entry<SchemaReference, String> entry : sameAsComponent.entrySet()) {
+			entry.getKey().setClassifier(OpenApiReferences.classifier(schemas, entry.getValue()));
+		}
 		if (!inline.isEmpty()) {
 			EPackage inlinePackage = convertInline(componentDefs, inlineDefs, schemas, problems);
 			schemas.getESubpackages().add(inlinePackage);
@@ -161,6 +182,12 @@ final class OasSchemas {
 		if (!json.isObject()) {
 			return null;
 		}
+		// anyOf: [{type: integer}, {type: null}] is a nullable integer
+		JsonNode unwrapped = JsonSchemaToEPackageConverter.unwrapNullableUnion(json);
+		if (unwrapped != json) {
+			schema.setNullable(isNullableUnion(json));
+			return map(schema, unwrapped);
+		}
 		if (isComplex(json)) {
 			return json;
 		}
@@ -203,6 +230,20 @@ final class OasSchemas {
 		}
 		schema.setClassifier(dataType(type, schema.getFormat()));
 		return null;
+	}
+
+	private static boolean isNullableUnion(JsonNode json) {
+		for (String keyword : new String[] { "anyOf", "oneOf" }) {
+			JsonNode union = json.get(keyword);
+			if (union != null) {
+				for (JsonNode branch : union) {
+					if (branch.has("type") && "null".equals(branch.get("type").asString())) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	private static boolean isComplex(JsonNode json) {
@@ -334,6 +375,9 @@ final class OasSchemas {
 				duplicates.put(copy, schemas.getEClassifier(copy.getName()));
 			}
 		}
+		for (EClassifier classifier : converted.getEClassifiers()) {
+			unmark(classifier);
+		}
 		EPackage inline = EcoreFactory.eINSTANCE.createEPackage();
 		inline.setName(INLINE);
 		inline.setNsPrefix(INLINE);
@@ -346,6 +390,30 @@ final class OasSchemas {
 		}
 		inline.getEClassifiers().addAll(keep);
 		return inline;
+	}
+
+	private static final String MARK = "fennec-inline:";
+
+	/**
+	 * Makes the text of an inline schema unique: the converter turns schemas of the same text into
+	 * one classifier, which would give an inline schema the classifier of an equal property enum of
+	 * a component, under another name. Removed again by {@link #unmark(EClassifier)}.
+	 */
+	private static JsonNode marked(JsonNode schema, String name) {
+		if (schema instanceof ObjectNode object && !object.has("$comment")) {
+			ObjectNode copy = object.deepCopy();
+			copy.put("$comment", MARK + name);
+			return copy;
+		}
+		return schema;
+	}
+
+	private static void unmark(EClassifier classifier) {
+		var annotation = classifier.getEAnnotation(AnnotationSources.JSONSCHEMA);
+		String comment = annotation == null ? null : annotation.getDetails().get("comment");
+		if (comment != null && comment.startsWith(MARK)) {
+			annotation.getDetails().removeKey("comment");
+		}
 	}
 
 	private static boolean isInlineHelper(EClassifier classifier, ObjectNode inlineDefs) {
