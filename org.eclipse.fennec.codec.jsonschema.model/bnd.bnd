@@ -1,0 +1,14 @@
+# sets the usually required buildpath using the bnd library, you can extend it with the normal -buildpath to your liking
+-library: enableEMF
+
+Bundle-Name: Fennec Codec JSON Schema Model
+Bundle-Description: EMF model of JSON Schema draft-04 to 2020-12 and the OpenAPI Schema Object, as written
+
+-generate:\
+	model/jsonschema.genmodel;\
+		generate=fennecEMF;\
+		lineEndings=lf;\
+		genmodel=model/jsonschema.genmodel;\
+		output=src
+
+-includeresource.model: model=model

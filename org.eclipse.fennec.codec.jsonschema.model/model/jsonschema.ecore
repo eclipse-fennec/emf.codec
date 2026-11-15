@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="model" nsURI="https://eclipse.org/fennec/jsonschema" nsPrefix="jsonschema">
+  <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+    <details key="documentation" value="JSON Schema draft-04 to 2020-12 and the OpenAPI Schema Object, as written (issue #316). Features carry the draft they appear in (annotation http://eclipse.org/fennec/jsonschema/model: since, until, dialect)."/>
+  </eAnnotations>
+  <eClassifiers xsi:type="ecore:EClass" name="Schema">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="A JSON Schema of draft-04 to 2020-12, or an OpenAPI Schema Object. Holds the schema as written: a boolean schema (true / false) is a Schema with booleanSchema set; keywords without a feature go to keywords. The Ecore classifier derived from it is linked by classifier."/>
+    </eAnnotations>
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="additionalPropertiesFeature" value="keywords"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="booleanSchema" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Set for the boolean schemas true and false; then no keyword is set."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="schema" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$schema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="$id; draft-04 named it id, see legacyId."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$id"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-06"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="legacyId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="draft-04 id."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="id"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="until" value="draft-04"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ref" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$ref"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="anchor" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$anchor"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dynamicRef" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$dynamicRef"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2020-12"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dynamicAnchor" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$dynamicAnchor"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2020-12"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="recursiveRef" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$recursiveRef"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+        <details key="until" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="recursiveAnchor" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$recursiveAnchor"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+        <details key="until" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="vocabulary" upperBound="-1" eType="#//VocabularyEntry" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$vocabulary"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="comment" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$comment"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-07"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="defs" upperBound="-1" eType="#//SchemaEntry" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="$defs"/>
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="definitions" upperBound="-1" eType="#//SchemaEntry" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="title" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="default" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="deprecated" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="readOnly" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-07"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="writeOnly" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-07"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="examples" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject" unsettable="true" unique="false">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-06"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" upperBound="-1" eType="#//SimpleType" unsettable="true" unique="false">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The type, or the list of types."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeAsList" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="type was written as a list (also with one entry); kept for writing."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="enum" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject" unsettable="true" unique="false"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="const" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-06"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="multipleOf" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maximum" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="exclusiveMaximum" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal" unsettable="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The exclusive bound (draft-06 and later)."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-06"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="exclusiveMaximumFlag" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="draft-04 / OpenAPI 3.0: maximum is exclusive. Read and written by the schema reader."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="exclusiveMaximum"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="until" value="draft-04"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="minimum" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="exclusiveMinimum" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal" unsettable="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The exclusive bound (draft-06 and later)."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-06"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="exclusiveMinimumFlag" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="draft-04 / OpenAPI 3.0: minimum is exclusive. Read and written by the schema reader."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="exclusiveMinimum"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="until" value="draft-04"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxLength" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="minLength" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pattern" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxItems" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="minItems" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="uniqueItems" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxContains" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="minContains" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="maxProperties" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="minProperties" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="required" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true" unique="false"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dependentRequired" upperBound="-1" eType="#//StringListEntry" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="format" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allOf" upperBound="-1" eType="#//Schema" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="anyOf" upperBound="-1" eType="#//Schema" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="oneOf" upperBound="-1" eType="#//Schema" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="not" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="if" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-07"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="then" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-07"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="else" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-07"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dependentSchemas" upperBound="-1" eType="#//SchemaEntry" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dependencies" upperBound="-1" eType="#//DependencyEntry" containment="true" unsettable="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="draft-04 to 2019-09: a schema or a list of property names per property."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="until" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="prefixItems" upperBound="-1" eType="#//Schema" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2020-12"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="items" eType="#//Schema" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The schema of all items (2020-12: of the items after prefixItems)."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="itemsList" upperBound="-1" eType="#//Schema" containment="true" unsettable="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="draft-04 to 2019-09: items as a list of schemas (tuple form). Read and written by the schema reader."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="key" value="items"/>
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="until" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="additionalItems" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="until" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contains" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-06"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="properties" upperBound="-1" eType="#//SchemaEntry" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="patternProperties" upperBound="-1" eType="#//SchemaEntry" containment="true" unsettable="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="additionalProperties" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="propertyNames" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-06"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="unevaluatedItems" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="unevaluatedProperties" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="contentEncoding" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-07"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="contentMediaType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="draft-07"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="contentSchema" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="2019-09"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullable" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="OpenAPI 3.0."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="until" value="oas-3.0"/>
+        <details key="dialect" value="oas"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="discriminator" eType="#//Discriminator" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="dialect" value="oas"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="xml" eType="#//Xml" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="dialect" value="oas"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="externalDocs" eType="#//ExternalDocumentation" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="dialect" value="oas"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="example" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject" unsettable="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="OpenAPI: a single example (deprecated in 3.1+ for examples)."/>
+      </eAnnotations>
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="dialect" value="oas"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="keywords" upperBound="-1" eType="#//KeywordEntry" containment="true" unsettable="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Keywords of the schema without a feature (unknown keywords, x- extensions), as native JSON values."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="classifier" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EClassifier" transient="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The Ecore classifier derived from this schema (#318); never written."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Discriminator">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="additionalPropertiesFeature" value="extensions"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="propertyName" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="mapping" upperBound="-1" eType="#//StringEntry" containment="true" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defaultMapping" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="oas-3.2"/>
+        <details key="dialect" value="oas"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="extensions" upperBound="-1" eType="#//KeywordEntry" containment="true" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Xml">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="additionalPropertiesFeature" value="extensions"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="namespace" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="prefix" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="attribute" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="wrapped" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject" unsettable="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nodeType" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://eclipse.org/fennec/jsonschema/model">
+        <details key="since" value="oas-3.2"/>
+        <details key="dialect" value="oas"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="extensions" upperBound="-1" eType="#//KeywordEntry" containment="true" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExternalDocumentation">
+    <eAnnotations source="http://eclipse.org/fennec/codec">
+      <details key="additionalPropertiesFeature" value="extensions"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="url" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="extensions" upperBound="-1" eType="#//KeywordEntry" containment="true" unsettable="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Dependency">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="A draft-04 to 2019-09 dependency: a schema, or the names of the properties required with the property."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="schema" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="properties" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString" unsettable="true" unique="false"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="SimpleType">
+    <eLiterals name="array" value="0"/>
+    <eLiterals name="boolean" value="1"/>
+    <eLiterals name="integer" value="2"/>
+    <eLiterals name="null" value="3"/>
+    <eLiterals name="number" value="4"/>
+    <eLiterals name="object" value="5"/>
+    <eLiterals name="string" value="6"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SchemaEntry" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//Schema" containment="true">
+      <eAnnotations source="http://eclipse.org/fennec/codec">
+        <details key="valueReaderName" value="jsonSchema"/>
+        <details key="valueWriterName" value="jsonSchema"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DependencyEntry" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//Dependency" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="StringListEntry" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="StringEntry" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="VocabularyEntry" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="KeywordEntry" instanceClassName="java.util.Map$Entry">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"/>
+  </eClassifiers>
+</ecore:EPackage>
