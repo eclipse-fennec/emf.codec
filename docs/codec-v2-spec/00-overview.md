@@ -116,6 +116,10 @@ Java code conventions, patterns, and helper classes for the codec implementation
 
 How JSON Schema / OpenAPI schemas and the codec configuration of an Ecore describe the same wire format: reading a schema produces the codec aspects, writing a schema renders them (draft, #277 / #271).
 
+### [22 - JSON Schema → Ecore](22-json-schema-to-ecore.md)
+
+The mapping from the JSON Schema model to Ecore, construct by construct: definitions, properties, scalars, nullable, annotations, what stays in the model only, and the link `Schema.classifier` (draft, #318).
+
 ### 99 - Open Questions
 
 Unresolved design questions and future considerations. Check here before proposing changes - your question may already be captured.

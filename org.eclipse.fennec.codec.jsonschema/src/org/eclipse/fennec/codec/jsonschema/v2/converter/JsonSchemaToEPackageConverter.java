@@ -2981,6 +2981,22 @@ public class JsonSchemaToEPackageConverter {
 	 * says {@code int32} (spec 21 §3).
 	 */
 	private EDataType mapJsonTypeToEcore(String jsonType, String format) {
+		return dataType(jsonType, format);
+	}
+
+	/**
+	 * The Ecore data type of a simple JSON Schema type (spec 22 §5): an integer is a long unless the
+	 * schema says {@code int32}, a number a double unless it says {@code float}; scalars are wrapper
+	 * types. Any other type, or none, is {@code EJavaObject}.
+	 *
+	 * @param jsonType the JSON Schema type, may be {@code null}
+	 * @param format the format, may be {@code null}
+	 * @return the data type, never {@code null}
+	 */
+	public static EDataType dataType(String jsonType, String format) {
+		if (jsonType == null) {
+			return EcorePackage.Literals.EJAVA_OBJECT;
+		}
 		EcorePackage ecorePackage = EcorePackage.eINSTANCE;
 		return switch (jsonType) {
 			case "string" -> ecorePackage.getEString();
