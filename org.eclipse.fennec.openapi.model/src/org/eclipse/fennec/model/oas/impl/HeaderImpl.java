@@ -47,8 +47,10 @@ import org.eclipse.fennec.model.oas.SchemaReference;
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#isRequired <em>Required</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#isDeprecated <em>Deprecated</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#isAllowEmptyValue <em>Allow Empty Value</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getStyle <em>Style</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getExplode <em>Explode</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#isAllowReserved <em>Allow Reserved</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getExample <em>Example</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.HeaderImpl#getExamples <em>Examples</em>}</li>
@@ -150,6 +152,26 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	protected boolean deprecated = DEPRECATED_EDEFAULT;
 
 	/**
+	 * The default value of the '{@link #isAllowEmptyValue() <em>Allow Empty Value</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isAllowEmptyValue()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean ALLOW_EMPTY_VALUE_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isAllowEmptyValue() <em>Allow Empty Value</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isAllowEmptyValue()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean allowEmptyValue = ALLOW_EMPTY_VALUE_EDEFAULT;
+
+	/**
 	 * The default value of the '{@link #getStyle() <em>Style</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -188,6 +210,26 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @ordered
 	 */
 	protected Boolean explode = EXPLODE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #isAllowReserved() <em>Allow Reserved</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isAllowReserved()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean ALLOW_RESERVED_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isAllowReserved() <em>Allow Reserved</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isAllowReserved()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean allowReserved = ALLOW_RESERVED_EDEFAULT;
 
 	/**
 	 * The cached value of the '{@link #getSchema() <em>Schema</em>}' containment reference.
@@ -406,6 +448,29 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 	 * @generated
 	 */
 	@Override
+	public boolean isAllowEmptyValue() {
+		return allowEmptyValue;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setAllowEmptyValue(boolean newAllowEmptyValue) {
+		boolean oldAllowEmptyValue = allowEmptyValue;
+		allowEmptyValue = newAllowEmptyValue;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__ALLOW_EMPTY_VALUE, oldAllowEmptyValue, allowEmptyValue));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public ParameterStyle getStyle() {
 		return style;
 	}
@@ -444,6 +509,29 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 		explode = newExplode;
 		if (eNotificationRequired())
 			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__EXPLODE, oldExplode, explode));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isAllowReserved() {
+		return allowReserved;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setAllowReserved(boolean newAllowReserved) {
+		boolean oldAllowReserved = allowReserved;
+		allowReserved = newAllowReserved;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.HEADER__ALLOW_RESERVED, oldAllowReserved, allowReserved));
 	}
 
 	/**
@@ -592,10 +680,14 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 				return isRequired();
 			case OasPackage.HEADER__DEPRECATED:
 				return isDeprecated();
+			case OasPackage.HEADER__ALLOW_EMPTY_VALUE:
+				return isAllowEmptyValue();
 			case OasPackage.HEADER__STYLE:
 				return getStyle();
 			case OasPackage.HEADER__EXPLODE:
 				return getExplode();
+			case OasPackage.HEADER__ALLOW_RESERVED:
+				return isAllowReserved();
 			case OasPackage.HEADER__SCHEMA:
 				return getSchema();
 			case OasPackage.HEADER__EXAMPLE:
@@ -636,11 +728,17 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 			case OasPackage.HEADER__DEPRECATED:
 				setDeprecated((Boolean)newValue);
 				return;
+			case OasPackage.HEADER__ALLOW_EMPTY_VALUE:
+				setAllowEmptyValue((Boolean)newValue);
+				return;
 			case OasPackage.HEADER__STYLE:
 				setStyle((ParameterStyle)newValue);
 				return;
 			case OasPackage.HEADER__EXPLODE:
 				setExplode((Boolean)newValue);
+				return;
+			case OasPackage.HEADER__ALLOW_RESERVED:
+				setAllowReserved((Boolean)newValue);
 				return;
 			case OasPackage.HEADER__SCHEMA:
 				setSchema((SchemaReference)newValue);
@@ -684,11 +782,17 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 			case OasPackage.HEADER__DEPRECATED:
 				setDeprecated(DEPRECATED_EDEFAULT);
 				return;
+			case OasPackage.HEADER__ALLOW_EMPTY_VALUE:
+				setAllowEmptyValue(ALLOW_EMPTY_VALUE_EDEFAULT);
+				return;
 			case OasPackage.HEADER__STYLE:
 				setStyle(STYLE_EDEFAULT);
 				return;
 			case OasPackage.HEADER__EXPLODE:
 				setExplode(EXPLODE_EDEFAULT);
+				return;
+			case OasPackage.HEADER__ALLOW_RESERVED:
+				setAllowReserved(ALLOW_RESERVED_EDEFAULT);
 				return;
 			case OasPackage.HEADER__SCHEMA:
 				setSchema((SchemaReference)null);
@@ -727,10 +831,14 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 				return required != REQUIRED_EDEFAULT;
 			case OasPackage.HEADER__DEPRECATED:
 				return deprecated != DEPRECATED_EDEFAULT;
+			case OasPackage.HEADER__ALLOW_EMPTY_VALUE:
+				return allowEmptyValue != ALLOW_EMPTY_VALUE_EDEFAULT;
 			case OasPackage.HEADER__STYLE:
 				return style != STYLE_EDEFAULT;
 			case OasPackage.HEADER__EXPLODE:
 				return EXPLODE_EDEFAULT == null ? explode != null : !EXPLODE_EDEFAULT.equals(explode);
+			case OasPackage.HEADER__ALLOW_RESERVED:
+				return allowReserved != ALLOW_RESERVED_EDEFAULT;
 			case OasPackage.HEADER__SCHEMA:
 				return schema != null;
 			case OasPackage.HEADER__EXAMPLE:
@@ -763,10 +871,14 @@ public class HeaderImpl extends MinimalEObjectImpl.Container implements Header {
 		result.append(required);
 		result.append(", deprecated: ");
 		result.append(deprecated);
+		result.append(", allowEmptyValue: ");
+		result.append(allowEmptyValue);
 		result.append(", style: ");
 		result.append(style);
 		result.append(", explode: ");
 		result.append(explode);
+		result.append(", allowReserved: ");
+		result.append(allowReserved);
 		result.append(", example: ");
 		result.append(example);
 		result.append(')');

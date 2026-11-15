@@ -47,6 +47,7 @@ import org.eclipse.fennec.model.oas.SchemaReference;
  * <ul>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getRef <em>Ref</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getTarget <em>Target</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getItemSchema <em>Item Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.impl.MediaTypeImpl#getExample <em>Example</em>}</li>
@@ -89,6 +90,26 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 	 * @ordered
 	 */
 	protected MediaType target;
+
+	/**
+	 * The default value of the '{@link #getDescription() <em>Description</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getDescription()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String DESCRIPTION_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getDescription() <em>Description</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getDescription()
+	 * @generated
+	 * @ordered
+	 */
+	protected String description = DESCRIPTION_EDEFAULT;
 
 	/**
 	 * The cached value of the '{@link #getSchema() <em>Schema</em>}' containment reference.
@@ -260,6 +281,29 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 		target = newTarget;
 		if (eNotificationRequired())
 			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.MEDIA_TYPE__TARGET, oldTarget, target));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setDescription(String newDescription) {
+		String oldDescription = description;
+		description = newDescription;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OasPackage.MEDIA_TYPE__DESCRIPTION, oldDescription, description));
 	}
 
 	/**
@@ -511,6 +555,8 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 			case OasPackage.MEDIA_TYPE__TARGET:
 				if (resolve) return getTarget();
 				return basicGetTarget();
+			case OasPackage.MEDIA_TYPE__DESCRIPTION:
+				return getDescription();
 			case OasPackage.MEDIA_TYPE__SCHEMA:
 				return getSchema();
 			case OasPackage.MEDIA_TYPE__ITEM_SCHEMA:
@@ -548,6 +594,9 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 				return;
 			case OasPackage.MEDIA_TYPE__TARGET:
 				setTarget((MediaType)newValue);
+				return;
+			case OasPackage.MEDIA_TYPE__DESCRIPTION:
+				setDescription((String)newValue);
 				return;
 			case OasPackage.MEDIA_TYPE__SCHEMA:
 				setSchema((SchemaReference)newValue);
@@ -592,6 +641,9 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 			case OasPackage.MEDIA_TYPE__TARGET:
 				setTarget((MediaType)null);
 				return;
+			case OasPackage.MEDIA_TYPE__DESCRIPTION:
+				setDescription(DESCRIPTION_EDEFAULT);
+				return;
 			case OasPackage.MEDIA_TYPE__SCHEMA:
 				setSchema((SchemaReference)null);
 				return;
@@ -632,6 +684,8 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 				return REF_EDEFAULT == null ? ref != null : !REF_EDEFAULT.equals(ref);
 			case OasPackage.MEDIA_TYPE__TARGET:
 				return target != null;
+			case OasPackage.MEDIA_TYPE__DESCRIPTION:
+				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
 			case OasPackage.MEDIA_TYPE__SCHEMA:
 				return schema != null;
 			case OasPackage.MEDIA_TYPE__ITEM_SCHEMA:
@@ -664,6 +718,8 @@ public class MediaTypeImpl extends MinimalEObjectImpl.Container implements Media
 		StringBuilder result = new StringBuilder(super.toString());
 		result.append(" (ref: ");
 		result.append(ref);
+		result.append(", description: ");
+		result.append(description);
 		result.append(", example: ");
 		result.append(example);
 		result.append(')');

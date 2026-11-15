@@ -32,8 +32,10 @@ import org.osgi.annotation.versioning.ProviderType;
  *   <li>{@link org.eclipse.fennec.model.oas.Header#getDescription <em>Description</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Header#isRequired <em>Required</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Header#isDeprecated <em>Deprecated</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.Header#isAllowEmptyValue <em>Allow Empty Value</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Header#getStyle <em>Style</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Header#getExplode <em>Explode</em>}</li>
+ *   <li>{@link org.eclipse.fennec.model.oas.Header#isAllowReserved <em>Allow Reserved</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Header#getSchema <em>Schema</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Header#getExample <em>Example</em>}</li>
  *   <li>{@link org.eclipse.fennec.model.oas.Header#getExamples <em>Examples</em>}</li>
@@ -164,6 +166,28 @@ public interface Header extends EObject {
 	void setDeprecated(boolean value);
 
 	/**
+	 * Returns the value of the '<em><b>Allow Empty Value</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Allow Empty Value</em>' attribute.
+	 * @see #setAllowEmptyValue(boolean)
+	 * @see org.eclipse.fennec.model.oas.OasPackage#getHeader_AllowEmptyValue()
+	 * @model
+	 * @generated
+	 */
+	boolean isAllowEmptyValue();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Header#isAllowEmptyValue <em>Allow Empty Value</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Allow Empty Value</em>' attribute.
+	 * @see #isAllowEmptyValue()
+	 * @generated
+	 */
+	void setAllowEmptyValue(boolean value);
+
+	/**
 	 * Returns the value of the '<em><b>Style</b></em>' attribute.
 	 * The literals are from the enumeration {@link org.eclipse.fennec.model.oas.ParameterStyle}.
 	 * <!-- begin-user-doc -->
@@ -209,6 +233,28 @@ public interface Header extends EObject {
 	 * @generated
 	 */
 	void setExplode(Boolean value);
+
+	/**
+	 * Returns the value of the '<em><b>Allow Reserved</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Allow Reserved</em>' attribute.
+	 * @see #setAllowReserved(boolean)
+	 * @see org.eclipse.fennec.model.oas.OasPackage#getHeader_AllowReserved()
+	 * @model
+	 * @generated
+	 */
+	boolean isAllowReserved();
+
+	/**
+	 * Sets the value of the '{@link org.eclipse.fennec.model.oas.Header#isAllowReserved <em>Allow Reserved</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Allow Reserved</em>' attribute.
+	 * @see #isAllowReserved()
+	 * @generated
+	 */
+	void setAllowReserved(boolean value);
 
 	/**
 	 * Returns the value of the '<em><b>Schema</b></em>' containment reference.
