@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" copyrightText="Copyright (c) 2026 Contributors to the Eclipse Foundation.&#xA;&#xA;This program and the accompanying materials are made&#xA;available under the terms of the Eclipse Public License 2.0&#xA;which is available at https://www.eclipse.org/legal/epl-2.0/&#xA;&#xA;SPDX-License-Identifier: EPL-2.0&#xA;&#xA;Contributors:&#xA;  Data In Motion Consulting - initial implementation"
+    modelDirectory="/org.eclipse.fennec.openapi.model/src"
+    modelPluginID="org.eclipse.fennec.openapi.model" modelName="Oas" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    importerID="org.eclipse.emf.importer.ecore" complianceLevel="17.0" copyrightFields="false"
+    operationReflection="true" importOrganizing="true" oSGiCompatible="true">
+  <foreignModel>oas.ecore</foreignModel>
+  <genPackages prefix="Oas" basePackage="org.eclipse.fennec.model" resource="XMI" disposableProviderFactory="true"
+      ecorePackage="oas.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="oas.ecore#//ParameterLocation">
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterLocation/NULL"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterLocation/query"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterLocation/header"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterLocation/path"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterLocation/cookie"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterLocation/querystring"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="oas.ecore#//ParameterStyle">
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterStyle/NULL"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterStyle/matrix"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterStyle/label"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterStyle/simple"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterStyle/form"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterStyle/spaceDelimited"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterStyle/pipeDelimited"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterStyle/deepObject"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ParameterStyle/cookie"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="oas.ecore#//SecuritySchemeType">
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//SecuritySchemeType/NULL"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//SecuritySchemeType/apiKey"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//SecuritySchemeType/http"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//SecuritySchemeType/mutualTLS"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//SecuritySchemeType/oauth2"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//SecuritySchemeType/openIdConnect"/>
+    </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="oas.ecore#//ApiKeyLocation">
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ApiKeyLocation/NULL"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ApiKeyLocation/query"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ApiKeyLocation/header"/>
+      <genEnumLiterals ecoreEnumLiteral="oas.ecore#//ApiKeyLocation/cookie"/>
+    </genEnums>
+    <genClasses ecoreClass="oas.ecore#//OpenAPI">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//OpenAPI/openapi"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//OpenAPI/self"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OpenAPI/info"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//OpenAPI/jsonSchemaDialect"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OpenAPI/servers"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OpenAPI/paths"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OpenAPI/webhooks"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OpenAPI/components"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OpenAPI/security"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OpenAPI/tags"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OpenAPI/externalDocs"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OpenAPI/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Info">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Info/title"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Info/summary"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Info/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Info/termsOfService"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Info/contact"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Info/license"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Info/version"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Info/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Contact">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Contact/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Contact/url"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Contact/email"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Contact/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//License">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//License/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//License/identifier"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//License/url"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//License/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Server">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Server/url"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Server/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Server/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Server/variables"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Server/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//ServerVariable">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ServerVariable/enum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ServerVariable/default"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ServerVariable/description"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//ServerVariable/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Components">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/schemas"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/responses"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/parameters"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/examples"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/requestBodies"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/headers"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/securitySchemes"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/links"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/callbacks"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/pathItems"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/mediaTypes"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Components/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//PathItem">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//PathItem/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//PathItem/summary"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//PathItem/description"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/get"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/put"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/post"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/delete"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/options"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/head"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/patch"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/trace"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/query"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/additionalOperations"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/servers"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/parameters"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/allOperations"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItem/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Operation">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Operation/tags"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Operation/summary"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Operation/description"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Operation/externalDocs"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Operation/operationId"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Operation/parameters"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Operation/requestBody"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Operation/responses"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Operation/callbacks"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Operation/deprecated"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Operation/security"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Operation/servers"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Operation/method"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Operation/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//ExternalDocumentation">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ExternalDocumentation/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ExternalDocumentation/url"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//ExternalDocumentation/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Parameter">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//Parameter/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/in"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/required"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/deprecated"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/allowEmptyValue"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/style"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/explode"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/allowReserved"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Parameter/schema"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Parameter/example"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Parameter/examples"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Parameter/content"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Parameter/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//RequestBody">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//RequestBody/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//RequestBody/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//RequestBody/description"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//RequestBody/content"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//RequestBody/required"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//RequestBody/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//MediaType">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//MediaType/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/target"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/schema"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/itemSchema"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//MediaType/example"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/examples"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/encoding"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/prefixEncoding"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/itemEncoding"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//MediaType/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Encoding">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Encoding/contentType"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Encoding/headers"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Encoding/style"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Encoding/explode"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Encoding/allowReserved"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Encoding/encoding"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Encoding/prefixEncoding"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Encoding/itemEncoding"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Encoding/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Response">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Response/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//Response/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Response/summary"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Response/description"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Response/headers"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Response/content"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Response/links"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Response/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Callback">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Callback/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//Callback/target"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Callback/expressions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Example">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Example/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//Example/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Example/summary"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Example/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Example/value"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Example/dataValue"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Example/serializedValue"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Example/externalValue"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Example/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Link">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Link/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//Link/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Link/operationRef"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Link/operationId"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Link/parameters"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Link/requestBody"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Link/description"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Link/server"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Link/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Header">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//Header/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/required"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/deprecated"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/style"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/explode"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Header/schema"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Header/example"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Header/examples"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Header/content"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Header/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//Tag">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Tag/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Tag/summary"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Tag/description"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Tag/externalDocs"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Tag/parent"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//Tag/kind"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//Tag/parentTag"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//Tag/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//SecurityScheme">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//SecurityScheme/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/in"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/scheme"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/bearerFormat"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//SecurityScheme/flows"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/openIdConnectUrl"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/oauth2MetadataUrl"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityScheme/deprecated"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//SecurityScheme/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//OAuthFlows">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OAuthFlows/implicit"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OAuthFlows/password"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OAuthFlows/clientCredentials"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OAuthFlows/authorizationCode"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OAuthFlows/deviceAuthorization"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OAuthFlows/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//OAuthFlow">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//OAuthFlow/authorizationUrl"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//OAuthFlow/deviceAuthorizationUrl"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//OAuthFlow/tokenUrl"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//OAuthFlow/refreshUrl"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OAuthFlow/scopes"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OAuthFlow/extensions"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//SecurityRequirement">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//SecurityRequirement/schemes"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//SchemaReference">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/ref"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference oas.ecore#//SchemaReference/classifier"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/many"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/minItems"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/maxItems"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/uniqueItems"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/nullable"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/format"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/title"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/description"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/default"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/enum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/const"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/minLength"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/maxLength"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/pattern"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/minimum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/maximum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/exclusiveMinimum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/exclusiveMaximum"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/multipleOf"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/readOnly"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/writeOnly"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/deprecated"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/example"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/examples"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/contentMediaType"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SchemaReference/contentEncoding"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//SchemaReference/keywords"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//PathItemEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//PathItemEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//PathItemEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//OperationEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//OperationEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//OperationEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//ResponseEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ResponseEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//ResponseEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//ParameterEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ParameterEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//ParameterEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//ExampleEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ExampleEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//ExampleEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//RequestBodyEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//RequestBodyEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//RequestBodyEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//HeaderEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//HeaderEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//HeaderEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//SecuritySchemeEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecuritySchemeEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//SecuritySchemeEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//LinkEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//LinkEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//LinkEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//CallbackEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//CallbackEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//CallbackEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//MediaTypeEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//MediaTypeEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//MediaTypeEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//EncodingEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//EncodingEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//EncodingEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//ServerVariableEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ServerVariableEntry/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference oas.ecore#//ServerVariableEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//StringEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//StringEntry/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//StringEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//AnyEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//AnyEntry/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//AnyEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//ExtensionEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ExtensionEntry/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//ExtensionEntry/value"/>
+    </genClasses>
+    <genClasses ecoreClass="oas.ecore#//SecurityRequirementEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityRequirementEntry/key"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute oas.ecore#//SecurityRequirementEntry/value"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>
