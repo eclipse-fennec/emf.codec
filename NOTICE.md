@@ -48,6 +48,9 @@ Test data:
 * **NIST OSCAL examples** (`org.eclipse.fennec.codec.oscal/test-data/nist`, `nist-yaml`) — public
   domain (17 U.S.C. § 105) and CC0 1.0 worldwide; source: National Institute of
   Standards and Technology, https://github.com/usnistgov/oscal-content
+* **OpenAPI examples** (`org.eclipse.fennec.codec.openapi/test-data/oas`) — Creative Commons
+  Attribution 4.0 International, © OpenAPI Initiative; source: "Learn OpenAPI",
+  https://github.com/OAI/learn.openapis.org (directory `examples`)
 
 ## Cryptography
 
