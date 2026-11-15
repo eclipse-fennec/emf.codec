@@ -70,5 +70,7 @@ header:
     # third-party test data (NIST OSCAL examples, CC0 / public domain, see NOTICE.md)
     - 'org.eclipse.fennec.codec.oscal/test-data/nist/**'
     - 'org.eclipse.fennec.codec.oscal/test-data/nist-yaml/**'
+    # third-party test data (OpenAPI Initiative examples, CC-BY-4.0, see NOTICE.md)
+    - 'org.eclipse.fennec.codec.openapi/test-data/oas/**'
 
   comment: always
