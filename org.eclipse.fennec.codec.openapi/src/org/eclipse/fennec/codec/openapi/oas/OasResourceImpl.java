@@ -25,6 +25,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.diagnostic.CodecDiagnostic;
 import org.eclipse.fennec.codec.format.CodecFormatProvider;
 import org.eclipse.fennec.codec.openapi.SchemasPackageIdentity;
@@ -132,9 +133,27 @@ public class OasResourceImpl extends CodecResource {
 				api.setComponents(null);
 			}
 		}
+		// written in the version of the resource: what it cannot express is reported (#303)
+		List<OasVersionWriter> prepared = new ArrayList<>();
+		List<String> problems = new ArrayList<>();
+		for (EObject content : getContents()) {
+			if (content instanceof OpenAPI api) {
+				OasVersionWriter writer = OasVersionWriter.prepare(api, version);
+				prepared.add(writer);
+				problems.addAll(writer.problems());
+			}
+		}
+		for (String problem : problems) {
+			getWarnings().add(CodecDiagnostic.warning(problem, SOURCE));
+		}
 		try {
+			if (!problems.isEmpty() && "STRICT".equals(String.valueOf(effective.get(CodecOptions.CODEC_DESERIALIZATION_MODE)))) {
+				throw new IOException("OpenAPI " + version.version() + " cannot express the description in STRICT mode: "
+						+ String.join("; ", problems));
+			}
 			super.doSave(outputStream, effective);
 		} finally {
+			prepared.forEach(OasVersionWriter::revert);
 			hidden.forEach((api, components) -> {
 				api.setComponents(components);
 				api.eSetDeliver(true);
