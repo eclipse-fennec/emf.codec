@@ -256,6 +256,71 @@ class SchemaRoundTripTest {
 		}
 	}
 
+	@Nested
+	@DisplayName("definitions the converter used to drop (real-world OpenAPI)")
+	class DroppedDefinitions {
+
+		private static final String SCHEMA = """
+				{
+				  "$defs": {
+				    "limit": { "type": "object", "properties": { "x": { "type": "string" } } },
+				    "untyped": { "properties": { "name": { "type": "string" } }, "required": ["name"] },
+				    "anything": { "description": "Any value" },
+				    "maybeLimit": { "anyOf": [ { "$ref": "#/$defs/limit" }, { "type": "null" } ] },
+				    "maybeCount": { "anyOf": [ { "type": "integer" }, { "type": "null" } ], "description": "A count" },
+				    "limitOrEmpty": {
+				      "anyOf": [ { "$ref": "#/$defs/limit" }, { "type": "object", "properties": {}, "additionalProperties": false } ]
+				    },
+				    "Order": { "type": "string", "enum": ["asc", "desc"] },
+				    "OtherOrder": { "type": "string", "enum": ["asc", "desc"] },
+				    "user": { "type": "object", "properties": { "n": { "type": "string" } } },
+				    "issue-event": { "title": "Event", "anyOf": [ { "$ref": "#/$defs/limit" }, { "$ref": "#/$defs/user" } ] }
+				  }
+				}
+				""";
+
+		@Test
+		@DisplayName("every definition becomes a classifier")
+		void allDefinitions() throws IOException {
+			EPackage pkg = read(SCHEMA);
+
+			for (String key : List.of("limit", "untyped", "anything", "maybeCount", "limitOrEmpty", "Order", "OtherOrder",
+					"issue-event")) {
+				assertNotNull(OpenApiStyle.classifier(pkg, key), key + " in " + pkg.getEClassifiers().stream().map(EClassifier::getName).toList());
+			}
+			assertNotNull(((EClass) OpenApiStyle.classifier(pkg, "untyped")).getEStructuralFeature("name"));
+		}
+
+		@Test
+		@DisplayName("a nullable union of one simple type is that type")
+		void nullableSimple() throws IOException {
+			EClassifier count = OpenApiStyle.classifier(read(SCHEMA), "maybeCount");
+
+			assertEquals(Integer.class, count.getInstanceClass());
+		}
+
+		@Test
+		@DisplayName("anyOf is written back as anyOf")
+		void anyOfKeyword() throws IOException {
+			JsonNode limitOrEmpty = write(read(SCHEMA)).get("$defs").get("limitOrEmpty");
+
+			assertNotNull(limitOrEmpty.get("anyOf"), limitOrEmpty.toString());
+		}
+	}
+
+	/** Finds a classifier by its key, as the OpenAPI codec does. */
+	static final class OpenApiStyle {
+		static EClassifier classifier(EPackage pkg, String key) {
+			for (EClassifier classifier : pkg.getEClassifiers()) {
+				if (key.equals(EcoreUtil.getAnnotation(classifier, AnnotationSources.JSONSCHEMA, "originalName"))
+						|| key.equals(classifier.getName())) {
+					return classifier;
+				}
+			}
+			return null;
+		}
+	}
+
 	private static void assertRoundTrip(String schema) throws IOException {
 		EPackage first = read(schema);
 		EPackage second = read(MAPPER.writeValueAsString(write(first)));
