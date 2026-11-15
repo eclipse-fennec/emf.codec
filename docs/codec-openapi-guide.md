@@ -252,6 +252,59 @@ EClass; it refers to the generated types with `ref` (`"$ref": "#/components/sche
 | `explode` | `Boolean` | only written when set |
 | `x-*` extensions | - | dropped when reading |
 
+## OpenAPI 3.0, 3.1 and 3.2: the oas model
+
+A second model, `org.eclipse.fennec.model.oas` (nsURI `https://eclipse.org/fennec/openapi/3`), covers
+OpenAPI 3.0, 3.1 and 3.2 in one package (issues #299-#313). Every feature notes the version it
+appears in (annotation `http://eclipse.org/fennec/openapi`, key `since`). The 3.0 model above stays
+the one registered for 3.0 until emf.services has moved to the new model; then the old model is
+deprecated and removed.
+
+**Resources.** One resource and factory per version and syntax, `OasResourceFactoryImpl(version,
+formatProvider)`. In OSGi, only 3.1 and 3.2 are registered:
+
+| Content type | Factory component |
+|---|---|
+| `application/vnd.oai.openapi+json;version=3.1` | `OasResourceFactory.3.1.json` |
+| `application/vnd.oai.openapi;version=3.1` (YAML) | `OasResourceFactory.3.1.yaml` |
+| `application/vnd.oai.openapi+json;version=3.2` | `OasResourceFactory.3.2.json` |
+| `application/vnd.oai.openapi;version=3.2` (YAML) | `OasResourceFactory.3.2.yaml` |
+
+```java
+Resource resource = new OasResourceFactoryImpl(OasVersion.V3_1, new YamlFormatProvider())
+        .createResource(URI.createURI("openai.yaml"));
+resource.load(in, Map.of(CodecResource.CODEC_ROOT_TYPE, OasPackage.Literals.OPEN_API));
+```
+
+A document of another covered version is read with a warning; a version the model does not cover
+(`2.0`, `3.3`) is refused.
+
+**Reading** completes the description in the model - no helper is needed:
+
+- `Operation.getMethod()` - `GET`, …, `QUERY`, or the key in `additionalOperations`;
+  `PathItem.getAllOperations()` lists all operations of a path.
+- Reference Objects keep `ref` and get `target` (the object in `components`); their own
+  `summary` / `description` are the 3.1+ overrides. `Tag.getParentTag()` follows `parent`.
+- **Schemas.** `components/schemas` is `Components.getSchemas()`, an `EPackage` as for 3.0. At a
+  use site (`Parameter`, `Header`, `MediaType.schema` / `itemSchema`) a `SchemaReference` names the
+  type in `classifier`:
+  - a `$ref` → the classifier of `components/schemas`;
+  - a simple type → an Ecore data type (`EString`, `EIntegerObject`, `ELongObject` for `int64`, …)
+    with the facets (`format`, `minLength`, `pattern`, `minimum`, `enum`, …) on the reference;
+    `nullable` for 3.0 `nullable: true`, a 3.1 `"null"` type or `anyOf: [{type: x}, {type: null}]`;
+  - an array → `many`, the classifier is the item type;
+  - any other inline schema (object, string enum, composition) → a classifier in the sub-package
+    `inline` of the schemas package, named after its place (`ListPets200ApplicationJson`).
+  - Keywords without a feature stay in `keywords`.
+- Specification Extensions (`x-…`) are kept in `extensions`, as native JSON values.
+
+**Writing** follows the resource's version: `nullable: true` and a boolean `exclusiveMinimum` for
+3.0, a type array with `"null"` and a numeric bound for 3.1 and later. Inline classifiers are
+written inline again, their references to `components/schemas` as `$ref`.
+
+The OpenAI (3.1) and GitHub (3.1 and 3.0.3) descriptions load into the oas model without errors or
+warnings, every response schema typed (`OasLargeDescriptionsTest`).
+
 ## Tests with large descriptions
 
 The OpenAI (4.3 MB YAML) and GitHub (11 MB YAML, 14 MB JSON) descriptions are not checked in.
