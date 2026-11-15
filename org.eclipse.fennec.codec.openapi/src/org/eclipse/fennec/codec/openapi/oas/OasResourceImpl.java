@@ -37,7 +37,7 @@ import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.eclipse.fennec.model.oas.Components;
 import org.eclipse.fennec.model.oas.Info;
 import org.eclipse.fennec.model.oas.OpenAPI;
-import org.eclipse.fennec.openapi.model.validation.OasValidator;
+import org.eclipse.fennec.codec.openapi.validation.OasValidator;
 
 /**
  * Resource for one OpenAPI version of the {@code org.eclipse.fennec.model.oas} model, in JSON or

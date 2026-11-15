@@ -16,7 +16,7 @@ This document provides context for continuing codec development across sessions.
   version differs; `openapi` member set to the target; STRICT (`codec.deserializationMode`) fails the
   save; the model is reverted after writing. GitHub 3.0.3 written as 3.1 gives the same Ecore - found
   and fixed: nullable type arrays in definitions/variants, nullability in the classifier cache key.
-- #305 `OasValidator` (model bundle, `org.eclipse.fennec.openapi.model.validation`), load option
+- #305 `OasValidator` (`org.eclipse.fennec.codec.openapi.validation`; not in the model bundle: its `-generate` wipes hand-written sources in `src`), load option
   `codec.openapi.validate`: every `fail` document reported, no finding on `pass`, examples, large
   descriptions. Codec core now warns when a single object is read into a list (spec 15 §6.3).
 - Open: #299 cleanup (old `openapi.ecore` / `openapi_original.ecore`), top-level tuple definitions,

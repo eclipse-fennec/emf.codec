@@ -15,4 +15,4 @@
  */
 @org.osgi.annotation.bundle.Export
 @org.osgi.annotation.versioning.Version("1.0.0")
-package org.eclipse.fennec.openapi.model.validation;
+package org.eclipse.fennec.codec.openapi.validation;
