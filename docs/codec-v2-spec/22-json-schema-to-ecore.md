@@ -66,6 +66,10 @@ children are definitions with the qualified name `configs/kafka`.
 - `required` → `lowerBound=1` for single-valued features; a multi-valued feature takes its lower
   bound from `minItems`.
 - `additionalProperties: true` or a schema, next to `properties` → catch-all map (spec 21 §6.2).
+- A schema that is only a map - `additionalProperties` without `properties`, as a definition or used
+  directly as a request or response body - gets the same catch-all map (#322): a map of an entry class
+  for a `$ref` value, otherwise the raw JSON of each entry. (A property of that shape becomes a map
+  feature instead, §4.)
 - `patternProperties` → catch-all map as well, also without `properties` and next to
   `additionalProperties: false`: the members matching a pattern are kept. The map holds objects of
   a class when all patterns (and `additionalProperties`) share one `$ref` schema, otherwise the raw

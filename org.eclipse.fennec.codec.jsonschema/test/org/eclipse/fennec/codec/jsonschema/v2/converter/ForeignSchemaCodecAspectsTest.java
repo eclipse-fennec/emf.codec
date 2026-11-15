@@ -38,6 +38,9 @@ import org.eclipse.fennec.codec.config.ConfigurationResolver;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.fennec.codec.constants.AnnotationSources;
+import org.eclipse.fennec.codec.metadata.provider.CodecAnnotationConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -440,6 +443,57 @@ class ForeignSchemaCodecAspectsTest {
 	@DisplayName("if / then / else and tuples come back in the schema (#318)")
 	void conditionalSchemaRoundTrip() throws IOException {
 		String schemas = CONDITIONAL;
+		EPackage ePackage = new JsonSchemaToEPackageConverter().convert(mapper.readTree("{\"$defs\": " + schemas + "}"), null);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new EPackageToJsonSchemaConverter().convert(ePackage, out, "$defs", false, Map.of(), null);
+
+		JsonNode written = withoutVendorExtensions(mapper.readTree(out.toString(StandardCharsets.UTF_8)).get("$defs"));
+		assertEquals(mapper.readTree(schemas), written);
+	}
+
+	private static final String MAPS = """
+			{
+			  "Inventory": { "type": "object", "additionalProperties": { "type": "integer", "format": "int32" } },
+			  "Anything": { "type": "object", "additionalProperties": true },
+			  "Stocks": { "type": "object", "additionalProperties": { "$ref": "#/components/schemas/Stock" } },
+			  "Stock": { "type": "object", "properties": { "count": { "type": "integer" } } }
+			}
+			""";
+
+	@Test
+	@DisplayName("a schema that is only a map keeps its entries in a catch-all map (#322)")
+	void pureMapRaw() throws IOException {
+		EPackage ePackage = convert(MAPS);
+		EClass inventory = (EClass) ePackage.getEClassifier("Inventory");
+		assertEquals("additionalProperties", EcoreUtil.getAnnotation(inventory, AnnotationSources.CODEC,
+				CodecAnnotationConstants.KEY_ADDITIONAL_PROPERTIES_FEATURE));
+		assertPayloadRoundTrip(ePackage, "Inventory", """
+				{ "available": 7, "sold": 2, "pending": 0 }
+				""");
+		assertPayloadRoundTrip(ePackage, "Anything", """
+				{ "theme": "dark", "limits": { "max": 3 }, "beta": false }
+				""");
+	}
+
+	@Test
+	@DisplayName("a map of a $ref reads its entries as objects (#322)")
+	void pureMapRef() throws IOException {
+		EPackage ePackage = convert(MAPS);
+		String payload = """
+				{ "apples": { "count": 3 }, "pears": { "count": 0 } }
+				""";
+		assertPayloadRoundTrip(ePackage, "Stocks", payload);
+		EObject stocks = load(ePackage, "Stocks", payload).getContents().get(0);
+		@SuppressWarnings("unchecked")
+		EMap<String, EObject> map = (EMap<String, EObject>) stocks.eGet(
+				stocks.eClass().getEStructuralFeature("additionalProperties"));
+		assertEquals("Stock", map.get("apples").eClass().getName());
+	}
+
+	@Test
+	@DisplayName("a pure map schema comes back in the schema as it was (#322)")
+	void pureMapSchemaRoundTrip() throws IOException {
+		String schemas = MAPS.replace("#/components/schemas/", "#/$defs/");
 		EPackage ePackage = new JsonSchemaToEPackageConverter().convert(mapper.readTree("{\"$defs\": " + schemas + "}"), null);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		new EPackageToJsonSchemaConverter().convert(ePackage, out, "$defs", false, Map.of(), null);

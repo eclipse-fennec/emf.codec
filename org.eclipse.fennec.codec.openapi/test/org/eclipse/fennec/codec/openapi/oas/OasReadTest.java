@@ -41,6 +41,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.fennec.codec.constants.AnnotationSources;
 import org.eclipse.fennec.codec.jsonschema.model.Schema;
 import org.eclipse.fennec.codec.jsonschema.model.SimpleType;
 import org.eclipse.fennec.codec.resource.CodecResource;
@@ -175,6 +176,36 @@ class OasReadTest {
 			assertNotNull(request.getEStructuralFeature("origin"));
 			assertInstanceOf(EEnum.class, request.getEStructuralFeature("cabinClass").getEType());
 			assertEquals(1, request.getEStructuralFeature("origin").getLowerBound());
+		}
+
+		@Test
+		@DisplayName("an inline map schema gets a catch-all map, not an empty class (#322)")
+		void inlineMap() throws IOException {
+			// Swagger Petstore, GET /store/inventory
+			String yaml = """
+					openapi: 3.1.0
+					info: { title: T, version: '1' }
+					paths:
+					  /store/inventory:
+					    get:
+					      operationId: getInventory
+					      responses:
+					        '200':
+					          description: successful operation
+					          content:
+					            application/json:
+					              schema:
+					                type: object
+					                additionalProperties: { type: integer, format: int32 }
+					""";
+			Schema schema = parse(yaml, OasVersion.V3_1).getPaths().get("/store/inventory").getGet().getResponses()
+					.get("200").getContent().get("application/json").getSchema();
+
+			EClass inventory = assertInstanceOf(EClass.class, schema.getClassifier());
+			assertEquals("GetInventory200ApplicationJson", inventory.getName());
+			String feature = EcoreUtil.getAnnotation(inventory, AnnotationSources.CODEC, "additionalPropertiesFeature");
+			assertNotNull(feature);
+			assertTrue(inventory.getEStructuralFeature(feature).isMany());
 		}
 
 		@Test
