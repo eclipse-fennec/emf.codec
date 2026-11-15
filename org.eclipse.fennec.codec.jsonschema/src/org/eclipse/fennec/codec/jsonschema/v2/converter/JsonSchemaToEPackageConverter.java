@@ -52,6 +52,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
@@ -985,7 +986,8 @@ public class JsonSchemaToEPackageConverter {
 		}
 
 		// An object schema without "type" (issue #302)
-		if (schemaNode.has("properties") || schemaNode.has("additionalProperties") || schemaNode.has("required")) {
+		if (schemaNode.has("properties") || schemaNode.has("additionalProperties") || schemaNode.has("patternProperties")
+				|| schemaNode.has("required")) {
 			return createEClass(schemaNode, name, qualifiedName);
 		}
 		// No constraint on the type: any value (issue #302); a bare $ref alias is not modelled
@@ -1576,13 +1578,23 @@ public class JsonSchemaToEPackageConverter {
 			}
 		}
 
+		JsonNode patternProps = classNode.get("patternProperties");
+		boolean patterns = patternProps != null && patternProps.isObject() && !patternProps.isEmpty();
+		if (patterns) {
+			addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "patternProperties", patternProps.toString());
+		}
 		if (classNode.has("additionalProperties")) {
 			JsonNode additionalProps = classNode.get("additionalProperties");
 			String value = additionalProps.isBoolean() ? String.valueOf(additionalProps.asBoolean()) : additionalProps.toPrettyString();
 			addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "additionalProperties", value);
-			if (propertiesNode != null && !(additionalProps.isBoolean() && !additionalProps.asBoolean())) {
+			boolean open = !(additionalProps.isBoolean() && !additionalProps.asBoolean());
+			if (patterns) {
+				addCatchAllMap(eClass, catchAllSchema(open ? additionalProps : null, patternProps), qualifiedName);
+			} else if (propertiesNode != null && open) {
 				addCatchAllMap(eClass, additionalProps, qualifiedName);
 			}
+		} else if (patterns) {
+			addCatchAllMap(eClass, catchAllSchema(null, patternProps), qualifiedName);
 		}
 
 		// Handle anyOf constraint
@@ -2373,6 +2385,22 @@ public class JsonSchemaToEPackageConverter {
 	}
 
 	/**
+	 * The schema of the catch-all map of a class with {@code patternProperties} (spec 22 §3.1): the
+	 * schema all its patterns (and {@code additionalProperties}) share when that is a {@code $ref},
+	 * otherwise {@code true} - raw members.
+	 */
+	private static JsonNode catchAllSchema(JsonNode additionalProps, JsonNode patternProps) {
+		List<JsonNode> schemas = new ArrayList<>();
+		if (additionalProps != null) {
+			schemas.add(additionalProps);
+		}
+		patternProps.forEach(schemas::add);
+		JsonNode first = schemas.get(0);
+		boolean shared = first.isObject() && first.has("$ref") && schemas.stream().allMatch(first::equals);
+		return shared ? first : JsonNodeFactory.instance.booleanNode(true);
+	}
+
+	/**
 	 * Members a class with declared properties does not declare, allowed by
 	 * {@code additionalProperties}, go into a catch-all map (spec 21 §6.2): a map of that class
 	 * when the schema is a {@code $ref}, otherwise a map of the members' raw JSON text.
@@ -2390,6 +2418,8 @@ public class JsonSchemaToEPackageConverter {
 			EClass entryClass = ecoreFactory.createEClass();
 			entryClass.setName(eClass.getName() + "AdditionalPropertiesEntry");
 			entryClass.setInstanceClassName("java.util.Map$Entry");
+			// part of the class's map, not a schema of its own: not written as a definition
+			addEAnnotation(entryClass, AnnotationSources.JSONSCHEMA, "artificial", "true");
 			EAttribute keyAttr = ecoreFactory.createEAttribute();
 			keyAttr.setName("key");
 			keyAttr.setEType(EcorePackage.Literals.ESTRING);

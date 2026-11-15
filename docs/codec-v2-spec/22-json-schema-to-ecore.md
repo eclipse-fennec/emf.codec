@@ -52,7 +52,7 @@ as `originalName` and `ExtendedMetaData` `name` when it differs). The first matc
 | 8 | `type: object` | `EClass` (§3.1) |
 | 9 | `type: array` | array wrapper `EClass` with one multi-valued feature `items` (annotation `arrayWrapper`); an array of arrays nests a wrapper |
 | 10 | `type: <scalar>` or a list of types | `EDataType` (§5), facets as annotations |
-| 11 | no `type`, but `properties`, `additionalProperties` or `required` | `EClass` |
+| 11 | no `type`, but `properties`, `additionalProperties`, `patternProperties` or `required` | `EClass` |
 | 12 | no constraint on the type at all (`{}`, only annotations) | `EDataType` of `java.lang.Object` |
 | 13 | only a `$ref`, annotations around it at most (an alias) | no classifier of its own: another name of the target's classifier, also through a chain of aliases. A `$ref` to the alias, `allOf` of it and its `Schema.classifier` are the target's. A cycle or a missing target stays unresolved |
 | 14 | `not`, `if` | no classifier (§9) |
@@ -66,6 +66,11 @@ children are definitions with the qualified name `configs/kafka`.
 - `required` → `lowerBound=1` for single-valued features; a multi-valued feature takes its lower
   bound from `minItems`.
 - `additionalProperties: true` or a schema, next to `properties` → catch-all map (spec 21 §6.2).
+- `patternProperties` → catch-all map as well, also without `properties` and next to
+  `additionalProperties: false`: the members matching a pattern are kept. The map holds objects of
+  a class when all patterns (and `additionalProperties`) share one `$ref` schema, otherwise the raw
+  JSON of each member. The patterns are annotated (`patternProperties`) and written back; they are
+  not checked when reading.
 - `additionalProperties` without `properties` on a property → map feature (§4).
 - `discriminator` → codec aspects (spec 21 §3, spec 08).
 - `x-abstract`, `x-interface` → the flags (spec 21 §5).
@@ -139,7 +144,7 @@ at hand, the model is the authority.
 These keywords have no Ecore counterpart. They stay in the model; the converter reports them as a
 diagnostic (`JsonSchemaKeywords`):
 
-- partially: `patternProperties`, `unevaluatedProperties`;
+- partially: `patternProperties` (§3.1: members kept, patterns not checked), `unevaluatedProperties`;
 - not at all: `not`, `if`/`then`/`else`, `prefixItems`, `contains`/`minContains`/`maxContains`,
   `propertyNames`, `dependentRequired`, `dependentSchemas`, `$dynamicRef`/`$dynamicAnchor`,
   `unevaluatedItems`, `contentSchema`, `$vocabulary`;
@@ -154,7 +159,6 @@ the Ecore. Validating a payload against them is a matter of the schema, not of t
 To be specified and implemented construct by construct (#302, #318):
 
 1. `if`/`then`/`else`: no classifier; candidate: the `then`/`else` branches as subclasses.
-2. `patternProperties`: a map feature like `additionalProperties`, the pattern as annotation.
-3. `prefixItems` / tuple `items`: candidate: a class with one feature per position.
-4. Whether the mapping fits a model transformation (m2x/QVT) once it is complete - no m2x
+2. `prefixItems` / tuple `items`: candidate: a class with one feature per position.
+3. Whether the mapping fits a model transformation (m2x/QVT) once it is complete - no m2x
    dependency in the codec until then.

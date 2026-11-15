@@ -97,7 +97,7 @@ public final class JsonSchemaKeywords {
 
 	/** Keywords preserved as annotations but without full EMF semantics */
 	public static final Set<String> PARTIALLY_SUPPORTED = Set.of(
-		"patternProperties",      // Preserved but no EMF equivalent
+		"patternProperties",      // Members in the catch-all map, patterns not checked
 		"unevaluatedProperties"   // Preserved, used for discriminated unions
 	);
 
@@ -164,7 +164,7 @@ public final class JsonSchemaKeywords {
 		// Check for partially supported keywords
 		if (schemaNode.has("patternProperties")) {
 			diagnostics.add(JsonSchemaConversionDiagnostic.partialSupport(
-				"patternProperties", location, "preserved as annotation but no EMF equivalent"));
+				"patternProperties", location, "matching members are kept in the catch-all map; the patterns are not checked"));
 		}
 
 		return diagnostics;
