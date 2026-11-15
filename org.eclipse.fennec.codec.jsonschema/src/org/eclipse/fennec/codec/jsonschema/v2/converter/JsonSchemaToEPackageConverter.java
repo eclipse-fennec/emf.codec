@@ -802,6 +802,34 @@ public class JsonSchemaToEPackageConverter {
 		}
 	}
 
+	/**
+	 * The key of a schema in the classifier cache: its text, with a nullable type ({@code [x, "null"]},
+	 * {@code nullable: true}) as the plain type - nullability is a matter of the feature, not of the
+	 * classifier, so both forms share one classifier (spec 22 §6).
+	 */
+	private static String cacheKey(JsonNode node) {
+		if (!(node instanceof ObjectNode object)) {
+			return node.toString();
+		}
+		JsonNode type = object.get("type");
+		String nullableType = type != null && type.isArray() && type.size() == 2 ? extractNullableTypeOf(type) : null;
+		if (nullableType == null && !object.has("nullable")) {
+			return node.toString();
+		}
+		ObjectNode key = object.deepCopy();
+		key.remove("nullable");
+		if (nullableType != null) {
+			key.put("type", nullableType);
+		}
+		return key.toString();
+	}
+
+	private static String extractNullableTypeOf(JsonNode typeArray) {
+		String first = typeArray.get(0).asString();
+		String second = typeArray.get(1).asString();
+		return "null".equals(first) ? second : "null".equals(second) ? first : null;
+	}
+
 	/** A definition that is only a {@code $ref}, with annotations around it at most. */
 	private static boolean isAlias(JsonNode node) {
 		if (!node.isObject() || !node.path("$ref").isString()) {
@@ -981,6 +1009,13 @@ public class JsonSchemaToEPackageConverter {
 		// Handle type-based schemas
 		if (schemaNode.has("type")) {
 			JsonNode typeNode = schemaNode.get("type");
+			// [x, "null"] is x, nullable - as nullable: true in OpenAPI 3.0 (spec 22 §6)
+			String nullableType = typeNode.isArray() ? extractNullableType(typeNode) : null;
+			if (nullableType != null && schemaNode instanceof ObjectNode objectNode) {
+				ObjectNode single = objectNode.deepCopy();
+				single.put("type", nullableType);
+				return processSchemaDefinition(single, name, qualifiedName);
+			}
 
 			if (typeNode.isString()) {
 				String type = typeNode.asString();
@@ -1379,8 +1414,10 @@ public class JsonSchemaToEPackageConverter {
 	private void handleVariantWithoutProperties(JsonNode schema, EClass variantClass, String contextPath) {
 		if (schema.has("type")) {
 			JsonNode typeNode = schema.get("type");
-			if (typeNode.isString()) {
-				String type = typeNode.asString();
+			// [x, "null"] is x, nullable (spec 22 §6)
+			String nullableType = typeNode.isArray() ? extractNullableType(typeNode) : null;
+			if (typeNode.isString() || nullableType != null) {
+				String type = nullableType != null ? nullableType : typeNode.asString();
 
 				if ("object".equals(type)) {
 					if (schema.has("additionalProperties")) {
@@ -1530,7 +1567,7 @@ public class JsonSchemaToEPackageConverter {
 
 	private EClass createEClass(JsonNode classNode, String name, String qualifiedName) {
 		// the cache is keyed by the schema text, which an enum or a data type may share (issue #302)
-		if (cachedClassifiers.get(classNode.toString()) instanceof EClass cached && name.startsWith(ARTIFICIAL_CLASSIFIER_PREFIX)) {
+		if (cachedClassifiers.get(cacheKey(classNode)) instanceof EClass cached && name.startsWith(ARTIFICIAL_CLASSIFIER_PREFIX)) {
 			return derive(classNode, cached);
 		}
 
@@ -1628,7 +1665,7 @@ public class JsonSchemaToEPackageConverter {
 			addEAnnotation(eClass, AnnotationSources.JSONSCHEMA, "anchor", anchor);
 		}
 
-		cachedClassifiers.put(classNode.toString(), eClass);
+		cachedClassifiers.put(cacheKey(classNode), eClass);
 		return derive(classNode, eClass);
 	}
 
@@ -1869,7 +1906,7 @@ public class JsonSchemaToEPackageConverter {
 	}
 
 	private EEnum createEEnum(JsonNode enumNode, String name, String qualifiedName) {
-		if (cachedClassifiers.get(enumNode.toString()) instanceof EEnum cached) {
+		if (cachedClassifiers.get(cacheKey(enumNode)) instanceof EEnum cached) {
 			return derive(enumNode, cached);
 		}
 
@@ -1917,7 +1954,7 @@ public class JsonSchemaToEPackageConverter {
 			addEAnnotation(eEnum, AnnotationSources.GEN_MODEL, "documentation", enumNode.get("description").asString());
 		}
 
-		cachedClassifiers.put(enumNode.toString(), eEnum);
+		cachedClassifiers.put(cacheKey(enumNode), eEnum);
 		return derive(enumNode, eEnum);
 	}
 
@@ -1939,7 +1976,7 @@ public class JsonSchemaToEPackageConverter {
 
 	private EDataType createEDataType(JsonNode dtNode, String name) {
 		// the cache is keyed by the schema text, which a class may share (issue #302)
-		if (cachedClassifiers.get(dtNode.toString()) instanceof EDataType cached && !(cached instanceof EEnum)) {
+		if (cachedClassifiers.get(cacheKey(dtNode)) instanceof EDataType cached && !(cached instanceof EEnum)) {
 			return derive(dtNode, cached);
 		}
 
@@ -1998,7 +2035,7 @@ public class JsonSchemaToEPackageConverter {
 			}
 		}
 
-		cachedClassifiers.put(dtNode.toString(), dt);
+		cachedClassifiers.put(cacheKey(dtNode), dt);
 		return derive(dtNode, dt);
 	}
 

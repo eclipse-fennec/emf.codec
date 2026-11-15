@@ -128,7 +128,9 @@ is this table; the OpenAPI use sites (`OasSchemas`) use it as well.
 
 `nullable: true` (OpenAPI 3.0), `type: [x, "null"]` and `anyOf`/`oneOf` of one schema and
 `{type: null}` mean the same: the feature of the non-null schema, `unsettable=true` and
-`serializeNull=true` (spec 21 §6.1).
+`serializeNull=true` (spec 21 §6.1). A definition or a `oneOf` option of a nullable type is mapped as
+that type. Nullability belongs to the feature, not to the classifier: schemas that differ only in it
+share one classifier.
 
 ## 7. Annotations
 
