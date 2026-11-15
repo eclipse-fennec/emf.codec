@@ -54,7 +54,8 @@ as `originalName` and `ExtendedMetaData` `name` when it differs). The first matc
 | 10 | `type: <scalar>` or a list of types | `EDataType` (§5), facets as annotations |
 | 11 | no `type`, but `properties`, `additionalProperties` or `required` | `EClass` |
 | 12 | no constraint on the type at all (`{}`, only annotations) | `EDataType` of `java.lang.Object` |
-| 13 | a bare `$ref`, `not`, `if` | no classifier (§9) |
+| 13 | only a `$ref`, annotations around it at most (an alias) | no classifier of its own: another name of the target's classifier, also through a chain of aliases. A `$ref` to the alias, `allOf` of it and its `Schema.classifier` are the target's. A cycle or a missing target stays unresolved |
+| 14 | `not`, `if` | no classifier (§9) |
 
 Definitions with nothing but object members (`configs: {kafka: {...}}`) are namespaces: their
 children are definitions with the qualified name `configs/kafka`.
@@ -152,10 +153,8 @@ the Ecore. Validating a payload against them is a matter of the schema, not of t
 
 To be specified and implemented construct by construct (#302, #318):
 
-1. A bare `$ref` definition (`Alias: {$ref: Target}`): today no classifier; to be the target's
-   classifier under a second name, or an `EClass` with the target as only supertype.
-2. `if`/`then`/`else`: no classifier; candidate: the `then`/`else` branches as subclasses.
-3. `patternProperties`: a map feature like `additionalProperties`, the pattern as annotation.
-4. `prefixItems` / tuple `items`: candidate: a class with one feature per position.
-5. Whether the mapping fits a model transformation (m2x/QVT) once it is complete - no m2x
+1. `if`/`then`/`else`: no classifier; candidate: the `then`/`else` branches as subclasses.
+2. `patternProperties`: a map feature like `additionalProperties`, the pattern as annotation.
+3. `prefixItems` / tuple `items`: candidate: a class with one feature per position.
+4. Whether the mapping fits a model transformation (m2x/QVT) once it is complete - no m2x
    dependency in the codec until then.

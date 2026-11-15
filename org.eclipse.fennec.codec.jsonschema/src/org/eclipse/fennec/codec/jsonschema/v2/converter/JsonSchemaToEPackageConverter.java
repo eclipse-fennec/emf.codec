@@ -109,6 +109,9 @@ public class JsonSchemaToEPackageConverter {
 	private Map<EClass, JsonNode> discriminators;
 	/** What each schema node became - a classifier or a feature - by identity (#318). */
 	private Map<JsonNode, Object> derived;
+	/** Definitions that are only a {@code $ref}: their name, the name of their target (spec 22 §3). */
+	private Map<String, String> aliases;
+	private Map<String, JsonNode> aliasNodes;
 
 	/**
 	 * Converts JSON Schema from input stream to EPackage.
@@ -474,6 +477,8 @@ public class JsonSchemaToEPackageConverter {
 		classifierMap = new HashMap<>();
 		discriminators = new LinkedHashMap<>();
 		derived = new IdentityHashMap<>();
+		aliases = new LinkedHashMap<>();
+		aliasNodes = new HashMap<>();
 		schemaDefinitions = new HashMap<>();
 		missingRefMap = new HashMap<>();
 		anyOfRefMap = new HashMap<>();
@@ -641,6 +646,7 @@ public class JsonSchemaToEPackageConverter {
 
 	/** Resolves what the definitions left open and adds every classifier to the package. */
 	private void completePackage(EPackage ePackage) {
+		resolveAliases();
 		// Resolve deferred references
 		resolveDeferredReferences();
 		resolveMissingReferences();
@@ -737,6 +743,9 @@ public class JsonSchemaToEPackageConverter {
 				}
 			}
 			for (Map.Entry<String, EClassifier> classifier : classifierMap.entrySet()) {
+				if (aliases.containsKey(classifier.getKey())) {
+					continue; // another name of a class, not a class of its own
+				}
 				if (classifier.getValue() instanceof EClass eClass && !eClass.isAbstract()
 						&& (eClass == base || base.isSuperTypeOf(eClass))) {
 					String schemaName = classifier.getKey();
@@ -764,6 +773,10 @@ public class JsonSchemaToEPackageConverter {
 				// This is an actual schema definition
 				schemaDefinitions.put(qualifiedName, defNode);
 				EClassifier classifier = ownClassifier(processSchemaDefinition(defNode, defName, qualifiedName), defName);
+				if (classifier == null && isAlias(defNode)) {
+					aliases.put(qualifiedName, extractSchemaNameFromRef(defNode.get("$ref").asString()));
+					aliasNodes.put(qualifiedName, defNode);
+				}
 				if (classifier != null) {
 					derived.put(defNode, classifier);
 					markDefinitionEnum(classifier);
@@ -772,6 +785,39 @@ public class JsonSchemaToEPackageConverter {
 						parentPackage.getEClassifiers().add(classifier);
 					}
 				}
+			}
+		}
+	}
+
+	/** A definition that is only a {@code $ref}, with annotations around it at most. */
+	private static boolean isAlias(JsonNode node) {
+		if (!node.isObject() || !node.path("$ref").isString()) {
+			return false;
+		}
+		for (String key : node.propertyNames()) {
+			if (!"$ref".equals(key) && !UNION_ANNOTATIONS.contains(key)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * An alias is another name of its target's classifier, also through a chain of aliases; a cycle
+	 * or a missing target leaves it unresolved (spec 22 §3, rule 13).
+	 */
+	private void resolveAliases() {
+		for (Map.Entry<String, String> alias : aliases.entrySet()) {
+			Set<String> seen = new HashSet<>();
+			seen.add(alias.getKey());
+			String target = alias.getValue();
+			while (aliases.containsKey(target) && seen.add(target)) {
+				target = aliases.get(target);
+			}
+			EClassifier classifier = aliases.containsKey(target) ? null : classifierMap.get(target);
+			if (classifier != null) {
+				classifierMap.put(alias.getKey(), classifier);
+				derived.put(aliasNodes.get(alias.getKey()), classifier);
 			}
 		}
 	}
