@@ -2953,11 +2953,30 @@ public class JsonSchemaToEPackageConverter {
 		return name;
 	}
 
+	/**
+	 * The classifier name for a schema key: a Java identifier (issue #302). Characters no identifier
+	 * may contain separate CamelCase parts - {@code labeled-issue-event} → {@code LabeledIssueEvent},
+	 * {@code 2fa-method} → {@code _2faMethod}; valid names only get their first letter capitalized, as
+	 * before - {@code errorMessage} → {@code ErrorMessage}, {@code CORE_DataSet} and {@code simple_user}
+	 * keep their underscore. The key itself is kept as original name where it differs.
+	 */
 	private String capitalizeFirst(String str) {
 		if (str == null || str.isEmpty()) {
 			return str;
 		}
-		return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+		StringBuilder name = new StringBuilder();
+		for (String part : str.split("[^\\p{L}\\p{N}_]+")) {
+			if (!part.isEmpty()) {
+				name.appendCodePoint(Character.toUpperCase(part.codePointAt(0))).append(part.substring(part.offsetByCodePoints(0, 1)));
+			}
+		}
+		if (name.isEmpty()) {
+			return "_";
+		}
+		if (!Character.isJavaIdentifierStart(name.codePointAt(0))) {
+			name.insert(0, '_');
+		}
+		return name.toString();
 	}
 
 	// Inner classes

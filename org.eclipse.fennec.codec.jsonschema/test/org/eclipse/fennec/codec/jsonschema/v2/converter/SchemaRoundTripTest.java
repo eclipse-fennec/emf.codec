@@ -308,6 +308,49 @@ class SchemaRoundTripTest {
 		}
 	}
 
+	@Nested
+	@DisplayName("class names")
+	class ClassNames {
+
+		private static final String SCHEMA = """
+				{
+				  "$defs": {
+				    "labeled-issue-event": { "type": "object", "properties": { "label": { "type": "string" } } },
+				    "simple_user": { "type": "object", "properties": { "login": { "type": "string" } } },
+				    "2fa-method": { "type": "string", "enum": ["sms", "app"] },
+				    "Pet": { "type": "object", "properties": { "owner": { "$ref": "#/$defs/simple_user" } } }
+				  }
+				}
+				""";
+
+		@Test
+		@DisplayName("are Java identifiers, invalid characters joining CamelCase parts; the key stays the original name")
+		void sanitized() throws IOException {
+			EPackage pkg = read(SCHEMA);
+
+			assertEquals(List.of("LabeledIssueEvent", "Simple_user", "_2faMethod", "Pet"),
+					pkg.getEClassifiers().stream().map(EClassifier::getName).toList());
+			assertEquals("labeled-issue-event", EcoreUtil.getAnnotation(pkg.getEClassifier("LabeledIssueEvent"),
+					AnnotationSources.JSONSCHEMA, "originalName"));
+		}
+
+		@Test
+		@DisplayName("are written back under their keys")
+		void keys() throws IOException {
+			JsonNode defs = write(read(SCHEMA)).get("$defs");
+
+			assertNotNull(defs.get("labeled-issue-event"), defs.toString());
+			assertNotNull(defs.get("simple_user"), defs.toString());
+			assertEquals("#/$defs/simple_user", defs.get("Pet").get("properties").get("owner").get("$ref").asString());
+		}
+
+		@Test
+		@DisplayName("read back equal")
+		void roundTrip() throws IOException {
+			assertRoundTrip(SCHEMA);
+		}
+	}
+
 	/** Finds a classifier by its key, as the OpenAPI codec does. */
 	static final class OpenApiStyle {
 		static EClassifier classifier(EPackage pkg, String key) {
