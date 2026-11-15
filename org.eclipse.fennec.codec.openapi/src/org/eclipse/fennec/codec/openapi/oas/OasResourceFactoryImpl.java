@@ -87,6 +87,9 @@ public class OasResourceFactoryImpl extends ResourceFactoryImpl {
 		if (!registry.hasReader(SchemaReferenceValueReader.NAME)) {
 			registry.register(new SchemaReferenceValueReader());
 		}
+		if (!registry.hasWriter(SchemaReferenceValueReader.NAME)) {
+			registry.register(new SchemaReferenceValueWriter());
+		}
 	}
 
 	@Override

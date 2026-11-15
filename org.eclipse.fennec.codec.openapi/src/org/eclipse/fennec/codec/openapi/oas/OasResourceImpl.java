@@ -107,13 +107,17 @@ public class OasResourceImpl extends CodecResource {
 	/** YAML as OpenAPI descriptions are written by hand: minimal quotes, literal blocks; the caller's options win. */
 	@Override
 	protected void doSave(OutputStream outputStream, Map<?, ?> options) throws IOException {
-		if (!yaml) {
-			super.doSave(outputStream, options);
-			return;
-		}
 		Map<Object, Object> effective = options == null ? new HashMap<>() : new HashMap<>(options);
-		effective.putIfAbsent(YAML_MINIMIZE_QUOTES, Boolean.TRUE);
-		effective.putIfAbsent(YAML_LITERAL_BLOCK_STYLE, Boolean.TRUE);
-		super.doSave(outputStream, effective);
+		if (yaml) {
+			effective.putIfAbsent(YAML_MINIMIZE_QUOTES, Boolean.TRUE);
+			effective.putIfAbsent(YAML_LITERAL_BLOCK_STYLE, Boolean.TRUE);
+		}
+		// inline schemas are converted once per save, from the model as it is now
+		SchemaReferenceValueWriter.InlineCache.reset();
+		try {
+			super.doSave(outputStream, effective);
+		} finally {
+			SchemaReferenceValueWriter.InlineCache.reset();
+		}
 	}
 }
