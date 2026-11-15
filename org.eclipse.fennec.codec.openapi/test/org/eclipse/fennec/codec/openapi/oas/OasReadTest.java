@@ -32,8 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EEnum;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
@@ -43,12 +45,16 @@ import org.eclipse.fennec.codec.jsonschema.model.Schema;
 import org.eclipse.fennec.codec.jsonschema.model.SimpleType;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.yaml.YamlFormatProvider;
+import org.eclipse.fennec.model.oas.Components;
+import org.eclipse.fennec.model.oas.Example;
+import org.eclipse.fennec.model.oas.MediaType;
 import org.eclipse.fennec.model.oas.OasPackage;
 import org.eclipse.fennec.model.oas.OpenAPI;
 import org.eclipse.fennec.model.oas.Operation;
 import org.eclipse.fennec.model.oas.Parameter;
 import org.eclipse.fennec.model.oas.ParameterLocation;
 import org.eclipse.fennec.model.oas.PathItem;
+import org.eclipse.fennec.model.oas.SecurityScheme;
 import org.eclipse.fennec.model.oas.SecuritySchemeType;
 import org.eclipse.fennec.model.oas.Tag;
 import org.junit.jupiter.api.BeforeEach;
@@ -359,6 +365,58 @@ class OasReadTest {
 			assertEquals(ParameterLocation.QUERYSTRING, a.getGet().getParameters().get(0).getIn());
 			assertEquals(SecuritySchemeType.MUTUAL_TLS, api.getComponents().getSecuritySchemes().get("mtls").getType());
 			assertEquals("internal", api.getInfo().getExtensions().get("x-audience"));
+		}
+
+		@Test
+		@DisplayName("each 3.2 addition is in the model (#306)")
+		void additions32() throws IOException {
+			OpenAPI api = load("v3.2/fennec-3.2-additions.yaml");
+			Components components = api.getComponents();
+
+			assertEquals("production", api.getServers().get(0).getName());
+			assertEquals("Orders", api.getTags().get(1).getSummary());
+			assertSame(api.getTags().get(0), api.getTags().get(1).getParentTag());
+			assertEquals("The matching orders",
+					api.getPaths().get("/orders").getQuery().getResponses().get("200").getSummary());
+			assertEquals("PURGE", api.getPaths().get("/orders").getAdditionalOperations().get("PURGE").getMethod());
+			assertEquals(ParameterLocation.QUERYSTRING,
+					api.getPaths().get("/orders/search").getGet().getParameters().get(0).getIn());
+
+			Example example = components.getExamples().get("Order");
+			assertEquals(Map.of("id", "1", "kind", "Order"), example.getDataValue());
+			assertEquals("{\"id\":\"1\",\"kind\":\"Order\"}", example.getSerializedValue());
+			assertEquals("An order as JSON", components.getMediaTypes().get("OrderJson").getDescription());
+
+			SecurityScheme device = components.getSecuritySchemes().get("device");
+			assertEquals(Boolean.TRUE, device.getDeprecated());
+			assertEquals("https://example.com/.well-known/oauth-authorization-server", device.getOauth2MetadataUrl());
+			assertEquals("https://example.com/device",
+					device.getFlows().getDeviceAuthorization().getDeviceAuthorizationUrl());
+
+			Schema order = components.getSchemas().get("Order");
+			assertEquals("#/components/schemas/Order", order.getDiscriminator().getDefaultMapping());
+			assertEquals("cdata", order.getProperties().get("note").getXml().getNodeType());
+		}
+
+		@Test
+		@DisplayName("the item type of a streamed response is its itemSchema's classifier (#307)")
+		void streamedItems() throws IOException {
+			OpenAPI api = load("v3.2/fennec-3.2-additions.yaml");
+			EMap<String, MediaType> content = api.getPaths().get("/orders/events").getGet().getResponses()
+					.get("200").getContent();
+			EPackage schemas = api.getComponents().getSchemasPackage();
+
+			// a $ref: the component's class
+			assertSame(schemas.getEClassifier("OrderEvent"), content.get("text/event-stream").getItemSchema().getClassifier());
+			// inline: a class of the inline package, named after its place
+			EClassifier line = content.get("application/jsonl").getItemSchema().getClassifier();
+			assertTrue(line instanceof EClass);
+			assertSame(schemas.getESubpackages().get(0), line.getEPackage());
+			assertNotNull(((EClass) line).getEStructuralFeature("status"));
+			// multipart: positional and item encodings
+			MediaType multipart = content.get("multipart/mixed");
+			assertEquals("application/json", multipart.getPrefixEncoding().get(0).getContentType());
+			assertEquals("application/octet-stream", multipart.getItemEncoding().getContentType());
 		}
 	}
 

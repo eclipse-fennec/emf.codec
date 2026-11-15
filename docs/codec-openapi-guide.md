@@ -308,6 +308,22 @@ The OpenAI (3.1) and GitHub (3.1 and 3.0.3) descriptions load into the oas model
 warnings, every response schema typed (`OasLargeDescriptionsTest`), and are written back unchanged
 (`OasLosslessTest`).
 
+### Streamed responses (3.2)
+
+A sequential media type (`text/event-stream`, `application/jsonl`, `application/json-seq`,
+`multipart/mixed`) describes its items with `itemSchema`. Its `Schema.getClassifier()` is the item
+type: the component class for a `$ref`, a class of the `inline` package for an inline schema.
+`prefixEncoding` and `itemEncoding` are kept on the Media Type.
+
+### Conformance
+
+- The official `pass` documents of the specification (`tests/schema/pass` of
+  OAI/OpenAPI-Specification, 3.1 and 3.2) load without errors, and without warnings apart from
+  `$ref`s to components the fragments leave out (`OasConformanceTest`); they are written back
+  unchanged (`OasLosslessTest`).
+- The `fail` documents are in `test-data/oas/conformance/*/fail`, for the optional validation (#305).
+- A Reference Object may carry `summary` and `description` (3.1): both are kept next to `$ref`.
+
 ## Tests with large descriptions
 
 The OpenAI (4.3 MB YAML) and GitHub (11 MB YAML, 14 MB JSON) descriptions are not checked in.
