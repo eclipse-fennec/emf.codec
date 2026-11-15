@@ -4,6 +4,24 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-11-15
 
+**Session Summary (2026-11-15, feature/openapi-3.1-3.2) — conformance, versions, validation (#303-#308):**
+
+- Official `pass`/`fail` documents of 3.1 and 3.2 vendored (`test-data/oas/conformance`, Apache-2.0,
+  NOTICE). `pass`: load and round-trip (`OasConformanceTest`, `OasLosslessTest`); fixes found by them:
+  `summary` on Reference Objects, empty `components` kept, inline schemas via `convertDefinitions`.
+- #306/#307: `fennec-3.2-additions.yaml` uses every 3.2 addition; the item type of a stream is
+  `MediaType.itemSchema.classifier`.
+- #303 `OasVersionWriter` (on save): fields/values unknown to the resource version reported; schemas
+  rewritten into the target dialect (maintainer: "rewrite + diagnostics") only when the document's
+  version differs; `openapi` member set to the target; STRICT (`codec.deserializationMode`) fails the
+  save; the model is reverted after writing. GitHub 3.0.3 written as 3.1 gives the same Ecore - found
+  and fixed: nullable type arrays in definitions/variants, nullability in the classifier cache key.
+- #305 `OasValidator` (model bundle, `org.eclipse.fennec.openapi.model.validation`), load option
+  `codec.openapi.validate`: every `fail` document reported, no finding on `pass`, examples, large
+  descriptions. Codec core now warns when a single object is read into a list (spec 15 §6.3).
+- Open: #299 cleanup (old `openapi.ecore` / `openapi_original.ecore`), top-level tuple definitions,
+  m2x evaluation, models to fennec-models; PR of the branch.
+
 **Session Summary (2026-11-15, feature/openapi-3.1-3.2) — JSON Schema → Ecore (#318):**
 
 - The converter takes the JSON Schema model: `convert(Schema, schemaFeature)`,
