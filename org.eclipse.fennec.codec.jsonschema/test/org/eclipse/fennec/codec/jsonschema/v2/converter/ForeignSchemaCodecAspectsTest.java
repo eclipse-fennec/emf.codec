@@ -313,6 +313,83 @@ class ForeignSchemaCodecAspectsTest {
 		assertEquals("Stock", stock.get("apples").eClass().getName());
 	}
 
+	private static final String PATTERNS = """
+			{
+			  "Config": {
+			    "type": "object",
+			    "properties": { "name": { "type": "string" } },
+			    "patternProperties": { "^x-": {} }
+			  },
+			  "Registry": {
+			    "type": "object",
+			    "patternProperties": { "^[a-z]+$": { "$ref": "#/components/schemas/Stock" } },
+			    "additionalProperties": false
+			  },
+			  "Mixed": {
+			    "type": "object",
+			    "properties": { "id": { "type": "string" } },
+			    "patternProperties": { "^s_": { "type": "string" }, "^n_": { "type": "integer" } }
+			  },
+			  "Stock": {
+			    "type": "object",
+			    "properties": { "count": { "type": "integer" } }
+			  }
+			}
+			""";
+
+	@Test
+	@DisplayName("patternProperties keeps the matching members in the catch-all map (#318)")
+	void patternPropertiesRaw() throws IOException {
+		EPackage ePackage = convert(PATTERNS);
+		assertPayloadRoundTrip(ePackage, "Config", """
+				{ "name": "c", "x-theme": "dark", "x-limits": { "max": 3 } }
+				""");
+		assertPayloadRoundTrip(ePackage, "Mixed", """
+				{ "id": "m", "s_a": "text", "n_b": 42 }
+				""");
+	}
+
+	@Test
+	@DisplayName("patternProperties of one $ref schema reads the members as objects (#318)")
+	void patternPropertiesRef() throws IOException {
+		EPackage ePackage = convert(PATTERNS);
+		String payload = """
+				{ "apples": { "count": 3 }, "pears": { "count": 0 } }
+				""";
+		assertPayloadRoundTrip(ePackage, "Registry", payload);
+		EObject registry = load(ePackage, "Registry", payload).getContents().get(0);
+		@SuppressWarnings("unchecked")
+		EMap<String, EObject> stock = (EMap<String, EObject>) registry.eGet(
+				registry.eClass().getEStructuralFeature("additionalProperties"));
+		assertEquals("Stock", stock.get("apples").eClass().getName());
+	}
+
+	@Test
+	@DisplayName("patternProperties comes back in the schema, without an added additionalProperties (#318)")
+	void patternPropertiesSchemaRoundTrip() throws IOException {
+		String schemas = """
+				{
+				  "Config": {
+				    "type": "object",
+				    "properties": { "name": { "type": "string" } },
+				    "patternProperties": { "^x-": {} }
+				  },
+				  "Registry": {
+				    "type": "object",
+				    "patternProperties": { "^[a-z]+$": { "$ref": "#/$defs/Stock" } },
+				    "additionalProperties": false
+				  },
+				  "Stock": { "type": "object", "properties": { "count": { "type": "integer" } } }
+				}
+				""";
+		EPackage ePackage = new JsonSchemaToEPackageConverter().convert(mapper.readTree("{\"$defs\": " + schemas + "}"), null);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		new EPackageToJsonSchemaConverter().convert(ePackage, out, "$defs", false, Map.of(), null);
+
+		JsonNode written = withoutVendorExtensions(mapper.readTree(out.toString(StandardCharsets.UTF_8)).get("$defs"));
+		assertEquals(mapper.readTree(schemas), written);
+	}
+
 	@Test
 	@DisplayName("oneOf without discriminator infers the subclass, with discriminator maps it (#279)")
 	void unions() throws IOException {

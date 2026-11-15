@@ -918,10 +918,18 @@ public class EPackageToJsonSchemaConverter {
 		if (isSuppressed("additionalProperties")) {
 			return;
 		}
+		String patternProperties = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "patternProperties");
+		if (patternProperties != null && !isSuppressed("patternProperties")) {
+			gen.writeName("patternProperties");
+			gen.writeTree(new ObjectMapper().readTree(patternProperties));
+		}
 		String additionalProperties = extractAnnotationDetail(eClass, AnnotationSources.JSONSCHEMA, "additionalProperties");
 		if (additionalProperties != null) {
 			writeAdditionalProperties(additionalProperties, gen);
 			return;
+		}
+		if (patternProperties != null) {
+			return; // the catch-all map holds the members of the patterns
 		}
 		ClassConfig classConfig = configurationResolver.resolveClassConfig(eClass, featureDiagnostics);
 		String catchAll = classConfig != null ? classConfig.getAdditionalPropertiesFeature() : null;
