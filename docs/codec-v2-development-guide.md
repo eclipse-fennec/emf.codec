@@ -12,7 +12,7 @@ This document provides context for continuing codec development across sessions.
   `feature/openapi-3.1-3.2`; everything that also serves 3.0 went first via this branch.
 - #296: OpenAPI YAML factory under `application/vnd.oai.openapi` (content type only). `codec.yaml`
   registers its `YamlFormatProvider` as `CodecFormatProvider` service (`codec.format.id=yaml`,
-  new `CodecFormatProvider.PROPERTY_FORMAT_ID`, format API 1.1.0); the OpenAPI component
+  new `CodecFormatProvider.PROPERTY_FORMAT_ID`; no package version bumps while unreleased); the OpenAPI component
   references it, so no YAML import in `codec.openapi`. Test data: learn.openapis.org examples
   (CC-BY-4.0, NOTICE.md, excluded from the header check).
 - #297: Jackson's YAML parser does not resolve aliases (`*a` arrives as `"a"`) and drops scalar

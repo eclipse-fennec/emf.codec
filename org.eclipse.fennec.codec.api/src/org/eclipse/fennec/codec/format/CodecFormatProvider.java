@@ -55,8 +55,6 @@ public interface CodecFormatProvider<S, T> {
      * Service property carrying the {@link #getFormatId() format id} of a format provider that is
      * registered as an OSGi service, e.g. {@code codec.format.id=yaml}. Another codec selects the
      * provider with a target filter such as {@code (codec.format.id=yaml)}.
-     *
-     * @since 1.1
      */
     String PROPERTY_FORMAT_ID = "codec.format.id";
 

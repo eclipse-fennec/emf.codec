@@ -120,8 +120,6 @@ public class JacksonFormatProvider implements CodecFormatProvider<InputStream, O
      * Creates a writer on the factory {@link #writeFactory(Map)} returns for these save options. When
      * that is this provider's own factory, the writer comes from {@link #createWriter(OutputStream)},
      * so a subclass that overrides it (e.g. BSON) keeps its writer.
-     *
-     * @since 1.1
      */
     @Override
     public FormatDelegate<OutputStream> createWriter(OutputStream target, EObject rootObject,
@@ -136,7 +134,6 @@ public class JacksonFormatProvider implements CodecFormatProvider<InputStream, O
      *
      * @param saveOptions the save options, never {@code null}
      * @return the factory to write with
-     * @since 1.1
      */
     protected TokenStreamFactory writeFactory(Map<String, Object> saveOptions) {
         return factory;
@@ -192,7 +189,6 @@ public class JacksonFormatProvider implements CodecFormatProvider<InputStream, O
      * @param parser the parser of this load
      * @param loadOptions the load options, never {@code null}
      * @return the parser to read from
-     * @since 1.1
      */
     protected JsonParser decorateParser(JsonParser parser, Map<String, Object> loadOptions) {
         return parser;
