@@ -32,6 +32,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.codec.config.ClassConfig;
@@ -282,6 +283,15 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             EClass hintEClass,
             EMFCodecReadContext emfContext) {
 
+        // An EObject-typed feature without a runtime hint arrives here with Ecore's EObject as
+        // its hint. That class names no type: the document's own type key is the only source
+        // (spec 13 §6.1), so it must neither scope the type lookup nor serve as the fallback -
+        // falling back would create a bare EObject that holds none of the data (issue #328).
+        boolean typeFromDocumentOnly = isEcoreEObject(hintEClass);
+        if (typeFromDocumentOnly) {
+            hintEClass = null;
+        }
+
         // Standard deserialization flow
         // Document order: the catch-all map and the inference tie-break depend on it (spec 21 §6)
         Map<String, Object> deferredProperties = new LinkedHashMap<>();
@@ -413,6 +423,10 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             // A third case joins them: under typeStrategy=NONE nothing was unresolvable and
             // nothing was missing from the document - the configuration says the type is not
             // transported, so the root hint is the only source there ever was (issue #171).
+            if (typeFromDocumentOnly) {
+                reportUntypedEObjectFeature(seenTypeValue, emfContext, ctxt, parser);
+                return null;
+            }
             String msg;
             if (isTypeStrategyNone()) {
                 msg = "Cannot deserialize: typeStrategy=NONE transports no type information,"
@@ -435,6 +449,40 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
         }
 
         return eObject;
+    }
+
+    /** Tells whether a class is Ecore's own {@code EObject}, which names no instantiable type. */
+    static boolean isEcoreEObject(EClass eClass) {
+        return eClass != null && "EObject".equals(eClass.getName()) && eClass.getEPackage() != null
+                && EcorePackage.eNS_URI.equals(eClass.getEPackage().getNsURI());
+    }
+
+    /**
+     * Reports an object under an {@code EObject}-typed feature that could not be typed.
+     * <p>
+     * Without any type value the feature is skipped with a warning (spec 18 §10.1): nothing in
+     * the document or the options names a type. A type value that does not resolve is an
+     * error - the document names a type the load does not know (spec 06 §6.3.2).
+     * </p>
+     */
+    private void reportUntypedEObjectFeature(String seenTypeValue, EMFCodecReadContext emfContext,
+            DeserializationContext ctxt, JsonParser parser) {
+        EStructuralFeature feature = emfContext != null ? emfContext.getCurrentFeature() : null;
+        if (feature == null) {
+            feature = ContextHelper.getCurrentReference(ctxt);
+        }
+        String featureName = feature != null ? feature.getName() : "?";
+        if (seenTypeValue != null) {
+            String msg = String.format("Cannot deserialize feature '%s' of type EObject: type value '%s'"
+                    + " could not be resolved. Feature will be skipped.", featureName, seenTypeValue);
+            LOGGER.severe(msg);
+            ContextHelper.addError(ctxt, msg, parser, "CodecEObjectDeserializer");
+        } else {
+            String msg = "Cannot deserialize feature '" + featureName + "' of type EObject: no type"
+                    + " information found and no CODEC_FEATURE_TYPE_HINTS provided. Feature will be skipped.";
+            LOGGER.warning(msg);
+            ContextHelper.addWarning(ctxt, msg, parser, "CodecEObjectDeserializer");
+        }
     }
 
     /**

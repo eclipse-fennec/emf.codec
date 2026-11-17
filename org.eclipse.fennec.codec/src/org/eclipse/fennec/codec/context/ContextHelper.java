@@ -46,6 +46,9 @@ public final class ContextHelper {
     /** Context attribute key for expected type hint (must be EClass) */
     public static final String EXPECTED_TYPE = "CODEC_EXPECTED_TYPE";
 
+    /** Attribute key for the reference whose contained object is being read (issue #328). */
+    public static final String CURRENT_REFERENCE = "CODEC_CURRENT_REFERENCE";
+
     /** Context attribute key for collecting unresolved references */
     public static final String UNRESOLVED_REFERENCES = "CODEC_UNRESOLVED_REFERENCES";
 
@@ -354,6 +357,27 @@ public final class ContextHelper {
             throw new IllegalArgumentException("eClass must not be null");
         }
         ctxt.setAttribute(EXPECTED_TYPE, eClass);
+    }
+
+    /**
+     * Gets the reference whose contained object is being read, so the nested read can name it
+     * in its diagnostics (issue #328).
+     *
+     * @param ctxt the deserialization context
+     * @return the reference, or null outside a contained read
+     */
+    public static EReference getCurrentReference(DeserializationContext ctxt) {
+        return ctxt != null && ctxt.getAttribute(CURRENT_REFERENCE) instanceof EReference ref ? ref : null;
+    }
+
+    /**
+     * Sets the reference whose contained object is being read; null clears it.
+     *
+     * @param ctxt the deserialization context
+     * @param reference the reference, or null
+     */
+    public static void setCurrentReference(DeserializationContext ctxt, EReference reference) {
+        ctxt.setAttribute(CURRENT_REFERENCE, reference);
     }
 
     /**
