@@ -562,6 +562,10 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      */
     private EObject deserializeContainedObject(DeserializationState parentState, JsonParser parser,
             DeserializationContext ctxt, JsonParser contextSource) {
+        EReference previousReference = ctxt != null ? ContextHelper.getCurrentReference(ctxt) : null;
+        if (ctxt != null) {
+            ContextHelper.setCurrentReference(ctxt, reference);
+        }
         try {
             // Priority 1: Check for runtime type hint from CODEC_FEATURE_TYPE_HINTS option
             EClass runtimeTypeHint = ContextHelper.getFeatureTypeHint(ctxt, reference);
@@ -587,19 +591,9 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             // Determine effective type hint: runtime > declared reference type
             EClass effectiveTypeHint = runtimeTypeHint != null ? runtimeTypeHint : reference.getEReferenceType();
 
-            // Check if the effective type hint is abstract or is EObject itself
-            // Per spec 18-feature-type-hints.md Section 10.1:
-            // "EObject-typed feature without hint and without _type" -> skip feature, value is null
-            if (isUninstantiableType(effectiveTypeHint)) {
-                String msg = "Cannot deserialize feature '" + reference.getName() + "' of type " +
-                        effectiveTypeHint.getName() + ": no type information found and no " +
-                        "CODEC_FEATURE_TYPE_HINTS provided. Feature will be skipped.";
-                LOGGER.warning(msg);
-                ContextHelper.addWarning(ctxt, msg, parser, "ReferenceDeserializationEntry");
-                // Skip the JSON content for this feature
-                skipJsonValue(parser);
-                return null;
-            }
+            // Ecore's EObject as the type is not skipped here: the nested object's own type key
+            // decides (spec 13 §6.1). CodecEObjectDeserializer skips it with the spec 18 §10.1
+            // warning only when the object carries no type either (issue #328).
 
             // Check if we have an EMF-aware context from the parser
             TokenStreamContext streamContext =
@@ -677,6 +671,10 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
             LOGGER.severe(msg);
             ContextHelper.addError(ctxt, msg, parser, "ReferenceDeserializationEntry");
             return null;
+        } finally {
+            if (ctxt != null) {
+                ContextHelper.setCurrentReference(ctxt, previousReference);
+            }
         }
     }
 
@@ -1216,53 +1214,6 @@ public class ReferenceDeserializationEntry implements DeserializationEntry {
      */
     public String getRefKey() {
         return refKey;
-    }
-
-    /**
-     * Checks if the given EClass is the base EObject type from Ecore.
-     * <p>
-     * This method specifically checks for the base EObject class from the Ecore
-     * package. Abstract domain classes (like "Geometry") are NOT considered here
-     * because they typically work with _type polymorphism in JSON.
-     * </p>
-     * <p>
-     * Per spec 18-feature-type-hints.md Section 10.1:
-     * "EObject-typed feature without hint and without _type" should be skipped.
-     * However, abstract domain classes with _type in JSON should still work.
-     * </p>
-     *
-     * @param eClass the EClass to check
-     * @return true if it's the base EObject type that cannot be instantiated
-     */
-    private boolean isUninstantiableType(EClass eClass) {
-        if (eClass == null) {
-            return true;
-        }
-        // Only skip for the base EObject from Ecore package
-        // Abstract domain classes (like "Geometry") can work with _type in JSON
-        // The deserializer will handle those cases
-        if ("EObject".equals(eClass.getName()) &&
-                "http://www.eclipse.org/emf/2002/Ecore".equals(eClass.getEPackage().getNsURI())) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Skips the current JSON value (object, array, or primitive).
-     * <p>
-     * This is used when a feature cannot be deserialized (e.g., no type hint for EObject-typed feature)
-     * but we still need to consume the JSON tokens to continue parsing.
-     * </p>
-     *
-     * @param parser the JSON parser positioned at the start of the value
-     */
-    private void skipJsonValue(JsonParser parser) {
-        try {
-            parser.skipChildren();
-        } catch (Exception e) {
-            LOGGER.warning("Failed to skip JSON value: " + e.getMessage());
-        }
     }
 
     /**

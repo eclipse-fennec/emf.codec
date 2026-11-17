@@ -2,7 +2,19 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-11-15
+**Last Updated:** 2026-11-17
+
+**Session Summary (2026-11-17, fix/328-eobject-type-key) — EObject-typed containment typed by `_type` (#328):**
+
+- An `EObject`-typed containment without `CODEC_FEATURE_TYPE_HINTS` was skipped before its `_type`
+  was read. `ReferenceDeserializationEntry` no longer skips it; `CodecEObjectDeserializer.deserializeStandard`
+  takes Ecore's `EObject` hint as "type from the document only": never a lookup scope, never a fallback
+  (that would create a bare `EObjectImpl`). No type value: skipped with the spec 18 §10.1 warning;
+  unresolvable type value: error, feature skipped.
+- `ContextHelper.CURRENT_REFERENCE` names the reference being read, so the nested read's diagnostics can
+  name the feature (the parser's child context does not carry it).
+- A simple-name `_type` resolves only with a context schema (e.g. from `CODEC_ROOT_TYPE`); otherwise the
+  full URI is needed. Test: `EObjectTypedFeatureTypeKeyTest`.
 
 **Session Summary (2026-11-15, feature/openapi-3.1-3.2) — conformance, versions, validation (#303-#308):**
 
