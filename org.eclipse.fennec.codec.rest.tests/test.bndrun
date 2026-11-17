@@ -63,5 +63,5 @@
 	org.osgi.util.promise;version='[1.3.0,1.3.1)',\
 	slf4j.api;version='[1.7.36,1.7.37)',\
 	slf4j.simple;version='[1.7.36,1.7.37)',\
-	tools.jackson.core.jackson-core;version='[3.2.2,3.2.3)',\
-	tools.jackson.core.jackson-databind;version='[3.2.2,3.2.3)'
+	tools.jackson.core.jackson-core;version='[3.2.3,3.2.4)',\
+	tools.jackson.core.jackson-databind;version='[3.2.3,3.2.4)'
