@@ -164,7 +164,11 @@ public class CodecResource extends ResourceImpl {
     private final ConfigurationResolver resolver;
     private final CodecValueRegistry valueRegistry;
     private final CodecPrefixRegistry prefixRegistry;
-    private final JsonMapper.Builder mapperBuilder;
+    /**
+     * The caller's mapper settings, built once. Every operation rebuilds from it, so the
+     * caller's builder is never handed the per-operation codec module (issue #324).
+     */
+    private final JsonMapper mapperTemplate;
     private final CodecResourceHelper helper;
     private final CodecFormatProvider<?, ?> formatProvider;
     private final TypeDiscriminatorReader typeDiscriminatorReader;
@@ -257,7 +261,7 @@ public class CodecResource extends ResourceImpl {
         this.metadataService = requireNonNull(metadataService, "metadataService must not be null");
         this.resolver = enrichWithAnnotations(resolver, metadataService);
         this.valueRegistry = valueRegistry;
-        this.mapperBuilder = mapperBuilder;
+        this.mapperTemplate = isNull(mapperBuilder) ? null : mapperBuilder.build();
         this.helper = new CodecResourceHelper(metadataService);
         this.formatProvider = formatProvider;
         this.typeDiscriminatorReader = typeDiscriminatorReader;
@@ -1105,7 +1109,7 @@ public class CodecResource extends ResourceImpl {
 
         CodecModule codecModule = moduleBuilder.build();
 
-        JsonMapper.Builder builder = isNull(mapperBuilder) ? JsonMapper.builder() : mapperBuilder;
+        JsonMapper.Builder builder = isNull(mapperTemplate) ? JsonMapper.builder() : mapperTemplate.rebuild();
         return builder
                 .addModule(codecModule)
                 .build();
