@@ -91,7 +91,12 @@ public class CodecResourceFactory extends ResourceFactoryImpl {
                 "MetadataService not set. Call setMetadataService() before creating resources, " +
                 "or use a constructor that accepts MetadataService.");
         }
-        return new CodecResource(uri, metadataService, resolver, null, prefixRegistry, mapperBuilder, null, null);
+        CodecResource resource = new CodecResource(uri, metadataService, resolver, null, prefixRegistry,
+                mapperBuilder, null, null);
+        // Copied: a resource changing its defaults must not change the factory's (issue #324)
+        resource.getDefaultLoadOptions().putAll(defaultLoadOptions);
+        resource.getDefaultSaveOptions().putAll(defaultSaveOptions);
+        return resource;
     }
 
     /**
