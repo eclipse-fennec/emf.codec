@@ -12,6 +12,7 @@
  ********************************************************************/
 package org.eclipse.fennec.codec.deser;
 
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -59,10 +60,12 @@ import org.eclipse.fennec.codec.util.TypeResolutionHelper;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.eclipse.fennec.codec.diagnostic.CodecDocumentException;
 
+import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Main Jackson deserializer for EObjects.
@@ -151,6 +154,9 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
     private final Set<String> reportedPrefixClashes = ConcurrentHashMap.newKeySet();
 
     private static final String PREFIX_SOURCE = "PrefixDeserializationEntry";
+
+    /** Writes the raw JSON of a catch-all map value. */
+    private static final JsonMapper RAW_JSON = JsonMapper.builder().build();
 
     @Override
     public Class<?> handledType() {
@@ -1333,10 +1339,41 @@ public class CodecEObjectDeserializer extends ValueDeserializer<EObject> {
             // a map of EJavaObject values holds native JSON values: String, Number, Boolean, List, Map
             entry.eSet(valueFeature, ctxt.readValue(parser, Object.class));
         } else {
-            entry.eSet(valueFeature, ctxt.readTree(parser).toString());
+            entry.eSet(valueFeature, rawJson(parser));
         }
         ((List<EObject>) state.getEObject().eGet(map)).add(entry);
         return true;
+    }
+
+    /**
+     * The value at the parser as JSON text. A float is copied as a BigDecimal, so it keeps every
+     * digit and trailing zero it was written with instead of passing through a double (issue
+     * #324). Not {@code copyCurrentStructureExact}: a replayed buffer answers it with a double.
+     * Leaves the parser on the value's last token, as {@code readTree} does.
+     */
+    private static String rawJson(JsonParser parser) {
+        StringWriter out = new StringWriter();
+        try (JsonGenerator gen = RAW_JSON.createGenerator(out)) {
+            int depth = 0;
+            JsonToken token = parser.currentToken();
+            while (token != null) {
+                if (token == JsonToken.VALUE_NUMBER_FLOAT) {
+                    gen.writeNumber(parser.getDecimalValue());
+                } else {
+                    gen.copyCurrentEvent(parser);
+                }
+                if (token.isStructStart()) {
+                    depth++;
+                } else if (token.isStructEnd()) {
+                    depth--;
+                }
+                if (depth == 0) {
+                    break;
+                }
+                token = parser.nextToken();
+            }
+        }
+        return out.toString();
     }
 
     private void replayIntoCatchAll(DeserializationState state, String propertyName, Object value,

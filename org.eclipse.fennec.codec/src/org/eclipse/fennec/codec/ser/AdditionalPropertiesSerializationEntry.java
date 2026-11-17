@@ -21,8 +21,10 @@ import org.eclipse.fennec.codec.context.ContextHelper;
 import org.eclipse.fennec.codec.util.EMapHelper;
 
 import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.cfg.JsonNodeFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -37,7 +39,14 @@ import tools.jackson.databind.json.JsonMapper;
  */
 public class AdditionalPropertiesSerializationEntry implements SerializationEntry {
 
-	private static final JsonMapper RAW_JSON = JsonMapper.builder().build();
+	/**
+	 * Reads a raw value again. Floats become BigDecimals with their trailing zeros, so a value is
+	 * written with every digit it was read with (issue #258, #324), not cut to a double.
+	 */
+	private static final JsonMapper RAW_JSON = JsonMapper.builder()
+			.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+			.disable(JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES)
+			.build();
 
 	private final EReference map;
 	private final EStructuralFeature keyFeature;
