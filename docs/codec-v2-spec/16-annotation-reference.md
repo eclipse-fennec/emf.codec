@@ -1436,6 +1436,8 @@ Options passed to `resource.load(options)` or `resource.save(options)`. These ar
 | `CODEC_SUPPRESS_WARNINGS` | `Boolean` | Both | Suppress all warnings ([details](#diagnostic-options)) |
 | `CODEC_SUPPRESS_WARNING_SOURCES` | `Set<String>` | Both | Suppress warnings by source ([details](#diagnostic-options)) |
 | `CODEC_DIAGNOSTIC_HANDLER` | `DiagnosticHandler` | Both | Custom diagnostic handler ([details](#diagnostic-options)) |
+| `CODEC_JACKSON_PREFIX` + `<FeatureType>.<FEATURE_NAME>` | `Boolean` or `"true"`/`"false"` | Both | Sets a Jackson feature, no annotation counterpart ([details](13-load-save-options.md#11-jackson-features-issue-324)) |
+| `CODEC_JACKSON_ALLOW_OVERRIDE` | `Boolean` | Both | Lets Jackson feature options override the features the codec sets itself ([details](13-load-save-options.md#112-features-the-codec-sets-itself)) |
 
 ### Type Hints (CODEC_ROOT_TYPE, CODEC_ROOT_SCHEMA)
 

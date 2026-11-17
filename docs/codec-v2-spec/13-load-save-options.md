@@ -744,6 +744,13 @@ fingerprints, not model contents, keeping the model inventory undisclosed (S-12)
 | `CODEC_FEATURE_VALUE_READERS` | `codec.featureValueReaders` | `Map<EStructuralFeature, String>` | **Deprecated** — use config resolution (`valueReaderName`) or instances |
 | `CODEC_FEATURE_VALUE_WRITERS` | `codec.featureValueWriters` | `Map<EStructuralFeature, String>` | **Deprecated** — use config resolution (`valueWriterName`) or instances |
 
+### Jackson Feature Options (Load & Save, §11)
+
+| Java Constant | Property Key | Value Type | Purpose |
+|---------------|--------------|------------|---------|
+| `CODEC_JACKSON_PREFIX` | `codec.jackson.<FeatureType>.<FEATURE_NAME>` | `Boolean` or `"true"`/`"false"` | Sets a Jackson feature (§11.1) |
+| `CODEC_JACKSON_ALLOW_OVERRIDE` | `codec.jackson.allowOverride` | `Boolean` or `"true"`/`"false"` | Lets options override codec-owned features (§11.2) |
+
 ---
 
 ## 10. Examples
@@ -828,6 +835,82 @@ Example example = api.getComponents().getExamples().get("personExample");
 Person person = (Person) example.getValue();
 assertEquals("John Doe", person.getName());
 ```
+
+## 11. Jackson Features (issue #324)
+
+The codec runs on a Jackson `JsonMapper`. Its features are handed over as options, so a caller
+can see and set them without patching the codec or supplying a mapper builder.
+
+### 11.1 Option Keys
+
+```
+codec.jackson.<FeatureType>.<FEATURE_NAME> = true | false
+```
+
+| `<FeatureType>` | Jackson enum | Takes effect on |
+|-----------------|--------------|-----------------|
+| `MapperFeature` | `tools.jackson.databind.MapperFeature` | load, save |
+| `SerializationFeature` | `tools.jackson.databind.SerializationFeature` | save |
+| `DeserializationFeature` | `tools.jackson.databind.DeserializationFeature` | load |
+| `JsonNodeFeature` | `tools.jackson.databind.cfg.JsonNodeFeature` | load, save |
+| `EnumFeature` | `tools.jackson.databind.cfg.EnumFeature` | load, save |
+| `DateTimeFeature` | `tools.jackson.databind.cfg.DateTimeFeature` | load, save |
+| `StreamReadFeature` | `tools.jackson.core.StreamReadFeature` | load (JSON) |
+| `StreamWriteFeature` | `tools.jackson.core.StreamWriteFeature` | save (JSON) |
+| `JsonReadFeature` | `tools.jackson.core.json.JsonReadFeature` | load (JSON) |
+| `JsonWriteFeature` | `tools.jackson.core.json.JsonWriteFeature` | save (JSON) |
+
+Example: `codec.jackson.JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES = true`.
+
+The value is a `Boolean` or the string `"true"` / `"false"` (any case). The options are read per
+operation like every other load/save option, from the load/save options and the resource's
+default options. The OSGi `CodecResourceFactory` takes `codec.jackson.*` properties from its
+component configuration and makes them the default load and save options of every resource it
+creates; a per-operation option still wins.
+
+Jackson features are runtime settings and have no EAnnotation counterpart (§1.1 runs one way:
+every annotation has an option, not every option an annotation).
+
+A format bundle (YAML, CBOR, …) parses and writes with its own machinery: the stream and JSON
+features (`StreamReadFeature`, `StreamWriteFeature`, `JsonReadFeature`, `JsonWriteFeature`)
+reach the JSON format only. Format-specific features stay with the format bundle's options.
+
+### 11.2 Features the Codec Sets Itself
+
+The codec depends on some features having a fixed state. These are **codec-owned**:
+
+| Feature | Codec state | Why |
+|---------|-------------|-----|
+| `DeserializationFeature.FAIL_ON_TRAILING_TOKENS` | `false` | the codec reads the root itself and decides what follows it |
+
+By default a caller's option for a codec-owned feature is **ignored** and reported as a WARNING:
+
+```
+Jackson feature DeserializationFeature.FAIL_ON_TRAILING_TOKENS is set by the codec (false);
+the option 'codec.jackson.DeserializationFeature.FAIL_ON_TRAILING_TOKENS' is ignored.
+Set 'codec.jackson.allowOverride' to true to override it.
+```
+
+`codec.jackson.allowOverride = true` lets the caller's options win over codec-owned features. The
+override is reported as an INFO, because the codec then no longer runs as specified.
+
+### 11.3 Unusable Options
+
+Reported as a WARNING and ignored, like an unusable config value (see
+[Error Handling, Layer 2a](15-error-handling.md#layer-2a-unusable-values-issue-174)):
+
+- an unknown `<FeatureType>`, naming the known types
+- an unknown `<FEATURE_NAME>` for a known type
+- a value that is neither a `Boolean` nor `"true"` / `"false"`
+
+The `codec.jackson.` namespace is owned by this section; Layer 2b does not judge its keys.
+
+### 11.4 A Caller-Supplied Mapper Builder
+
+`CodecResourceFactory` / `CodecFormatResourceFactory` / `CodecResource` also accept a
+`JsonMapper.Builder`. It is a template: the codec builds it once and derives each operation's
+mapper from it with `rebuild()`, so the caller's builder is never changed by a load or save.
+The `codec.jackson.*` options apply on top of it, the codec-owned features (§11.2) on top of both.
 
 ---
 

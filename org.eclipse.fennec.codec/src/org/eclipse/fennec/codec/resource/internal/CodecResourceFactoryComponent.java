@@ -20,6 +20,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.resource.CodecResource;
 import org.eclipse.fennec.codec.prefix.CodecPrefixRegistry;
 import org.eclipse.fennec.codec.value.CodecValueRegistry;
@@ -51,10 +52,22 @@ public class CodecResourceFactoryComponent extends ResourceFactoryImpl {
 	private volatile CodecValueRegistry valueRegistry;
 	private volatile ConfigurationResolver resolver = ConfigurationResolver.defaults();
 
+	/** The {@code codec.jackson.*} properties of the configuration (issue #324). */
+	private final Map<String, Object> jacksonOptions;
+
 	@Activate
 	public CodecResourceFactoryComponent(
-			@Reference MetadataService metadataService) {
+			@Reference MetadataService metadataService, Map<String, Object> properties) {
 		this.metadataService = metadataService;
+		Map<String, Object> jackson = new HashMap<>();
+		if (properties != null) {
+			properties.forEach((key, value) -> {
+				if (key.startsWith(CodecOptions.CODEC_JACKSON_PREFIX)) {
+					jackson.put(key, value);
+				}
+			});
+		}
+		this.jacksonOptions = Map.copyOf(jackson);
 	}
 
 	@Reference(
@@ -90,7 +103,7 @@ public class CodecResourceFactoryComponent extends ResourceFactoryImpl {
 	public Resource createResource(URI uri) {
 		CodecValueRegistry reg = valueRegistry;
 		CodecPrefixRegistry prefixReg = prefixRegistry;
-		return new CodecResource(
+		CodecResource resource = new CodecResource(
 				uri,
 				metadataService,
 				resolver,
@@ -100,6 +113,10 @@ public class CodecResourceFactoryComponent extends ResourceFactoryImpl {
 				null,                  // formatProvider (JSON = null)
 				null                   // typeDiscriminatorReader (built internally)
 				);
+		// Defaults, so a load's or save's own options still win (spec 13 §11.1)
+		resource.getDefaultLoadOptions().putAll(jacksonOptions);
+		resource.getDefaultSaveOptions().putAll(jacksonOptions);
+		return resource;
 	}
 	
 	/**

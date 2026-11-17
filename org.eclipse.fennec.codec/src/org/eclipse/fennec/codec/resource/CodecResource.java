@@ -82,7 +82,6 @@ import tools.jackson.core.exc.JacksonIOException;
 import tools.jackson.core.io.ContentReference;
 import tools.jackson.core.io.IOContext;
 import tools.jackson.core.util.BufferRecycler;
-import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -174,6 +173,8 @@ public class CodecResource extends ResourceImpl {
     private final TypeDiscriminatorReader typeDiscriminatorReader;
 
     private ObjectMapper mapper;
+    /** The Jackson feature options of the current operation, set with {@link #mapper} (issue #324). */
+    private JacksonFeatureOptions jacksonFeatures;
 
     /**
      * Creates a new CodecResource.
@@ -265,6 +266,32 @@ public class CodecResource extends ResourceImpl {
         this.helper = new CodecResourceHelper(metadataService);
         this.formatProvider = formatProvider;
         this.typeDiscriminatorReader = typeDiscriminatorReader;
+    }
+
+    /**
+     * The options every load starts from; a load's own options win (merged by
+     * {@link ResourceImpl#load(InputStream, Map)}).
+     *
+     * @return the modifiable default load options
+     */
+    public Map<Object, Object> getDefaultLoadOptions() {
+        if (defaultLoadOptions == null) {
+            defaultLoadOptions = new HashMap<>();
+        }
+        return defaultLoadOptions;
+    }
+
+    /**
+     * The options every save starts from; a save's own options win (merged by
+     * {@link ResourceImpl#save(OutputStream, Map)}).
+     *
+     * @return the modifiable default save options
+     */
+    public Map<Object, Object> getDefaultSaveOptions() {
+        if (defaultSaveOptions == null) {
+            defaultSaveOptions = new HashMap<>();
+        }
+        return defaultSaveOptions;
     }
 
     public ObjectMapper getMapper() {
@@ -461,8 +488,9 @@ public class CodecResource extends ResourceImpl {
                 .customProperties(extractCustomProperties(mergedOptions))
                 .build();
 
-        CodecJsonFactory codecFactory = (CodecJsonFactory) CodecJsonFactory.builder()
-        		.effectiveConfig(effectiveConfig)
+        // The parser takes its read features from this factory, not from the mapper (issue #324)
+        CodecJsonFactory codecFactory = (CodecJsonFactory) jacksonFeatures.applyTo(CodecJsonFactory.builder()
+        		.effectiveConfig(effectiveConfig))
                 .streamReadConstraints(limits.constraints())
                 .build();
 
@@ -480,8 +508,9 @@ public class CodecResource extends ResourceImpl {
                 // merged config, is what keeps the model out of a decision that has to be
                 // made before the model version is even selected.
                 .withAttribute(ContextHelper.FINGERPRINT_READ_KEYS,
-                        ContextHelper.fingerprintReadKeys(fingerprintReadKey(mergedOptions)))
-                .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+                        ContextHelper.fingerprintReadKeys(fingerprintReadKey(mergedOptions)));
+        // The codec's own trailing-token handling, unless the caller overrides it (issue #324)
+        reader = jacksonFeatures.applyCodecOwned(reader);
 
         if (nonNull(rootEClassHint)) {
             reader = reader.withAttribute(ContextHelper.EXPECTED_TYPE, rootEClassHint);
@@ -736,8 +765,9 @@ public class CodecResource extends ResourceImpl {
                 // merged config, is what keeps the model out of a decision that has to be
                 // made before the model version is even selected.
                 .withAttribute(ContextHelper.FINGERPRINT_READ_KEYS,
-                        ContextHelper.fingerprintReadKeys(fingerprintReadKey(mergedOptions)))
-                .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+                        ContextHelper.fingerprintReadKeys(fingerprintReadKey(mergedOptions)));
+        // The codec's own trailing-token handling, unless the caller overrides it (issue #324)
+        reader = jacksonFeatures.applyCodecOwned(reader);
 
         if (nonNull(rootEClassHint)) {
             reader = reader.withAttribute(ContextHelper.EXPECTED_TYPE, rootEClassHint);
@@ -1110,9 +1140,10 @@ public class CodecResource extends ResourceImpl {
         CodecModule codecModule = moduleBuilder.build();
 
         JsonMapper.Builder builder = isNull(mapperTemplate) ? JsonMapper.builder() : mapperTemplate.rebuild();
-        return builder
-                .addModule(codecModule)
-                .build();
+        // codec.jackson.* options on top of the caller's builder (issue #324)
+        jacksonFeatures = JacksonFeatureOptions.from(options);
+        jacksonFeatures.report(diagnostics);
+        return jacksonFeatures.applyTo(builder.addModule(codecModule)).build();
     }
 
     /**

@@ -834,6 +834,23 @@ public final class CodecOptions {
     public static final int DEFAULT_MAX_COLLECTION_SIZE = 100_000;
 
     /**
+     * Load/save option prefix: {@code codec.jackson.<FeatureType>.<FEATURE_NAME>} sets a Jackson
+     * feature, e.g. {@code codec.jackson.JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES = true}.
+     * <p>Value: {@code Boolean} or {@code "true"}/{@code "false"}. Feature types: MapperFeature,
+     * SerializationFeature, DeserializationFeature, JsonNodeFeature, EnumFeature, DateTimeFeature,
+     * StreamReadFeature, StreamWriteFeature, JsonReadFeature, JsonWriteFeature
+     * (spec 13-load-save-options.md §11, issue #324).</p>
+     */
+    public static final String CODEC_JACKSON_PREFIX = "codec.jackson.";
+
+    /**
+     * Load/save option: lets {@link #CODEC_JACKSON_PREFIX} options override the Jackson features
+     * the codec sets itself. Without it such an option is ignored and reported.
+     * <p>Default: {@code false}</p>
+     */
+    public static final String CODEC_JACKSON_ALLOW_OVERRIDE = "codec.jackson.allowOverride";
+
+    /**
      * Internal: the resolved read limits of one load, as a Jackson
      * {@code StreamReadConstraints}, handed to a format provider through
      * {@code CodecFormatProvider.createReader(source, loadOptions)}. Not a user option.
