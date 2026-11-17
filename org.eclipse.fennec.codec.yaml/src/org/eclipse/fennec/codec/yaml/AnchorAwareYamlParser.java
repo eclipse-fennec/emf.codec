@@ -32,8 +32,9 @@ import tools.jackson.dataformat.yaml.YAMLParser;
 class AnchorAwareYamlParser extends YAMLParser {
 
 	AnchorAwareYamlParser(ObjectReadContext readCtxt, IOContext ioCtxt, BufferRecycler br,
-			int streamReadFeatures, int formatFeatures, LoadSettings loadSettings, Reader reader) {
-		super(readCtxt, ioCtxt, br, streamReadFeatures, formatFeatures, loadSettings, reader);
+			int streamReadFeatures, int formatFeatures, LoadSettings loadSettings, Reader reader,
+			boolean ownsReader) {
+		super(readCtxt, ioCtxt, br, streamReadFeatures, formatFeatures, loadSettings, reader, ownsReader);
 	}
 
 	/**

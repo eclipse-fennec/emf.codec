@@ -29,7 +29,6 @@
 -runbundles: \
 	junit-jupiter-api;version='[5.14.2,5.14.3)',\
 	junit-platform-commons;version='[1.14.2,1.14.3)',\
-	org.apache.felix.scr;version='[2.2.12,2.2.13)',\
 	org.eclipse.emf.common;version='[2.44.0,2.44.1)',\
 	org.eclipse.emf.ecore;version='[2.41.0,2.41.1)',\
 	org.eclipse.emf.ecore.xmi;version='[2.39.0,2.39.1)',\
@@ -100,8 +99,9 @@
 	slf4j.simple;version='[1.7.36,1.7.37)',\
 	org.eclipse.fennec.emf.osgi.component.minimal;version='[1.1.0,1.1.1)',\
 	org.eclipse.fennec.emf.osgi.metadata;version='[1.1.0,1.1.1)',\
-	com.fasterxml.jackson.core.jackson-annotations;version='[2.22.0,2.22.1)',\
-	tools.jackson.core.jackson-core;version='[3.2.3,3.2.4)',\
-	tools.jackson.core.jackson-databind;version='[3.2.3,3.2.4)',\
-	tools.jackson.dataformat.jackson-dataformat-cbor;version='[3.2.3,3.2.4)',\
-	tools.jackson.dataformat.jackson-dataformat-yaml;version='[3.2.3,3.2.4)'
+	com.fasterxml.jackson.core.jackson-annotations;version='[2.23.0,2.23.1)',\
+	tools.jackson.core.jackson-core;version='[3.3.0,3.3.1)',\
+	tools.jackson.core.jackson-databind;version='[3.3.0,3.3.1)',\
+	tools.jackson.dataformat.jackson-dataformat-cbor;version='[3.3.0,3.3.1)',\
+	tools.jackson.dataformat.jackson-dataformat-yaml;version='[3.3.0,3.3.1)',\
+	org.apache.felix.scr;version='[2.3.0,2.3.1)'
