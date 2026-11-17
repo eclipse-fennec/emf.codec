@@ -100,6 +100,10 @@ Not judged: **format-namespaced keys** (`codec.<format>.<name>`, e.g. `codec.ods
 which belong to a format bundle that codec.api cannot see. A format key that predates that
 convention is declared through `KnownOptionKeys.register(...)`.
 
+The `codec.jackson.` namespace (Jackson features, issue #324) is not judged here either: its keys
+are checked where they are applied, see
+[Load/Save Options §11.3](13-load-save-options.md#113-unusable-options).
+
 ### Layer 3: Cross-Config Validation
 
 Occurs once per EClass per operation, when the codec resolves a supertype config — that is
