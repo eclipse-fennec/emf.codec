@@ -18,6 +18,7 @@ import java.io.Reader;
 
 import tools.jackson.core.ObjectReadContext;
 import tools.jackson.core.io.IOContext;
+import tools.jackson.dataformat.yaml.UTF8Reader;
 import tools.jackson.dataformat.yaml.YAMLFactory;
 import tools.jackson.dataformat.yaml.YAMLFactoryBuilder;
 import tools.jackson.dataformat.yaml.YAMLParser;
@@ -40,30 +41,37 @@ class AnchorAwareYamlFactory extends YAMLFactory {
 
 	@Override
 	protected YAMLParser _createParser(ObjectReadContext readCtxt, IOContext ioCtxt, InputStream in) {
-		return create(readCtxt, ioCtxt, _createReader(in, null, ioCtxt));
+		Reader r = _createReader(in, null, ioCtxt, readCtxt.getStreamReadFeatures(_streamReadFeatures));
+		// as YAMLFactory does: a UTF8Reader is Jackson's own and must always be closed
+		return create(readCtxt, ioCtxt, r, r instanceof UTF8Reader);
 	}
 
 	@Override
 	protected YAMLParser _createParser(ObjectReadContext readCtxt, IOContext ioCtxt, Reader r) {
-		return create(readCtxt, ioCtxt, r);
+		return create(readCtxt, ioCtxt, r, false);
 	}
 
 	@Override
 	protected YAMLParser _createParser(ObjectReadContext readCtxt, IOContext ioCtxt, char[] data, int offset,
 			int len, boolean recyclable) {
-		return create(readCtxt, ioCtxt, new CharArrayReader(data, offset, len));
+		return create(readCtxt, ioCtxt, new CharArrayReader(data, offset, len), true);
 	}
 
 	@Override
 	protected YAMLParser _createParser(ObjectReadContext readCtxt, IOContext ioCtxt, byte[] data, int offset,
 			int len) {
-		return create(readCtxt, ioCtxt, _createReader(data, offset, len, null, ioCtxt));
+		return create(readCtxt, ioCtxt, _createReader(data, offset, len, null, ioCtxt), true);
 	}
 
-	private YAMLParser create(ObjectReadContext readCtxt, IOContext ioCtxt, Reader reader) {
+	/**
+	 * @param ownsReader whether the reader was made here and not handed in by the caller, so the
+	 *            parser always closes it
+	 */
+	private YAMLParser create(ObjectReadContext readCtxt, IOContext ioCtxt, Reader reader, boolean ownsReader) {
 		// blank lines emptied first: works around a snakeyaml-engine block scalar bug (issue #298)
 		return new AnchorAwareYamlParser(readCtxt, ioCtxt, _getBufferRecycler(),
 				readCtxt.getStreamReadFeatures(_streamReadFeatures),
-				readCtxt.getFormatReadFeatures(_formatReadFeatures), _loadSettings, new BlankLineReader(reader));
+				readCtxt.getFormatReadFeatures(_formatReadFeatures), _loadSettings, new BlankLineReader(reader),
+				ownsReader);
 	}
 }
