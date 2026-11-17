@@ -140,6 +140,22 @@ class ForeignSchemaAspectsTest {
 		}
 
 		@Test
+		@DisplayName("raw JSON numbers are written with every digit and trailing zero (#324)")
+		void rawJsonNumbersKeepTheirDigits() throws IOException {
+			String payload = """
+					{ "name": "a", "price": 1.50, "ratio": 0.12345678901234567890123, "big": 123456789012345678901, "dims": { "w": [2.50, 1] } }
+					""";
+			CodecResource resource = load("Item", payload);
+
+			String json = save(resource);
+
+			assertTrue(json.contains("\"price\":1.50"), json);
+			assertTrue(json.contains("\"ratio\":0.12345678901234567890123"), json);
+			assertTrue(json.contains("\"big\":123456789012345678901"), json);
+			assertTrue(json.contains("\"dims\":{\"w\":[2.50,1]}"), json);
+		}
+
+		@Test
 		@DisplayName("the map feature itself is not written as a key")
 		void mapIsNotAKey() throws IOException {
 			CodecResource resource = load("Item", "{ \"name\": \"a\" }");
