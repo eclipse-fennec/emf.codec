@@ -864,7 +864,8 @@ Example: `codec.jackson.JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES = true`
 
 The value is a `Boolean` or the string `"true"` / `"false"` (any case). The options are read per
 operation like every other load/save option, from the load/save options and the resource's
-default options. The OSGi `CodecResourceFactory` takes `codec.jackson.*` properties from its
+default options (`CodecResource#getDefaultLoadOptions()` / `getDefaultSaveOptions()`), which a
+`CodecResourceFactory` fills from its own default options for each resource it creates. The OSGi `CodecResourceFactory` takes `codec.jackson.*` properties from its
 component configuration and makes them the default load and save options of every resource it
 creates; a per-operation option still wins.
 
