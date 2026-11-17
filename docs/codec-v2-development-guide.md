@@ -4,6 +4,26 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-11-17
 
+**Session Summary (2026-11-17, issue-324-mapper-builder-template) — Jackson 3.3, Jackson features (#324, #325):**
+
+- #325 was fixed on snapshot with 3.2.3; this branch goes on to Jackson 3.3.0 / annotations 2.23
+  (maintainer: latest version). 3.3 changed the protected YAML API:
+  `AnchorAwareYamlFactory`/`-Parser` pass `ownsReader` like `YAMLFactory` (a `UTF8Reader` is Jackson's
+  own and is always closed). `resolve` also moved `org.apache.felix.scr` to 2.3.0. `DEPENDENCIES`
+  (Dash) still lists Jackson 3.1.0. After the merge a new workspace.library snapshot is needed.
+- A caller's `JsonMapper.Builder` is a template: built once, each operation uses `rebuild()`. Before,
+  every `build()` wrote the codec module's serializers back into the caller's builder (2 per
+  operation). Jackson 3.2+ resets the builder's module cache on `addModule` (databind#5481), so the
+  options of each operation were honored even before.
+- Jackson features as options (spec 13 §11): `codec.jackson.<FeatureType>.<FEATURE_NAME>`, from
+  load/save options, `CodecResource#getDefaultLoad/SaveOptions()` and the OSGi factory configuration.
+  Codec-owned features (`FAIL_ON_TRAILING_TOKENS`) only change with `codec.jackson.allowOverride`
+  (maintainer decision); otherwise a warning. Stream read features go to `CodecJsonFactory` (the parser
+  was created with `ObjectReadContext.empty()` and never saw the mapper's). JSON only; format bundles
+  keep their own options.
+- Catch-all raw JSON keeps every digit of a float: a replayed `TokenBuffer` answers
+  `getNumberValueExact()` with a double, so floats are copied via `getDecimalValue()`.
+  `CodecResourceFactory` now hands its default options to each resource.
 **Session Summary (2026-11-17, fix/328-eobject-type-key) — EObject-typed containment typed by `_type` (#328):**
 
 - An `EObject`-typed containment without `CODEC_FEATURE_TYPE_HINTS` was skipped before its `_type`
