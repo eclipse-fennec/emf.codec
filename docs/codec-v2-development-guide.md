@@ -4,6 +4,17 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-11-18
 
+**Session Summary (2026-11-18, issue-332-testosgi-silent-failures) — testOSGi without tests fails (#332):**
+
+- When the test bundle does not resolve, the bnd tester (junit-platform 7.2.1, automatic mode) tracks no
+  test bundle, waits 5 s and exits 0: `testOSGi` green, no report. `-testunresolved` only acts once tests
+  run. Root `build.gradle` now fails every `TestOSGi` task whose reports hold no executed test.
+- The test projects resolve into `generated/test.bndrun` on every `testOSGi` (their `build.gradle` sets
+  `outputBndrun`); the committed `-runbundles` of `test.bndrun` are for the IDE only and had drifted.
+  Synced once. In-place `resolve.<name>` tasks are UP-TO-DATE when only the indexes changed: use
+  `--rerun`.
+- Open: the bnd update action (bnd 7.5.0) resolves felix.http.jetty 5.0.4, local bnd 7.2.1 keeps 5.0.6.
+
 **Session Summary (2026-11-18, issue-330-prune-central-index) — local Maven index pruned (#330):**
 
 - `cnf/central.mvn` from 132 to 50 entries: removed what no `-buildpath`/`-testpath`/`-runbundles`/
