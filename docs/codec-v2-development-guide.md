@@ -2,7 +2,18 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-11-17
+**Last Updated:** 2026-11-18
+
+**Session Summary (2026-11-18, issue-330-prune-central-index) — local Maven index pruned (#330):**
+
+- `cnf/central.mvn` from 132 to 50 entries: removed what no `-buildpath`/`-testpath`/`-runbundles`/
+  `-runfw` and no `-library` bnd file references (Eclipse platform/JDT/EMF codegen are embedded in
+  `org.eclipse.fennec.emf.osgi.codegen`), and entries shadowed by a higher version in a library index
+  (EMF, scr, `org.osgi.framework`). `resolve` left every `-runbundles` unchanged.
+- Micro updates from `./gradlew bndUpdates` for the local index only (libraries untouched, incl. the
+  fennec bnd libraries 0.0.9 → 0.0.10). Minor/major updates are left to the maintainer.
+- Check for unused entries: map each GAV to its Bundle-SymbolicName (jar manifest) and grep all bnd
+  files of the workspace plus those inside the `-library` jars.
 
 **Session Summary (2026-11-17, issue-324-mapper-builder-template) — Jackson 3.3, Jackson features (#324, #325):**
 
