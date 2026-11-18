@@ -12,6 +12,12 @@ This document provides context for continuing codec development across sessions.
   (EMF, scr, `org.osgi.framework`). `resolve` left every `-runbundles` unchanged.
 - Micro updates from `./gradlew bndUpdates` for the local index only (libraries untouched, incl. the
   fennec bnd libraries 0.0.9 → 0.0.10). Minor/major updates are left to the maintainer.
+- Fennec bnd libraries 0.0.10 (maintainer decision). emf.osgi moved to EMF common 2.46 / ecore 2.43 on
+  2026-11-18 (`dfbd241`); the bndruns follow. Note: a bundle that fails to start leaves `testOSGi` green
+  with no tests run; check for "Failed to start bundle" when the runbundles change.
+- `.github/workflows/bnd-update.yml`: weekly `bnd update` (action from org.gecko.bnd.sbom, pinned),
+  micro, one by one, report only. A pull request needs a bot token: the org has
+  `actions_can_approve_pull_request_reviews: false`, and PRs from `GITHUB_TOKEN` get no CI.
 - Check for unused entries: map each GAV to its Bundle-SymbolicName (jar manifest) and grep all bnd
   files of the workspace plus those inside the `-library` jars.
 
