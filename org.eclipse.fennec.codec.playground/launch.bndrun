@@ -13,7 +13,7 @@
 	de.siegmar.fastcsv;version='[4.2.0,4.2.1)',\
 	org.apache.commons.commons-compress;version='[1.28.0,1.28.1)',\
 	org.apache.commons.commons-collections4;version='[4.5.0,4.5.1)',\
-	org.apache.logging.log4j.api;version='[2.26.0,2.26.1)',\
+	org.apache.logging.log4j.api;version='[2.26.1,2.26.2)',\
 	org.apache.servicemix.bundles.xmlbeans;version='[5.2.0,5.2.1)',\
 	org.apache.felix.gogo.command;version='[1.1.2,1.1.3)',\
 	org.apache.felix.gogo.runtime;version='[1.1.6,1.1.7)',\
@@ -46,10 +46,10 @@
 	jakarta.ws.rs-api;version='[3.1.0,3.1.1)',\
 	jakarta.xml.bind-api;version='[4.0.0,4.0.1)',\
 	javassist;version='[3.29.2,3.29.3)',\
-	org.apache.aries.spifly.dynamic.framework.extension;version='[1.3.6,1.3.7)',\
-	org.apache.felix.cm.json;version='[2.0.0,2.0.1)',\
+	org.apache.aries.spifly.dynamic.framework.extension;version='[1.3.8,1.3.9)',\
+	org.apache.felix.cm.json;version='[2.0.8,2.0.9)',\
 	org.apache.felix.configurator;version='[1.0.18,1.0.19)',\
-	org.apache.felix.http.jetty;version='[5.0.4,5.0.5)',\
+	org.apache.felix.http.jetty;version='[5.0.6,5.0.7)',\
 	org.apache.felix.http.servlet-api;version='[2.1.0,2.1.1)',\
 	org.eclipse.osgitech.rest;version='[1.2.3,1.2.4)',\
 	org.eclipse.osgitech.rest.servlet.whiteboard;version='[1.2.3,1.2.4)',\
@@ -74,10 +74,10 @@
 	slf4j.simple;version='[1.7.36,1.7.37)',\
 	org.eclipse.fennec.codec.rest;version=snapshot,\
 	org.osgi.service.cm;version='[1.6.1,1.6.2)',\
-	com.github.miachm.sods;version='[1.10.0,1.10.1)',\
+	com.github.miachm.sods;version='[1.10.1,1.10.2)',\
 	org.eclipse.fennec.codec.bson;version=snapshot,\
 	org.eclipse.fennec.codec.yaml;version=snapshot,\
-	org.mongodb.bson;version='[5.6.3,5.6.4)',\
+	org.mongodb.bson;version='[5.6.5,5.6.6)',\
 	org.snakeyaml.engine;version='[3.0.1,3.0.2)',\
 	org.antlr.antlr4-runtime;version='[4.13.2,4.13.3)',\
 	org.eclipse.fennec.codec.jsonschema;version=snapshot,\
