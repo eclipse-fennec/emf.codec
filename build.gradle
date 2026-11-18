@@ -1,4 +1,5 @@
 import aQute.bnd.gradle.Export
+import aQute.bnd.gradle.TestOSGi
 
 plugins {
   id "org.sonarqube" version "6.2.0.5505"
@@ -105,7 +106,25 @@ subprojects {
         // Don't fail the build on perf test failures — results are informational
         ignoreFailures = true
     }
-    
+
+    // testOSGi must run tests (issue #332). When the test bundle cannot be resolved (e.g. a
+    // runbundle misses a capability), the bnd tester finds no test bundle and exits 0: the task
+    // is green, no test ran, no report is written. bnd's -testunresolved only reports
+    // unresolved bundles once tests run. So: no executed test in the reports = failure.
+    tasks.withType(TestOSGi).configureEach {
+        doLast {
+            def reports = resultsDirectory.get().asFileTree.matching { include 'TEST-*.xml' }.files
+            int tests = reports.sum(0) { report ->
+                def m = report.text =~ /<testsuite\b[^>]*\btests="(\d+)"/
+                m.find() ? (m.group(1) as int) : 0
+            }
+            if (tests == 0) {
+                throw new GradleException("${path}: no OSGi test ran. Look for 'Failed to start bundle' "
+                    + "above: the test bundle or one of its runbundles did not resolve.")
+            }
+        }
+    }
+
        // Add JUnit dependencies for modules that have Gradle tests
     dependencies {
         testImplementation 'org.junit.jupiter:junit-jupiter:5.14.2'
