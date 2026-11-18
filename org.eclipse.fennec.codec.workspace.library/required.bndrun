@@ -29,9 +29,9 @@
 -runbundles: \
 	junit-jupiter-api;version='[5.14.2,5.14.3)',\
 	junit-platform-commons;version='[1.14.2,1.14.3)',\
-	org.eclipse.emf.common;version='[2.44.0,2.44.1)',\
-	org.eclipse.emf.ecore;version='[2.41.0,2.41.1)',\
-	org.eclipse.emf.ecore.xmi;version='[2.39.0,2.39.1)',\
+	org.eclipse.emf.common;version='[2.46.0,2.46.1)',\
+	org.eclipse.emf.ecore;version='[2.43.0,2.43.1)',\
+	org.eclipse.emf.ecore.xmi;version='[2.41.0,2.41.1)',\
 	org.eclipse.fennec.codec;version=snapshot,\
 	org.eclipse.fennec.codec.api;version=snapshot,\
 	org.eclipse.fennec.codec.bson;version=snapshot,\
