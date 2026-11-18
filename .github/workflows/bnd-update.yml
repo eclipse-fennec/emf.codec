@@ -1,0 +1,72 @@
+name: bnd update
+
+# Dependency updates for the local index (cnf/central.mvn) with bnd update
+# (org.gecko.bnd.sbom, .github/actions/bnd-update): updates within the -update-policy, one by one,
+# each verified by resolving every bndrun and a build; what breaks is reverted. Library indexes are
+# read-only (they live in the library jars) and are never changed.
+#
+# For now report only: the applied updates go to the job summary and an artifact, no pull request.
+# Opening a pull request needs a bot token: the organization does not allow GITHUB_TOKEN to create
+# pull requests, and a pull request opened with GITHUB_TOKEN would get no CI runs.
+
+on:
+  schedule:
+    # weekly, Tuesday 05:41 UTC
+    - cron: '41 5 * * 2'
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Scope of the version policy for this run (micro, minor, major)
+        default: micro
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bnd-update-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: bnd update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # The workspace's own bundles must exist before the bndruns can resolve.
+      - name: Build the workspace
+        run: ./gradlew --no-daemon assemble
+
+      - name: Apply updates
+        id: bnd-update
+        uses: geckoprojects-org/org.gecko.bnd.sbom/.github/actions/bnd-update@283e3f955c1d5bae752e1fde4daf642193087242
+        with:
+          scope: ${{ inputs.scope || 'micro' }}
+          mode: each
+          build-command: ./gradlew --no-daemon -q build
+          create-pull-request: 'false'
+
+      - name: Changes
+        if: ${{ !cancelled() }}
+        run: |
+          git status --short
+          git diff > bnd-update.diff
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bnd-update
+          path: |
+            ${{ steps.bnd-update.outputs.report }}
+            bnd-update.diff
+          if-no-files-found: ignore
