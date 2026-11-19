@@ -19,9 +19,15 @@ public List<Booking> list() { ... }
 public void store(List<Booking> bookings) { ... }
 ```
 
-- The handler is selected by the **generic** element type, so the collection must be declared as
-  one: a method's return or parameter type, or a `GenericEntity<List<Booking>>` inside a `Response`.
-  A raw `List` (e.g. `Response.ok(list)`) says nothing about its elements and is left to other providers.
+- The handler is selected by the **generic** element type: a method's return or parameter type, or a
+  `GenericEntity<List<Booking>>` inside a `Response`. A `Response` entity is known only by its class
+  (type erasure), so there the class decides: EMF's lists that hold nothing but `EObject`s are taken -
+  `EObjectEList` and its subclasses (the reference lists of generated models, e.g.
+  `Response.ok(order.getItems())`) and `EContentsEList` (`eContents()`, `eCrossReferences()`).
+- Not taken without a generic type: `ArrayList`, `BasicEList`, `ECollections.asEList(...)`, attribute
+  lists (`EDataTypeEList`), and the reference lists of **dynamic** models - EMF uses the same class
+  (`EcoreEList.Dynamic`) for their attributes. Wrap those in a `GenericEntity`:
+  `Response.ok(new GenericEntity<List<Booking>>(bookings) {}).build()`.
 - The elements become the roots of one document. In JSON and other formats with an array root this is
   always an array, also for one element (`[{...}]`) or none (`[]`) - save option `codec.rootAsArray`.
 - An element that lives in a resource is copied, not moved: elements are copied together, so a

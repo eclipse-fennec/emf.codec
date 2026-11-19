@@ -10,7 +10,11 @@ This document provides context for continuing codec development across sessions.
   selected by the generic element type only (raw collections are left to other providers). Writes the
   elements as the roots of one document; elements with a resource are copied with one `Copier` (refs
   between them stay in the document, xmi:ids kept), detached ones are borrowed live. Reads into
-  `ArrayList`/`LinkedHashSet`, typed by the element class.
+  `ArrayList`/`LinkedHashSet`, typed by the element class. Without a generic type (a `Response` entity)
+  the class decides: `EObjectEList` / `EContentsEList` only - not `EList` as such (`EDataTypeEList`,
+  `BasicEList`; dynamic models use `EcoreEList.Dynamic` for references and attributes alike). Mind
+  anonymous list subclasses (`EPackage.getEClassifiers()`): they fix the element type in their superclass
+  and are found by the generic path, so they do not test the class check.
 - New save option `codec.rootAsArray` (`CODEC_ROOT_AS_ARRAY`, spec 13 §2.3): array root for 0/1 roots too;
   the REST writer forces it via the new `writeResourceTo(..., requiredOptions)`. Also fixed in passing: the
   JSON array path with custom value writers used the bare mapper and dropped the writer attributes.
