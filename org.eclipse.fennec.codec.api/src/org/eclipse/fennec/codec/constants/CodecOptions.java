@@ -762,6 +762,15 @@ public final class CodecOptions {
     public static final String CODEC_REPORT_SINGLE_VALUE_AS_LIST = "codec.reportSingleValueAsList";
 
     /**
+     * Write the root objects as an array whatever their number: one root becomes a one-element
+     * array, none an empty array. Without it one root is written as an object and none writes
+     * nothing (spec 13 §2.3). For callers that write a collection, where the reader expects an
+     * array (issue #334). A format without array roots writes a single root as before. Save option.
+     * <p>Value: {@code Boolean} or {@code "true"}, default: false</p>
+     */
+    public static final String CODEC_ROOT_AS_ARRAY = "codec.rootAsArray";
+
+    /**
      * Whether a class inherits codec configuration from its parent EClass. The option pair of the
      * {@code inherit} annotation. Boolean, default {@code true}.
      * <p>

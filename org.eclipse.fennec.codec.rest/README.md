@@ -5,6 +5,32 @@ readers/writers that serialize/deserialize EMF `Resource`s and `EObject`s using 
 annotations and filters that turn endpoint metadata and client requests into codec load/save
 options.
 
+## Collections of EObjects
+
+A resource method may return, or take, a collection of `EObject`s (issue #334):
+
+```java
+@GET
+@Produces(MediaType.APPLICATION_JSON)
+public List<Booking> list() { ... }
+
+@POST
+@Consumes(MediaType.APPLICATION_JSON)
+public void store(List<Booking> bookings) { ... }
+```
+
+- The handler is selected by the **generic** element type, so the collection must be declared as
+  one: a method's return or parameter type, or a `GenericEntity<List<Booking>>` inside a `Response`.
+  A raw `List` (e.g. `Response.ok(list)`) says nothing about its elements and is left to other providers.
+- The elements become the roots of one document. In JSON and other formats with an array root this is
+  always an array, also for one element (`[{...}]`) or none (`[]`) - save option `codec.rootAsArray`.
+- An element that lives in a resource is copied, not moved: elements are copied together, so a
+  reference from one to another stays inside the document, with its `xmi:id`. Detached elements are
+  written live and detached again afterwards.
+- Reading accepts an array or a single object; the result is an `ArrayList` (for `List`/`Collection`)
+  or a `LinkedHashSet` (for `Set`). The objects stay in the resource they were loaded into, as for a
+  single `EObject` (issue #246).
+
 ## Codec options on an endpoint (server-side)
 
 A service developer fixes load/save options on a resource method or parameter with annotations:
