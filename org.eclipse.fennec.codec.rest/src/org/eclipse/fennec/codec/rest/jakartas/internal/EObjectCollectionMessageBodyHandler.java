@@ -34,6 +34,8 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
+import org.eclipse.emf.ecore.util.EContentsEList;
+import org.eclipse.emf.ecore.util.EObjectEList;
 import org.eclipse.emf.ecore.util.EcoreUtil.Copier;
 import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.rest.annotations.AnnotationConverter;
@@ -66,8 +68,12 @@ import jakarta.ws.rs.ext.Provider;
  * <p>
  * The element type is taken from the generic type, so the handler only claims collections that
  * are declared as collections of {@code EObject}s: a method's return type, or a
- * {@link jakarta.ws.rs.core.GenericEntity} around a {@code Response} entity. A raw collection says
- * nothing about its elements and is left to other providers.
+ * {@link jakarta.ws.rs.core.GenericEntity} around a {@code Response} entity. Without one - a
+ * {@code Response} entity is known only by its class - the class decides: EMF's lists that hold
+ * nothing but EObjects ({@link EObjectEList} of generated models, {@link EContentsEList} of
+ * {@code eContents()} / {@code eCrossReferences()}) are claimed. Any other raw collection says
+ * nothing about its elements and is left to other providers - including the reference lists of a
+ * dynamic model, whose class is shared with its attribute lists.
  * </p>
  * <p>
  * The collection is written as the roots of one document, as an array in formats that have one -
@@ -107,8 +113,25 @@ public class EObjectCollectionMessageBodyHandler
 
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-		return Collection.class.isAssignableFrom(type) && elementType(genericType).isPresent()
+		return Collection.class.isAssignableFrom(type)
+				&& (elementType(genericType).isPresent() || holdsOnlyEObjects(type))
 				&& supportsMediaType(mediaType);
+	}
+
+	/**
+	 * Tells whether a collection class holds nothing but EObjects by construction, so it can be
+	 * claimed without a generic type (issue #334).
+	 * <p>
+	 * Not {@code EList} as such: {@code EDataTypeEList}, {@code BasicEList} and the lists of
+	 * {@code ECollections} hold any value, and a dynamic model uses {@code EcoreEList.Dynamic} for
+	 * references and attributes alike.
+	 * </p>
+	 *
+	 * @param type the entity's class
+	 * @return true for the EObject lists of EMF
+	 */
+	static boolean holdsOnlyEObjects(Class<?> type) {
+		return EObjectEList.class.isAssignableFrom(type) || EContentsEList.class.isAssignableFrom(type);
 	}
 
 	@Override

@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.emf.common.util.BasicEList;
+import org.eclipse.emf.common.util.ECollections;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -42,6 +45,8 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.EObjectContainmentEList;
+import org.eclipse.emf.ecore.util.EObjectResolvingEList;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
@@ -76,6 +81,8 @@ class EObjectCollectionMessageBodyHandlerTest {
 	private EClass nodeClass;
 	private EAttribute nameAttribute;
 	private EReference refReference;
+	private EReference childrenReference;
+	private EAttribute tagsAttribute;
 
 	static class TestHandler extends EObjectCollectionMessageBodyHandler {
 
@@ -130,7 +137,17 @@ class EObjectCollectionMessageBodyHandlerTest {
 		refReference = EcoreFactory.eINSTANCE.createEReference();
 		refReference.setName("ref");
 		refReference.setEType(nodeClass);
-		nodeClass.getEStructuralFeatures().addAll(List.of(nameAttribute, refReference));
+		childrenReference = EcoreFactory.eINSTANCE.createEReference();
+		childrenReference.setName("children");
+		childrenReference.setEType(nodeClass);
+		childrenReference.setContainment(true);
+		childrenReference.setUpperBound(-1);
+		tagsAttribute = EcoreFactory.eINSTANCE.createEAttribute();
+		tagsAttribute.setName("tags");
+		tagsAttribute.setEType(EcorePackage.Literals.ESTRING);
+		tagsAttribute.setUpperBound(-1);
+		nodeClass.getEStructuralFeatures()
+				.addAll(List.of(nameAttribute, refReference, childrenReference, tagsAttribute));
 		ePackage.getEClassifiers().add(nodeClass);
 		return ePackage;
 	}
@@ -146,6 +163,19 @@ class EObjectCollectionMessageBodyHandlerTest {
 		handler.writeTo(collection, ArrayList.class, LIST_OF_EOBJECT, NO_ANNOTATIONS, mediaType,
 				new MultivaluedHashMap<>(), out);
 		return out.toString(StandardCharsets.UTF_8).trim();
+	}
+
+	/** A node in a resource with two children, whose children list is an EObjectEList. */
+	private EObject parentWithChildren() {
+		EObject parent = node("parent");
+		children(parent).addAll(List.of(node("first"), node("second")));
+		new XMIResourceImpl(URI.createURI("file:/storage/parent.xmi")).getContents().add(parent);
+		return parent;
+	}
+
+	@SuppressWarnings("unchecked")
+	private EList<EObject> children(EObject parent) {
+		return (EList<EObject>) parent.eGet(childrenReference);
 	}
 
 	private Resource reloadJson(String json) throws IOException {
@@ -175,6 +205,45 @@ class EObjectCollectionMessageBodyHandlerTest {
 			assertFalse(handler.isWriteable(ArrayList.class, new GenericType<List<String>>() {}.getType(),
 					NO_ANNOTATIONS, JSON));
 			assertFalse(handler.isWriteable(EObject.class, EObject.class, NO_ANNOTATIONS, JSON));
+		}
+
+		/**
+		 * {@code Response.ok(list)} carries no generic type, only the entity's class. EMF's lists of
+		 * references (generated models) and of contents / cross references hold EObjects by their
+		 * class, so they are writeable anyway.
+		 */
+		@Test
+		@DisplayName("an EMF list that holds only EObjects is writeable without a generic type")
+		void eObjectListsByClass() {
+			EObject parent = parentWithChildren();
+			parent.eSet(refReference, children(parent).get(0));
+
+			for (EList<?> list : List.of(parent.eContents(), parent.eCrossReferences(),
+					EcorePackage.Literals.ECLASS.getEStructuralFeatures())) {
+				assertTrue(handler.isWriteable(list.getClass(), list.getClass(), NO_ANNOTATIONS, JSON),
+						list.getClass().getName());
+			}
+			for (Class<?> listClass : List.of(EObjectContainmentEList.class, EObjectResolvingEList.class)) {
+				assertTrue(handler.isWriteable(listClass, listClass, NO_ANNOTATIONS, JSON), listClass.getName());
+			}
+		}
+
+		@Test
+		@DisplayName("an EMF list that may hold other values is not claimed without a generic type")
+		void otherEListsNotClaimed() {
+			EObject parent = node("parent");
+			EList<?> tags = (EList<?>) parent.eGet(tagsAttribute);
+			EList<EObject> wrapped = ECollections.asEList(new ArrayList<>(List.of(node("a"))));
+			EList<EObject> basic = new BasicEList<>(List.of(node("b")));
+
+			// A dynamic model uses one list class for references and attributes alike, so its
+			// reference lists cannot be told apart by class either: they need a GenericEntity
+			EList<?> dynamicReferences = children(node("p"));
+
+			for (EList<?> list : List.of(tags, wrapped, basic, dynamicReferences)) {
+				assertFalse(handler.isWriteable(list.getClass(), list.getClass(), NO_ANNOTATIONS, JSON),
+						list.getClass().getName());
+			}
 		}
 
 		@Test
@@ -218,6 +287,23 @@ class EObjectCollectionMessageBodyHandlerTest {
 			assertSame(storage, first.eResource(), "an element must not be re-parented");
 			assertEquals(2, storage.getContents().size());
 			assertTrue(resourceSet.getResources().isEmpty(), "the temporary resource must be removed");
+		}
+
+		@Test
+		@DisplayName("a contents list known only by its class is written, its elements stay contained")
+		void contentsListByClass() throws IOException {
+			EObject parent = parentWithChildren();
+			EList<EObject> children = parent.eContents();
+
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			handler.writeTo(children, children.getClass(), children.getClass(), NO_ANNOTATIONS, JSON,
+					new MultivaluedHashMap<>(), out);
+
+			Resource reloaded = reloadJson(out.toString(StandardCharsets.UTF_8));
+			assertEquals(List.of("first", "second"),
+					reloaded.getContents().stream().map(n -> n.eGet(nameAttribute)).toList());
+			assertEquals(2, children(parent).size(), "the children must stay in their parent");
+			assertSame(parent, children(parent).get(0).eContainer());
 		}
 
 		@Test

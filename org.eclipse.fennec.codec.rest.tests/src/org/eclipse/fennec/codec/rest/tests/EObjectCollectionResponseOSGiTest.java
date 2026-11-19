@@ -26,6 +26,8 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
@@ -50,6 +52,7 @@ import org.osgi.test.junit5.service.ServiceExtension;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 
 /**
  * A resource method returning a {@code List} of EObjects is answered by the codec's collection
@@ -78,6 +81,24 @@ public class EObjectCollectionResponseOSGiTest {
 		@Produces(XMI)
 		public List<EObject> none() {
 			return List.of();
+		}
+
+		/**
+		 * A Response entity has no generic type: the EMF list class has to decide. The features of an
+		 * EClass are a plain EObjectContainmentWithInverseEList, as in generated code - unlike
+		 * EPackage.getEClassifiers(), an anonymous subclass that fixes its element type.
+		 */
+		@GET
+		@Path("features")
+		@Produces(XMI)
+		public Response features() {
+			EClass eClass = EcoreFactory.eINSTANCE.createEClass();
+			for (String name : List.of("first", "second")) {
+				EAttribute attribute = EcoreFactory.eINSTANCE.createEAttribute();
+				attribute.setName(name);
+				eClass.getEStructuralFeatures().add(attribute);
+			}
+			return Response.ok(eClass.getEStructuralFeatures()).build();
 		}
 
 		private static EPackage ePackage(String name) {
@@ -143,6 +164,16 @@ public class EObjectCollectionResponseOSGiTest {
 		HttpResponse<String> response = get(endpoint + "issue334/none");
 
 		assertEquals(200, response.statusCode(), response.body());
+	}
+
+	@Test
+	@DisplayName("an EMF list as Response entity is written by the codec, without a generic type")
+	void eListAsResponseEntity() throws Exception {
+		HttpResponse<String> response = get(endpoint + "issue334/features");
+
+		assertEquals(200, response.statusCode(), response.body());
+		assertTrue(response.body().contains("name=\"first\"") && response.body().contains("name=\"second\""),
+				response.body());
 	}
 
 	/** GETs the URI, retrying while the whiteboard has not yet picked up the resource (404). */
