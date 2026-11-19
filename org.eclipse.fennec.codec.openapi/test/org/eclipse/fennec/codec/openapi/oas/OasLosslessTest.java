@@ -72,14 +72,19 @@ class OasLosslessTest {
 	static Stream<String[]> descriptions() throws IOException {
 		Stream.Builder<String[]> all = Stream.builder();
 		try (Stream<Path> files = Files.walk(Path.of("test-data/oas"))) {
-			files.filter(p -> p.toString().endsWith(".json") || p.toString().endsWith(".yaml"))
-					.filter(p -> !p.toString().contains("/fail/")).sorted()
-					.forEach(p -> all.add(new String[] { p.toString(), version(p) }));
+			files.map(OasLosslessTest::slashed).filter(f -> f.endsWith(".json") || f.endsWith(".yaml"))
+					.filter(f -> !f.contains("/fail/")).sorted()
+					.forEach(f -> all.add(new String[] { f, version(Path.of(f)) }));
 		}
 		all.add(new String[] { "test-data/external/github-api.2022-11-28.json", "3.0" });
 		all.add(new String[] { "test-data/external/github-api.next.yaml", "3.1" });
 		all.add(new String[] { "test-data/external/openai-openapi.yaml", "3.1" });
 		return all.build();
+	}
+
+	/** The path with {@code /} as separator on every platform, for filters and test names. */
+	static String slashed(Path path) {
+		return path.toString().replace(path.getFileSystem().getSeparator(), "/");
 	}
 
 	/** The version of the directory {@code v3.x} the file lies in. */

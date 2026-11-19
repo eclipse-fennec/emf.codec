@@ -60,7 +60,7 @@ class OasValidationTest {
 
 	private static Stream<String> files(String part) throws IOException {
 		try (Stream<Path> files = Files.walk(Path.of("test-data/oas"))) {
-			return files.map(Path::toString).filter(f -> f.contains(part) && (f.endsWith(".yaml") || f.endsWith(".json")))
+			return files.map(OasLosslessTest::slashed).filter(f -> f.contains(part) && (f.endsWith(".yaml") || f.endsWith(".json")))
 					.sorted().toList().stream();
 		}
 	}
