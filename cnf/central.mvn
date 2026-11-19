@@ -41,7 +41,7 @@ tools.jackson.core:jackson-databind:3.3.0
 tools.jackson.dataformat:jackson-dataformat-cbor:3.3.0
 tools.jackson.dataformat:jackson-dataformat-yaml:3.3.0
 com.fasterxml.jackson.core:jackson-annotations:2.23
-org.snakeyaml:snakeyaml-engine:3.0.1
+org.snakeyaml:snakeyaml-engine:3.2
 
 
 org.slf4j:slf4j-simple:2.0.20
