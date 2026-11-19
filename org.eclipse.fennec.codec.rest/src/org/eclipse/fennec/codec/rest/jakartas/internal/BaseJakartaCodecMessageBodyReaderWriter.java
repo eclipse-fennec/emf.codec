@@ -98,6 +98,19 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 	public void writeResourceTo(Resource t, Class<?> type, Type genericType, Annotation[] annotations,
 			MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
 			throws IOException, WebApplicationException {
+		writeResourceTo(t, type, genericType, annotations, mediaType, httpHeaders, entityStream, Map.of());
+	}
+
+	/**
+	 * Writes the resource with save options the entity type itself requires, e.g. a collection
+	 * that must be an array (issue #334). They are applied last, over endpoint annotations and
+	 * client options: they describe the shape of the entity, not a preference.
+	 *
+	 * @param requiredOptions save options that must hold for this entity; never {@code null}
+	 */
+	protected void writeResourceTo(Resource t, Class<?> type, Type genericType, Annotation[] annotations,
+			MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream,
+			Map<String, Object> requiredOptions) throws IOException, WebApplicationException {
 		try {
 
 			String contentType = determinContentType(mediaType, annotations);
@@ -127,6 +140,7 @@ public abstract class BaseJakartaCodecMessageBodyReaderWriter<R, W> extends Abst
 			handleAnnotedOptions(annotations, options, resourceSet, true);
 			// Client-supplied (whitelisted) options win over endpoint annotations.
 			options.putAll(getClientCodecOptions());
+			options.putAll(requiredOptions);
 
 			try {
 				referenceResource.save(entityStream, options);

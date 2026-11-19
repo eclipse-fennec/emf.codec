@@ -19,6 +19,7 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -317,6 +318,13 @@ public class CodecResource extends ResourceImpl {
     @Override
     protected void doSave(OutputStream outputStream, Map<?, ?> options) throws IOException {
         if (getContents().isEmpty()) {
+            // A collection with no element is still a collection: an empty array, not an
+            // empty body (issue #334). Without the option nothing is written, as before.
+            if (isRootAsArray(mergeOptions(options))
+                    && (formatProvider == null || formatProvider.supportsArrayRoot())) {
+                writeEmptyArray(outputStream, options);
+                return;
+            }
             LOGGER.warning(() -> String.format("No content to save for resource %s", getURI()));
             return;
         }
@@ -409,17 +417,47 @@ public class CodecResource extends ResourceImpl {
                 writer = writer.withAttribute(ContextHelper.FEATURE_VALUE_WRITERS, valueWritersMap);
             }
 
-            if (getContents().size() == 1) {
+            if (!writesArrayRoot(effectiveOptions)) {
                 writer.writeValue(outputStream, rootObject);
             } else {
-                // For arrays, need to write each element
-                mapper.writeValue(outputStream, getContents().toArray(new EObject[0]));
+                // The array writer keeps the attributes set above; the plain mapper would
+                // drop the custom value writers for every element
+                writer.forType(EObject[].class).writeValue(outputStream, getContents().toArray(new EObject[0]));
             }
-        } else if (getContents().size() == 1) {
+        } else if (!writesArrayRoot(effectiveOptions)) {
             mapper.writeValue(outputStream, rootObject);
         } else {
             mapper.writeValue(outputStream, getContents().toArray(new EObject[0]));
         }
+    }
+
+    /** Whether the roots are written as an array: several of them, or the caller asks for one (issue #334). */
+    private boolean writesArrayRoot(Map<?, ?> options) {
+        return getContents().size() != 1 || isRootAsArray(options);
+    }
+
+    /** Reads {@link CodecOptions#CODEC_ROOT_AS_ARRAY}, which may arrive as a string with client options. */
+    private static boolean isRootAsArray(Map<?, ?> options) {
+        Object value = options != null ? options.get(CodecOptions.CODEC_ROOT_AS_ARRAY) : null;
+        return value != null && Boolean.parseBoolean(String.valueOf(value));
+    }
+
+    /**
+     * Writes an empty root array, for a resource without contents saved with
+     * {@link CodecOptions#CODEC_ROOT_AS_ARRAY}. No root means no package to configure a mapper
+     * from, and an empty array needs none - it is written directly to the stream or the format.
+     */
+    private void writeEmptyArray(OutputStream outputStream, Map<?, ?> options) throws IOException {
+        if (formatProvider == null) {
+            outputStream.write("[]".getBytes(StandardCharsets.UTF_8));
+            outputStream.flush();
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> effectiveOptions = (Map<String, Object>) mergeOptions(options);
+        ConfigurationResolver operationResolver = enrichWithOptions(resolver, effectiveOptions);
+        mapper = createObjectMapper(effectiveOptions, operationResolver, null, new DiagnosticCollector());
+        doSaveWithFormat(outputStream, effectiveOptions, operationResolver);
     }
 
     // ========================================================================
@@ -658,7 +696,7 @@ public class CodecResource extends ResourceImpl {
                 writer = writer.withAttribute(ContextHelper.FEATURE_VALUE_WRITERS, valueWritersMap);
             }
 
-            if (getContents().size() == 1) {
+            if (getContents().size() == 1 && (!isRootAsArray(effectiveOptions) || !provider.supportsArrayRoot())) {
                 writer.writeValue(gen, getContents().get(0));
             } else if (!provider.supportsArrayRoot()) {
                 throw new IOException(String.format(

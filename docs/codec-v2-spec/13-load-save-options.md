@@ -106,6 +106,13 @@ resource.getContents().add(person3);  // Third root object
 ]
 ```
 
+**Always an array** - save option `codec.rootAsArray` (`CodecOptions.CODEC_ROOT_AS_ARRAY`,
+`Boolean` or `"true"`, default `false`): the roots are written as an array whatever their number, one
+root as `[{...}]`, none as `[]`. Without it, one root is an object and no root writes nothing. For
+writers of a collection, whose reader expects an array regardless of its size - the REST collection
+writer sets it (issue #334). A format without array roots (`supportsArrayRoot() == false`, e.g. BSON)
+writes a single root as before and nothing for none.
+
 ### 2.4 Deserialization Behavior
 
 The deserializer automatically detects whether the root is an object or array:

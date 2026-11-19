@@ -28,6 +28,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.codec.config.ConfigurationResolver;
+import org.eclipse.fennec.codec.constants.CodecOptions;
 import org.eclipse.fennec.codec.util.MetadataServiceFactory;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
@@ -177,6 +178,63 @@ class CodecResourceArrayRootTest {
     // ========================================================================
     // Deserialization Tests
     // ========================================================================
+
+    /**
+     * {@code codec.rootAsArray}: a caller that writes a collection needs an array whatever its
+     * size - a one-element collection must not turn into an object, an empty one not into an
+     * empty body (issue #334).
+     */
+    @Nested
+    @DisplayName("Root as array option (#334)")
+    class RootAsArray {
+
+        @Test
+        @DisplayName("a single root is written as a one-element array")
+        void singleRoot() throws IOException {
+            CodecResource resource = createResource();
+            resource.getContents().add(createPerson("John Doe", 30));
+
+            String json = save(resource, Map.of(CodecOptions.CODEC_ROOT_AS_ARRAY, Boolean.TRUE));
+
+            assertTrue(json.startsWith("[") && json.endsWith("]"), json);
+            assertTrue(json.contains("\"name\":\"John Doe\""), json);
+        }
+
+        @Test
+        @DisplayName("no root is written as an empty array")
+        void noRoot() throws IOException {
+            assertEquals("[]", save(createResource(), Map.of(CodecOptions.CODEC_ROOT_AS_ARRAY, Boolean.TRUE)));
+        }
+
+        @Test
+        @DisplayName("the option is accepted as a string, as client options arrive")
+        void stringValue() throws IOException {
+            CodecResource resource = createResource();
+            resource.getContents().add(createPerson("John Doe", 30));
+
+            assertTrue(save(resource, Map.of(CodecOptions.CODEC_ROOT_AS_ARRAY, "true")).startsWith("["));
+        }
+
+        @Test
+        @DisplayName("a one-element array reads back as one root")
+        void roundTrip() throws IOException {
+            CodecResource resource = createResource();
+            resource.getContents().add(createPerson("John Doe", 30));
+            String json = save(resource, Map.of(CodecOptions.CODEC_ROOT_AS_ARRAY, Boolean.TRUE));
+
+            CodecResource loaded = createResource();
+            loaded.load(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), Map.of());
+
+            assertEquals(1, loaded.getContents().size());
+            assertEquals("John Doe", loaded.getContents().get(0).eGet(personClass.getEStructuralFeature("name")));
+        }
+
+        private String save(CodecResource resource, Map<String, Object> options) throws IOException {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            resource.save(out, options);
+            return out.toString(StandardCharsets.UTF_8).trim();
+        }
+    }
 
     @Nested
     @DisplayName("Deserialization")

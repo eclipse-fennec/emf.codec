@@ -2,7 +2,24 @@
 
 This document provides context for continuing codec development across sessions. It captures the goals, current state, and links to detailed architecture documentation.
 
-**Last Updated:** 2026-11-18
+**Last Updated:** 2026-11-19
+
+**Session Summary (2026-11-19, fix/334-collection-body-writer) — collections of EObjects in REST (#334):**
+
+- `EObjectCollectionMessageBodyHandler` (codec.rest): reader/writer for `Collection<? extends EObject>`,
+  selected by the generic element type only (raw collections are left to other providers). Writes the
+  elements as the roots of one document; elements with a resource are copied with one `Copier` (refs
+  between them stay in the document, xmi:ids kept), detached ones are borrowed live. Reads into
+  `ArrayList`/`LinkedHashSet`, typed by the element class.
+- New save option `codec.rootAsArray` (`CODEC_ROOT_AS_ARRAY`, spec 13 §2.3): array root for 0/1 roots too;
+  the REST writer forces it via the new `writeResourceTo(..., requiredOptions)`. Also fixed in passing: the
+  JSON array path with custom value writers used the bare mapper and dropped the writer attributes.
+- First HTTP end-to-end OSGi test (`EObjectCollectionResponseOSGiTest`): the rest.tests runtime now has
+  configadmin and `org.osgi.service.http.port=18334`; the test configures `JakartarsServletWhiteboardRuntimeComponent`.
+- Known, not from this change: 8 failing tests in `org.eclipse.fennec.codec.openapi:test` on `snapshot`
+  (OAS conformance test data: empty parameter sources, `fail/` documents).
+- Open: `removeAnnotationConverter` in `EObjectMessageBodyHandler` / `EMFResourceMessageBodyHandler` adds
+  instead of removes.
 
 **Session Summary (2026-11-18, issue-332-testosgi-silent-failures) — testOSGi without tests fails (#332):**
 
