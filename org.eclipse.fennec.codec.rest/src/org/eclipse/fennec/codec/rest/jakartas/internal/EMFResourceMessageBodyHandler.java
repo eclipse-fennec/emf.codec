@@ -149,6 +149,6 @@ public class EMFResourceMessageBodyHandler<R extends Resource, W extends Resourc
 	}
 
 	public void removeAnnotationConverter(AnnotationConverter converter) {
-		annotationConverters.add(converter);
+		annotationConverters.remove(converter);
 	}
 }

@@ -28,7 +28,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -103,13 +102,6 @@ public class EObjectCollectionMessageBodyHandler
 
 	@Context
 	private jakarta.inject.Provider<ContainerRequestContext> requestContextProvider;
-
-	/**
-	 * Default constructor, also used by the component runtime.
-	 */
-	public EObjectCollectionMessageBodyHandler() {
-		annotationConverters = new CopyOnWriteArrayList<>();
-	}
 
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
