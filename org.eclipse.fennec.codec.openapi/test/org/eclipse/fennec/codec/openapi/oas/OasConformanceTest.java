@@ -52,8 +52,8 @@ class OasConformanceTest {
 
 	static Stream<String> passDocuments() throws IOException {
 		try (Stream<Path> files = Files.walk(Path.of("test-data/oas/conformance"))) {
-			return files.filter(p -> p.toString().contains("/pass/") && p.toString().endsWith(".yaml"))
-					.map(Path::toString).sorted().toList().stream();
+			return files.map(OasLosslessTest::slashed).filter(f -> f.contains("/pass/") && f.endsWith(".yaml"))
+					.sorted().toList().stream();
 		}
 	}
 
