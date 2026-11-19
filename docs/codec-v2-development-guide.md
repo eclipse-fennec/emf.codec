@@ -4,7 +4,7 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-11-19
 
-**Session Summary (2026-11-19, issue#337-bson-5.14) — build tooling and dependency updates (#337-#341):**
+**Session Summary (2026-11-19, issue#337-bson-5.14) — build tooling, dependency updates, release scope (#337-#341, #343):**
 
 - bnd 7.2.1 → 7.5.0, Gradle 8.14.4 → 9.9.1 (no deprecation warnings). Local resolve now matches the bnd
   update action (also bnd 7.5.0); the jetty 5.0.4/5.0.6 drift noted for #332 is gone.
@@ -16,6 +16,9 @@ This document provides context for continuing codec development across sessions.
   A `-runblacklist.*` in `cnf/build.bnd` had no effect on the bndruns - set it in the bndrun.
 - snakeyaml-engine 3.2 still has the block scalar bug of #298: `BlankLineReader` stays.
 - Not touched: entries owned by bnd libraries (jakartarest, osgitest, common.models) - they change there.
+- #343: `examples` and the TCK (`codec.tests`) are `-maven-release: local` now and left `required.bndrun`;
+  the library loses junit/opentest4j as dependencies. A BOM project (as in emf.osgi) was tried and dropped:
+  bnd's `-pom` writes compile `<dependencies>`, no `dependencyManagement`/`packaging pom`.
 
 **Session Summary (2026-11-19, fix/334-collection-body-writer) — collections of EObjects in REST (#334):**
 
