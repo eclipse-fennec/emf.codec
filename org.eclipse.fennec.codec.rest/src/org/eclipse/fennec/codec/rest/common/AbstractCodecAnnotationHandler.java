@@ -14,9 +14,9 @@
 package org.eclipse.fennec.codec.rest.common;
 
 import java.lang.annotation.Annotation;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.URI;
@@ -38,7 +38,10 @@ import org.eclipse.fennec.codec.rest.annotations.json.RootElement;
  */
 public abstract class AbstractCodecAnnotationHandler {
 
-	protected List<AnnotationConverter> annotationConverters = new LinkedList<>();
+	/**
+	 * Bound and unbound dynamically while requests iterate it, hence copy-on-write.
+	 */
+	protected List<AnnotationConverter> annotationConverters = new CopyOnWriteArrayList<>();
 
 	/**
 	 * Reads the annotations for {@link EMFResourceOptions} and adds them to the

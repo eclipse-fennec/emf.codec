@@ -198,7 +198,7 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 	}
 
 	public void removeAnnotationConverter(AnnotationConverter converter) {
-		annotationConverters.add(converter);
+		annotationConverters.remove(converter);
 	}
 
 	@Override

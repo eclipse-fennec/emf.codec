@@ -22,8 +22,9 @@ This document provides context for continuing codec development across sessions.
   configadmin and `org.osgi.service.http.port=18334`; the test configures `JakartarsServletWhiteboardRuntimeComponent`.
 - Known, not from this change: 8 failing tests in `org.eclipse.fennec.codec.openapi:test` on `snapshot`
   (OAS conformance test data: empty parameter sources, `fail/` documents).
-- Open: `removeAnnotationConverter` in `EObjectMessageBodyHandler` / `EMFResourceMessageBodyHandler` adds
-  instead of removes.
+- Fixed in passing: `removeAnnotationConverter` in `EObjectMessageBodyHandler` / `EMFResourceMessageBodyHandler`
+  added instead of removed; `AbstractCodecAnnotationHandler.annotationConverters` is a `CopyOnWriteArrayList`
+  now (dynamic reference, iterated per request; not `final` - the package is exported).
 
 **Session Summary (2026-11-18, issue-332-testosgi-silent-failures) — testOSGi without tests fails (#332):**
 
