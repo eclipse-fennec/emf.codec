@@ -41,7 +41,8 @@ Further documentation:
 | `org.eclipse.fennec.codec.geojson` | GeoJSON codec extension |
 | `org.eclipse.fennec.codec.jsonschema` | JSON Schema codec extension |
 | `org.eclipse.fennec.codec.openapi` | OpenAPI codec extension |
-| `org.eclipse.fennec.codec.examples` | Usage examples |
+| `org.eclipse.fennec.codec.workspace.library` | bnd workspace library (`-library: fennecCodec`) |
+| `org.eclipse.fennec.codec.examples` | Usage examples (not published) |
 
 ## Branches & releases
 

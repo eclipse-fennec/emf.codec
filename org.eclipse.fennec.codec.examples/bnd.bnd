@@ -1,6 +1,9 @@
 Bundle-Name: Fennec Codec Examples
 Bundle-Description: Examples project for the Fennec EMF Codec
 
+# Usage examples - do not publish this bundle to Maven Central; local install only
+-maven-release: local
+
 -library: enableEMF
 
 -buildpath: \

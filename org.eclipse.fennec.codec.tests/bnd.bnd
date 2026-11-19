@@ -1,6 +1,9 @@
 Bundle-Name: Fennec Codec TCK
 Bundle-Description: Technology Compatibility Kit for Fennec EMF Codec format providers
 
+# TCK, consumed by the format provider tests of this workspace - do not publish this bundle to Maven Central; local install only
+-maven-release: local
+
 Export-Package: org.eclipse.fennec.codec.tests.tck;version=1.0.0
 
 -library: enableEMF

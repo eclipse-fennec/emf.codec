@@ -118,6 +118,12 @@ Notable artifacts published from this repository:
 * `org.eclipse.fennec.codec:org.eclipse.fennec.codec.api` — public configuration API
 * `org.eclipse.fennec.codec:org.eclipse.fennec.codec.metadata` — codec metadata aspects
 * `org.eclipse.fennec.codec:org.eclipse.fennec.codec.bson` / `.cbor` / `.yaml` / `.geojson` / `.jsonschema` / `.openapi` — format providers
+* `org.eclipse.fennec.codec:org.eclipse.fennec.codec.workspace.library` — bnd workspace library (`-library: fennecCodec`)
+
+Only what a consumer needs is published. Test projects (`*.tests`), the TCK (`org.eclipse.fennec.codec.tests`),
+`examples` and `playground` opt out with `-maven-release: local` in their `bnd.bnd`. Such a bundle must not be in
+`org.eclipse.fennec.codec.workspace.library/required.bndrun`: its `-runbundles` become the Maven dependencies of the
+library.
 
 ## Secrets
 
