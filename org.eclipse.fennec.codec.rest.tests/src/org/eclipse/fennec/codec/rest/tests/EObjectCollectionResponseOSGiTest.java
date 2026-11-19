@@ -37,6 +37,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -126,16 +127,39 @@ public class EObjectCollectionResponseOSGiTest {
 		config.put("jersey.context.path", "rest");
 		whiteboardConfiguration.update(config);
 
-		assertNotNull(runtime.waitForService(15_000), "the Jakarta RS whiteboard must start");
-		Object endpoints = runtime.getServiceReference()
-				.getProperty(JakartarsServiceRuntimeConstants.JAKARTA_RS_SERVICE_ENDPOINT);
-		String first = endpoints instanceof String[] array ? array[0] : String.valueOf(endpoints);
-		endpoint = first.endsWith("/") ? first : first + "/";
-
 		Dictionary<String, Object> props = new Hashtable<>();
 		props.put(JakartarsWhiteboardConstants.JAKARTA_RS_RESOURCE, Boolean.TRUE);
 		props.put(JakartarsWhiteboardConstants.JAKARTA_RS_NAME, "issue334");
 		registration = ctx.registerService(Object.class, new PackagesResource(), props);
+		ServiceReference<JakartarsServiceRuntime> runtimeRef = awaitStableRuntime(runtime);
+		Object endpoints = runtimeRef.getProperty(JakartarsServiceRuntimeConstants.JAKARTA_RS_SERVICE_ENDPOINT);
+		String first = endpoints instanceof String[] array ? array[0] : String.valueOf(endpoints);
+		endpoint = first.endsWith("/") ? first : first + "/";
+	}
+
+	/**
+	 * Waits until the whiteboard has stopped reconfiguring: every change - the resource, the codec's
+	 * extensions arriving - makes it rebuild the Jersey application, and a request during a rebuild
+	 * hits the old, shut-down one with a 500 that no provider of this test has a part in.
+	 */
+	private static ServiceReference<JakartarsServiceRuntime> awaitStableRuntime(
+			ServiceAware<JakartarsServiceRuntime> runtime) throws InterruptedException {
+		long deadline = System.currentTimeMillis() + 15_000;
+		Object lastCount = null;
+		long stableSince = System.currentTimeMillis();
+		while (System.currentTimeMillis() < deadline) {
+			// The runtime itself is replaced when the whiteboard restarts: no service is no rest
+			ServiceReference<JakartarsServiceRuntime> ref = runtime.getServiceReference();
+			Object count = ref == null ? null : ref.getProperty("service.id") + "/" + ref.getProperty("service.changecount");
+			if (count == null || !count.equals(lastCount)) {
+				lastCount = count;
+				stableSince = System.currentTimeMillis();
+			} else if (System.currentTimeMillis() - stableSince >= 1_000) {
+				return ref;
+			}
+			Thread.sleep(50);
+		}
+		throw new AssertionError("the Jakarta RS whiteboard did not settle within 15s");
 	}
 
 	@AfterEach
@@ -176,7 +200,10 @@ public class EObjectCollectionResponseOSGiTest {
 				response.body());
 	}
 
-	/** GETs the URI, retrying while the whiteboard has not yet picked up the resource (404). */
+	/**
+	 * GETs the URI, retrying while the whiteboard is not ready: 404 before it picked up the resource,
+	 * 5xx while it rebuilds the application. A real failure still fails, once the deadline is over.
+	 */
 	private static HttpResponse<String> get(String uri) throws Exception {
 		HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 		HttpRequest request = HttpRequest.newBuilder(URI.create(uri)).header("Accept", XMI).GET().build();
@@ -189,7 +216,7 @@ public class EObjectCollectionResponseOSGiTest {
 				// the HTTP runtime is still starting
 				response = null;
 			}
-			if (response != null && response.statusCode() != 404) {
+			if (response != null && response.statusCode() != 404 && response.statusCode() < 500) {
 				return response;
 			}
 			Thread.sleep(100);
