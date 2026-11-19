@@ -4,6 +4,19 @@ This document provides context for continuing codec development across sessions.
 
 **Last Updated:** 2026-11-19
 
+**Session Summary (2026-11-19, issue#337-bson-5.14) — build tooling and dependency updates (#337-#341):**
+
+- bnd 7.2.1 → 7.5.0, Gradle 8.14.4 → 9.9.1 (no deprecation warnings). Local resolve now matches the bnd
+  update action (also bnd 7.5.0); the jetty 5.0.4/5.0.6 drift noted for #332 is gone.
+- `cnf/central.mvn`: bson 5.14.0, commons-io 2.22.0, fastcsv 4.4.1, collections4 4.6.0, configadmin 1.10.0,
+  gogo.runtime 1.2.0, felix.http.jetty 5.2.6, org.eclipse.osgi 3.24.300, felix.framework 8.0.0,
+  http.servlet-api 6.1.0, slf4j 2.0.20, snakeyaml-engine 3.2; `osgi.annotation` 7.0.0 dropped (8.1.0 stays).
+- The resolver prefers the jakartarest library index (jetty 5.0.4, slf4j 1.7.36) where nothing forces more.
+  jetty 5.2.6 needs slf4j 2; `rest.tests` blacklists jetty < 5.2.6 so it tests what `required.bndrun` ships.
+  A `-runblacklist.*` in `cnf/build.bnd` had no effect on the bndruns - set it in the bndrun.
+- snakeyaml-engine 3.2 still has the block scalar bug of #298: `BlankLineReader` stays.
+- Not touched: entries owned by bnd libraries (jakartarest, osgitest, common.models) - they change there.
+
 **Session Summary (2026-11-19, fix/334-collection-body-writer) — collections of EObjects in REST (#334):**
 
 - `EObjectCollectionMessageBodyHandler` (codec.rest): reader/writer for `Collection<? extends EObject>`,
@@ -35,7 +48,8 @@ This document provides context for continuing codec development across sessions.
   `outputBndrun`); the committed `-runbundles` of `test.bndrun` are for the IDE only and had drifted.
   Synced once. In-place `resolve.<name>` tasks are UP-TO-DATE when only the indexes changed: use
   `--rerun`.
-- Open: the bnd update action (bnd 7.5.0) resolves felix.http.jetty 5.0.4, local bnd 7.2.1 keeps 5.0.6.
+- ~~Open: the bnd update action (bnd 7.5.0) resolves felix.http.jetty 5.0.4, local bnd 7.2.1 keeps 5.0.6.~~
+  Resolved with bnd 7.5.0 locally (#338-#340).
 
 **Session Summary (2026-11-18, issue-330-prune-central-index) — local Maven index pruned (#330):**
 
